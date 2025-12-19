@@ -7,6 +7,7 @@ import {
   DataProtectionPolicy,
   FilterPattern,
   LogGroup,
+  RetentionDays,
 } from "aws-cdk-lib/aws-logs"
 import { CfnTransactionSearchConfig } from "aws-cdk-lib/aws-xray"
 import { Construct } from "constructs"
@@ -104,7 +105,7 @@ export class LogGroupsStack extends Stack {
       "TransactionSearchSpans",
       {
         logGroupName: "aws/spans",
-        retention: 30,
+        retention: RetentionDays.THREE_YEARS,
       },
     )
 
@@ -113,7 +114,7 @@ export class LogGroupsStack extends Stack {
       "ApplicationSignalsData",
       {
         logGroupName: "/aws/application-signals/data",
-        retention: 30,
+        retention: RetentionDays.THREE_YEARS,
       },
     )
 
