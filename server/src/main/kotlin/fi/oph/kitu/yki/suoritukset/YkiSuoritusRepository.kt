@@ -3,6 +3,15 @@ package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.SortDirection
 import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.yki.KituArviointitila
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.buildSql
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.pagingQuery
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectArvosanat
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectQuery
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectSuoritukset
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectTarkistusarviointiAgg
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectYkiSuoritusEntity
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.whereSearchMatches
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.withCtes
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.BatchPreparedStatementSetter
@@ -150,31 +159,10 @@ class YkiSuoritusRepository {
         return jdbcTemplate.query(findSavedQuerySql, YkiSuoritusEntity.fromRow)
     }
 
-    private fun selectQuery(
-        distinct: Boolean,
-        columns: String = allColumns,
-    ): String = if (distinct) "SELECT DISTINCT ON (yki_suoritus.suoritus_id) $columns" else "SELECT $columns"
-
     private val fromYkiSuoritus =
         """
         FROM yki_suoritus 
         LEFT JOIN yki_suoritus_lisatieto ON yki_suoritus.suoritus_id = yki_suoritus_lisatieto.suoritus_id
-        """.trimIndent()
-
-    private fun pagingQuery(
-        limit: Int?,
-        offset: Int?,
-    ): String = if (limit != null && offset != null) "LIMIT :limit OFFSET :offset" else ""
-
-    private fun whereQuery(): String =
-        """
-        WHERE suorittajan_oid ILIKE :search_str 
-            OR etunimet ILIKE :search_str
-            OR sukunimi ILIKE :search_str
-            OR email ILIKE :search_str
-            OR hetu ILIKE :search_str
-            OR jarjestajan_tunnus_oid ILIKE :search_str 
-            OR jarjestajan_nimi ILIKE :search_str
         """.trimIndent()
 
     fun find(
@@ -187,15 +175,12 @@ class YkiSuoritusRepository {
     ): Iterable<YkiSuoritusEntity> {
         val searchStr = "%$searchBy%"
         val findAllQuerySql =
-            """
-            SELECT * FROM
-                (${selectQuery(distinct)}
-                $fromYkiSuoritus
-                ${whereQuery()}
-                ORDER BY suoritus_id, last_modified DESC)
-            ORDER BY ${column.entityName} $direction
-            ${pagingQuery(limit, offset)}
-            """.trimIndent()
+            selectSuoritukset(
+                distinct,
+                whereSearchMatches("search_str"),
+                "ORDER BY ${column.entityName} $direction",
+                pagingQuery(limit, offset),
+            )
 
         val params =
             mapOf(
@@ -208,28 +193,14 @@ class YkiSuoritusRepository {
     }
 
     fun findSuorituksetWithNoKoskiopiskeluoikeus(): Iterable<YkiSuoritusEntity> {
-        val sql =
-            """
-            SELECT * FROM
-                (SELECT DISTINCT ON (suoritus_id) $allColumns
-                $fromYkiSuoritus
-                ORDER BY suoritus_id, last_modified DESC) as ysaC
-            WHERE NOT koski_siirto_kasitelty
-            """.trimIndent()
+        val sql = selectSuoritukset(viimeisin = true, "WHERE NOT koski_siirto_kasitelty")
         return jdbcNamedParameterTemplate.query(sql, YkiSuoritusEntity.fromRow)
     }
 
     fun findTarkistusarvoidutSuoritukset(): Iterable<YkiSuoritusEntity> =
         jdbcTemplate
             .query(
-                """
-                SELECT * FROM
-                    (SELECT DISTINCT ON (suoritus_id) $allColumns
-                    $fromYkiSuoritus
-                    ORDER BY suoritus_id, last_modified DESC) as ysaC
-                WHERE arviointitila = ?
-                   OR arviointitila = ?
-                """.trimIndent(),
+                selectSuoritukset(viimeisin = true, "WHERE arviointitila = ? OR arviointitila = ?"),
                 YkiSuoritusEntity.fromRow,
                 KituArviointitila.TARKISTUSARVIOITU.name,
                 KituArviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY.name,
@@ -274,7 +245,7 @@ class YkiSuoritusRepository {
         return jdbcTemplate.update(
             """
             INSERT INTO yki_suoritus_lisatieto (suoritus_id, tarkistusarviointi_hyvaksytty_pvm)
-                VALUES ${suoritusIds.joinToString(",") { "(?, ?)"}}
+                VALUES ${suoritusIds.joinToString(",") { "(?, ?)" }}
             ON CONFLICT ON CONSTRAINT yki_suoritus_lisatieto_pkey
                 DO UPDATE SET
                     tarkistusarviointi_hyvaksytty_pvm = EXCLUDED.tarkistusarviointi_hyvaksytty_pvm
@@ -288,13 +259,16 @@ class YkiSuoritusRepository {
         distinct: Boolean = true,
     ): Long {
         val sql =
-            """
-            SELECT COUNT(id) FROM
-                (${selectQuery(distinct, "id")}
-                $fromYkiSuoritus
-                ${whereQuery()}
-                ORDER BY yki_suoritus.suoritus_id)
-            """.trimIndent()
+            if (searchBy.isEmpty()) {
+                ""
+            } else {
+                buildSql(
+                    withCtes("viimeisin_suoritus" to selectSuoritukset(viimeisin = distinct, whereSearchMatches())),
+                    """
+            SELECT COUNT(*) FROM viimeisin_suoritus
+            """,
+                )
+            }
         val searchStr = "%$searchBy%"
         val params =
             mapOf(
@@ -310,19 +284,7 @@ class YkiSuoritusRepository {
 
     fun findLatestBySuoritusIdsUnsafe(ids: List<Int>): List<YkiSuoritusEntity> =
         jdbcNamedParameterTemplate.query(
-            """
-        WITH suoritus AS (
-            SELECT
-                *,
-                row_number() OVER (PARTITION BY yki_suoritus.suoritus_id ORDER BY last_modified DESC) rn
-            $fromYkiSuoritus
-            WHERE yki_suoritus.suoritus_id IN (:ids) 
-            ORDER BY last_modified DESC
-        )
-        SELECT *
-        FROM suoritus
-        WHERE rn = 1
-        """,
+            selectSuoritukset(viimeisin = true, "WHERE yki_suoritus.suoritus_id IN (:ids)"),
             mapOf("ids" to ids),
             YkiSuoritusEntity.fromRow,
         )
@@ -409,23 +371,34 @@ class YkiSuoritusRepository {
 
     fun findAll(): List<YkiSuoritusEntity> =
         jdbcTemplate.query(
-            "SELECT * $fromYkiSuoritus",
+            buildSql(
+                withCtes(
+                    "arvosana" to selectArvosanat(),
+                    "tarkistusarviointi_agg" to selectTarkistusarviointiAgg(),
+                ),
+                selectYkiSuoritusEntity(
+                    ykiSuoritusTable = "yki_suoritus",
+                    arvosanaTable = "arvosana",
+                    tarkistusarvointiAggregationTable = "tarkistusarviointi_agg",
+                ),
+            ),
             YkiSuoritusEntity.fromRow,
         )
 
     fun findSuorituksetWithUnsentArvioinninTila(): List<YkiSuoritusEntity> =
         jdbcTemplate
             .query(
-                """
-                    ${selectQuery(distinct = true)}
-                    $fromYkiSuoritus
-                WHERE
-                    arviointitila_lahetetty IS NULL
-                    OR arviointitila_lahetetty < last_modified
-                ORDER BY
-                    yki_suoritus.suoritus_id,
-                    last_modified DESC
-                """.trimIndent(),
+                buildSql(
+                    selectSuoritukset(viimeisin = true),
+                    """
+                        WHERE
+                            arviointitila_lahetetty IS NULL
+                            OR arviointitila_lahetetty < last_modified
+                        ORDER BY
+                            yki_suoritus.suoritus_id,
+                            last_modified DESC 
+                    """,
+                ),
                 YkiSuoritusEntity.fromRow,
             )
 
@@ -502,4 +475,120 @@ class YkiSuoritusRepository {
         ps.setBoolean(32, suoritus.koskiSiirtoKasitelty ?: false)
         ps.setString(33, suoritus.arviointitila.toString())
     }
+}
+
+object YkiSuoritusSql {
+    fun buildSql(vararg parts: String?) = parts.filterNotNull().joinToString("\n").trimIndent()
+
+    fun selectSuoritukset(
+        viimeisin: Boolean,
+        vararg conditions: String?,
+    ) = buildSql(
+        withCtes(
+            "suoritus" to selectRootSuoritukset(viimeisin),
+            "arvosana" to selectArvosanat(),
+            "tarkistusarviointi_agg" to selectTarkistusarviointiAgg(),
+        ),
+        selectYkiSuoritusEntity(
+            ykiSuoritusTable = "suoritus",
+            arvosanaTable = "arvosana",
+            tarkistusarvointiAggregationTable = "tarkistusarviointi_agg",
+        ),
+        *conditions,
+    )
+
+    fun selectRootSuoritukset(viimeisin: Boolean = true) =
+        """
+        ${selectQuery(viimeisin)}
+        FROM yki_suoritus
+        ORDER BY
+            suoritus_id,
+            last_modified DESC
+        """.trimIndent()
+
+    fun selectArvosanat(ykiSuoritusTable: String = "yki_suoritus") =
+        """
+        SELECT
+            yki_suoritus.id as suoritus_id,
+            max(arviointipaiva) AS arviointipaiva,
+            max(arvosana) FILTER (WHERE tyyppi = 'PU') AS puhuminen,
+            max(arvosana) FILTER (WHERE tyyppi = 'KI') AS kirjoittaminen,
+            max(arvosana) FILTER (WHERE tyyppi = 'TY') AS tekstin_ymmartaminen,
+            max(arvosana) FILTER (WHERE tyyppi = 'PY') AS puheen_ymmartaminen,
+            max(arvosana) FILTER (WHERE tyyppi = 'RS') AS rakenteet_ja_sanasto,
+            max(arvosana) FILTER (WHERE tyyppi = 'YL') AS yleisarvosana
+        FROM
+            $ykiSuoritusTable AS yki_suoritus
+            JOIN yki_osakoe ON yki_suoritus.id = yki_osakoe.suoritus_id
+        GROUP BY
+            yki_suoritus.id
+        """.trimIndent()
+
+    fun selectTarkistusarviointiAgg(ykiSuoritusTable: String = "yki_suoritus") =
+        """
+        SELECT
+            yki_suoritus.id AS suoritus_id,
+            yki_osakoe_tarkistusarviointi.tarkistusarviointi_id,
+            array_agg(yki_osakoe.tyyppi) AS tarkistusarvioidut_osakokeet,
+            array_agg(yki_osakoe.tyyppi) FILTER (WHERE arvosana_muuttui) AS arvosana_muuttui
+        FROM
+            $ykiSuoritusTable AS yki_suoritus
+            LEFT JOIN yki_osakoe ON yki_osakoe.suoritus_id = yki_suoritus.id
+            LEFT JOIN yki_osakoe_tarkistusarviointi ON yki_osakoe.id = yki_osakoe_tarkistusarviointi.osakoe_id
+        WHERE
+            tarkistusarviointi_id IS NOT NULL
+        GROUP BY
+            yki_suoritus.id,
+            yki_osakoe_tarkistusarviointi.tarkistusarviointi_id
+        """.trimIndent()
+
+    fun selectYkiSuoritusEntity(
+        ykiSuoritusTable: String,
+        arvosanaTable: String,
+        tarkistusarvointiAggregationTable: String,
+    ) = """
+        SELECT
+                yki_suoritus.*,
+                arvosana.*,
+                yki_suoritus_lisatieto.arviointitila_lahetetty,
+                tarkistusarviointi_agg.tarkistusarvioidut_osakokeet,
+                tarkistusarviointi_agg.arvosana_muuttui,
+                yki_tarkistusarviointi.asiatunnus as tarkistusarvioinnin_asiatunnus,
+                yki_tarkistusarviointi.saapumispaiva as tarkistusarvioinnin_saapumis_pvm,
+                yki_tarkistusarviointi.kasittelypaiva as tarkistusarvioinnin_kasittely_pvm,
+                yki_tarkistusarviointi.hyvaksymispaiva as tarkistusarviointi_hyvaksytty_pvm,
+                yki_tarkistusarviointi.perustelu
+            FROM
+                $ykiSuoritusTable AS yki_suoritus
+                LEFT JOIN $arvosanaTable AS arvosana ON arvosana.suoritus_id = yki_suoritus.id
+                LEFT JOIN $tarkistusarvointiAggregationTable AS tarkistusarviointi_agg ON tarkistusarviointi_agg.suoritus_id = yki_suoritus.id
+                LEFT JOIN yki_tarkistusarviointi ON yki_tarkistusarviointi.id = tarkistusarviointi_agg.tarkistusarviointi_id
+                LEFT JOIN yki_suoritus_lisatieto ON yki_suoritus.suoritus_id = yki_suoritus_lisatieto.suoritus_id
+        """.trimIndent()
+
+    fun selectQuery(
+        distinct: Boolean,
+        columns: String = "*",
+    ): String = if (distinct) "SELECT DISTINCT ON (yki_suoritus.suoritus_id) $columns" else "SELECT $columns"
+
+    fun pagingQuery(
+        limit: Int?,
+        offset: Int?,
+    ): String = if (limit != null && offset != null) "LIMIT :limit OFFSET :offset" else ""
+
+    fun whereSearchMatches(paramName: String = "search_str"): String =
+        """
+        WHERE suorittajan_oid ILIKE :$paramName 
+            OR etunimet ILIKE :$paramName
+            OR sukunimi ILIKE :$paramName
+            OR email ILIKE :$paramName
+            OR hetu ILIKE :$paramName
+            OR jarjestajan_tunnus_oid ILIKE :$paramName 
+            OR jarjestajan_nimi ILIKE :$paramName
+        """.trimIndent()
+
+    fun withCtes(vararg ctes: Pair<String, String>) =
+        """
+        WITH ${ctes.joinToString(",\n") { "${it.first} AS (${it.second})" }}
+        """.trimIndent()
 }
