@@ -1,0 +1,14 @@
+name: "Shai-hulud Detector"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  shaihulud-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gensecaihq/Shai-Hulud-2.0-Detector@v2

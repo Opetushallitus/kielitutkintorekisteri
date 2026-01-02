@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 *.log
 
+
 local.properties
 
 ### STS ###
@@ -36,6 +37,9 @@ build/
 
 # VIM
 [._]*.un~
+
+# For vibers
+.claude/
 
 # For Prettier specifically
 cdk.out/
