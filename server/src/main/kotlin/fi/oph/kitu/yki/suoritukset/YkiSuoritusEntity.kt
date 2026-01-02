@@ -77,6 +77,16 @@ data class YkiSuoritusEntity(
                 null
             }
 
+    fun osakokeet(): List<Osakoe> =
+        listOfNotNull(
+            puhuminen?.let { Osakoe(TutkinnonOsa.PU, it, arviointipaiva) },
+            kirjoittaminen?.let { Osakoe(TutkinnonOsa.KI, it, arviointipaiva) },
+            tekstinYmmartaminen?.let { Osakoe(TutkinnonOsa.TY, it, arviointipaiva) },
+            puheenYmmartaminen?.let { Osakoe(TutkinnonOsa.PY, it, arviointipaiva) },
+            rakenteetJaSanasto?.let { Osakoe(TutkinnonOsa.RS, it, arviointipaiva) },
+            yleisarvosana?.let { Osakoe(TutkinnonOsa.YL, it, arviointipaiva) },
+        )
+
     companion object {
         val fromRow: RowMapper<YkiSuoritusEntity> =
             RowMapper { rs, _ ->
@@ -124,3 +134,9 @@ data class YkiSuoritusEntity(
             }
     }
 }
+
+data class Osakoe(
+    val tyyppi: TutkinnonOsa,
+    val arvosana: Int?,
+    val arviointipaiva: LocalDate?,
+)
