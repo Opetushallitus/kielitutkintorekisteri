@@ -68,12 +68,11 @@ WHERE yleisarvosana IS NOT NULL;
 
 CREATE TABLE yki_tarkistusarviointi
 (
-    id              integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    saapumispaiva   date NOT NULL,
-    kasittelypaiva  date,
-    hyvaksymispaiva date,
-    asiatunnus      text NOT NULL,
-    perustelu       text
+    id             integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    saapumispaiva  date NOT NULL,
+    kasittelypaiva date,
+    asiatunnus     text NOT NULL,
+    perustelu      text
 );
 
 CREATE TABLE yki_osakoe_tarkistusarviointi
@@ -83,22 +82,17 @@ CREATE TABLE yki_osakoe_tarkistusarviointi
     arvosana_muuttui      boolean
 );
 
-WITH tarkistusarviointi AS (SELECT *
-                            FROM yki_suoritus
-                                     LEFT JOIN yki_suoritus_lisatieto
-                                               ON yki_suoritus.id = yki_suoritus_lisatieto.suoritus_id
-                            WHERE tarkistusarvioinnin_asiatunnus IS NOT NULL),
-     tarkistusarviointi_row AS (
-         INSERT INTO yki_tarkistusarviointi (saapumispaiva, kasittelypaiva, hyvaksymispaiva, asiatunnus, perustelu)
-             SELECT tarkistusarvioinnin_saapumis_pvm,
-                    tarkistusarvioinnin_kasittely_pvm,
-                    tarkistusarviointi_hyvaksytty_pvm,
-                    tarkistusarvioinnin_asiatunnus,
-                    perustelu
-             FROM tarkistusarviointi
-             RETURNING
-                 id AS tarkistusarviointi_id,
-                 asiatunnus)
+WITH tarkistusarviointi_row AS (
+    INSERT INTO yki_tarkistusarviointi (saapumispaiva, kasittelypaiva, asiatunnus, perustelu)
+        SELECT tarkistusarvioinnin_saapumis_pvm,
+               tarkistusarvioinnin_kasittely_pvm,
+               tarkistusarvioinnin_asiatunnus,
+               perustelu
+        FROM yki_suoritus
+        WHERE tarkistusarvioinnin_asiatunnus IS NOT NULL
+        RETURNING
+            id AS tarkistusarviointi_id,
+            asiatunnus)
 INSERT
 INTO yki_osakoe_tarkistusarviointi (osakoe_id, tarkistusarviointi_id, arvosana_muuttui)
 SELECT yki_osakoe.id,
@@ -123,6 +117,3 @@ ALTER TABLE "yki_suoritus"
     DROP COLUMN "tarkistusarvioinnin_kasittely_pvm",
     DROP COLUMN "tarkistusarvioidut_osakokeet",
     DROP COLUMN "arvosana_muuttui";
-
-ALTER TABLE "yki_suoritus_lisatieto"
-    DROP COLUMN "tarkistusarviointi_hyvaksytty_pvm";
