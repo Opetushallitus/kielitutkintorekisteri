@@ -101,6 +101,8 @@ Each domain typically contains its own `*ApiController`, `*ViewController` (serv
 
 `main` pushes auto-deploy through `.github/workflows/build.yml`: server/e2e/lint run in parallel → image is built and pushed to the `Util` account ECR → then `Dev` → `Test` → `Prod` via `_deploy-env.yml`. Three AWS accounts per README: dev `682033502734`, test `961341546901`, prod `515966535475`; shared utility account `961341524988`.
 
+**Renovate ja `infra/package-lock.json`:** Renovate ei osaa päivittää lockia `aws-cdk-lib`ille (ainoa `bundleDependencies`-riippuvuus), vaan jättää `renovate/artifacts`-statuksen punaiseksi ja avaa PR:n jossa on muuttunut **vain `infra/package.json`**. Kerran desynkatussa puussa myös `aws-cdk`-nostot epäonnistuvat samalla tavalla, ja `npm ci` kaatuu vasta mainissa. `^`-alueelliset riippuvuudet (aws-sdk-js-v3 yms.) eivät kärsi tästä, koska Renovate päivittää niiden lockin omalla `updateLockedDependency`-koodillaan ajamatta npm:ää lainkaan. Kolme toisiaan täydentävää suojaa, joista mikään ei yksin riitä: `skipInstalls: false` (täysi `npm install` `--package-lock-only`:n sijaan, jolloin niputetut riippuvuudet resolvoituvat), `platformAutomerge: false` (Renovate mergeää vasta kun **jokainen** tarkistus on vihreä — GitHubin oma automerge odottaa vain _pakollisia_) ja `Infra lockfile in sync` -työ pakollisena tarkistuksena repon rulesetissä. **Älä lisää `renovate/artifacts`ia pakolliseksi tarkistukseksi** — ihmisten PR:t eivät koskaan saa sitä ja jäisivät ikuisesti jumiin.
+
 ## Conventions
 
 - **Language**: user-facing text, commit messages, and PR titles are in Finnish. Kotlin/TS identifiers are Finnish/English mix following existing usage in the touched package — follow the surrounding file.
