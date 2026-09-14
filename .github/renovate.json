@@ -2,6 +2,8 @@
   "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
   "lockFileMaintenance": { "enabled": true },
   "postUpdateOptions": ["npmDedupe"],
+  "skipInstalls": false,
+  "platformAutomerge": false,
   "minimumReleaseAge": "3 days",
   "packageRules": [
     {
