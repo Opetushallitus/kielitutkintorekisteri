@@ -8,6 +8,7 @@ import fi.oph.kitu.html.input
 import fi.oph.kitu.html.modal
 import fi.oph.kitu.html.modalCommandButton
 import fi.oph.kitu.html.submitButton
+import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
@@ -31,6 +32,10 @@ fun FlowContent.tableFilterDialog(
             footer {
                 fieldSet(classes = "grid") {
                     submitButton(UiText.Filter.rajaa.toString())
+                    modalCommandButton(modalId, ModalCommand.CLOSE, classes = "secondary") {
+                        testId("peruutaRajaus")
+                        +UiText.Filter.peruuta.toString()
+                    }
                 }
             }
         }

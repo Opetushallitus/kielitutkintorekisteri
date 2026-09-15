@@ -22,4 +22,8 @@ export class YkiSuorituksetFilterDialog {
   async submit() {
     await this.modal.getByRole("button", { name: "Rajaa" }).click()
   }
+
+  async cancel() {
+    await this.modal.getByTestId("peruutaRajaus").click()
+  }
 }
