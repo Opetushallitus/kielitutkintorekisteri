@@ -109,6 +109,33 @@ describe("Yleisen kielitutkinnon arvioijan muokkaus", () => {
     )
   })
 
+  test("passivoinnin vahvistusdialogin voi sulkea peruuttamalla", async ({
+    indexPage,
+    ykiArvioijaLomakePage,
+  }) => {
+    const page = ykiArvioijaLomakePage.page
+    await indexPage.login()
+
+    await ykiArvioijaLomakePage.open()
+    await ykiArvioijaLomakePage.haeOppijanumerolla(PETRO)
+    await ykiArvioijaLomakePage.asetaKaudenAlkupaiva(isoPaiva(1))
+    await ykiArvioijaLomakePage.valitseArviointioikeus("FIN", "PT")
+    await ykiArvioijaLomakePage.tallenna()
+
+    const dialogi = page.getByTestId("passivoiArvioijaDialog")
+    await page.getByTestId("passivoiArvioija").click()
+    await expect(dialogi).toBeVisible()
+
+    await page.getByRole("button", { name: "Peruuta" }).click()
+
+    // Peruutus sulkee dialogin eikä passivoi: nappi jää käytettäväksi.
+    await expect(dialogi).toBeHidden()
+    await expect(page.getByTestId("passivoiArvioija")).not.toHaveAttribute(
+      "aria-disabled",
+      "true",
+    )
+  })
+
   test("muokkauksen voi peruuttaa palaamatta tallentamiseen", async ({
     indexPage,
     ykiArvioijaLomakePage,
