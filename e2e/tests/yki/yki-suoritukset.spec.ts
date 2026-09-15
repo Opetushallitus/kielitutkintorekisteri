@@ -61,6 +61,23 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(suoritukset).toHaveCount(4)
   })
 
+  test("filter dialog can be cancelled without applying the filter", async ({
+    indexPage,
+    ykiSuorituksetPage,
+  }) => {
+    await indexPage.open()
+    await ykiSuorituksetPage.openFromNavigation()
+
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await expect(dialog.modal).toBeVisible()
+    await dialog.setVersionHistory(true)
+    await dialog.cancel()
+
+    // Peruutus sulkee dialogin eikä rajaa listaa: versiohistoria jää pois.
+    await expect(dialog.modal).toBeHidden()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(3)
+  })
+
   test("yki suoritukset search", async ({ indexPage, ykiSuorituksetPage }) => {
     await indexPage.open()
     await ykiSuorituksetPage.openFromNavigation()
