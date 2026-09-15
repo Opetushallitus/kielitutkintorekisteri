@@ -73,7 +73,7 @@ jobs:
       # doesn't fail the workflow run (and trigger a Slack false alarm).
       - name: Update dependency graph (attempt 1/3)
         id: submit1
-        uses: advanced-security/maven-dependency-submission-action@b275d12641ac2d2108b2cbb7598b154ad2f2cee8 # v5.0.0
+        uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c # v6.0.1
         continue-on-error: true
         with:
           directory: server
@@ -84,7 +84,7 @@ jobs:
       - name: Update dependency graph (attempt 2/3)
         id: submit2
         if: steps.submit1.outcome == 'failure'
-        uses: advanced-security/maven-dependency-submission-action@b275d12641ac2d2108b2cbb7598b154ad2f2cee8 # v5.0.0
+        uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c # v6.0.1
         continue-on-error: true
         with:
           directory: server
@@ -95,7 +95,7 @@ jobs:
       - name: Update dependency graph (attempt 3/3)
         id: submit3
         if: steps.submit2.outcome == 'failure'
-        uses: advanced-security/maven-dependency-submission-action@b275d12641ac2d2108b2cbb7598b154ad2f2cee8 # v5.0.0
+        uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c # v6.0.1
         continue-on-error: true
         with:
           directory: server
