@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 
 @Controller
 @RequestMapping("/koto-tehtavapankki", produces = ["text/html"])
@@ -48,7 +49,7 @@ class TehtavapankkiViewController(
         @PathVariable id: Int,
     ): ResponseEntity<String> {
         Span.current().setAttribute("paketti.id", id.toLong())
-        val paketti = tehtavapankkiRepository.findPakettiById(id) ?: return ResponseEntity.notFound().build()
+        val paketti = tehtavapankkiRepository.findPakettiById(id) ?: throw TehtavapankkiNotFoundError()
         val ryhmat = tehtavapankkiRepository.findRyhmatByPakettiId(id)
         val tehtavat = tehtavapankkiRepository.findTehtavatByPakettiId(id)
         val tehtavaIds = tehtavat.mapNotNull { it.id }
@@ -71,7 +72,10 @@ class TehtavapankkiViewController(
     fun downloadRedirect(
         @RequestParam key: String,
     ): ResponseEntity<Void> {
-        val url = tehtavapankkiService.getTemporaryDownloadUrl(key) ?: return ResponseEntity.notFound().build()
+        val url = tehtavapankkiService.getTemporaryDownloadUrl(key) ?: throw TehtavapankkiNotFoundError()
         return ResponseEntity.status(HttpStatus.FOUND).location(url.toURI()).build()
     }
 }
+
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Tehtäväpankin sisältöä ei löytynyt")
+class TehtavapankkiNotFoundError : RuntimeException()

@@ -124,9 +124,14 @@ class TehtavapankkiViewControllerTest(
 
     @Test
     fun `downloadRedirect palauttaa 404 kun avainta ei loydy`() {
-        mockMvc
-            .perform(get("/koto-tehtavapankki/lataa").param("key", "ei-olemassa.xml").session(virkailijaSession()))
-            .andExpect(status().isNotFound)
+        val response =
+            mockMvc
+                .perform(get("/koto-tehtavapankki/lataa").param("key", "ei-olemassa.xml").session(virkailijaSession()))
+                .andExpect(status().isNotFound)
+                .andReturn()
+                .response.contentAsString
+
+        assertContains(response, "Sivua ei löydy")
     }
 
     @Test
@@ -168,9 +173,14 @@ class TehtavapankkiViewControllerTest(
 
     @Test
     fun `pakettiView palauttaa 404 kun id ta ei loydy`() {
-        mockMvc
-            .perform(get("/koto-tehtavapankki/paketti/9999").session(virkailijaSession()))
-            .andExpect(status().isNotFound)
+        val response =
+            mockMvc
+                .perform(get("/koto-tehtavapankki/paketti/9999").session(virkailijaSession()))
+                .andExpect(status().isNotFound)
+                .andReturn()
+                .response.contentAsString
+
+        assertContains(response, "Sivua ei löydy")
     }
 
     @Test

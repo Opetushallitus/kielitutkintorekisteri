@@ -3,10 +3,14 @@ package fi.oph.kitu.webmvc
 import fi.oph.kitu.config.isLocal
 import fi.oph.kitu.dev.MockResourceNotFoundError
 import fi.oph.kitu.html.ErrorPage
+import fi.oph.kitu.kotoutumiskoulutus.KielitestiSuoritusNotFoundError
+import fi.oph.kitu.kotoutumiskoulutus.koealusta.tehtavapankki.TehtavapankkiNotFoundError
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.util.validation.Validation
 import fi.oph.kitu.vkt.VktSuoritusNotFoundError
+import fi.oph.kitu.yki.YkiSuoritusNotFoundError
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaNotFoundError
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
 import org.springframework.beans.factory.annotation.Value
@@ -59,6 +63,10 @@ class GlobalControllerExceptionHandler(
 
         return when (error) {
             is VktSuoritusNotFoundError,
+            is YkiArvioijaNotFoundError,
+            is YkiSuoritusNotFoundError,
+            is KielitestiSuoritusNotFoundError,
+            is TehtavapankkiNotFoundError,
             is MockResourceNotFoundError,
             is OppijanumeroException.OppijaNotFoundException,
             is org.springframework.web.servlet.resource.NoResourceFoundException,
