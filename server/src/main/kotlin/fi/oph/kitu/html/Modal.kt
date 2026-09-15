@@ -1,6 +1,7 @@
 package fi.oph.kitu.html
 
 import kotlinx.html.BUTTON
+import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.article
 import kotlinx.html.button
@@ -35,7 +36,7 @@ fun FlowContent.modalCommandButton(
     classes: String? = null,
     fn: BUTTON.() -> Unit,
 ) {
-    button(classes = classes) {
+    button(type = ButtonType.button, classes = classes) {
         attributes["commandfor"] = modalId
         attributes["command"] = command.command
         fn()
