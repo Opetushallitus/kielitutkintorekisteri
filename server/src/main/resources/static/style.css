@@ -512,3 +512,7 @@ a[role="button"][aria-disabled="true"] {
 .esto-selite[data-tooltip] {
   border-bottom: none;
 }
+
+nav li a[role="button"] {
+  margin-top: 0;
+}

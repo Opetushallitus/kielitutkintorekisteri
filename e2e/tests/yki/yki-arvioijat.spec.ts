@@ -1,6 +1,6 @@
 import { beforeEach, describe, test } from "../../fixtures/baseFixture"
 import { expectToHaveTexts } from "../../util/expect"
-import { expect } from "@playwright/test"
+import { expect, Locator } from "@playwright/test"
 
 describe("Yleinen kielitutkinto arvioijat page", () => {
   beforeEach(async ({ db, ykiArvioija }) => {
@@ -42,6 +42,32 @@ describe("Yleinen kielitutkinto arvioijat page", () => {
       "Kauden päättymispäivä",
     )
     await expect(table.rows).toHaveCount(4)
+  })
+
+  test("toolbar buttons share a vertical center", async ({
+    indexPage,
+    ykiArvioijatPage,
+  }) => {
+    await indexPage.login()
+    await ykiArvioijatPage.openFromNavigation()
+
+    const page = ykiArvioijatPage.page
+    const rajaa = page.getByRole("button", {
+      name: "Rajaa näytettävät tiedot",
+    })
+    const lisaa = page.getByTestId("lisaaArvioija")
+
+    const center = async (locator: Locator) => {
+      const box = await locator.boundingBox()
+      if (!box) throw new Error("nappia ei loytynyt")
+      return box.y + box.height / 2
+    }
+
+    // Pico antaa nav-linkeille negatiivisen ylamarginaalin, joka nostaisi
+    // nappilinkin nappia ylemmas; alle pikselin ero riittaa toleranssiksi.
+    expect(
+      Math.abs((await center(rajaa)) - (await center(lisaa))),
+    ).toBeLessThan(1)
   })
 
   test("row links to the arvioija details page", async ({
