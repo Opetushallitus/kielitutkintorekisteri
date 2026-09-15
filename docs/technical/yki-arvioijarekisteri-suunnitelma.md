@@ -1276,6 +1276,13 @@ YKI_ARVIOIJAREKISTERI("YKI_ARVIOIJAREKISTERI_KIRJOITUS"),
 käyttöoikeusryhmään **"Kielitutkintorekisteri-oph-pääkäyttäjä"**. Luku jää `VIRKAILIJA`lle (lista on jo
 nyt kaikkien virkailijoiden nähtävissä; erillinen lukuoikeus vaatisi turhaan uuden Otuva-määrittelyn).
 
+> **VÄLIAIKAINEN POIKKEAMA (15.9.2026):** `YKI_ARVIOIJAREKISTERI` osoittaa toistaiseksi avaimeen
+> `YKI_TALLENNUS`, koska oikean käyttöoikeuden tilaaminen Otuvaan (kortti **KTR-B**) on kesken eikä
+> untuvassa/QA:ssa muuten pääse testaamaan syöttökäyttöliittymää. Seuraus: arvioijarekisterin
+> kirjoitus on kaikilla joilla on YKI-tallennusoikeus, ja e2e:n käyttöoikeusmatriisissa Solki-
+> käyttäjälle on väliaikaiset 200/404-odotukset. **Palauta arvo `YKI_ARVIOIJAREKISTERI_KIRJOITUS`
+> heti kun käyttöoikeus on Otuvassa** — muuten prod-julkaisu menee liian väljillä oikeuksilla.
+
 ### 7.2 `security/WebSecurityConfig.kt`
 
 Kirjoitussäännöt **vain CAS-ketjuun** (`casSecurityFilterChain`in `authorizeHttpRequests`-lohkoon),
@@ -1628,11 +1635,11 @@ laajuus kasvoi säilytysajalla ja listanäkymän uudistuksella.
 Nämä kannattaa aloittaa ensimmäisenä: kummassakin on ulkoisen tahon läpimenoaikaa, eikä kumpikaan etene
 tiimin omalla työllä.
 
-| Kortti        | Sisältö                                                                                                                      | Estää                    |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| **KTR-A**     | Sovi Solki-rajapintasopimus Jyväskylän kanssa (§5.1, §11 kysymykset 1–9)                                                     | KTR-9, KTR-10, KTR-11    |
-| **KTR-B**     | Pyydä käyttöoikeus `YKI_ARVIOIJAREKISTERI_KIRJOITUS` Otuvaan, liitettäväksi ryhmään "Kielitutkintorekisteri-oph-pääkäyttäjä" | julkaisun (ei kehitystä) |
-| ~~**KTR-C**~~ | ~~Tietosuojan päätös `henkilotunnus`-sarakkeesta~~ — ratkaistu: sarake säilyy pysyvästi (§11 kys. 10)                        | —                        |
+| Kortti        | Sisältö                                                                                                                                                                                                         | Estää                         |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **KTR-A**     | Sovi Solki-rajapintasopimus Jyväskylän kanssa (§5.1, §11 kysymykset 1–9)                                                                                                                                        | KTR-9, KTR-10, KTR-11         |
+| **KTR-B**     | Pyydä käyttöoikeus `YKI_ARVIOIJAREKISTERI_KIRJOITUS` Otuvaan, liitettäväksi ryhmään "Kielitutkintorekisteri-oph-pääkäyttäjä" — **kesken 15.9.2026**, siihen asti käytössä väliaikaisesti `YKI_TALLENNUS` (§7.1) | prod-julkaisun (ei kehitystä) |
+| ~~**KTR-C**~~ | ~~Tietosuojan päätös `henkilotunnus`-sarakkeesta~~ — ratkaistu: sarake säilyy pysyvästi (§11 kys. 10)                                                                                                           | —                             |
 
 ### Kehityskortit
 

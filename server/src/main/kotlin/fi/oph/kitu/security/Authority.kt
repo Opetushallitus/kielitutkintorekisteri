@@ -6,7 +6,10 @@ enum class Authority(
     VIRKAILIJA("READ"),
     VKT_TALLENNUS("VKT_KIELITUTKINTOJEN_KIRJOITUS"),
     YKI_TALLENNUS("YKI_TALLENNUS"),
-    YKI_ARVIOIJAREKISTERI("YKI_ARVIOIJAREKISTERI_KIRJOITUS"),
+
+    // TODO: valiaikainen. Oikea kayttooikeus on YKI_ARVIOIJAREKISTERI_KIRJOITUS, jonka tilaus
+    // Otuvaan on kesken; palauta arvo heti kun kayttooikeus on olemassa.
+    YKI_ARVIOIJAREKISTERI("YKI_TALLENNUS"),
     TODISTUS_YHTEYSTIEDOT_LUKEMINEN("TODISTUS_YHTEYSTIEDOT_LUKEMINEN"),
     ;
 

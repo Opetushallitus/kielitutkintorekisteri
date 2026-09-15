@@ -148,6 +148,13 @@ describe("Käyttöoikeustestit", () => {
         ...expectStatusCodeFor(publicRoutes, 200),
         "POST /yki/api/suoritus": 400,
         "POST /yki/api/arvioija": 400,
+        // TODO: valiaikaista. Arvioijarekisterin kirjoitus vaatii tilapaisesti YKI_TALLENNUS-
+        // oikeutta (ks. Authority.YKI_ARVIOIJAREKISTERI), joka Solkilla on. Palauta 403-odotukset
+        // kun oikea kayttooikeus on kaytossa.
+        "GET /yki/arvioijat/uusi": 200,
+        "POST /yki/arvioijat/uusi": 200,
+        "GET /yki/arvioijat/1/muokkaa": 404,
+        "POST /yki/arvioijat/1": 404,
       })
     })
 
