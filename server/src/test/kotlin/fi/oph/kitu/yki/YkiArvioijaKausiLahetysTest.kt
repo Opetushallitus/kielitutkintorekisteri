@@ -35,8 +35,8 @@ import kotlin.test.assertEquals
  * `isActualTransactionActive` ei kelpaa mittariksi — Spring tyhjentaa lipun vasta afterCommitin
  * jalkeen, joten se on tosi myos oikein toimivassa toteutuksessa.
  *
- * Ei peri SolkiArvioijaServiceMockia, koska sen @WithSpan pakottaisi CGLIB-proxyn eivatka
- * konstruktorin kentat olisi luettavissa.
+ * Toteuttaa rajapinnan suoraan: @WithSpan-annotoidusta kantaluokasta perittaessa CGLIB-proxy
+ * peittaisi konstruktorin kentat.
  */
 class TransaktiotaValvovaSolki(
     private val omaTransaktio: TransactionTemplate,
@@ -53,6 +53,8 @@ class TransaktiotaValvovaSolki(
             } == true
         return Lahetystulos.EI_KAYTOSSA
     }
+
+    override fun lahetaArvioijaKasin(arvioija: YkiArvioijaEntity): Lahetystulos = lahetaArvioija(arvioija)
 
     override fun lahetaLahettamattomat(maxYritykset: Int?): Int = 0
 

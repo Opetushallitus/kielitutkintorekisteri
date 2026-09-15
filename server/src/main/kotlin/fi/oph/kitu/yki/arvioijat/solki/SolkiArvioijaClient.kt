@@ -6,7 +6,6 @@ import arrow.core.right
 import fi.oph.kitu.restclient.retrieveEntitySafely
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -20,11 +19,12 @@ interface SolkiArvioijaClient {
 }
 
 /**
- * Kytkin on erillaan `kitu.yki.baseUrl`ista, koska osoite on asetettu joka ymparistossa (myos
- * local ja e2e dev-stubiin) eika sen olemassaolo siksi kerro, saako lahettaa.
+ * Client on olemassa myos integraatiokytkimen ollessa pois: virkailijan kasin kaynnistama lahetys
+ * toimii silloinkin, ja saannon "saako lahettaa" tuntee [SolkiArvioijaService], ei client. Osoite
+ * `kitu.yki.baseUrl` on asetettu joka ymparistossa (myos local ja e2e dev-stubiin), joten client on
+ * aina rakennettavissa.
  */
 @Service
-@ConditionalOnProperty("kitu.yki.arvioijarekisteri.integraatio.enabled", havingValue = "true")
 class SolkiArvioijaClientImpl(
     @param:Qualifier("solkiRestClient")
     val restClient: RestClient,
