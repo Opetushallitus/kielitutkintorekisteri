@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import java.net.URI
 
 @Controller
@@ -119,7 +120,7 @@ class YkiArvioijaViewController(
     ): ResponseEntity<String> {
         val arvioija =
             arvioijaService.haeArvioija(id)
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                ?: throw YkiArvioijaNotFoundError()
 
         val turvakielto = arvioijaService.haeTurvakielto(arvioija.arvioijaOid)
 
@@ -133,7 +134,7 @@ class YkiArvioijaViewController(
         viewMessage: ViewMessage? = null,
     ): ResponseEntity<String> {
         if (!arvioijaService.onOlemassa(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+            throw YkiArvioijaNotFoundError()
         }
 
         val lomakkeenOid =
@@ -154,7 +155,7 @@ class YkiArvioijaViewController(
             .fold(
                 ifLeft = { virhe ->
                     if (virhe == YkiArvioijaError.ArvioijaaEiLoydy) {
-                        ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                        throw YkiArvioijaNotFoundError()
                     } else {
                         ResponseEntity.ok(muokkausLomake(id, form, lomakevirheet(virhe)))
                     }
@@ -193,7 +194,7 @@ class YkiArvioijaViewController(
         viewMessage: ViewMessage? = null,
     ): ResponseEntity<String> =
         arvioijaService.passivoiArvioija(id, CurrentUser.oid()).fold(
-            ifLeft = { ResponseEntity.status(HttpStatus.NOT_FOUND).build() },
+            ifLeft = { throw YkiArvioijaNotFoundError() },
             ifRight = {
                 viewMessage?.showSuccess(
                     UiText.Yki.Arvioija.passivoitu
@@ -212,7 +213,7 @@ class YkiArvioijaViewController(
         viewMessage: ViewMessage? = null,
     ): ResponseEntity<String> =
         arvioijaService.lahetaUudelleen(id).fold(
-            ifLeft = { ResponseEntity.status(HttpStatus.NOT_FOUND).build() },
+            ifLeft = { throw YkiArvioijaNotFoundError() },
             ifRight = { tulos ->
                 // Lahetys on jo tehty synkronisesti, joten viesti kertoo lopputuloksen eika
                 // pelkkaa kaynnistysta: muuten kytkin kiinni tai 500 nayttaisi onnistumiselta.
@@ -252,7 +253,7 @@ class YkiArvioijaViewController(
     ): ResponseEntity<String> {
         val arvioija =
             arvioijaService.haeArvioija(id)
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+                ?: throw YkiArvioijaNotFoundError()
 
         return ResponseEntity.ok(
             YkiArvioijaTiedotPage.render(
@@ -280,3 +281,6 @@ class YkiArvioijaViewController(
             ),
         )
 }
+
+@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "YKI-arvioijaa ei löytynyt")
+class YkiArvioijaNotFoundError : RuntimeException()

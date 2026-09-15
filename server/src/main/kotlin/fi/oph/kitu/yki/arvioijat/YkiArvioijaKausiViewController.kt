@@ -215,5 +215,5 @@ class YkiArvioijaKausiViewController(
             .location(URI.create(Links.Yki.arvioija(arvioijaId)))
             .build()
 
-    private fun eiLoydy(): ResponseEntity<String> = ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+    private fun eiLoydy(): Nothing = throw YkiArvioijaNotFoundError()
 }

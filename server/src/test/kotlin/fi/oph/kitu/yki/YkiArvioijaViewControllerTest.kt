@@ -148,6 +148,18 @@ class YkiArvioijaViewControllerTest(
         assertContains(html, "search=Kivinen", message = "lajittelulinkkien on sailytettava hakusana")
     }
 
+    @Test
+    fun `tuntemattoman arvioijan tietosivu nayttaa saman virhesivun kuin muut 404t`() {
+        val html =
+            mockMvc
+                .perform(get("/yki/arvioijat/12345").session(virkailijaSession()))
+                .andExpect(status().isNotFound)
+                .andReturn()
+                .response.contentAsString
+
+        assertContains(html, "Sivua ei löydy")
+    }
+
     private fun getHtml(
         path: String,
         vararg params: Pair<String, String>,
