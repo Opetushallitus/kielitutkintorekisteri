@@ -132,11 +132,10 @@ class YkiArvioijaMuokkauskytkinTest(
         assertContains(nappipainike(sivu, "lahetaArvioijaSolkiin"), "disabled")
         // Pico asettaa disabloidulle napille pointer-events: none, joten selite ei nakyisi
         // napin omassa data-tooltipissa lainkaan — sen on oltava kaareessa.
-        assertContains(
-            sivu,
-            """<span data-tooltip="Arvioijarekisterin ylläpito ei ole vielä käytössä""",
-            message = "eston selite kuuluu kaareeseen, ei disabloituun nappiin",
-        )
+        val kaare =
+            Regex("""<span [^>]*data-tooltip="[^"]*"[^>]*>""").find(sivu)?.value
+                ?: fail("eston selite kuuluu kaareeseen, ei disabloituun nappiin:\n$sivu")
+        assertContains(kaare, "Arvioijarekisterin ylläpito ei ole vielä käytössä")
     }
 
     @Test

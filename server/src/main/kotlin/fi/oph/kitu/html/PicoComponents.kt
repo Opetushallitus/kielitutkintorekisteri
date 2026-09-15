@@ -77,7 +77,7 @@ fun FlowContent.selitettyEsto(
         block()
         return
     }
-    span {
+    span(classes = "esto-selite") {
         data("tooltip", estonSyy.toString())
         block()
     }

@@ -508,3 +508,7 @@ a[role="button"][aria-disabled="true"] {
 .float-right {
   float: right;
 }
+
+.esto-selite[data-tooltip] {
+  border-bottom: none;
+}
