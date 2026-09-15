@@ -162,13 +162,17 @@ object YkiArvioijaTiedotPage {
                     )
                     arvioija.solkiLahetysvirhe?.let { errorMessage(LocalizedString(fi = it)) }
 
+                    if (!integraatioKaytossa) {
+                        p { +UiText.Yki.Arvioija.automaattilahetysEiKaytossa }
+                    }
+
                     if (CurrentUser.hasAuthority(Authority.YKI_ARVIOIJAREKISTERI)) {
-                        // Lahetys on integraatiotoiminto, mutta reitti on muokkauskytkimen takana,
-                        // joten nappi vaatii molemmat: muuten se nayttaisi aktiiviselta ja vastaisi 403.
+                        // Vain muokkauskytkin: reitti on sen takana, joten ilman tata nappi
+                        // nayttaisi aktiiviselta ja vastaisi 403. Integraatiokytkin ei esta
+                        // kasin lahetysta, ks. SolkiArvioijaService.lahetaArvioijaKasin.
                         val estonSyy =
                             when {
                                 !muokkausKaytossa -> UiText.Yki.Arvioija.kirjoitusEiKaytossa
-                                !integraatioKaytossa -> UiText.Yki.Arvioija.integraatioEiKaytossa
                                 else -> null
                             }
 

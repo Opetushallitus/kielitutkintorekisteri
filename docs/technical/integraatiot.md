@@ -142,6 +142,14 @@ kytkin osoitteesta: `kitu.yki.baseUrl` on asetettu joka
 ympäristössä (myös local ja e2e dev-stubiin), joten sen olemassaolo ei kerro, saako lähettää. Kun
 kytkin on pois, rivit jäävät jonoon ja lähtevät takautuvasti kytkimen avautuessa.
 
+**Poikkeus: virkailijan käsin käynnistämä lähetys ei katso kytkintä.** Tietosivun
+"Lähetä uudelleen Solkiin" -painike kutsuu `SolkiArvioijaService.lahetaArvioijaKasin`ia, joka
+lähettää myös kytkimen ollessa pois — yksittäinen lähetys on nimenomaan se tapa, jolla integraatiota
+kokeillaan ennen automaattisen liikenteen avaamista. Onnistunut lähetys poistaa rivin jonosta ja
+epäonnistunut kirjaa virheen aivan kuten automaattinenkin. Painike on sen sijaan **muokkauskytkimen**
+takana, koska POST-reitti on. Tämän vuoksi `SolkiArvioijaClientImpl` ja `SolkiArvioijaServiceImpl`
+ovat ehdottomia beaneja: kytkin luetaan vasta palvelun sisällä.
+
 **Virheilmoitus ei sisällä pyyntörunkoa** (`SolkiArvioijaException.debugString()`): osoite,
 sähköposti ja syntymäaika ovat henkilötietoa, ja virhe päätyy sekä lokiin että virhesarakkeeseen, joka näkyy
 käyttöliittymässä. Vastausrunko otetaan mukaan mutta **katkaistaan 500 merkkiin** — vastaus voi

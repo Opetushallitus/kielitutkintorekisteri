@@ -3,6 +3,7 @@ package fi.oph.kitu.yki.arvioijat.solki
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.TimeService
+import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import io.opentelemetry.api.trace.Span
@@ -14,13 +15,23 @@ enum class Lahetystulos {
     LAHETETTY,
     VIRHE,
 
-    /** Lahetys on kytketty pois: rivi jaa jonoon ja lahtee kun kytkin avataan. */
+    /** Automaattilahetys on kytketty pois: rivi jaa jonoon ja lahtee kun kytkin avataan. */
     EI_KAYTOSSA,
 }
 
 interface SolkiArvioijaService {
-    /** Yksi synkroninen yritys tallennuksen jalkeen, jotta virkailija nakee tuloksen heti. */
+    /**
+     * Yksi synkroninen yritys tallennuksen jalkeen, jotta virkailija nakee tuloksen heti.
+     * Integraatiokytkimen takana: pois paalta rivi jaa jonoon.
+     */
     fun lahetaArvioija(arvioija: YkiArvioijaEntity): Lahetystulos
+
+    /**
+     * Virkailijan itse kaynnistama lahetys tietosivun painikkeesta. Ei katso integraatiokytkinta:
+     * yksittainen lahetys on nimenomaan se tapa, jolla integraatiota paastaan kokeilemaan ennen
+     * kuin automaattinen liikenne avataan.
+     */
+    fun lahetaArvioijaKasin(arvioija: YkiArvioijaEntity): Lahetystulos
 
     /**
      * @param maxYritykset null = kaikki lahettamattomat, myos pitkaan epaonnistuneet.
@@ -36,14 +47,21 @@ open class SolkiArvioijaServiceImpl(
     private val client: SolkiArvioijaClient,
     private val timeService: TimeService,
     private val oppijanumeroService: OppijanumeroService,
+    private val asetukset: ArvioijarekisteriAsetukset,
 ) : SolkiArvioijaService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @WithSpan
-    override fun lahetaArvioija(arvioija: YkiArvioijaEntity): Lahetystulos = laheta(arvioija)
+    override fun lahetaArvioija(arvioija: YkiArvioijaEntity): Lahetystulos =
+        if (asetukset.integraatioKaytossa) laheta(arvioija) else Lahetystulos.EI_KAYTOSSA
+
+    @WithSpan
+    override fun lahetaArvioijaKasin(arvioija: YkiArvioijaEntity): Lahetystulos = laheta(arvioija)
 
     @WithSpan
     override fun lahetaLahettamattomat(maxYritykset: Int?): Int {
+        if (!asetukset.integraatioKaytossa) return 0
+
         val lahetettavat = repository.findLahetettavat(maxYritykset)
         val onnistuneet = lahetettavat.count { laheta(it) == Lahetystulos.LAHETETTY }
 
@@ -116,24 +134,4 @@ open class SolkiArvioijaServiceImpl(
             "cause: ${virhe.javaClass.simpleName}",
             (virhe as? OppijanumeroException.HasResponse)?.let { "response status: ${it.response.statusCode}" },
         ).joinToString("; ")
-}
-
-/**
- * Lahetys pois kaytosta. Rivit jaavat lahetysjonoon, joten kytkimen avaaminen lahettaa ne
- * takautuvasti.
- */
-open class SolkiArvioijaServiceMock : SolkiArvioijaService {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
-    @WithSpan
-    override fun lahetaArvioija(arvioija: YkiArvioijaEntity): Lahetystulos {
-        logger.debug("lahetaArvioija called but Solki sending is disabled, skipping.")
-        return Lahetystulos.EI_KAYTOSSA
-    }
-
-    @WithSpan
-    override fun lahetaLahettamattomat(maxYritykset: Int?): Int {
-        logger.debug("lahetaLahettamattomat called but Solki sending is disabled, skipping.")
-        return 0
-    }
 }

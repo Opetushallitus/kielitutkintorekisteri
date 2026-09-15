@@ -163,7 +163,10 @@ class YkiArvioijaService(
         return poistetut.size
     }
 
-    /** Virkailijan kaynnistama uusintalahetys virhetilanteen jalkeen. */
+    /**
+     * Virkailijan kaynnistama uusintalahetys virhetilanteen jalkeen. Toimii myos silloin, kun
+     * automaattinen lahetys on kytketty pois, jotta integraatiota voi kokeilla rivi kerrallaan.
+     */
     @WithSpan
     fun lahetaUudelleen(id: Int): Either<YkiArvioijaError, Lahetystulos> {
         val arvioija = repository.findArvioijaById(id) ?: return YkiArvioijaError.ArvioijaaEiLoydy.left()
@@ -172,7 +175,7 @@ class YkiArvioijaService(
         // auditlokiin siina missa muutkin kirjoituspolut.
         auditLogger.log(AuditLogOperation.YkiArvioijaSolkiinLahetetty, arvioija.arvioijaOid)
 
-        return solki.lahetaArvioija(arvioija).right()
+        return solki.lahetaArvioijaKasin(arvioija).right()
     }
 
     /**

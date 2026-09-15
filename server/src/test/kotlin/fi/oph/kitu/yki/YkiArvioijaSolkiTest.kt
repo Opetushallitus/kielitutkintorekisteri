@@ -8,11 +8,13 @@ import fi.oph.kitu.TestTimeService
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.Tallennuslahde
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
+import fi.oph.kitu.yki.arvioijat.solki.Lahetystulos
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaServiceImpl
@@ -60,7 +62,14 @@ class YkiArvioijaSolkiTest(
     fun setup() {
         repository.deleteAll()
         stub = Stub()
-        solki = SolkiArvioijaServiceImpl(repository, stub, timeService, oppijanumeroService)
+        solki =
+            SolkiArvioijaServiceImpl(
+                repository,
+                stub,
+                timeService,
+                oppijanumeroService,
+                ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = true),
+            )
     }
 
     @Test
@@ -222,6 +231,71 @@ class YkiArvioijaSolkiTest(
             "eran muut rivit on lahetettava vaikka yksi hajoaa",
         )
     }
+
+    @Test
+    fun `kytkin pois estaa automaattisen lahetyksen`() {
+        tallenna()
+
+        val tulos =
+            timeService.runWithFixedClock(
+                hetki,
+            ) { kytkinPois().lahetaArvioija(repository.findLahetettavat().single()) }
+
+        assertEquals(Lahetystulos.EI_KAYTOSSA, tulos)
+        assertEquals(0, stub.lahetetyt.size, "automaattilahetys ei saa ottaa yhteytta Solkiin")
+        assertEquals(1, repository.findLahetettavat().size, "rivin on jaatava jonoon")
+    }
+
+    @Test
+    fun `kytkin pois ei estä eraajoa hiljaisesti vaan jattaa rivit jonoon`() {
+        tallenna()
+
+        val onnistuneet = timeService.runWithFixedClock(hetki) { kytkinPois().lahetaLahettamattomat() }
+
+        assertEquals(0, onnistuneet)
+        assertEquals(0, stub.lahetetyt.size)
+        assertEquals(1, repository.findLahetettavat().size)
+    }
+
+    /** Painike on ainoa tapa kokeilla integraatiota ennen kuin automaattinen liikenne avataan. */
+    @Test
+    fun `kytkin pois ei estä kasin lahetysta`() {
+        val id = tallenna()
+
+        val tulos =
+            timeService.runWithFixedClock(hetki) {
+                kytkinPois().lahetaArvioijaKasin(repository.findLahetettavat().single())
+            }
+
+        assertEquals(Lahetystulos.LAHETETTY, tulos)
+        assertEquals(1, stub.lahetetyt.size, "kasin lahetyksen on mentava Solkiin asti")
+        assertNotNull(repository.findArvioijaById(id)!!.solkiinLahetetty)
+        assertEquals(0, repository.findLahetettavat().size, "onnistunut kasin lahetys poistaa jonosta")
+    }
+
+    @Test
+    fun `kasin lahetyksen virhe kirjataan riville`() {
+        val id = tallenna()
+        stub.vastaus = { SolkiArvioijaException.NullResponse(it.arvioijanOppijanumero).left() }
+
+        val tulos =
+            timeService.runWithFixedClock(hetki) {
+                kytkinPois().lahetaArvioijaKasin(repository.findLahetettavat().single())
+            }
+
+        assertEquals(Lahetystulos.VIRHE, tulos)
+        assertNotNull(repository.findArvioijaById(id)!!.solkiLahetysvirhe)
+        assertEquals(1, repository.findLahetettavat().size, "epaonnistunut rivi jaa jonoon")
+    }
+
+    private fun kytkinPois() =
+        SolkiArvioijaServiceImpl(
+            repository,
+            stub,
+            timeService,
+            oppijanumeroService,
+            ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = false),
+        )
 
     private fun tallenna(
         lahde: Tallennuslahde = Tallennuslahde.KITU,

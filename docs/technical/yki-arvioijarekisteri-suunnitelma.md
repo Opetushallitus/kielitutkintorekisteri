@@ -1333,10 +1333,10 @@ Syöttökäyttöliittymä valmistuu vaiheittain, mutta `main` deployautuu suoraa
 kytkimet ovat siksi oletuksena **pois päältä** (`ArvioijarekisteriAsetukset`, oletus `false`), eli
 ilman propertyjä rekisteri toimii vain lukutilassa eikä integraatiota ole.
 
-| Kytkin                                           | Mitä ohjaa                                                                                                                               |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `kitu.yki.arvioijarekisteri.muokkaus.enabled`    | Virkailijan kirjoitusreitit (`WebSecurityConfig`, `denyAll` vs. `hasAuthority`) ja käyttöliittymän napit                                 |
-| `kitu.yki.arvioijarekisteri.integraatio.enabled` | **Molemmat suunnat Solkiin**: sisääntulon kavennus (§4.2), lähtevän lähetyksen toteutus ja ajastukset, sekä projektion yöllinen päivitys |
+| Kytkin                                           | Mitä ohjaa                                                                                                                                                                                                              |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kitu.yki.arvioijarekisteri.muokkaus.enabled`    | Virkailijan kirjoitusreitit (`WebSecurityConfig`, `denyAll` vs. `hasAuthority`) ja käyttöliittymän napit                                                                                                                |
+| `kitu.yki.arvioijarekisteri.integraatio.enabled` | **Molemmat suunnat Solkiin**: sisääntulon kavennus (§4.2), lähtevän **automaattisen** lähetyksen toteutus ja ajastukset, sekä projektion yöllinen päivitys. Ei koske virkailijan käsin käynnistämää lähetystä, ks. alla |
 
 Kytkimet ovat erillisiä, koska ne vastaavat eri kysymyksiin: _saako virkailija muokata_ ja _onko kitu
 rekisterin master_. Käyttöönotossa nämä tapahtuvat eri hetkinä (§10 vaihe 11, §11 kysymys 9).
@@ -1351,6 +1351,14 @@ rekisterin master_. Käyttöönotossa nämä tapahtuvat eri hetkinä (§10 vaihe
 Muokkauskytkimen kaksi vaikutusta ovat ennallaan: palvelin torjuu kirjoituksen (403 myös suoralla
 URL:lla) ja napit renderöidään estettyinä selitteen kanssa. Sääntö valitaan kerran käynnistyksessä,
 joten kytkimen kääntäminen vaatii uudelleenkäynnistyksen.
+
+**Käsin lähetys on integraatiokytkimen ulkopuolella.** Tietosivun "Lähetä uudelleen Solkiin"
+-painike kutsuu `SolkiArvioijaService.lahetaArvioijaKasin`ia, joka lähettää myös kytkimen ollessa
+pois; kytkin estää vain automaattisen liikenteen (tallennuksen jälkeisen yrityksen, eräajon ja
+ajastukset). Ilman tätä integraatiota ei pääsisi kokeilemaan hallitusti yksi rivi kerrallaan ennen
+kuin koko lähetysjono avataan. Painike pysyy muokkauskytkimen takana, koska POST-reitti on.
+Seuraus toteutukseen: `SolkiArvioijaClientImpl` ja `SolkiArvioijaServiceImpl` ovat ehdottomia
+beaneja, ja aiempi `SolkiArvioijaServiceMock` poistui — kytkin luetaan palvelun sisällä.
 
 **Siirtymän työtilan (muokkaus päällä, integraatio pois) haitta on syytä tuntea.** Sisääntuleva
 täysi push kirjoittaa `yki_arviointioikeus`-projektion koskematta `yki_arvioija_arviointikausi`

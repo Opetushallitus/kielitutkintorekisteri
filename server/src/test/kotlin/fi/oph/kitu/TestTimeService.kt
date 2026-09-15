@@ -23,13 +23,13 @@ class TestTimeService : TimeService {
         fixedClock = null
     }
 
-    fun runWithFixedClock(
+    fun <T> runWithFixedClock(
         time: Instant,
-        f: () -> Unit,
-    ) {
+        f: () -> T,
+    ): T {
         fixClock(time)
         try {
-            f()
+            return f()
         } finally {
             resetClock()
         }
