@@ -188,20 +188,30 @@ export class LogGroupsStack extends Stack {
       .addMetricFilter("PostYkiSuoritus", {
         metricName: "PostYkiSuoritus",
         metricNamespace: "Kitu",
+        // A metric filter sees ONE log record at a time, and the two things we
+        // care about live on two DIFFERENT spans:
+        //
+        //   kitu                  <- SERVER segment: uri, method, status.code
+        //     secured request     <- INTERNAL: arvioitu
+        //       YkiSuoritusRepository.save
+        //
+        // Spring Security's "secured request" observation wraps the controller
+        // invocation, so Span.current() inside YkiApiController.postHenkilosuoritus
+        // is that INTERNAL span — not the HTTP SERVER span. A pattern requiring
+        // both uri/method and arvioitu therefore matches nothing, which is what
+        // silently flatlined this metric between 4.6.2026 and 16.9.2026.
+        //
+        // Filtering on arvioitu alone is precise: the attribute is written in
+        // exactly one place (YkiApiController, POST /yki/api/suoritus), so its
+        // presence already identifies the endpoint. Keep it that way — if a
+        // second call site ever sets "arvioitu", this alarm starts double-counting.
+        //
+        // Do not try to reinstate the endpoint check via $.attributes.http.route:
         // CloudWatch Logs metric filter patterns cannot reference JSON keys that
-        // contain periods (no bracket/quote escape works), so attributes like
-        // http.route / http.request.method are unreachable. The AWS X-Ray
-        // LOCAL_ROOT bridge emits the same SERVER span with flat, dot-free keys
-        // — uri holds the matched route relative to the servlet context path.
+        // contain periods (no bracket/quote escape works).
         filterPattern: FilterPattern.all(
-          FilterPattern.stringValue(
-            "$.attributes.uri",
-            "=",
-            "/yki/api/suoritus",
-          ),
-          FilterPattern.stringValue("$.attributes.method", "=", "POST"),
-          FilterPattern.stringValue("$.status.code", "!=", "ERROR"),
           FilterPattern.booleanValue("$.attributes.arvioitu", true),
+          FilterPattern.stringValue("$.status.code", "!=", "ERROR"),
         ),
       })
       .metric({
@@ -211,7 +221,7 @@ export class LogGroupsStack extends Stack {
       .createAlarm(this, "YkiSuoritusAlarm", {
         alarmDescription: "YKI-suorituksia arvioitu",
         threshold: 1,
-        evaluationPeriods: 1, // 5 minutes
+        evaluationPeriods: 1, // 1 minute, matching the metric period above
         comparisonOperator:
           ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: TreatMissingData.NOT_BREACHING,
