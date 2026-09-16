@@ -35,14 +35,14 @@ class YkiArvioijaSolkiClientTest {
     }
 
     private fun request(
-        syntymaaika: LocalDate? = LocalDate.of(1980, 1, 1),
+        syntymapaiva: LocalDate? = LocalDate.of(1980, 1, 1),
         sahkopostiosoite: String? = "testi@testi.fi",
     ) = SolkiArvioijaRequest(
         arvioijaOid = "1.2.246.562.24.20281155246",
         versio = versio,
         sukunimi = "Öhman-Testi",
         etunimet = "Ranja Testi",
-        syntymaaika = syntymaaika,
+        syntymapaiva = syntymapaiva,
         sahkopostiosoite = sahkopostiosoite,
         katuosoite = "Testikuja 5",
         postinumero = "40100",
@@ -114,17 +114,17 @@ class YkiArvioijaSolkiClientTest {
     }
 
     @Test
-    fun `syntymaaika serialisoituu paivamaarana ilman kellonaikaa`() {
-        assertContains(runko(request(syntymaaika = LocalDate.of(1980, 1, 1))), """"syntymaaika":"1980-01-01"""")
+    fun `syntymapaiva serialisoituu paivamaarana ilman kellonaikaa`() {
+        assertContains(runko(request(syntymapaiva = LocalDate.of(1980, 1, 1))), """"syntymapaiva":"1980-01-01"""")
     }
 
     @Test
-    fun `tyhja syntymaaika jatetaan pois rungosta`() {
+    fun `tyhja syntymapaiva jatetaan pois rungosta`() {
         // Solki johti syntymaajan ennen henkilotunnuksesta, joten tyhja arvo on sille eri asia
         // kuin puuttuva kentta. Muut kentat serialisoituvat yha nullina, ks. alla.
-        val runko = runko(request(syntymaaika = null, sahkopostiosoite = null))
+        val runko = runko(request(syntymapaiva = null, sahkopostiosoite = null))
 
-        assertFalse(runko.contains("syntymaaika"), """tyhjan kentan on kadottava kokonaan: $runko""")
+        assertFalse(runko.contains("syntymapaiva"), """tyhjan kentan on kadottava kokonaan: $runko""")
         assertContains(
             runko,
             """"sahkopostiosoite":null""",
