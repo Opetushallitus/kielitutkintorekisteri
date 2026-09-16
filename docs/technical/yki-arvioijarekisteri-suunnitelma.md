@@ -997,7 +997,7 @@ untuva ja QA `https://yki-test.cc.jyu.fi/oph/`, tuotanto `https://yki.jyu.fi/oph
 POST {base}arvioija
 Authorization:   Basic <Solkin kitulle myöntämät tunnukset>
 Content-Type:    application/json; charset=utf-8
-Idempotency-Key: {arvioijanOppijanumero}:{versio}
+Idempotency-Key: {arvioijaOid}:{versio}
 ```
 
 ```json
@@ -1016,9 +1016,8 @@ Idempotency-Key: {arvioijanOppijanumero}:{versio}
     {
       "kieli": "fin",
       "tasot": ["PT", "KT", "YT"],
-      "tila": "AKTIIVINEN",
       "kaudenAlkupaiva": "2026-01-01",
-      "kaudenPaattymispaiva": "2031-01-01",
+      "kaudenPaattymispaiva": "2030-12-31",
       "jatkorekisterointi": false
     }
   ]
@@ -1030,39 +1029,38 @@ Idempotency-Key: {arvioijanOppijanumero}:{versio}
 CSV-sarakkeet ovat commitista `d160c1f1^` (`SolkiArvioijaResponse`). Rivitaso oli
 arvioija × kieli; JSON ryhmittelee saman datan arvioijakohtaiseksi dokumentiksi.
 
-| CSV-sarake                                      | JSON                                      | Muutos                                                                                                                                                    |
-| ----------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `arvioijanOppijanumero`                         | `arvioijaOid`, dokumentin juuressa        | **Nimi korjattu 16.9.2026** julkaistun kuvauksen mukaiseksi                                                                                               |
-| `henkilotunnus`                                 | **ei mukana**                             | 1.1.2026 lainmuutos; kitu ei ota vastaan eikä lähetä hetua                                                                                                |
-| `sukunimi`, `etunimet`                          | samat                                     | —                                                                                                                                                         |
-| — (ei CSV-saraketta)                            | `syntymapaiva`, dokumentin juuressa       | **Lisätty 4.9.2026**, nimi korjattu 16.9.2026. Solki johti syntymäajan hetusta; hetun poisto vei siltä pohjan                                             |
-| `sahkopostiosoite`                              | sama                                      | —                                                                                                                                                         |
-| `katuosoite`, `postinumero`, `postitoimipaikka` | samat, dokumentin juuressa                | —                                                                                                                                                         |
-| `ensimmainenRekisterointipaiva`                 | sama, **dokumentin juuressa**             | **Siirretty 16.9.2026** arviointioikeudelta juureen: tieto on arvioijakohtainen                                                                           |
-| `kaudenAlkupaiva`                               | sama                                      | —                                                                                                                                                         |
-| `kaudenPaattymispaiva`                          | sama                                      | —                                                                                                                                                         |
-| `jatkorekisterointi`                            | sama, `true`/`false`                      | CSV:ssä `"0"`/`"1"`                                                                                                                                       |
-| `tila`                                          | sama, `"AKTIIVINEN"`/`"PASSIVOITU"`       | CSV:ssä `0`/`1`; **kitussa laskettu arvo**, ks. huomio alla. Sanastossa on vain nämä kaksi arvoa, joten laskettu `TULEVAISUUDESSA` lähetetään aktiivisena |
-| `kieli`                                         | sama, `Tutkintokieli.solkiCode` (`"fin"`) | CSV:n vanhat numerokoodit `10`/`11`/`12` = `SWE10`/`ENG11`/`ENG12`                                                                                        |
-| `tasot`                                         | sama, JSON-taulukko `["PT","KT","YT"]`    | CSV:ssä `"PT+KT+YT"`                                                                                                                                      |
+| CSV-sarake                                      | JSON                                      | Muutos                                                                                                              |
+| ----------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `arvioijanOppijanumero`                         | `arvioijaOid`, dokumentin juuressa        | **Nimi korjattu 16.9.2026** julkaistun kuvauksen mukaiseksi                                                         |
+| `henkilotunnus`                                 | **ei mukana**                             | 1.1.2026 lainmuutos; kitu ei ota vastaan eikä lähetä hetua                                                          |
+| `sukunimi`, `etunimet`                          | samat                                     | —                                                                                                                   |
+| — (ei CSV-saraketta)                            | `syntymapaiva`, dokumentin juuressa       | **Lisätty 4.9.2026**, nimi korjattu 16.9.2026. Solki johti syntymäajan hetusta; hetun poisto vei siltä pohjan       |
+| `sahkopostiosoite`                              | sama                                      | —                                                                                                                   |
+| `katuosoite`, `postinumero`, `postitoimipaikka` | samat, dokumentin juuressa                | —                                                                                                                   |
+| `ensimmainenRekisterointipaiva`                 | sama, **dokumentin juuressa**             | **Siirretty 16.9.2026** arviointioikeudelta juureen: tieto on arvioijakohtainen                                     |
+| `kaudenAlkupaiva`                               | sama                                      | —                                                                                                                   |
+| `kaudenPaattymispaiva`                          | sama                                      | —                                                                                                                   |
+| `jatkorekisterointi`                            | sama, `true`/`false`                      | CSV:ssä `"0"`/`"1"`                                                                                                 |
+| `tila`                                          | **ei mukana**                             | **Poistettu 16.9.2026**, ks. huomio alla: tila vanhenee vastaanottajan kopiossa, joten se johdetaan kauden päivistä |
+| `kieli`                                         | sama, `Tutkintokieli.solkiCode` (`"fin"`) | CSV:n vanhat numerokoodit `10`/`11`/`12` = `SWE10`/`ENG11`/`ENG12`                                                  |
+| `tasot`                                         | sama, JSON-taulukko `["PT","KT","YT"]`    | CSV:ssä `"PT+KT+YT"`                                                                                                |
 
 Enkoodausten muutokset (`0`/`1` → boolean, `"PT+KT+YT"` → taulukko) ovat ehdotus: JSON-natiivit
 tyypit ovat luettavampia, mutta jos CSV-identtinen esitys on JYU:lle halvempi, se käy yhtä hyvin.
 Kenttien **nimet ja merkitykset** on tarkoitus pitää ennallaan joka tapauksessa.
 
-> **Huomio `tila`-kentästä.** Kitu ei enää tallenna tilaa vaan laskee sen kauden päivistä (§1.5).
-> Kentässä lähetetään siis lähetyshetkellä laskettu arvo. Se on tosi lähetyshetkellä mutta
-> vanhenee vastaanottajan kopiossa, kun kausi umpeutuu ilman että kumpikaan pää kirjoittaa mitään —
-> juuri se vika, jonka takia kitu luopui tallennetusta tilasta. Suositus: Solki johtaa tilan
-> samoista päivistä (**päättymispäivä on inklusiivinen**) ja käyttää kenttää korkeintaan
-> tarkistussummana. Manuaalinen passivointi näkyy joka tapauksessa myös päivissä, koska se päättää
-> kauden kuluvaan päivään.
+> **`tila` poistettiin lähetettävistä kentistä 16.9.2026.** Kitu ei tallenna tilaa vaan laskee sen
+> kauden päivistä (§1.5). Lähetetty arvo olisi tosi vain lähetyshetkellä ja vanhenisi vastaanottajan
+> kopiossa, kun kausi umpeutuu ilman että kumpikaan pää kirjoittaa mitään — juuri se vika, jonka
+> takia kitu luopui tallennetusta tilasta. Solki johtaa tilan samoista päivistä: merkintä on
+> voimassa `kaudenAlkupaiva`n ja `kaudenPaattymispaiva`n välillä, **päättymispäivä mukaan lukien**.
+> Manuaalinen passivointi näkyy päivissä, koska se päättää kauden kuluvaan päivään.
 
 | Päätös                                                                  | Perustelu                                                                                                                                                                                                                     |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **POST + koko dokumentti, avaimena `arvioijaOid`**                      | Uudelleenyritys on triviaalisti idempotentti; arviointioikeuden poisto ilmaistavissa (kieli katoaa taulukosta); ei erillisiä create/update/delete-verbejä                                                                     |
 | **Arvioijakohtainen dokumentti, ei CSV:n riviesitystä**                 | Ainoa rakenteellinen ero CSV:hen. Riviesityksessä ei voi ilmaista kielen poistoa ilman sopimusta koko joukon korvaamisesta; dokumentissa se on kielen puuttuminen                                                             |
-| **Kausi ja tila arviointioikeuskohtaisina**                             | Vastaa kitun tietomallia (sovittu päätös) ja poistuneen CSV:n riviesitystä                                                                                                                                                    |
+| **Kausi arviointioikeuskohtaisena, tila ei lainkaan**                   | Kausi vastaa kitun tietomallia (sovittu päätös) ja poistuneen CSV:n riviesitystä; tila johdetaan kauden päivistä, ks. huomio yllä                                                                                             |
 | **Ei henkilötunnusta**                                                  | 1.1.2026 lainmuutos — Solkin on avaimennettava oppijanumerolla                                                                                                                                                                |
 | **Syntymäaika mukana, haettuna ONR:stä**                                | Korvaa hetusta johdetun syntymäajan (JYU:n pyyntö 4.9.2026). Kitu **ei säilytä** kenttää — se ei ole tavoitetilan tietotaulukossa (§1) — vaan hakee sen lähetyshetkellä. Jätetään pois kokonaan jos ONR:ssäkään ei ole tietoa |
 | **Ei puhelinnumeroa**                                                   | OPH vahvisti (kys. 11), ettei puhelinnumeroa säilytetä kitussa lainkaan — se on kokonaan Solkin omaa tietoa                                                                                                                   |
@@ -1083,9 +1081,9 @@ Kenttien **nimet ja merkitykset** on tarkoitus pitää ennallaan joka tapauksess
 ### 5.1.1 Sovittu ja avoinna
 
 **Sovittu 1.9.2026 (sopimus hyväksytty sellaisenaan):** endpoint ja verbi, kenttäjoukko ja
-CSV-vastaavuus, JSON-natiivit tyypit, `tila` mukana laskettuna arvona yllä olevin varauksin,
-passivoinnin ilmaisu päättymispäivällä, idempotenssi (`Idempotency-Key` + `versio`) ja statuskoodit,
-ei ASHA-numeroa eikä henkilötunnusta.
+CSV-vastaavuus, JSON-natiivit tyypit, passivoinnin ilmaisu päättymispäivällä (`tila`-kenttä
+poistettiin 16.9.2026, ks. huomio yllä), idempotenssi (`Idempotency-Key` + `versio`) ja
+statuskoodit, ei ASHA-numeroa eikä henkilötunnusta.
 
 **Payload lukittiin 1.9.2026 ja avattiin kerran 4.9.2026.** JYU vahvisti 1.9.2026, ettei Solki
 tarvitse passivoinnin syytä, henkilötunnusta eikä ASHA-numeroa. Sen jälkeen JYU pyysi
