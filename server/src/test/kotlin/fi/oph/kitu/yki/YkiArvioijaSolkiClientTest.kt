@@ -47,6 +47,7 @@ class YkiArvioijaSolkiClientTest {
         katuosoite = "Testikuja 5",
         postinumero = "40100",
         postitoimipaikka = "Testila",
+        ensimmainenRekisterointipaiva = LocalDate.of(2019, 1, 15),
         arviointioikeudet = emptyList(),
     )
 
