@@ -375,6 +375,34 @@ ottaa siksi `GREATEST`in projektiosta ja masterista, ja `poistaSailytysajanYlitt
 erikseen, ettei masterissa ole voimassa olevaa kautta. Ilman näitä vanhentunut projektio poistaisi
 peruuttamattomasti yhä voimassa olevan merkinnän.
 
+### 1.7 `V126__korjaa_arviointikauden_paattymispaiva.sql` — vanhat rivit inklusiiviseen sääntöön
+
+Laskenta korjattiin `+5 v − 1 pv`:ksi (§2.1), mutta vanhalla säännöllä syntyneet rivit jäivät
+kantaan. V126 siirtää ne päivää aikaisemmiksi.
+
+Ehdoksi kirjoitetaan **täsmälleen vanha sääntö** (`paattymispaiva = alkupaiva + 5 v`) eikä "siirrä
+kaikkia": muut päiväparit ovat joko kesken kauden katkaistuja tai Solkista tuotuja poikkeamia, ja
+yhden päivän siirto on hiljainen muutos hallintopäätöksen sisältöön. Postgresin
+interval-aritmetiikka leikkaa karkauspäivän samoin kuin `java.time`n `plusYears`
+(`2024-02-29 + 5 v = 2029-02-28`), joten ehto osuu tasan niihin riveihin jotka vanha laskenta
+tuotti.
+
+**Master ja projektio on korjattava samalla ehdolla.** Jos ne jäisivät eri linjoille, yöllinen
+`paivitaArvioijaProjektiot` kirjoittaisi projektion ja kutsuisi `merkitseMuuttuneeksi`, jolloin
+korjaus valuisi Solki-lähetysjonoon rivi kerrallaan. Ulkopuolelle jäävät siksi passivoidut kaudet
+(päättymispäivä on passivointipäivä, ei laskettu arvo) ja jäädytetyt vanhentuneiden kielten rivit,
+joilla ei ole kautta jota seurata — niillä voi olla sama alkupäivä kuin hallitulla kaudella, joten
+ne on suljettava pois erikseen.
+
+`yki_arvioija_kausi` on append-only muutosloki eikä sitä kirjoiteta uudelleen.
+`yki_arvioija.muokattu` jätetään myös koskematta, jolloin korjaus **ei** aja koko rekisteriä
+Solki-lähetysjonoon: Solkin kopiossa päättymispäivä on se jonka Solki itse on aikanaan antanut, ja
+yhden päivän ero korjaantuu kunkin arvioijan seuraavan muokkauksen yhteydessä. Rivien lähettäminen
+heti on oma päätöksensä ja tehdään erikseen.
+
+`YkiArvioijaKausimigraatioTest` lukee migraation luokkapolusta ja ajaa sen uudelleen, jolloin
+kumpikin osumaehto on kiinnitetty testiin.
+
 ---
 
 ## 2. Palvelukerros
