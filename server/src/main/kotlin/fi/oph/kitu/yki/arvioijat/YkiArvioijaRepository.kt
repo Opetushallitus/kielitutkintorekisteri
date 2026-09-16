@@ -66,10 +66,12 @@ interface CustomYkiArvioijaRepository {
     /**
      * @param lahetettyVersio rivin `muokattu` lahetyshetkella. Jos rivia on muokattu sen jalkeen,
      *   leimaa ei anneta: muuten samanaikainen muokkaus putoaisi jonosta lahettamatta.
+     * @param solkiTunnus Solkin palauttama arvioijatunnus. Tyhja ei nollaa jo tallennettua arvoa.
      */
     fun merkitseLahetetyksi(
         id: Int,
         lahetettyVersio: OffsetDateTime?,
+        solkiTunnus: String? = null,
     )
 
     fun merkitseLahetysvirhe(
@@ -444,17 +446,20 @@ class CustomYkiArvioijaRepositoryImpl(
     override fun merkitseLahetetyksi(
         id: Int,
         lahetettyVersio: OffsetDateTime?,
+        solkiTunnus: String?,
     ) {
         jdbcTemplate.update(
             """
             UPDATE yki_arvioija
             SET solkiin_lahetetty = now(),
+                solki_tunnus = COALESCE(?, solki_tunnus),
                 solki_lahetysvirhe = NULL,
                 solki_lahetysyritykset = 0,
                 solki_viimeisin_lahetysyritys = now()
             WHERE id = ?
               AND muokattu IS NOT DISTINCT FROM ?
             """.trimIndent(),
+            solkiTunnus,
             id,
             lahetettyVersio,
         )

@@ -35,6 +35,7 @@ data class YkiArvioijaEntity(
     val solkiLahetysvirhe: String? = null,
     val solkiLahetysyritykset: Int = 0,
     val solkiViimeisinLahetysyritys: OffsetDateTime? = null,
+    val solkiTunnus: String? = null,
     @MappedCollection(keyColumn = "id", idColumn = "arvioija_id")
     val arviointioikeudet: List<YkiArviointioikeusEntity>,
 ) {
@@ -63,6 +64,7 @@ data class YkiArvioijaEntity(
                     solkiLahetysyritykset = rs.getInt("solki_lahetysyritykset"),
                     solkiViimeisinLahetysyritys =
                         rs.getObject("solki_viimeisin_lahetysyritys", OffsetDateTime::class.java),
+                    solkiTunnus = rs.getString("solki_tunnus"),
                     arviointioikeudet = emptyList(),
                 )
             }
