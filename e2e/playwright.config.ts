@@ -1,6 +1,13 @@
 import { defineConfig, devices } from "@playwright/test"
 
 /**
+ * Palvelin laskee "tämän päivän" aina Europe/Helsinki-vyöhykkeellä (TimeService.zoneId),
+ * joten testiprosessin on oltava samassa vyöhykkeessä. Muuten CI:n UTC-ajossa testin ja
+ * palvelimen päivä eroavat klo 21–24 UTC välillä ja tähän päivään sidotut odotukset kaatuvat.
+ */
+process.env.TZ = "Europe/Helsinki"
+
+/**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
@@ -57,6 +64,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+
+    /* Sama vyöhyke kuin palvelimella, ks. process.env.TZ ylhäällä. */
+    timezoneId: "Europe/Helsinki",
   },
 
   /* Configure projects for major browsers */
