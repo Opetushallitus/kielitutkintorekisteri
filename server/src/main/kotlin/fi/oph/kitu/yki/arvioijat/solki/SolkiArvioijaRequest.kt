@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
-import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -34,39 +33,19 @@ data class SolkiArvioijaRequest(
     val ensimmainenRekisterointipaiva: LocalDate?,
     val arviointioikeudet: List<Arviointioikeus>,
 ) {
+    /**
+     * Tilaa ei laheteta: se vanhenee kauden umpeutuessa, joten vastaanottaja johtaa sen kauden
+     * paivista. Paattymispaiva on inklusiivinen eli kauden viimeinen voimassaolopaiva.
+     */
     data class Arviointioikeus(
         val kieli: Tutkintokieli,
         val tasot: List<Tutkintotaso>,
-        /**
-         * Laskettu lahetyshetkella, ks. [Rekisterointitila]. Vastaanottajan on syyta johtaa tila
-         * samoista paivista eika tallentaa sita, koska kentta vanhenee kauden umpeutuessa.
-         */
-        val tila: Tila,
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenAlkupaiva: LocalDate?,
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenPaattymispaiva: LocalDate?,
         val jatkorekisterointi: Boolean,
     )
-
-    /**
-     * Solkin tilasanasto, jossa on vain kaksi arvoa. [Rekisterointitila.TULEVAISUUDESSA] ei ole
-     * niiden joukossa, joten se lahetetaan aktiivisena: [Arviointioikeus.kaudenAlkupaiva] kertoo
-     * kauden alkavan vasta myohemmin, eika oikeutta ole passivoitu.
-     */
-    enum class Tila {
-        AKTIIVINEN,
-        PASSIVOITU,
-        ;
-
-        companion object {
-            fun of(tila: Rekisterointitila): Tila =
-                when (tila) {
-                    Rekisterointitila.PASSIVOITU -> PASSIVOITU
-                    Rekisterointitila.AKTIIVINEN, Rekisterointitila.TULEVAISUUDESSA -> AKTIIVINEN
-                }
-        }
-    }
 
     companion object {
         /**
@@ -75,7 +54,6 @@ data class SolkiArvioijaRequest(
          */
         fun of(
             arvioija: YkiArvioijaEntity,
-            tanaan: LocalDate,
             syntymaaika: LocalDate?,
         ): SolkiArvioijaRequest =
             SolkiArvioijaRequest(
@@ -96,7 +74,6 @@ data class SolkiArvioijaRequest(
                         Arviointioikeus(
                             kieli = oikeus.kieli,
                             tasot = oikeus.tasot.sorted(),
-                            tila = Tila.of(Rekisterointitila.laske(oikeus, tanaan)),
                             kaudenAlkupaiva = oikeus.kaudenAlkupaiva,
                             kaudenPaattymispaiva = oikeus.kaudenPaattymispaiva,
                             jatkorekisterointi = oikeus.jatkorekisterointi,

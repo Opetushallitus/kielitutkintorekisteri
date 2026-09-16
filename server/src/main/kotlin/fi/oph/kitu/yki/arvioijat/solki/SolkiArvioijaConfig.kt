@@ -1,7 +1,6 @@
 package fi.oph.kitu.yki.arvioijat.solki
 
 import fi.oph.kitu.oppijanumero.OppijanumeroService
-import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import org.springframework.context.annotation.Bean
@@ -22,8 +21,7 @@ class SolkiArvioijaConfig {
     fun solkiArvioijaLahetys(
         repository: YkiArvioijaRepository,
         client: SolkiArvioijaClient,
-        timeService: TimeService,
         oppijanumeroService: OppijanumeroService,
         asetukset: ArvioijarekisteriAsetukset,
-    ): SolkiArvioijaService = SolkiArvioijaServiceImpl(repository, client, timeService, oppijanumeroService, asetukset)
+    ): SolkiArvioijaService = SolkiArvioijaServiceImpl(repository, client, oppijanumeroService, asetukset)
 }

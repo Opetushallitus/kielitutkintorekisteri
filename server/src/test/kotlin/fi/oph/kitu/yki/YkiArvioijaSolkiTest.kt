@@ -65,7 +65,6 @@ class YkiArvioijaSolkiTest(
             SolkiArvioijaServiceImpl(
                 repository,
                 stub,
-                timeService,
                 oppijanumeroService,
                 ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = true),
             )
@@ -92,7 +91,7 @@ class YkiArvioijaSolkiTest(
     }
 
     @Test
-    fun `payload sisaltaa CSV-vastaavat kentat ja lasketun tilan`() {
+    fun `payload sisaltaa CSV-vastaavat kentat`() {
         tallenna()
 
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
@@ -103,7 +102,6 @@ class YkiArvioijaSolkiTest(
         val oikeus = request.arviointioikeudet.single()
         assertEquals(Tutkintokieli.FIN, oikeus.kieli)
         assertEquals(listOf(Tutkintotaso.PT), oikeus.tasot)
-        assertEquals(SolkiArvioijaRequest.Tila.AKTIIVINEN, oikeus.tila, "tila lasketaan lahetyshetkella")
         assertEquals(LocalDate.of(1980, 1, 1), request.syntymapaiva, "syntymaaika haetaan ONR:sta")
         assertEquals(
             LocalDate.of(2024, 1, 1),
@@ -139,11 +137,12 @@ class YkiArvioijaSolkiTest(
     }
 
     @Test
-    fun `tuleva kausi lahetetaan aktiivisena`() {
-        // Solkin sanastossa on vain AKTIIVINEN ja PASSIVOITU; kauden alkupaiva kertoo lopun.
+    fun `tulevan kauden paivat lahetetaan sellaisenaan`() {
+        // Tilaa ei laheteta, joten vastaanottaja erottaa tulevan kauden voimassa olevasta
+        // vain naista paivista.
         tallenna(
             kaudenAlkupaiva = LocalDate.of(2030, 1, 1),
-            kaudenPaattymispaiva = LocalDate.of(2035, 1, 1),
+            kaudenPaattymispaiva = LocalDate.of(2034, 12, 31),
         )
 
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
@@ -153,8 +152,8 @@ class YkiArvioijaSolkiTest(
                 .single()
                 .arviointioikeudet
                 .single()
-        assertEquals(SolkiArvioijaRequest.Tila.AKTIIVINEN, oikeus.tila)
         assertEquals(LocalDate.of(2030, 1, 1), oikeus.kaudenAlkupaiva)
+        assertEquals(LocalDate.of(2034, 12, 31), oikeus.kaudenPaattymispaiva)
     }
 
     @Test
@@ -341,7 +340,6 @@ class YkiArvioijaSolkiTest(
         SolkiArvioijaServiceImpl(
             repository,
             stub,
-            timeService,
             oppijanumeroService,
             ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = false),
         )

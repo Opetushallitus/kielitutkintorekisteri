@@ -2,7 +2,6 @@ package fi.oph.kitu.yki
 
 import fi.oph.kitu.restclient.withLenientStringConverter
 import fi.oph.kitu.util.defaultObjectMapper
-import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClientImpl
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
@@ -168,7 +167,6 @@ class YkiArvioijaSolkiClientTest {
             SolkiArvioijaRequest.Arviointioikeus(
                 kieli = Tutkintokieli.FIN,
                 tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
-                tila = SolkiArvioijaRequest.Tila.of(Rekisterointitila.AKTIIVINEN),
                 kaudenAlkupaiva = LocalDate.of(2025, 1, 1),
                 kaudenPaattymispaiva = LocalDate.of(2029, 12, 31),
                 jatkorekisterointi = false,
@@ -192,11 +190,10 @@ class YkiArvioijaSolkiClientTest {
             runko.propertyNames().asSequence().toList(),
         )
         assertEquals(
-            listOf("kieli", "tasot", "tila", "kaudenAlkupaiva", "kaudenPaattymispaiva", "jatkorekisterointi"),
+            listOf("kieli", "tasot", "kaudenAlkupaiva", "kaudenPaattymispaiva", "jatkorekisterointi"),
             runko["arviointioikeudet"][0].propertyNames().asSequence().toList(),
         )
         assertEquals("fin", runko["arviointioikeudet"][0]["kieli"].asString())
-        assertEquals("AKTIIVINEN", runko["arviointioikeudet"][0]["tila"].asString())
     }
 
     @Test

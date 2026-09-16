@@ -97,17 +97,20 @@ Yleiset kielitutkinnot lähetetään Jyväskylän yliopiston Solki-järjestelmä
 Kitu on arvioijarekisterin master, joten jokainen kitussa tehty tallennus lähetetään Solkille:
 
 ```
-PUT {kitu.yki.baseUrl}arvioijat/{arvioijanOppijanumero}
+POST {kitu.yki.baseUrl}arvioija
 Authorization:   Basic (kitu.yki.username/password, samat tunnukset kuin suoritushaussa)
-Idempotency-Key: {arvioijanOppijanumero}:{versio}
+Idempotency-Key: {arvioijaOid}:{versio}
 ```
 
 Runko on `SolkiArvioijaRequest`: samat kentät kuin poistuneessa CSV-tuonnissa, ilman henkilötunnusta
-(1.1.2026 lainmuutos). `tila` on **laskettu** arvo (`Rekisterointitila`), ei kannassa säilytettävä —
-vastaanottajan on syytä johtaa se samoista kauden päivistä. Sopimus on kuvattu kokonaisuudessaan
-`yki-arvioijarekisteri-suunnitelma.md`:n luvussa 5.1 (JYU hyväksynyt 1.9.2026, täydennetty 4.9.2026).
+(1.1.2026 lainmuutos). **`tila`-kenttää ei lähetetä** (poistettu 16.9.2026): se ei ole kitussa säilytettävä
+tieto vaan lasketaan kauden päivistä (`Rekisterointitila`), joten lähetetty arvo vanhenisi
+vastaanottajan kopiossa kauden umpeutuessa. Vastaanottaja johtaa tilan `kaudenAlkupaiva`n ja
+`kaudenPaattymispaiva`n välistä, **päättymispäivä mukaan lukien**. Sopimus on kuvattu
+kokonaisuudessaan `yki-arvioijarekisteri-suunnitelma.md`:n luvussa 5.1 (JYU hyväksynyt 1.9.2026,
+korjattu julkaistun rajapinnan mukaiseksi 16.9.2026).
 
-**`syntymaaika` on ainoa kenttä jota CSV:ssä ei ollut** — Solki johti sen henkilötunnuksesta, jota
+**`syntymapaiva` on ainoa kenttä jota CSV:ssä ei ollut** — Solki johti sen henkilötunnuksesta, jota
 kitu ei enää lähetä. Kitu **ei säilytä** syntymäaikaa vaan hakee sen ONR:stä lähetyshetkellä
 (`OppijanumeroService.getHenkiloByMasterOid`). Kaksi tapausta on pidettävä erillään:
 
