@@ -13,7 +13,7 @@ import java.time.OffsetDateTime
  * Kenttajoukko vastaa poistunutta CSV-tuontia, jotta Solkille ei synny kartoitustyota (suunnitelma
  * §5.1). Henkilotunnusta ei laheteta 1.1.2026 lainmuutoksen takia.
  *
- * [syntymaaika] on ainoa kentta jota CSV:ssa ei ollut: Solki johti sen henkilotunnuksesta, joten
+ * [syntymapaiva] on ainoa kentta jota CSV:ssa ei ollut: Solki johti sen henkilotunnuksesta, joten
  * hetun poisto vei silta pohjan. Kitu ei sailyta sita vaan hakee sen ONR:sta lahetyshetkella.
  */
 data class SolkiArvioijaRequest(
@@ -25,7 +25,7 @@ data class SolkiArvioijaRequest(
     /** Muista kentista poiketen jatetaan pois kokonaan kun tietoa ei ole, ks. [of]. */
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @get:JsonInclude(JsonInclude.Include.NON_NULL)
-    val syntymaaika: LocalDate?,
+    val syntymapaiva: LocalDate?,
     val sahkopostiosoite: String?,
     val katuosoite: String,
     val postinumero: String,
@@ -64,7 +64,7 @@ data class SolkiArvioijaRequest(
                 versio = arvioija.muokattu,
                 sukunimi = arvioija.sukunimi,
                 etunimet = arvioija.etunimet,
-                syntymaaika = syntymaaika,
+                syntymapaiva = syntymaaika,
                 sahkopostiosoite = arvioija.sahkopostiosoite,
                 katuosoite = arvioija.katuosoite,
                 postinumero = arvioija.postinumero,
