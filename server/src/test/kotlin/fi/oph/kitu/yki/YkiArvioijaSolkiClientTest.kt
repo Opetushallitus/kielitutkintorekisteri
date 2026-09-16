@@ -81,11 +81,24 @@ class YkiArvioijaSolkiClientTest {
     }
 
     @Test
-    fun `konflikti tulkitaan onnistumiseksi`() {
+    fun `konflikti on lahetysvirhe eika onnistuminen`() {
         val (client, server) = clientJaServer()
         server.expect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.CONFLICT))
 
-        assertTrue(client.laheta(request()).isRight(), "Solkilla on uudempi versio, ei virhe")
+        assertTrue(
+            client.laheta(request()).leftOrNull() is SolkiArvioijaException.Conflict,
+            "409 = Solki ei tallentanut mitaan, joten rivia ei saa merkita lahetetyksi",
+        )
+    }
+
+    @Test
+    fun `uusi arvioija vastaa 201 ja tulkitaan onnistumiseksi`() {
+        val (client, server) = clientJaServer()
+        server
+            .expect(method(HttpMethod.POST))
+            .andRespond(withStatus(HttpStatus.CREATED).body("""{"tunnus":"A00001"}"""))
+
+        assertTrue(client.laheta(request()).isRight())
     }
 
     @Test
