@@ -26,6 +26,11 @@ describe("YKI-arvioijan Solki-lähetys", () => {
     await expect(
       ykiArvioijaLomakePage.getPageContent().getByText("Odottaa lähetystä"),
     ).toHaveCount(0)
+
+    // Stubin palauttama tunnus tallentuu ja näkyy tietosivulla.
+    await expect(
+      ykiArvioijaLomakePage.getPageContent().getByText("A00001"),
+    ).toBeVisible()
   })
 
   test("lähetysvirhe näkyy syineen ja lähetyksen voi yrittää uudelleen", async ({

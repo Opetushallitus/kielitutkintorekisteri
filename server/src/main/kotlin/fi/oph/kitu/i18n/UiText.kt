@@ -395,6 +395,10 @@ object UiText {
                 get() = tr("yki.arvioija.lahetaUudelleen", fi = "Lähetä uudelleen Solkiin")
             val lahetysjonossa: LocalizedString
                 get() = tr("yki.arvioija.lahetysjonossa", fi = "Odottaa lähetystä")
+            val solkiTunnus: LocalizedString
+                get() = tr("yki.arvioija.solkiTunnus", fi = "Solki-tunnus")
+            val solkiTunnusEiTiedossa: LocalizedString
+                get() = tr("yki.arvioija.solkiTunnusEiTiedossa", fi = "Ei vielä tiedossa")
             val lahetysOnnistui: LocalizedString
                 get() = tr("yki.arvioija.lahetysOnnistui", fi = "Arvioija lähetettiin Solkiin.")
             val lahetysEpaonnistui: LocalizedString

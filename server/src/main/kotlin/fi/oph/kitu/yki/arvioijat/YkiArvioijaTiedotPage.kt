@@ -156,6 +156,11 @@ object YkiArvioijaTiedotPage {
                                 ?.let { finnishDateTime(it) }
                                 ?: +UiText.Yki.Arvioija.lahetysjonossa
                         },
+                        UiText.Yki.Arvioija.solkiTunnus to {
+                            arvioija.solkiTunnus
+                                ?.let { tunnus -> +tunnus }
+                                ?: +UiText.Yki.Arvioija.solkiTunnusEiTiedossa
+                        },
                         UiText.Yki.Arvioija.solkiLahetysyritykset to {
                             +arvioija.solkiLahetysyritykset.toString()
                         },
