@@ -38,7 +38,7 @@ class YkiArvioijaSolkiClientTest {
         syntymaaika: LocalDate? = LocalDate.of(1980, 1, 1),
         sahkopostiosoite: String? = "testi@testi.fi",
     ) = SolkiArvioijaRequest(
-        arvioijanOppijanumero = "1.2.246.562.24.20281155246",
+        arvioijaOid = "1.2.246.562.24.20281155246",
         versio = versio,
         sukunimi = "Öhman-Testi",
         etunimet = "Ranja Testi",

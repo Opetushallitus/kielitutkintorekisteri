@@ -17,7 +17,7 @@ import java.time.OffsetDateTime
  * hetun poisto vei silta pohjan. Kitu ei sailyta sita vaan hakee sen ONR:sta lahetyshetkella.
  */
 data class SolkiArvioijaRequest(
-    val arvioijanOppijanumero: String,
+    val arvioijaOid: String,
     @param:JsonFormat(shape = JsonFormat.Shape.STRING)
     val versio: OffsetDateTime?,
     val sukunimi: String,
@@ -60,7 +60,7 @@ data class SolkiArvioijaRequest(
             syntymaaika: LocalDate?,
         ): SolkiArvioijaRequest =
             SolkiArvioijaRequest(
-                arvioijanOppijanumero = arvioija.arvioijaOid.toString(),
+                arvioijaOid = arvioija.arvioijaOid.toString(),
                 versio = arvioija.muokattu,
                 sukunimi = arvioija.sukunimi,
                 etunimet = arvioija.etunimet,

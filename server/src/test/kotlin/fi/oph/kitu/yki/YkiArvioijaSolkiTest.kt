@@ -99,7 +99,7 @@ class YkiArvioijaSolkiTest(
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
 
         val request = stub.lahetetyt.single()
-        assertEquals("1.2.246.562.24.20281155246", request.arvioijanOppijanumero)
+        assertEquals("1.2.246.562.24.20281155246", request.arvioijaOid)
         assertNotNull(request.versio, "versio = kitun muokattu")
         val oikeus = request.arviointioikeudet.single()
         assertEquals(Tutkintokieli.FIN, oikeus.kieli)
@@ -141,7 +141,7 @@ class YkiArvioijaSolkiTest(
         val id = tallenna()
         stub.vastaus = { req ->
             SolkiArvioijaException
-                .UnexpectedError(req.arvioijanOppijanumero, ResponseEntity.status(500).body("hajosi"))
+                .UnexpectedError(req.arvioijaOid, ResponseEntity.status(500).body("hajosi"))
                 .left()
         }
 
@@ -159,7 +159,7 @@ class YkiArvioijaSolkiTest(
         val id = tallenna()
         stub.vastaus = { req ->
             SolkiArvioijaException
-                .BadRequest(req.arvioijanOppijanumero, ResponseEntity.badRequest().body("kentta puuttuu"))
+                .BadRequest(req.arvioijaOid, ResponseEntity.badRequest().body("kentta puuttuu"))
                 .left()
         }
 
@@ -216,7 +216,7 @@ class YkiArvioijaSolkiTest(
         val hajoava = tallenna()
         val toimiva = tallenna(oid = "1.2.246.562.24.59267607404")
         stub.vastaus = { req ->
-            if (req.arvioijanOppijanumero.endsWith("20281155246")) {
+            if (req.arvioijaOid.endsWith("20281155246")) {
                 throw IllegalStateException("hajosi")
             } else {
                 Unit.right()
@@ -276,7 +276,7 @@ class YkiArvioijaSolkiTest(
     @Test
     fun `kasin lahetyksen virhe kirjataan riville`() {
         val id = tallenna()
-        stub.vastaus = { SolkiArvioijaException.NullResponse(it.arvioijanOppijanumero).left() }
+        stub.vastaus = { SolkiArvioijaException.NullResponse(it.arvioijaOid).left() }
 
         val tulos =
             timeService.runWithFixedClock(hetki) {

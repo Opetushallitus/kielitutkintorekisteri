@@ -62,7 +62,7 @@ class YkiController(
     ): ResponseEntity<String> {
         logger.info(
             "Solki-stubi vastaanotti arvioijan {} ({} kenttaa)",
-            body["arvioijanOppijanumero"],
+            body["arvioijaOid"],
             body.size,
         )
         return ResponseEntity.ok("""{"tunnus":"A00001"}""")
