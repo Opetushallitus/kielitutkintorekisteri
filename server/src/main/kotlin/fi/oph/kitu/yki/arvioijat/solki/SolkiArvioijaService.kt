@@ -109,9 +109,9 @@ open class SolkiArvioijaServiceImpl(
                     repository.merkitseLahetysvirhe(id, virhe.debugString())
                     Lahetystulos.VIRHE
                 },
-                ifRight = {
+                ifRight = { tunnus ->
                     // Versioehto: jos rivia on muokattu lahetyksen aikana, se jaa jonoon.
-                    repository.merkitseLahetetyksi(id, arvioija.muokattu)
+                    repository.merkitseLahetetyksi(id, arvioija.muokattu, tunnus)
                     Lahetystulos.LAHETETTY
                 },
             )

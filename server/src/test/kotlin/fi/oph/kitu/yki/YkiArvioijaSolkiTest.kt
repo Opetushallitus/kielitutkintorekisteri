@@ -44,11 +44,11 @@ class YkiArvioijaSolkiTest(
 
     /** Kerää lähetetyt pyynnöt ja antaa testin päättää vastauksen. */
     private class Stub(
-        var vastaus: (SolkiArvioijaRequest) -> Either<SolkiArvioijaException, Unit> = { Unit.right() },
+        var vastaus: (SolkiArvioijaRequest) -> Either<SolkiArvioijaException, String?> = { "A00001".right() },
     ) : fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClient {
         val lahetetyt = mutableListOf<SolkiArvioijaRequest>()
 
-        override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit> {
+        override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?> {
             lahetetyt += request
             return vastaus(request)
         }
@@ -109,6 +109,32 @@ class YkiArvioijaSolkiTest(
             LocalDate.of(2024, 1, 1),
             request.ensimmainenRekisterointipaiva,
             "ensimmainen rekisterointipaiva kuuluu dokumentin juureen, ei arviointioikeudelle",
+        )
+    }
+
+    @Test
+    fun `Solkin palauttama tunnus talletetaan riville`() {
+        val id = tallenna()
+
+        timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
+
+        assertEquals("A00001", repository.findArvioijaById(id)!!.solkiTunnus)
+    }
+
+    @Test
+    fun `tunnukseton vastaus ei nollaa jo tallennettua tunnusta`() {
+        val id = tallenna()
+        timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
+
+        stub.vastaus = { null.right() }
+        timeService.runWithFixedClock(hetki) {
+            solki.lahetaArvioijaKasin(repository.findArvioijaById(id)!!)
+        }
+
+        assertEquals(
+            "A00001",
+            repository.findArvioijaById(id)!!.solkiTunnus,
+            "kerran saatu tunnus ei saa kadota vastauksesta jossa sita ei ole",
         )
     }
 
@@ -242,7 +268,7 @@ class YkiArvioijaSolkiTest(
             if (req.arvioijaOid.endsWith("20281155246")) {
                 throw IllegalStateException("hajosi")
             } else {
-                Unit.right()
+                "A00002".right()
             }
         }
 

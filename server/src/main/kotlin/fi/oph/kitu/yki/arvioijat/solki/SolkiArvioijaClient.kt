@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import fi.oph.kitu.restclient.retrieveEntitySafely
+import fi.oph.kitu.util.defaultObjectMapper
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
@@ -13,8 +14,11 @@ import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 
 interface SolkiArvioijaClient {
-    /** Palauttaa aina tuloksen: yhteysvirhekin on Left, ei poikkeus. */
-    fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit>
+    /**
+     * Palauttaa aina tuloksen: yhteysvirhekin on Left, ei poikkeus. Onnistuneen lahetyksen arvo on
+     * Solkin arvioijalle muodostama tunnus, tai null jos vastaus ei sisaltanyt sita.
+     */
+    fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?>
 }
 
 /**
@@ -29,7 +33,7 @@ class SolkiArvioijaClientImpl(
     val restClient: RestClient,
 ) : SolkiArvioijaClient {
     @WithSpan
-    override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit> {
+    override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?> {
         val response =
             try {
                 kutsu(request)
@@ -45,7 +49,7 @@ class SolkiArvioijaClientImpl(
             }
 
             response.statusCode.is2xxSuccessful -> {
-                Unit.right()
+                tunnus(response).right()
             }
 
             response.statusCode.value() == UNAUTHORIZED || response.statusCode.value() == FORBIDDEN -> {
@@ -65,6 +69,17 @@ class SolkiArvioijaClientImpl(
             }
         }
     }
+
+    /**
+     * Vastausrunko on `{"tunnus":"A00001"}`. Puuttuva tai jasentymaton runko ei ole lahetysvirhe:
+     * Solki on ottanut rivin vastaan, ja tunnus saadaan viimeistaan seuraavassa lahetyksessa.
+     */
+    private fun tunnus(response: ResponseEntity<String>): String? =
+        response.body
+            ?.let { runCatching { defaultObjectMapper.readTree(it) }.getOrNull() }
+            ?.get("tunnus")
+            ?.asString()
+            ?.takeIf { it.isNotBlank() }
 
     private fun kutsu(request: SolkiArvioijaRequest): ResponseEntity<String>? =
         restClient

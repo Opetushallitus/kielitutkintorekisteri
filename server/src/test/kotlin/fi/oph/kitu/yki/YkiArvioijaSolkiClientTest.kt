@@ -94,13 +94,25 @@ class YkiArvioijaSolkiClientTest {
     }
 
     @Test
-    fun `uusi arvioija vastaa 201 ja tulkitaan onnistumiseksi`() {
+    fun `uusi arvioija vastaa 201 ja tunnus luetaan vastauksesta`() {
         val (client, server) = clientJaServer()
         server
             .expect(method(HttpMethod.POST))
             .andRespond(withStatus(HttpStatus.CREATED).body("""{"tunnus":"A00001"}"""))
 
-        assertTrue(client.laheta(request()).isRight())
+        assertEquals("A00001", client.laheta(request()).getOrNull())
+    }
+
+    @Test
+    fun `jasentymaton vastausrunko ei kaada lahetysta`() {
+        // Solki on ottanut rivin vastaan, joten tunnuksen puuttuminen ei ole lahetysvirhe.
+        val (client, server) = clientJaServer()
+        server.expect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK).body("OK"))
+
+        val tulos = client.laheta(request())
+
+        assertTrue(tulos.isRight())
+        assertEquals(null, tulos.getOrNull())
     }
 
     @Test
