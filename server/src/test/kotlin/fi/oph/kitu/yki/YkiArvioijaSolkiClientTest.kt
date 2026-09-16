@@ -1,6 +1,8 @@
 package fi.oph.kitu.yki
 
 import fi.oph.kitu.restclient.withLenientStringConverter
+import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClientImpl
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
@@ -144,6 +146,45 @@ class YkiArvioijaSolkiClientTest {
             """"sahkopostiosoite":null""",
             message = "muiden kenttien lankamuoto ei saa muuttua",
         )
+    }
+
+    @Test
+    fun `runko vastaa Solkin dokumentoimaa kenttajoukkoa`() {
+        // Kenttien nimet ja taso ovat koko sopimus: vaara nimi ei nay mistaan muusta kuin
+        // Solkin 4xx-vastauksesta, ja vaara taso menee lapi hiljaisesti.
+        val oikeus =
+            SolkiArvioijaRequest.Arviointioikeus(
+                kieli = Tutkintokieli.FIN,
+                tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                tila = SolkiArvioijaRequest.Tila.of(Rekisterointitila.AKTIIVINEN),
+                kaudenAlkupaiva = LocalDate.of(2025, 1, 1),
+                kaudenPaattymispaiva = LocalDate.of(2029, 12, 31),
+                jatkorekisterointi = false,
+            )
+        val runko = defaultObjectMapper.readTree(runko(request().copy(arviointioikeudet = listOf(oikeus))))
+
+        assertEquals(
+            listOf(
+                "arvioijaOid",
+                "versio",
+                "sukunimi",
+                "etunimet",
+                "syntymapaiva",
+                "sahkopostiosoite",
+                "katuosoite",
+                "postinumero",
+                "postitoimipaikka",
+                "ensimmainenRekisterointipaiva",
+                "arviointioikeudet",
+            ),
+            runko.propertyNames().asSequence().toList(),
+        )
+        assertEquals(
+            listOf("kieli", "tasot", "tila", "kaudenAlkupaiva", "kaudenPaattymispaiva", "jatkorekisterointi"),
+            runko["arviointioikeudet"][0].propertyNames().asSequence().toList(),
+        )
+        assertEquals("fin", runko["arviointioikeudet"][0]["kieli"].asString())
+        assertEquals("AKTIIVINEN", runko["arviointioikeudet"][0]["tila"].asString())
     }
 
     @Test
