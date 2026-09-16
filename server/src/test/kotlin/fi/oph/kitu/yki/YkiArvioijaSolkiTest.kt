@@ -49,7 +49,7 @@ class YkiArvioijaSolkiTest(
     ) : fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClient {
         val lahetetyt = mutableListOf<SolkiArvioijaRequest>()
 
-        override fun put(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit> {
+        override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit> {
             lahetetyt += request
             return vastaus(request)
         }

@@ -55,11 +55,11 @@ class YkiArvioijaSolkiClientTest {
         val (client, server) = clientJaServer()
         var runko = ""
         server
-            .expect(method(HttpMethod.PUT))
+            .expect(method(HttpMethod.POST))
             .andExpect { req -> runko = (req as MockClientHttpRequest).bodyAsString }
             .andRespond(withStatus(HttpStatus.NO_CONTENT))
 
-        client.put(request)
+        client.laheta(request)
 
         return runko
     }
@@ -68,10 +68,10 @@ class YkiArvioijaSolkiClientTest {
     fun `yhteysvirhe palautuu Leftina eika poikkeuksena`() {
         val (client, server) = clientJaServer()
         server
-            .expect(requestTo("https://solki.test/oph/arvioijat/1.2.246.562.24.20281155246"))
+            .expect(requestTo("https://solki.test/oph/arvioija"))
             .andRespond(withException(IOException("connection refused")))
 
-        val tulos = client.put(request())
+        val tulos = client.laheta(request())
 
         assertTrue(
             tulos.leftOrNull() is SolkiArvioijaException.ConnectionFailure,
@@ -82,9 +82,9 @@ class YkiArvioijaSolkiClientTest {
     @Test
     fun `konflikti tulkitaan onnistumiseksi`() {
         val (client, server) = clientJaServer()
-        server.expect(method(HttpMethod.PUT)).andRespond(withStatus(HttpStatus.CONFLICT))
+        server.expect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.CONFLICT))
 
-        assertTrue(client.put(request()).isRight(), "Solkilla on uudempi versio, ei virhe")
+        assertTrue(client.laheta(request()).isRight(), "Solkilla on uudempi versio, ei virhe")
     }
 
     @Test
@@ -94,7 +94,7 @@ class YkiArvioijaSolkiClientTest {
             .expect(header("Idempotency-Key", "1.2.246.562.24.20281155246:$versio"))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body("hajosi"))
 
-        val tulos = client.put(request())
+        val tulos = client.laheta(request())
 
         assertTrue(tulos.leftOrNull() is SolkiArvioijaException.UnexpectedError)
     }
@@ -104,9 +104,9 @@ class YkiArvioijaSolkiClientTest {
         val (client, server) = clientJaServer()
         // Solki voi kaiuttaa lahetetyt arvot takaisin, ja teksti paatyy kayttoliittymaan asti.
         val pitkaVastaus = "katuosoite 'Testikuja 5' on virheellinen. ".repeat(50)
-        server.expect(method(HttpMethod.PUT)).andRespond(withStatus(HttpStatus.BAD_REQUEST).body(pitkaVastaus))
+        server.expect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.BAD_REQUEST).body(pitkaVastaus))
 
-        val virhe = client.put(request()).leftOrNull()!!.debugString()
+        val virhe = client.laheta(request()).leftOrNull()!!.debugString()
 
         assertTrue(virhe.length < pitkaVastaus.length, "vastausrunko on katkaistava: ${virhe.length}")
         assertContains(virhe, "katkaistu")
@@ -135,8 +135,8 @@ class YkiArvioijaSolkiClientTest {
     @Test
     fun `onnistunut lahetys palauttaa Rightin`() {
         val (client, server) = clientJaServer()
-        server.expect(method(HttpMethod.PUT)).andRespond(withStatus(HttpStatus.NO_CONTENT))
+        server.expect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.NO_CONTENT))
 
-        assertEquals(true, client.put(request()).isRight())
+        assertEquals(true, client.laheta(request()).isRight())
     }
 }

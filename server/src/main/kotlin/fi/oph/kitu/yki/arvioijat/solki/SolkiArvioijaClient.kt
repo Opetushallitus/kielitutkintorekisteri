@@ -6,7 +6,6 @@ import arrow.core.right
 import fi.oph.kitu.restclient.retrieveEntitySafely
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -15,7 +14,7 @@ import org.springframework.web.client.RestClient
 
 interface SolkiArvioijaClient {
     /** Palauttaa aina tuloksen: yhteysvirhekin on Left, ei poikkeus. */
-    fun put(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit>
+    fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit>
 }
 
 /**
@@ -30,10 +29,10 @@ class SolkiArvioijaClientImpl(
     val restClient: RestClient,
 ) : SolkiArvioijaClient {
     @WithSpan
-    override fun put(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit> {
+    override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, Unit> {
         val response =
             try {
-                laheta(request)
+                kutsu(request)
             } catch (e: ResourceAccessException) {
                 // retrieveEntitySafely heittaa yhteysvirheen lapi. Ilman tata tallennuksen
                 // synkroninen lahetysyritys kaataisi virkailijan pyynnon jo tallennetulle riville.
@@ -69,10 +68,10 @@ class SolkiArvioijaClientImpl(
         }
     }
 
-    private fun laheta(request: SolkiArvioijaRequest): ResponseEntity<String>? =
+    private fun kutsu(request: SolkiArvioijaRequest): ResponseEntity<String>? =
         restClient
-            .method(HttpMethod.PUT)
-            .uri("arvioijat/{oppijanumero}", request.arvioijanOppijanumero)
+            .post()
+            .uri("arvioija")
             .contentType(MediaType.APPLICATION_JSON)
             .header("Idempotency-Key", "${request.arvioijanOppijanumero}:${request.versio}")
             .body(request)
