@@ -21,7 +21,7 @@ describe("YKI-arvioijan Solki-lähetys", () => {
     await ykiArvioijaLomakePage.valitseArviointioikeus("FIN", "PT")
     await ykiArvioijaLomakePage.tallenna()
 
-    // Dev-stubi vastaa 204, joten tallennuksen synkroninen yritys onnistuu heti.
+    // Dev-stubi vastaa 200, joten tallennuksen synkroninen yritys onnistuu heti.
     await expect(page.getByTestId("lahetaArvioijaSolkiin")).toBeVisible()
     await expect(
       ykiArvioijaLomakePage.getPageContent().getByText("Odottaa lähetystä"),
@@ -62,7 +62,7 @@ describe("YKI-arvioijan Solki-lähetys", () => {
       .click()
     await page.getByTestId("lahetaArvioijaSolkiin").click()
 
-    // Stubi vastaa 204, joten uusinta onnistuu ja virhe katoaa.
+    // Stubi vastaa 200, joten uusinta onnistuu ja virhe katoaa.
     await expect(
       ykiArvioijaLomakePage.getPageContent().getByText("Unexpected error"),
     ).toHaveCount(0)
