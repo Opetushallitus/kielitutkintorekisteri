@@ -290,7 +290,30 @@ Per env (`Dev` / `Test` / `Prod`):
   attach to.
 - **`<Env>/LogGroups`** — Service log groups + metric filters that turn
   structured log lines into CloudWatch metrics, and the `LogErrors` /
-  `LogWarnings` alarms wired to those topics + investigation actions.
+  `LogWarnings` alarms wired to those topics + investigation actions. It also
+  enables Transaction Search and owns `YkiSuoritusAlarm`, the informational
+  "YKI-suorituksia arvioitu" notification on the **info** topic, driven by the
+  `PostYkiSuoritus` metric filter over the `aws/spans` log group.
+
+  That filter reads a span attribute (`arvioitu`) that the application sets via
+  `Span.current()` in `YkiApiController`. Two traps live here, both of which
+  have already silently broken this alarm once:
+
+  1. Metric filter patterns cannot reference JSON keys containing periods, so
+     OTel semconv attributes (`http.route`, `http.request.method`) are
+     unreachable — only flat, dot-free keys work.
+  2. A metric filter matches **one log record at a time**, and a single HTTP
+     request produces several span records. `Span.current()` inside a controller
+     is Spring Security's `secured request` INTERNAL span, _not_ the HTTP SERVER
+     span that carries `uri` / `method`. A pattern requiring attributes from
+     both spans matches nothing — and fails silently, since a metric that is
+     never emitted is indistinguishable from "nothing happened" under
+     `treatMissingData: NOT_BREACHING`.
+
+  When changing this filter, validate the pattern against real records before
+  deploying: `aws logs test-metric-filter --filter-pattern '<pattern>'
+--log-event-messages file://samples.json`, with samples pulled from
+  `aws/spans` via CloudWatch Logs Insights.
 
 ### Slack channels
 
