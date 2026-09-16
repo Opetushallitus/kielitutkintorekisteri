@@ -59,12 +59,14 @@ class YkiController(
     @PostMapping("/yki/import/arvioija")
     fun fakeSolkiArvioijaPost(
         @RequestBody body: Map<String, Any?>,
-    ): ResponseEntity<String> {
+    ): ResponseEntity<Map<String, String>> {
         logger.info(
             "Solki-stubi vastaanotti arvioijan {} ({} kenttaa)",
             body["arvioijaOid"],
             body.size,
         )
-        return ResponseEntity.ok("""{"tunnus":"A00001"}""")
+        // Map eika JSON-teksti Stringina: String serialisoituisi JSON-merkkijonoksi, jolloin
+        // stubin lankamuoto poikkeaisi oikeasta Solkista eika tunnus loytyisi vastauksesta.
+        return ResponseEntity.ok(mapOf("tunnus" to "A00001"))
     }
 }
