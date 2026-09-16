@@ -44,18 +44,16 @@ class SolkiArvioijaClientImpl(
                 SolkiArvioijaException.NullResponse(request.arvioijaOid).left()
             }
 
-            // Solkilla on uudempi versio: kitun rivi ei ole vanhentunut vaan Solki on jo ajan
-            // tasalla, joten tama on onnistuminen eika virhe (suunnitelma §5.1).
-            response.statusCode.value() == CONFLICT -> {
-                Unit.right()
-            }
-
             response.statusCode.is2xxSuccessful -> {
                 Unit.right()
             }
 
             response.statusCode.value() == UNAUTHORIZED || response.statusCode.value() == FORBIDDEN -> {
                 SolkiArvioijaException.Unauthorized(request.arvioijaOid, response).left()
+            }
+
+            response.statusCode.value() == CONFLICT -> {
+                SolkiArvioijaException.Conflict(request.arvioijaOid, response).left()
             }
 
             response.statusCode.is4xxClientError -> {

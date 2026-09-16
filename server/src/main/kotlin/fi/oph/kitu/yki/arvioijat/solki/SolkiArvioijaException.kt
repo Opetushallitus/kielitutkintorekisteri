@@ -13,6 +13,15 @@ sealed class SolkiArvioijaException(
         response: ResponseEntity<String>,
     ) : SolkiArvioijaException(oppijanumero, response, "Bad request")
 
+    /**
+     * Solki ei tallentanut mitaan: lahetetty sahkopostiosoite kuuluu jo toiselle Solkin
+     * kayttajatunnukselle. Uusinta ei auta ennen kuin osoite korjataan kitussa.
+     */
+    class Conflict(
+        oppijanumero: String,
+        response: ResponseEntity<String>,
+    ) : SolkiArvioijaException(oppijanumero, response, "Conflict: email address already in use in Solki")
+
     class Unauthorized(
         oppijanumero: String,
         response: ResponseEntity<String>,
