@@ -627,8 +627,8 @@ class ValidationServiceTest(
     }
 
     @Test
-    fun `Arvioijan kauden paattymispaiva on viisi vuotta alkupaivasta`() {
-        assertEquals(LocalDate.of(2030, 12, 7), validiTallennaArvioija.kaudenPaattymispaiva)
+    fun `Arvioijan kauden paattymispaiva on viimeinen voimassaolopaiva`() {
+        assertEquals(LocalDate.of(2030, 12, 6), validiTallennaArvioija.kaudenPaattymispaiva)
     }
 
     @Test

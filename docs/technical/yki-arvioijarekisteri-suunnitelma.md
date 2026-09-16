@@ -63,7 +63,7 @@ Kaikki 14 OPH:lle esitettyä kysymystä on vastattu 21.8.2026. Vastaukset on vie
 
 | #    | Kysymys                        | Päätös                                                                                                                            |
 | ---- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Kauden päättymispäivä          | `alkupäivä + 5 v` samana päivänä                                                                                                  |
+| 1    | Kauden päättymispäivä          | **Korjattu 16.9.2026:** `alkupäivä + 5 v − 1 pv`, koska päättymispäivä on inklusiivinen (kys. 2)                                  |
 | 2    | Päättymispäivän inklusiivisuus | Inklusiivinen — passivointi vasta päivän jälkeen                                                                                  |
 | 3 ✱  | Jatkokausi                     | **Järjestelmä päättelee automaattisesti** kauden alkupäivästä (§2.8); ylikirjoitus poistettiin 31.8.2026                          |
 | 4 ✱  | Yksilöimätön henkilö           | ~~Merkintä saa tallentua keskeneräisenä~~ **Kumottu 28.8.2026**: arvioijalla on aina jo oppijanumero, joten yksilöimätön hylätään |
@@ -389,13 +389,16 @@ kantaluokan injektoidut kentät `null`iksi (CLAUDE.md).
 object Arviointikausi {
     const val KAUDEN_PITUUS_VUOSINA = 5L
 
-    /** Rekisterimerkintä on voimassa 5 vuotta alkupäivästä, kaikille tutkintokielille ja tasoille. */
-    fun paattymispaiva(alkupaiva: LocalDate): LocalDate = alkupaiva.plusYears(KAUDEN_PITUUS_VUOSINA)
+    /** Päättymispäivä on inklusiivinen, joten viisi vuotta päättyy vuosipäivää edeltävänä päivänä. */
+    fun paattymispaiva(alkupaiva: LocalDate): LocalDate =
+        alkupaiva.plusYears(KAUDEN_PITUUS_VUOSINA).minusDays(1)
 }
 ```
 
-`plusYears(5)` (ei `−1 pv`), koska nykyinen Solki-data käyttää tarkalleen +5 v samaa päivää
-(`dev/YkiController.kt`-fixture: `2015-12-07 → 2020-12-07`). Varmistettava OPH:lta (§12).
+**Korjattu 16.9.2026: `plusYears(5).minusDays(1)`.** Päättymispäivä on kauden viimeinen
+voimassaolopäivä (kys. 2), joten `plusYears(5)` teki kaudesta 5 v + 1 pv ja esti jatkokauden
+alkamisen vuosipäivänä. Tuotu Solki-data käyttää yhä +5 v samaa päivää (`2015-12-07 → 2020-12-07`);
+sitä ei lasketa uudelleen, vaan sääntö koskee kitussa kirjattavia kausia.
 Puhdas `object`, ei `@Service` — ei CGLIB-proxya, testattavissa ilman Spring-kontekstia.
 
 ### 2.2 `YkiArvioijaCommand.kt` — sisäinen komento, korvaa poistuvan API-DTO:n
@@ -1713,7 +1716,7 @@ e2e-oikeusmatriisi kattaa sekä 403:n että 200:n.
 `Arviointikausi`, `TallennaArvioija`, `YkiArvioijaValidation`, jatkokauden päättely,
 oppijanumerohaku, esitäytetty lomake, arviointioikeusmatriisi, ASHA-numerokenttä,
 turvakieltovaroitus, auditlokit, UiText.
-_Valmis kun:_ kausi on alkupäivä + 5 v ja sama kaikilla kielillä, **yksilöimätön oppijanumero hylätään**, e2e vihreä.
+_Valmis kun:_ kausi on alkupäivä + 5 v − 1 pv ja sama kaikilla kielillä, **yksilöimätön oppijanumero hylätään**, e2e vihreä.
 
 **KTR-6 · Muokkaus, kausihistoria ja manuaalinen passivointi (UC2)** — L
 Tietosivu + kausihistoriataulukko + POST, `passivoiArvioija`.
