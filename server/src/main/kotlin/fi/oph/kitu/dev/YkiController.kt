@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -57,12 +56,15 @@ class YkiController(
      * Solki-stubi vaiheen 9 lahetykselle. Virhepolkuja ei ohjata taalta: client maarittaa URLin,
      * joten testi ei voi valittaa stubille haluttua statusta. Ne katetaan yksikkotesteissa.
      */
-    @PutMapping("/yki/import/arvioijat/{oppijanumero}")
-    fun fakeSolkiArvioijaPut(
-        @PathVariable oppijanumero: String,
+    @PostMapping("/yki/import/arvioija")
+    fun fakeSolkiArvioijaPost(
         @RequestBody body: Map<String, Any?>,
     ): ResponseEntity<String> {
-        logger.info("Solki-stubi vastaanotti arvioijan {} ({} kenttaa)", oppijanumero, body.size)
-        return ResponseEntity.noContent().build()
+        logger.info(
+            "Solki-stubi vastaanotti arvioijan {} ({} kenttaa)",
+            body["arvioijanOppijanumero"],
+            body.size,
+        )
+        return ResponseEntity.ok("""{"tunnus":"A00001"}""")
     }
 }

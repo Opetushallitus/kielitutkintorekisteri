@@ -103,7 +103,7 @@ open class SolkiArvioijaServiceImpl(
         syntymaaika: LocalDate?,
     ): Lahetystulos =
         client
-            .put(SolkiArvioijaRequest.of(arvioija, timeService.today(), syntymaaika))
+            .laheta(SolkiArvioijaRequest.of(arvioija, timeService.today(), syntymaaika))
             .fold(
                 ifLeft = { virhe ->
                     repository.merkitseLahetysvirhe(id, virhe.debugString())
