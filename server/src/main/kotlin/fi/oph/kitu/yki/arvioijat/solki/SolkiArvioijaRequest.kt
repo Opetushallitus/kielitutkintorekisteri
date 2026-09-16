@@ -30,6 +30,8 @@ data class SolkiArvioijaRequest(
     val katuosoite: String,
     val postinumero: String,
     val postitoimipaikka: String,
+    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    val ensimmainenRekisterointipaiva: LocalDate?,
     val arviointioikeudet: List<Arviointioikeus>,
 ) {
     data class Arviointioikeus(
@@ -45,8 +47,6 @@ data class SolkiArvioijaRequest(
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenPaattymispaiva: LocalDate?,
         val jatkorekisterointi: Boolean,
-        @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        val ensimmainenRekisterointipaiva: LocalDate,
     )
 
     companion object {
@@ -69,6 +69,9 @@ data class SolkiArvioijaRequest(
                 katuosoite = arvioija.katuosoite,
                 postinumero = arvioija.postinumero,
                 postitoimipaikka = arvioija.postitoimipaikka,
+                ensimmainenRekisterointipaiva =
+                    arvioija.arvioijanEnsimmainenRekisterointipaiva
+                        ?: arvioija.arviointioikeudet.minOfOrNull { it.ensimmainenRekisterointipaiva },
                 arviointioikeudet =
                     arvioija.arviointioikeudet.map { oikeus ->
                         Arviointioikeus(
@@ -78,7 +81,6 @@ data class SolkiArvioijaRequest(
                             kaudenAlkupaiva = oikeus.kaudenAlkupaiva,
                             kaudenPaattymispaiva = oikeus.kaudenPaattymispaiva,
                             jatkorekisterointi = oikeus.jatkorekisterointi,
-                            ensimmainenRekisterointipaiva = oikeus.ensimmainenRekisterointipaiva,
                         )
                     },
             )

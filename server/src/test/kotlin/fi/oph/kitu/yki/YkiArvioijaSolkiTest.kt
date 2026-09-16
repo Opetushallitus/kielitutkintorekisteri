@@ -106,6 +106,11 @@ class YkiArvioijaSolkiTest(
         assertEquals(listOf(Tutkintotaso.PT), oikeus.tasot)
         assertEquals(Rekisterointitila.AKTIIVINEN, oikeus.tila, "tila lasketaan lahetyshetkella")
         assertEquals(LocalDate.of(1980, 1, 1), request.syntymapaiva, "syntymaaika haetaan ONR:sta")
+        assertEquals(
+            LocalDate.of(2024, 1, 1),
+            request.ensimmainenRekisterointipaiva,
+            "ensimmainen rekisterointipaiva kuuluu dokumentin juureen, ei arviointioikeudelle",
+        )
     }
 
     @Test
