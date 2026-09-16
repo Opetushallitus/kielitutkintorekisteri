@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.TestTimeService
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
@@ -27,6 +28,7 @@ import fi.oph.kitu.yki.suoritukset.Todistuskieli
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,6 +37,7 @@ import kotlin.test.assertEquals
 @Import(DBContainerConfiguration::class)
 class ValidationServiceTest(
     @param:Autowired val validation: ValidationService,
+    @param:Autowired val timeService: TestTimeService,
 ) {
     val validiYkiSuoritus =
         Henkilosuoritus(
@@ -704,9 +707,13 @@ class ValidationServiceTest(
     @Test
     fun `Arvioijan kausi ei voi alkaa yli vuoden paasta`() {
         val result =
-            validation.validateAndEnrich(
-                validiTallennaArvioija.copy(kaudenAlkupaiva = LocalDate.now().plusYears(1).plusDays(1)),
-            )
+            timeService.runWithFixedClock(Instant.parse("2025-09-29T12:00:00Z")) {
+                validation.validateAndEnrich(
+                    validiTallennaArvioija.copy(
+                        kaudenAlkupaiva = timeService.today().plusYears(1).plusDays(1),
+                    ),
+                )
+            }
 
         assertEquals(
             fail(listOf("kaudenAlkupaiva"), "Kauden alkupäivä ei voi olla yli vuotta tulevaisuudessa"),
