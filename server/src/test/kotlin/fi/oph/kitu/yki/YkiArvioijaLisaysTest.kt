@@ -149,7 +149,7 @@ class YkiArvioijaLisaysTest(
 
         oikeudet.values.forEach { oikeus ->
             assertEquals(LocalDate.of(2025, 12, 7), oikeus.kaudenAlkupaiva, "sama kausi kaikille kielille")
-            assertEquals(LocalDate.of(2030, 12, 7), oikeus.kaudenPaattymispaiva)
+            assertEquals(LocalDate.of(2030, 12, 6), oikeus.kaudenPaattymispaiva, "viimeinen voimassaolopaiva")
         }
     }
 

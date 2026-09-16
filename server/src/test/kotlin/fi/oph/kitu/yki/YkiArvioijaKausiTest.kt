@@ -86,9 +86,9 @@ class YkiArvioijaKausiTest(
             val oikeudet = kausiRepository.findArviointioikeudet(id)
             assertEquals(LocalDate.of(2026, 2, 1), oikeudet.single().kaudenAlkupaiva)
             assertEquals(
-                LocalDate.of(2031, 2, 1),
+                LocalDate.of(2031, 1, 31),
                 oikeudet.single().kaudenPaattymispaiva,
-                "paattymispaiva lasketaan viiden vuoden saannolla",
+                "paattymispaiva lasketaan viiden vuoden saannolla, viimeinen voimassaolopaiva",
             )
             assertTrue(oikeudet.single().jatkorekisterointi, "myohemmin alkava kausi on jatkokausi")
             assertEquals(
@@ -122,7 +122,7 @@ class YkiArvioijaKausiTest(
 
             val kausi = kausiRepository.findKaudet(id).single()
             assertEquals(LocalDate.of(2022, 3, 1), kausi.alkupaiva)
-            assertEquals(LocalDate.of(2027, 3, 1), kausi.paattymispaiva)
+            assertEquals(LocalDate.of(2027, 2, 28), kausi.paattymispaiva)
         }
     }
 

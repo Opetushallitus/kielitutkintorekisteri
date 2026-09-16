@@ -17,6 +17,21 @@ const isoPaiva = (vuosiaSitten: number) => {
 const fiPaiva = (iso: string) =>
   new Intl.DateTimeFormat("fi-FI").format(new Date(iso))
 
+/**
+ * Päättymispäivä on inklusiivinen, joten viiden vuoden kausi päättyy vuosipäivää
+ * edeltävänä päivänä. Laskenta pysyy UTC:ssä, jottei kesäaika siirrä päivää, ja
+ * karkauspäivä leikataan kuukauden viimeiseen kuten palvelimen `plusYears`.
+ */
+const paattymispaiva = (alkupaiva: string) => {
+  const [vuosi, kuukausi, paiva] = alkupaiva.split("-").map(Number)
+  const kuunViimeinen = new Date(Date.UTC(vuosi + 5, kuukausi, 0)).getUTCDate()
+  const d = new Date(
+    Date.UTC(vuosi + 5, kuukausi - 1, Math.min(paiva, kuunViimeinen)),
+  )
+  d.setUTCDate(d.getUTCDate() - 1)
+  return d.toISOString().slice(0, 10)
+}
+
 const TANAAN = new Intl.DateTimeFormat("fi-FI").format(new Date())
 
 /** Dialogeja on yksi per kausirivi, joten vahvistusnappi haetaan avoimen dialogin sisältä. */
@@ -56,8 +71,8 @@ describe("Yleisen kielitutkinnon arvioijan arviointikaudet", () => {
     )
     const kaudet = page.getByTestId("arviointikaudet")
     await expect(kaudet).toContainText(fiPaiva(isoPaiva(2)))
-    // Päättymispäivä on aina alkupäivä + 5 vuotta, joten se siirtyy mukana.
-    await expect(kaudet).toContainText(fiPaiva(isoPaiva(-3)))
+    // Päättymispäivä lasketaan alkupäivästä, joten se siirtyy mukana.
+    await expect(kaudet).toContainText(fiPaiva(paattymispaiva(isoPaiva(2))))
   })
 
   test("aktiivisen kauden voi passivoida", async ({
