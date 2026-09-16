@@ -9,7 +9,6 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
-import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.Tallennuslahde
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
@@ -104,13 +103,32 @@ class YkiArvioijaSolkiTest(
         val oikeus = request.arviointioikeudet.single()
         assertEquals(Tutkintokieli.FIN, oikeus.kieli)
         assertEquals(listOf(Tutkintotaso.PT), oikeus.tasot)
-        assertEquals(Rekisterointitila.AKTIIVINEN, oikeus.tila, "tila lasketaan lahetyshetkella")
+        assertEquals(SolkiArvioijaRequest.Tila.AKTIIVINEN, oikeus.tila, "tila lasketaan lahetyshetkella")
         assertEquals(LocalDate.of(1980, 1, 1), request.syntymapaiva, "syntymaaika haetaan ONR:sta")
         assertEquals(
             LocalDate.of(2024, 1, 1),
             request.ensimmainenRekisterointipaiva,
             "ensimmainen rekisterointipaiva kuuluu dokumentin juureen, ei arviointioikeudelle",
         )
+    }
+
+    @Test
+    fun `tuleva kausi lahetetaan aktiivisena`() {
+        // Solkin sanastossa on vain AKTIIVINEN ja PASSIVOITU; kauden alkupaiva kertoo lopun.
+        tallenna(
+            kaudenAlkupaiva = LocalDate.of(2030, 1, 1),
+            kaudenPaattymispaiva = LocalDate.of(2035, 1, 1),
+        )
+
+        timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
+
+        val oikeus =
+            stub.lahetetyt
+                .single()
+                .arviointioikeudet
+                .single()
+        assertEquals(SolkiArvioijaRequest.Tila.AKTIIVINEN, oikeus.tila)
+        assertEquals(LocalDate.of(2030, 1, 1), oikeus.kaudenAlkupaiva)
     }
 
     @Test
@@ -305,6 +323,8 @@ class YkiArvioijaSolkiTest(
     private fun tallenna(
         lahde: Tallennuslahde = Tallennuslahde.KITU,
         oid: String = "1.2.246.562.24.20281155246",
+        kaudenAlkupaiva: LocalDate = LocalDate.of(2024, 1, 1),
+        kaudenPaattymispaiva: LocalDate = LocalDate.of(2029, 1, 1),
     ): Int =
         repository.tallenna(
             YkiArvioijaEntity(
@@ -325,8 +345,8 @@ class YkiArvioijaSolkiTest(
                             kieli = Tutkintokieli.FIN,
                             tasot = setOf(Tutkintotaso.PT),
                             tila = null,
-                            kaudenAlkupaiva = LocalDate.of(2024, 1, 1),
-                            kaudenPaattymispaiva = LocalDate.of(2029, 1, 1),
+                            kaudenAlkupaiva = kaudenAlkupaiva,
+                            kaudenPaattymispaiva = kaudenPaattymispaiva,
                             jatkorekisterointi = false,
                             ensimmainenRekisterointipaiva = LocalDate.of(2024, 1, 1),
                             rekisteriintuontiaika = null,

@@ -41,13 +41,32 @@ data class SolkiArvioijaRequest(
          * Laskettu lahetyshetkella, ks. [Rekisterointitila]. Vastaanottajan on syyta johtaa tila
          * samoista paivista eika tallentaa sita, koska kentta vanhenee kauden umpeutuessa.
          */
-        val tila: Rekisterointitila,
+        val tila: Tila,
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenAlkupaiva: LocalDate?,
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenPaattymispaiva: LocalDate?,
         val jatkorekisterointi: Boolean,
     )
+
+    /**
+     * Solkin tilasanasto, jossa on vain kaksi arvoa. [Rekisterointitila.TULEVAISUUDESSA] ei ole
+     * niiden joukossa, joten se lahetetaan aktiivisena: [Arviointioikeus.kaudenAlkupaiva] kertoo
+     * kauden alkavan vasta myohemmin, eika oikeutta ole passivoitu.
+     */
+    enum class Tila {
+        AKTIIVINEN,
+        PASSIVOITU,
+        ;
+
+        companion object {
+            fun of(tila: Rekisterointitila): Tila =
+                when (tila) {
+                    Rekisterointitila.PASSIVOITU -> PASSIVOITU
+                    Rekisterointitila.AKTIIVINEN, Rekisterointitila.TULEVAISUUDESSA -> AKTIIVINEN
+                }
+        }
+    }
 
     companion object {
         /**
@@ -77,7 +96,7 @@ data class SolkiArvioijaRequest(
                         Arviointioikeus(
                             kieli = oikeus.kieli,
                             tasot = oikeus.tasot.sorted(),
-                            tila = Rekisterointitila.laske(oikeus, tanaan),
+                            tila = Tila.of(Rekisterointitila.laske(oikeus, tanaan)),
                             kaudenAlkupaiva = oikeus.kaudenAlkupaiva,
                             kaudenPaattymispaiva = oikeus.kaudenPaattymispaiva,
                             jatkorekisterointi = oikeus.jatkorekisterointi,
