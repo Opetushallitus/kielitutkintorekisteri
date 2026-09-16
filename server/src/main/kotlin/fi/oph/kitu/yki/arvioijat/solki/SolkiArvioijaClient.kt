@@ -36,12 +36,12 @@ class SolkiArvioijaClientImpl(
             } catch (e: ResourceAccessException) {
                 // retrieveEntitySafely heittaa yhteysvirheen lapi. Ilman tata tallennuksen
                 // synkroninen lahetysyritys kaataisi virkailijan pyynnon jo tallennetulle riville.
-                return SolkiArvioijaException.ConnectionFailure(request.arvioijanOppijanumero, e).left()
+                return SolkiArvioijaException.ConnectionFailure(request.arvioijaOid, e).left()
             }
 
         return when {
             response == null -> {
-                SolkiArvioijaException.NullResponse(request.arvioijanOppijanumero).left()
+                SolkiArvioijaException.NullResponse(request.arvioijaOid).left()
             }
 
             // Solkilla on uudempi versio: kitun rivi ei ole vanhentunut vaan Solki on jo ajan
@@ -55,15 +55,15 @@ class SolkiArvioijaClientImpl(
             }
 
             response.statusCode.value() == UNAUTHORIZED || response.statusCode.value() == FORBIDDEN -> {
-                SolkiArvioijaException.Unauthorized(request.arvioijanOppijanumero, response).left()
+                SolkiArvioijaException.Unauthorized(request.arvioijaOid, response).left()
             }
 
             response.statusCode.is4xxClientError -> {
-                SolkiArvioijaException.BadRequest(request.arvioijanOppijanumero, response).left()
+                SolkiArvioijaException.BadRequest(request.arvioijaOid, response).left()
             }
 
             else -> {
-                SolkiArvioijaException.UnexpectedError(request.arvioijanOppijanumero, response).left()
+                SolkiArvioijaException.UnexpectedError(request.arvioijaOid, response).left()
             }
         }
     }
@@ -73,7 +73,7 @@ class SolkiArvioijaClientImpl(
             .post()
             .uri("arvioija")
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Idempotency-Key", "${request.arvioijanOppijanumero}:${request.versio}")
+            .header("Idempotency-Key", "${request.arvioijaOid}:${request.versio}")
             .body(request)
             .retrieveEntitySafely(String::class.java)
 
