@@ -1,105 +1,84 @@
 # Koodikonventiot
 
-Tämä sivu kokoaa toistuvat tekniset valinnat, joiden noudattaminen on tärkeää
-koodikannan eheyden kannalta. Pintaa raapaisevammat kuvaukset löytyvät
-[arkkitehtuurisivulta](./arkkitehtuuri.md).
+Toistuvat tekniset valinnat, joiden noudattaminen on tärkeää koodikannan eheyden kannalta.
+Laajempi rakennekuvaus: [Arkkitehtuuri](./arkkitehtuuri.md).
 
 ## Virheenkäsittely: Arrow `Either`
 
-Domain-virheet välitetään palauttamalla `arrow.core.Either<E, V>`
-(vasen = virhe, oikea = onnistunut arvo). Älä heitä poikkeuksia palvelukerroksesta;
-sen sijaan kuljeta tieto virheestä eksplisiittisenä tyyppinä.
+Domain-virheet välitetään palauttamalla `arrow.core.Either<E, V>` (vasen = virhe, oikea = arvo).
+Älä heitä poikkeuksia palvelukerroksesta, vaan kuljeta virhe eksplisiittisenä tyyppinä.
 
-Apufunktiot löytyvät paketista `util/result/EitherExtensions.kt`:
+Apufunktiot ovat paketissa `util/result/EitherExtensions.kt`:
 
-- `getOrThrow()` — käytä vain domain-rajalla (esim. ajastetun tehtävän
-  ylimmällä tasolla), missä Eitherin avaaminen poikkeukseksi on perusteltua.
-- `splitIntoValuesAndErrors()` — pilkkoo `List<Either<E, V>>` pariksi
-  `(List<V>, List<E>)`. Käytetään eräajojen ja joukkolähetysten tulosten
-  käsittelyssä (`KoskiService`, `YkiViewController`).
+- `getOrThrow()` — vain domain-rajalla (esim. ajastetun tehtävän ylimmällä tasolla).
+- `splitIntoValuesAndErrors()` — pilkkoo `List<Either<E, V>>` pariksi `(List<V>, List<E>)`.
+  Käytössä eräajojen ja joukkolähetysten tuloksissa (`KoskiService`, `YkiViewController`).
 
 ## Validointi: `Validation<T>` ja Arrow Raise
 
-Lomake- tai rajapintadataa validoivat luokat toteuttavat oman
-`Validation<T>`-rajapinnan (`util/validation/Validation.kt`) ja ylikirjoittavat
-muodot:
+Lomake- ja rajapintadataa validoivat luokat toteuttavat `Validation<T>`-rajapinnan
+(`util/validation/Validation.kt`). `validateAndEnrich` ajaa kolme vaihetta järjestyksessä:
 
-- `ValidationRaise.validateBeforeEnrichment`
-- `enrich`
-- `ValidationRaise.validateAfterEnrichment`
+1. `ValidationRaise.validateBeforeEnrichment`
+2. `EnrichmentRaise.enrich`
+3. `ValidationRaise.validateAfterEnrichment`
 
-Vaiheet ajetaan järjestyksessä (`validateAndEnrich`): ensin pre-validointi,
-sitten enrichment, lopuksi post-validointi.
+Samassa tiedostossa määritellään `ValidationRaise` (= `Raise<NonEmptyList<ValidationError>>`),
+`EnrichmentRaise` (= `Raise<ValidationError.EnrichmentError>`) ja `ValidationResult<T>`
+(= `Either<NonEmptyList<ValidationError>, T>`).
 
-`ValidationRaise` on aliperuste tyypille `Raise<NonEmptyList<ValidationError>>`;
-sen rinnakkainen `ValidationResult<T>` on `Either<NonEmptyList<ValidationError>, T>`.
-Molemmat määritellään samassa `Validation.kt`-tiedostossa.
+**Pidä vaiheet erillään:** `validate*`-vaiheet palauttavat `Unit`, joten tyyppijärjestelmä estää
+arvon muuntamisen niissä. Kaikki muunnokset ja johdetut arvot kuuluvat `enrich`-vaiheeseen, joka
+voi epäonnistua — mutta vain yhdellä `EnrichmentError`illa, ei virhelistalla. Tarkistus, joka
+riippuu enrichmentin tuottamasta muodosta, kuuluu `validateAfterEnrichment`iin. Esimerkki
+`YkiSuoritusValidation`: `enrich` laskee `arviointitila`n uudelleen, kun
+`kitu.yki.convertLegacyArviointitila.enabled` on päällä, ja `validateAfterEnrichment` varmistaa
+mm. "vähintään yksi osakoe" -invariantin sekä sen, että arviointitila vastaa arvosanoja.
 
-**Pidä vaiheet erillään:** `validate*`-vaiheet eivät muunna arvoa, vaan
-ainoastaan tarkistavat sen — ne palauttavat `Unit`, jolloin tyyppijärjestelmä
-estää muunnokset. Kaikki johdantatieto ja muunnokset (mm. default-arvojen
-täydentäminen, välitilojen suodatus) elävät `enrich`-vaiheessa, jolla ei ole
-`Raise`-vastaanotinta eikä se voi epäonnistua. Jos tarkistus riippuu enrichmentin
-tuottamasta tilasta, se kuuluu `validateAfterEnrichment`iin — esimerkkinä
-`YkiSuoritusValidation`, jossa `enrich` suodattaa pois ne osakokeet joihin ei
-ole tultu paikalle (arvosana `12`) ja `validateAfterEnrichment` varmistaa
-suodatuksen jälkeen "vähintään yksi osakoe" -invariantin.
+Kerää useampi virhe samasta tietueesta `accumulate` / `accumulating` -funktioilla; käytä `ensure`
+ja `ensureNotNull` predikaatteihin. Alivalidaattori, joka itse akkumuloi, ottaa
+`RaiseAccumulate<ValidationError>`-vastaanottimen ja sisältää sisäkkäisiä `accumulating { … }`
+-lohkoja.
 
-Käytä `accumulate` / `accumulating` -funktioita kun tarve on kerätä
-samaan tietueeseen useampi virheilmoitus; käytä `ensure` ja `ensureNotNull`
-predikaattien käsittelyyn. Alivalidaattori joka itse akkumuloi virheitä ottaa
-`RaiseAccumulate<ValidationError>`-vastaanottimen ja sisältää sisäkkäisiä
-`accumulating { … }` -lohkoja.
-
-Kontrollerikerros kutsuu validointia muodossa `validation.validateAndEnrich(…).getOrThrow()`.
-Tämä poikkeus napataan `GlobalControllerExceptionHandler`issa ja muunnetaan 400-vastaukseksi.
+Kontrollerikerros kutsuu `validation.validateAndEnrich(…).getOrThrow()`; syntyvä poikkeus napataan
+`GlobalControllerExceptionHandler`issa ja muunnetaan 400-vastaukseksi.
 
 ## Jackson 3
 
-Projekti käyttää **Jackson 3** -kirjastoa (`tools.jackson.*`-paketit,
-esim. `tools.jackson.databind.json.JsonMapper`). Annotaatiot ovat edelleen
-peräisin `com.fasterxml.jackson.annotation`-paketista yhteensopivuussyistä.
+Projekti käyttää **Jackson 3**:a (`tools.jackson.*`, esim.
+`tools.jackson.databind.json.JsonMapper`). Annotaatiot tulevat edelleen paketista
+`com.fasterxml.jackson.annotation` yhteensopivuussyistä.
 
 ## RestClient ja message converterit
 
-**Tärkeää:** jokainen `RestClient`, joka lukee JSON-vastauksen `String`-tyyppiin
-(mukaan lukien `retrieveEntitySafely(String::class.java)`), **on kutsuttava
-`.withLenientStringConverter()`** (`restclient/RestClientExtensions.kt`).
-Spring 7:n oletus-`StringHttpMessageConverter` mainostaa vain `text/*`-tyyppejä,
-joten ilman apufunktiota Jackson kaatuu vastauksen vastaanottoon.
+Jokainen `RestClient`, joka lukee JSON-vastauksen `String`-tyyppiin (mukaan lukien
+`retrieveEntitySafely(String::class.java)`), **on kutsuttava `.withLenientStringConverter()`**
+(`restclient/RestClientExtensions.kt`). Spring 7:n oletus-`StringHttpMessageConverter` mainostaa
+vain `text/*`-tyyppejä, joten ilman apufunktiota Jackson kaatuu vastaanotossa.
 
 ## Spring HATEOAS 3 `linkTo`
 
-HATEOAS-DSL seuraa kontrollerikutsua **lambdan paluuarvon kautta** (ei thread-localin),
-joten lambdan signatuurin on oltava `(C) -> Any`. Vastaanotinmuotoinen
-`C.() -> Unit` palauttaa `Unit` ja ohittaa proxyn `LastInvocationAware`-seurannan.
-Katso esimerkki: `html/Navigation.kt`.
+HATEOAS-DSL seuraa kontrollerikutsua **lambdan paluuarvon kautta**, ei thread-localin, joten
+lambdan signatuurin on oltava `(C) -> Any`. Vastaanotinmuotoinen `C.() -> Unit` palauttaa `Unit` ja
+ohittaa proxyn `LastInvocationAware`-seurannan. Esimerkki: `html/Navigation.kt`.
 
 ## Testcontainers 2.x
 
-- Artefaktinimet ovat etuliitettyjä: `testcontainers-postgresql`,
-  `testcontainers-junit-jupiter`.
-- `PostgreSQLContainer` siirtyi pakettiin
-  `org.testcontainers.postgresql.PostgreSQLContainer` ilman geneeristä parametria.
-- macOS:lla aseta `DOCKER_HOST="unix://${HOME}/.docker/run/docker.sock"`,
-  jos socketia ei tunnisteta automaattisesti.
+- Artefaktinimet ovat etuliitettyjä: `testcontainers-postgresql`, `testcontainers-junit-jupiter`.
+- `PostgreSQLContainer` on paketissa `org.testcontainers.postgresql` ilman geneeristä parametria.
+- macOS:lla aseta `DOCKER_HOST="unix://${HOME}/.docker/run/docker.sock"`, jos socketia ei tunnisteta.
 
 ## Formatointi ja staattinen analyysi
 
-- **Kotlin:** ktlint (K2-tila, IDEA:n format-on-save), aja `./scripts/format.sh`.
-- **TS/JSON/YAML/MD:** Prettier.
-- **Shell:** ShellCheck (`scripts/*.sh`).
-- CI ajaa skriptin `./scripts/check-formatting.sh`, joka heijastaa täsmälleen
-  paikallista format.sh:ta read-only-tarkistuksena.
-- `.git-blame-ignore-revs` seuraa pelkkiä formatointi-commiteja — lisää uudet
-  laaja-alaiset uudelleenformatoinnit listaan.
+- **Kotlin:** ktlint (K2-tila, IDEA:n format-on-save). **TS/JSON/YAML/MD:** Prettier.
+  **Shell:** ShellCheck (`scripts/*.sh`, `infra/scripts/*.sh`).
+- Aja `./scripts/format.sh` ennen committia; CI ajaa saman read-onlynä
+  (`./scripts/check-formatting.sh`).
+- `.git-blame-ignore-revs` seuraa pelkkiä formatointi-committeja — lisää uudet laaja-alaiset
+  uudelleenformatoinnit listaan.
 
 ## Salaisuudet
 
-Salaisuuksia ei tallenneta lähdekoodiin. Paikallinen kehitys hakee ne AWS
-Secrets Managerista skriptin `scripts/ensure_aws_secrets.sh` kautta.
-Pää-README sisältää listan salaisuuksista, jotka on perustettava manuaalisesti
-per AWS-tili (`kielitesti-token`, `palvelukayttaja-password`,
-`palvelukayttaja-oauth-password`, `yki-api-user`, `yki-api-password` sekä vain
-Test-tilille `tolgee-api-key`). Lista vastaa `service-stack.ts`:n
-`secrets`-lohkoa.
+Salaisuuksia ei tallenneta lähdekoodiin; paikallinen kehitys hakee ne AWS Secrets Managerista
+skriptillä `scripts/ensure_aws_secrets.sh`. Manuaalisesti perustettavat salaisuudet on lueteltu
+pää-README:ssä. Ks. myös [Ylläpito ja havainnointi](./yllapito.md).
