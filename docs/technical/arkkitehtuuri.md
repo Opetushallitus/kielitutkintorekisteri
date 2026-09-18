@@ -6,13 +6,13 @@ Sovellus julkaisee palvelimella renderöityjä HTML-sivuja sekä JSON-rajapintoj
 
 ## Repositorion rakenne
 
-| Hakemisto  | Sisältö                                                                                                                                                                        |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `server/`  | Spring Boot 4.1 + Kotlin 2.4 -taustapalvelu. Lähdekansiot `src/main/kotlin` ja `src/test/kotlin`; versiot `server/pom.xml`:n `kotlin.version`- ja `java.version`-propertyissä. |
-| `infra/`   | AWS CDK -sovellus (TypeScript). Ympäristöt `Util`, `Dev`, `Test`, `Prod`.                                                                                                      |
-| `e2e/`     | Playwright-testit oikeaa palvelinta ja Postgresia vasten.                                                                                                                      |
-| `scripts/` | Paikallisen kehityksen skriptit.                                                                                                                                               |
-| `docs/`    | GitHub Pages -lähde: SchemaSpy-, UML- ja tekstidokumentaatio.                                                                                                                  |
+| Hakemisto  | Sisältö                                                                                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/`  | Spring Boot 4 + Kotlin -taustapalvelu. Lähdekansiot `src/main/kotlin` ja `src/test/kotlin`; tarkat versiot `server/pom.xml`:n `kotlin.version`- ja `java.version`-propertyissä. |
+| `infra/`   | AWS CDK -sovellus (TypeScript). Ympäristöt `Util`, `Dev`, `Test`, `Prod`.                                                                                                       |
+| `e2e/`     | Playwright-testit oikeaa palvelinta ja Postgresia vasten.                                                                                                                       |
+| `scripts/` | Paikallisen kehityksen skriptit.                                                                                                                                                |
+| `docs/`    | GitHub Pages -lähde: SchemaSpy-, UML- ja tekstidokumentaatio.                                                                                                                   |
 
 ## Taustapalvelun pakettijakautuma
 
