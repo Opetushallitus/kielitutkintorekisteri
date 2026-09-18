@@ -300,9 +300,8 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
       - name: Build component documentation
-        run: |
-          mkdir -p docs/uml
-          docs/build-uml.sh untuva qa prod
+        # Skripti kirjoittaa repon juuren uml/-hakemistoon ja luo sen itse.
+        run: docs/build-uml.sh untuva qa prod
       - name: Verify technical documentation pages exist
         # docs/technical/ on käsinkirjoitettu tekninen dokumentaatio,
         # jonka jekyll-vaihe rendaa automaattisesti. Tämä tarkistus pysäyttää

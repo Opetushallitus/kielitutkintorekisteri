@@ -1,57 +1,66 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-packages=(
-  "auth"
-  "i18n"
-  "ilmoittautumisjarjestelma"
-  "koodisto"
-  "koski"
-  "kotoutumiskoulutus"
-  "logging"
-  "oauth2client"
-  "observability"
-  "oppijanumero"
-  "organisaatiot"
-  "tiedontuontischema"
-  "validation"
-  "vkt"
-  "yki"
-)
-
 BASEDIR=$(dirname "$0")
 OUTPUT_DIR="$BASEDIR/../uml"
+PACKAGE_ROOT="$BASEDIR/../server/src/main/kotlin/fi/oph/kitu"
 
-function load_pumls() {
+# Paketit luetaan lähdepuusta, jottei käsin ylläpidetty lista vanhene pakettien
+# muuttuessa. Kovakoodattuna listaan jäi aikoinaan poistettuja paketteja, joista
+# julkaistiin tyhjiä kaavioita, ja uudet paketit puuttuivat kokonaan.
+packages=()
+for package_dir in "$PACKAGE_ROOT"/*/; do
+  packages+=("$(basename "$package_dir")")
+done
+
+# Paketti, jossa ei ole yhtään Spring-beania, tuottaa pelkän rungon ilman rivejä.
+# Sellaista ei julkaista, jottei sivulle jää tyhjiä kaavioita.
+has_content() {
+  grep -qvE '^(@startuml|@enduml|hide members|hide methods|hide <<[A-Za-z]+>> circle)?$' "$1"
+}
+
+load_pumls() {
   local env="$1"
   local url="$2"
   local output_dir="$OUTPUT_DIR/$env"
+  local package target
 
   echo "Generate puml files for $env ($url)..."
   echo
 
   mkdir -p "$output_dir"
   for package in "${packages[@]}"; do
-      echo "$env/$package.puml"
-      curl -s "$url/uml/$package" > "$output_dir/$package.puml"
+    target="$output_dir/$package.puml"
+    if ! curl -fsS "$url/uml/$package" -o "$target"; then
+      echo "  VAROITUS: $package — haku epäonnistui, ohitetaan"
+      rm -f "$target"
+      continue
+    fi
+    if ! has_content "$target"; then
+      echo "  ohitetaan $package (ei beaneja)"
+      rm -f "$target"
+      continue
+    fi
+    echo "  $env/$package.puml"
   done
 }
 
-function generate_images() {
+generate_images() {
   local env="$1"
+  local target_dir="$OUTPUT_DIR/$env"
 
   echo
-  echo "Generate image files..."
+  echo "Generate image files for $env..."
   echo
 
-  find "$OUTPUT_DIR" -type f -name "*.puml" | while IFS= read -r file; do
+  find "$target_dir" -type f -name "*.puml" | while IFS= read -r file; do
     target_svg="${file//puml/svg}"
     echo "Processing: $file -> $target_svg"
     docker run -e PLANTUML_LIMIT_SIZE=20000 --rm -i dstockhammer/plantuml:latest -tsvg -pipe > "$target_svg" < "$file"
   done
 }
 
-function generate_markdown() {
+generate_markdown() {
   local env="$1"
   local target_dir="$OUTPUT_DIR/$env"
   target_md="$target_dir/index.md"
@@ -65,7 +74,7 @@ function generate_markdown() {
     echo
   } > "$target_md"
 
-  find "$target_dir" -type f -name "*.svg" | while IFS= read -r file; do
+  find "$target_dir" -type f -name "*.svg" | sort | while IFS= read -r file; do
     filebasename=$(basename "$file")
     name="fi.oph.kitu.${filebasename//.svg/}"
     {
@@ -76,7 +85,7 @@ function generate_markdown() {
   done
 }
 
-function load_and_generate() {
+load_and_generate() {
   local env="$1"
   local source_url="$2"
 
