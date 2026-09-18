@@ -137,11 +137,20 @@ lähetetyksi, jottei Solkin oma data kaiku takaisin sille.
 | "3 kertaa"                    | `FIXED_DELAY\|900s`, poimii rivit `solki_lahetysyritykset < 3` |
 | "sen jälkeen säännöllisesti"  | `DAILY\|02:15`, poimii kaikki lähettämättömät                  |
 
+**Vastaus:** Solki palauttaa onnistuneesta lähetyksestä arvioijatunnuksen, jonka kitu lukee ja
+tallentaa sarakkeeseen `yki_arvioija.solki_tunnus` (V125, `SolkiArvioijaClient`). Tunnus näytetään
+arvioijan tietosivulla. Päivitys on `COALESCE(?, solki_tunnus)`, joten tyhjä vastaus ei pyyhi
+aiemmin saatua tunnusta.
+
 Virkailija näkee tilan arvioijan tietosivun **Integraatiot**-kortissa ja voi käynnistää lähetyksen
 uudelleen. Listanäkymässä on suodatin `vainSolkiVirheet` ja etusivulla laskuri.
 
-`kitu.yki.arvioijarekisteri.integraatio.enabled` ohjaa **molempia suuntia** ja on erillinen
-kytkin osoitteesta: `kitu.yki.baseUrl` on asetettu joka
+`kitu.yki.arvioijarekisteri.integraatio.enabled` ohjaa **molempia suuntia** sekä yöllistä
+`paivitaArvioijaProjektiot`-ajoa (`DAILY|03:15`), joka pitää `yki_arviointioikeus`-projektion ajan
+tasalla kausimasterin kanssa. Ajo on kytketty samaan lippuun siksi, että täysi sisääntuleva push
+kirjoittaa projektion koskematta kausimasteriin — taulut ovat siis taatusti eri linjoilla, ja
+vanhentuneesta masterista tehty yliajo työntäisi koko rekisterin Solki-lähetysjonoon.
+Kytkin on erillinen osoitteesta: `kitu.yki.baseUrl` on asetettu joka
 ympäristössä (myös local ja e2e dev-stubiin), joten sen olemassaolo ei kerro, saako lähettää. Kun
 kytkin on pois, rivit jäävät jonoon ja lähtevät takautuvasti kytkimen avautuessa.
 
@@ -169,7 +178,7 @@ vastaan ja tallennetaan.
 
 ## CAS + OAuth2 — virkailija-autentikointi
 
-**Paketit:** `auth/`, `oauth2client/`
+**Paketit:** `security/` (`security/cas/`, `security/oauth2/`)
 **Suunta:** haku
 
 Sovellus käyttää OPH:n keskitettyä Otuva-palvelua.
