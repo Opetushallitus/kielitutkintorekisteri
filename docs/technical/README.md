@@ -10,10 +10,6 @@ suunnitteluratkaisut ja konventiot.
 - [Integraatiot](./integraatiot.md) — KOSKI, KIOS, Oppijanumerorekisteri ja muut ulkoiset palvelut
 - [Ylläpito ja havainnointi](./yllapito.md) — telemetria, lokit, salaisuudet, deploy-putki
 
-## Suunnitelmat
-
-- [YKI-arvioijarekisterin siirto Solkilta Kituun](./yki-arvioijarekisteri-suunnitelma.md) — toteutussuunnitelma: syöttökäyttöliittymä, kausihistoria, Solki-integraatio
-
 ## Liittyvät resurssit
 
 - [Tietokantaskeeman dokumentaatio](https://opetushallitus.github.io/kielitutkintorekisteri/db)

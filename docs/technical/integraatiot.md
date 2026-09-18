@@ -106,9 +106,7 @@ Runko on `SolkiArvioijaRequest`: samat kentät kuin poistuneessa CSV-tuonnissa, 
 (1.1.2026 lainmuutos). **`tila`-kenttää ei lähetetä** (poistettu 16.9.2026): se ei ole kitussa säilytettävä
 tieto vaan lasketaan kauden päivistä (`Rekisterointitila`), joten lähetetty arvo vanhenisi
 vastaanottajan kopiossa kauden umpeutuessa. Vastaanottaja johtaa tilan `kaudenAlkupaiva`n ja
-`kaudenPaattymispaiva`n välistä, **päättymispäivä mukaan lukien**. Sopimus on kuvattu
-kokonaisuudessaan `yki-arvioijarekisteri-suunnitelma.md`:n luvussa 5.1 (JYU hyväksynyt 1.9.2026,
-korjattu julkaistun rajapinnan mukaiseksi 16.9.2026).
+`kaudenPaattymispaiva`n välistä, **päättymispäivä mukaan lukien**.
 
 **`syntymapaiva` on ainoa kenttä jota CSV:ssä ei ollut** — Solki johti sen henkilötunnuksesta, jota
 kitu ei enää lähetä. Kitu **ei säilytä** syntymäaikaa vaan hakee sen ONR:stä lähetyshetkellä
@@ -170,7 +168,7 @@ kaiuttaa lähetetyt arvot takaisin, ja `solki_lahetysvirhe` on rajoittamaton `TE
 ### Yhteystietojen päivitys (Solki → kitu)
 
 Solki lähettää yhteystietojen muutokset nykyisen `POST /yki/api/arvioija` -rajapinnan kautta.
-Rekisterimerkintää se ei kirjoita: nimet tulevat ONR:stä ja kaudet kitusta. Ks. suunnitelman §4.2.
+Rekisterimerkintää se ei kirjoita: nimet tulevat ONR:stä ja kaudet kitusta.
 
 Kavennus on saman `kitu.yki.arvioijarekisteri.integraatio.enabled` -kytkimen takana kuin lähtevä
 suunta. Kytkimen ollessa pois kitu ei ole vielä master, joten Solkin **koko payload** otetaan yhä
