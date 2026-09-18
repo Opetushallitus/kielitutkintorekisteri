@@ -8,7 +8,7 @@ Kielitutkintorekisteri (kitu) — OPH's register for language-exam data. Virkail
 
 ## Toolchain
 
-Tool versions live in `.mise.toml` and are installed automatically by `scripts/start_local_env.sh`: Java 25 (corretto), Node 24, Maven 3.9, ktlint, prettier, shellcheck, aws-cli, go, `cdk-notifier` (PR diff comments in `_deploy-env.yml`), humanlog. **Kotlin 2.4.10 and the Java release are _not_ in `.mise.toml`** — they live in `server/pom.xml` as `kotlin.version`/`java.version`. `AWS_PROFILE=oph-ktr-dev` and `SPRING_PROFILES_ACTIVE=local` are set by mise.
+Tool versions live in `.mise.toml` and are installed automatically by `scripts/start_local_env.sh`: Java (corretto), Node, Maven, ktlint, prettier, shellcheck, aws-cli, go, `cdk-notifier` (PR diff comments in `_deploy-env.yml`), humanlog. **Kotlin and the Java release are _not_ in `.mise.toml`** — they live in `server/pom.xml` as `kotlin.version`/`java.version`. Read exact versions from those two files rather than restating them here; Renovate bumps them continuously. `AWS_PROFILE=oph-ktr-dev` and `SPRING_PROFILES_ACTIVE=local` are set by mise.
 
 ## Common commands
 
@@ -53,7 +53,7 @@ Backend tests spin up PostgreSQL via Testcontainers — Docker must be running. 
 
 ### Layout
 
-- `server/` — Spring Boot 4.1.1 + Kotlin backend. Source roots are `src/main/kotlin` and `src/test/kotlin` (configured in `pom.xml`, not the Maven defaults). Packages under `fi.oph.kitu/` are organized by **feature domain**, not by layer.
+- `server/` — Spring Boot 4 + Kotlin backend. Source roots are `src/main/kotlin` and `src/test/kotlin` (configured in `pom.xml`, not the Maven defaults). Packages under `fi.oph.kitu/` are organized by **feature domain**, not by layer.
 - `infra/` — AWS CDK (TypeScript) app. `bin/infra.ts` wires four stages: `Util` (shared ECR repo via `container-repository-stack`, GitHub Actions roles, plus its own `alarms-stack` for ECR vulnerability notices), then `Dev`/`Test`/`Prod`. Each env stage composes stacks (`service-stack`, `db-stack`, `network-stack`, `connections-stack`, `alarms-stack`, `log-groups-stack`, `backups-stack`, `route53-health-checks-stack`, `koski-audit-logs-integration-stack`, `github-actions-stack`, `dns-stack`). `bin/infra.ts` additionally hangs `yki-historia-upload-stack` off the **Prod** stage only. `infra/README.md` documents all 13 stacks; `bastion-stack` and `ecs-rds-proxy-stack` were **removed** in `253dc088` — don't go looking for them. Deploys pick the container by `TAG` env var.
 - `e2e/` — Playwright tests against a real server + Postgres.
 - `scripts/` — bash helpers for local env, AWS profile/secret setup, tmux orchestration.
