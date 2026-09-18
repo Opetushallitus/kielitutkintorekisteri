@@ -15,7 +15,8 @@ Apufunktiot löytyvät paketista `util/result/EitherExtensions.kt`:
 - `getOrThrow()` — käytä vain domain-rajalla (esim. ajastetun tehtävän
   ylimmällä tasolla), missä Eitherin avaaminen poikkeukseksi on perusteltua.
 - `splitIntoValuesAndErrors()` — pilkkoo `List<Either<E, V>>` pariksi
-  `(List<V>, List<E>)`. Käytetään mm. CSV-importtien ja eräajojen tulosten käsittelyssä.
+  `(List<V>, List<E>)`. Käytetään eräajojen ja joukkolähetysten tulosten
+  käsittelyssä (`KoskiService`, `YkiViewController`).
 
 ## Validointi: `Validation<T>` ja Arrow Raise
 
@@ -98,5 +99,7 @@ Katso esimerkki: `html/Navigation.kt`.
 Salaisuuksia ei tallenneta lähdekoodiin. Paikallinen kehitys hakee ne AWS
 Secrets Managerista skriptin `scripts/ensure_aws_secrets.sh` kautta.
 Pää-README sisältää listan salaisuuksista, jotka on perustettava manuaalisesti
-per AWS-tili (`oppijanumero-password`, `kielitesti-token`
-sekä vain Test-tilille `tolgee-api-key`).
+per AWS-tili (`kielitesti-token`, `palvelukayttaja-password`,
+`palvelukayttaja-oauth-password`, `yki-api-user`, `yki-api-password` sekä vain
+Test-tilille `tolgee-api-key`). Lista vastaa `service-stack.ts`:n
+`secrets`-lohkoa.

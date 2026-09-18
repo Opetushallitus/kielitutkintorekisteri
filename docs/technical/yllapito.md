@@ -43,8 +43,10 @@ automaattisesti spring-boot:runin ympärille.
   automaattisesti, kun käynnistät ympäristön `./scripts/start_local_env.sh`-komennolla.
 - Manuaalisesti perustettavat salaisuudet per AWS-tili
   (pää-README sisältää aina ajantasaisimman listan):
-  - `oppijanumero-password`
   - `kielitesti-token`
+  - `palvelukayttaja-password` (mm. oppijanumerorekisterin kutsut)
+  - `palvelukayttaja-oauth-password`
+  - `yki-api-user` ja `yki-api-password`
   - `tolgee-api-key` (vain Test-tili / QA; käännösavainten synkronointi Tolgeehen)
 
 ## AWS-tilit ja roolit

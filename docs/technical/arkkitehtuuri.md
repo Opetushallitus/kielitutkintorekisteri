@@ -7,13 +7,13 @@ HTML-sivuja sekä JSON-rajapintoja.
 
 ## Repositorion rakenne
 
-| Hakemisto  | Sisältö                                                                                         |
-| ---------- | ----------------------------------------------------------------------------------------------- |
-| `server/`  | Spring Boot 4 + Kotlin 2.3 -taustapalvelu. Lähdekansiot `src/main/kotlin` ja `src/test/kotlin`. |
-| `infra/`   | AWS CDK -sovellus (TypeScript). Ympäristöt: `Util`, `Dev`, `Test`, `Prod`.                      |
-| `e2e/`     | Playwright-end-to-end-testit, jotka ajetaan oikeaa palvelinta + Postgresia vasten.              |
-| `scripts/` | Skriptejä paikallisen kehitystyötä varten.                                                      |
-| `docs/`    | GitHub Pages -lähde: SchemaSpy-, UML- ja tekstidokumentaatio.                                   |
+| Hakemisto  | Sisältö                                                                                                                                                                      |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/`  | Spring Boot 4.1 + Kotlin 2.4 -taustapalvelu (versiot: `kotlin.version` ja `java.version` tiedostossa `server/pom.xml`). Lähdekansiot `src/main/kotlin` ja `src/test/kotlin`. |
+| `infra/`   | AWS CDK -sovellus (TypeScript). Ympäristöt: `Util`, `Dev`, `Test`, `Prod`.                                                                                                   |
+| `e2e/`     | Playwright-end-to-end-testit, jotka ajetaan oikeaa palvelinta + Postgresia vasten.                                                                                           |
+| `scripts/` | Skriptejä paikallisen kehitystyötä varten.                                                                                                                                   |
+| `docs/`    | GitHub Pages -lähde: SchemaSpy-, UML- ja tekstidokumentaatio.                                                                                                                |
 
 ## Taustapalvelun pakettijakautuma
 
@@ -34,7 +34,7 @@ sisältää oman `*ApiController`-, `*ViewController`- (kotlinx.html-renderöint
 - **`organisaatiot/`** — Organisaatiopalvelu-integraatio
 - **`koodisto/`** — Koodistopalvelu-integraatio
 - **`yhteystiedot/`** — Rajapinta kielitutkintosuorituksen tekijän yhteystietojen hakuun (KOSKI-palvelu käyttää digitodistusten postitusta varten)
-- **`auth/`**, **`oauth2client/`** — CAS- ja OAuth2-autentikointi
+- **`security/`** — CAS- ja OAuth2-autentikointi (`security/cas/`, `security/oauth2/`). Aiemmat paketit `auth/` ja `oauth2client/` on poistettu.
 
 ### Läpileikkaavat paketit
 
@@ -44,6 +44,10 @@ sisältää oman `*ApiController`-, `*ViewController`- (kotlinx.html-renderöint
 - **`i18n/`** — Käännöstuki
 - **`observability/`**, **`auditlogs/`** — OpenTelemetry- ja ECS-strukturoidut lokit
 - **`restclient/`** — Spring `RestClient` -konfiguraatio ja apufunktiot
+- **`tehtavapankki/`** — tehtäväpankin entiteetit ja repository. Huom: eri paketti kuin
+  `kotoutumiskoulutus/koealusta/tehtavapankki/`, jossa on logiikka ja näkymät
+- **`config/`**, **`jdbc/`**, **`oid/`**, **`openapi/`**, **`util/`**, **`webmvc/`**, **`dev/`** —
+  konfiguraatio-, apu- ja kehitysaikaiset paketit
 
 Pakettijaon visualisointi Spring beans -tasolla löytyy [UML-sivuilta](https://opetushallitus.github.io/kielitutkintorekisteri/uml/prod).
 
@@ -60,10 +64,12 @@ tiedostoissa `application-{local,local-opintopolku,untuva,qa,prod,e2e}.propertie
 - **Spring JDBC** PostgreSQL-tietokannan päällä — Hibernate/JPA EI ole käytössä.
 - **Flyway**-migraatiot löytyvät hakemistosta
   `server/src/main/resources/db/migration` muodossa `V*__*.sql`.
-- V-numeroinnissa on aukkoja (V7, V38, V46–V55, V65) aiempien virheiden
-  jäljiltä — etenkin V65 nimettiin V67:ksi rikkoutuneen deployjärjestyksen
-  korjaamiseksi (commit `04b1d07d`). **Älä käytä uudestaan ohitettuja numeroita;
-  jatka aina suurimmasta käytetystä eteenpäin.**
+- V-numeroinnissa on aukkoja (V7, V38, V46–V55, V65, V104, V105) aiempien
+  virheiden jäljiltä — V65 nimettiin V67:ksi rikkoutuneen deployjärjestyksen
+  korjaamiseksi (commit `04b1d07d`), ja V104/V105 numeroitiin samasta syystä
+  uudelleen V108:ksi ja V109:ksi (commitit `3b2c24bd` ja `021153cd`).
+  Suurin mainissa käytössä oleva numero on **V126**. **Älä käytä uudestaan
+  ohitettuja numeroita; jatka aina suurimmasta käytetystä eteenpäin.**
 - Tietokantakaavion visuaalinen dokumentaatio on
   [SchemaSpy-sivulla](https://opetushallitus.github.io/kielitutkintorekisteri/db).
 
@@ -83,8 +89,11 @@ version. Paluuohjeet löytyvät kyseisen paketin omasta README-tiedostosta.
 
 Sovellus on **palvelinrenderöity**: HTML rakennetaan `kotlinx-html-jvm`
 -kirjastolla, tyylitys [Pico.css](https://picocss.com/) + projektin oma
-`style.css`. Selainpuolen JavaScript niputetaan `esbuild`illa. SPA-rakenteita
-ei käytetä.
+`style.css`. SPA-rakenteita ei käytetä — eikä selainpuolen JavaScriptille ole
+lainkaan käännösvaihetta: `server/src/main` ei sisällä yhtään `.js`- tai
+`.ts`-tiedostoa, eikä `esbuild`ia kutsuta `pom.xml`:stä, `scripts/`-hakemistosta,
+`Dockerfile`sta tai workfloweista. (`.mise.toml` asentaa `esbuild`in, mutta se on
+tällä hetkellä käyttämätön.)
 
 ## Deploy-topologia
 

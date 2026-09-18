@@ -55,7 +55,7 @@ Created once, in the shared util account. Three things live here:
 - **`Util/ImageBuilds`** — ECR repo `kitu` with `IMMUTABLE` tags and scan-on-push.
   The repo grants pull to each env account principal and pull+push to the GitHub
   Actions deployment role. CI builds an image, pushes it here, then env deploys
-  resolve the image from ECR by `TAG` env var (`bin/infra.ts:23-26`).
+  resolve the image from ECR by `TAG` env var (`bin/infra.ts:24-27`).
 - **`Util/Alarms`** — its own `AlarmsStack` for image-scan findings + Util-level
   Slack notifications.
 - **`Util/GithubActions`** — the OIDC provider and the deployment role assumed by
@@ -123,7 +123,7 @@ To mint a URL, an OPH admin runs locally:
 ```
 
 The script invokes `infra/scripts/presign-yki-historia-upload.mjs` (uses
-`@aws-sdk/s3-request-presigner` — `aws s3 presign` in AWS CLI 2.34.x is
+`@aws-sdk/s3-request-presigner` — `aws s3 presign` in AWS CLI 2.x (2.36.44 pinned in `.mise.toml`) is
 GET-only) and prints the URL plus a ready-to-paste `curl --upload-file`
 one-liner for the uploader. Default TTL is 7 days (the SigV4 maximum).
 
@@ -362,14 +362,15 @@ The application logs JSON in ECS format
 (`logging.structured.format.console=ecs`, level field is `log.level`).
 
 - **`LogErrors`** — counts entries where `$.success == false` _or_
-  `$.log.level == "ERROR"`. Threshold: **1**, evaluation period 1. Triggers
+  `$.log.level == "ERROR"`. Threshold: **3**, evaluation period 1. Triggers
   SNS alarm (+ investigation when enabled). Earlier versions also matched on
   the existence
   of `$.stack_trace` / `$.error.type`; that produced false positives because
   Spring Boot includes those fields in any WARN log that carries a
   `Throwable` (SpringDoc and OTel emit such warnings during startup).
-- **`LogWarnings`** — counts entries where `$.log.level == "WARN"`.
-  Threshold: **5**.
+- **`LogWarnings`** — counts entries where `$.level == "WARN"` _or_
+  `$.log.level == "WARN"` (`FilterPattern.any(...)`, so both the flat and the
+  nested level field match). Threshold: **5**.
 
 Add new metric/alarm pairs through the same
 `addMetricFilter(...).metric(...).createAlarm(...)` chain and remember to
@@ -493,8 +494,9 @@ stack names), and reports:
 
 The expected runtime is read from `aws-cdk-lib` at run time, so it tracks
 Renovate's bumps by itself. Ignore lists live at the top of the script:
-`DnsStack` and `CDKToolkit` for stacks, and `vaka-pilvi-tietoturva-*` /
-`aws-controltower-*` / `aws-quicksetup-*` for Lambdas — the last three are OPH's
+`CDKToolkit`, `DnsStack`, `StackSet-*`, `AWS-QuickSetup-*`,
+`awsconfigconforms-*` and `ApplicationInsights-*` for stacks, and
+`vaka-pilvi-tietoturva-*` / `aws-controltower-*` / `aws-quicksetup-*` for Lambdas — the last three are OPH's
 central Control Tower tooling and AWS's own, not ours. A failing run is reported
 to Slack by `slack-notifier.yml`.
 
@@ -512,9 +514,12 @@ Listed here because deploys silently or loudly fail when these don't exist:
   `dns-stack.ts`; not created by CDK to prevent accidental destruction.
 - **Secrets Manager secrets** per env account, by exact name:
   `kielitesti-token`, `palvelukayttaja-password`, `yki-api-password`,
-  `yki-api-user`, `palvelukayttaja-oauth-password`,
-  `oppijanumero-password`. The repo's `scripts/`
+  `yki-api-user`, `palvelukayttaja-oauth-password` — plus `tolgee-api-key` on
+  the Test account only, injected solely into the QA task. The repo's `scripts/`
   directory has helpers (`scripts/ensure_aws_secrets.sh`) for setting these.
+  (`oppijanumero-password` was listed here until 17.9.2026 but is **not** read by
+  anything — not `service-stack.ts`, not `ensure_aws_secrets.sh`, not the app.
+  ONR auth goes through `palvelukayttaja-password`.)
   (`slack-webhook-url` is **no longer needed** — the Lambda that read it was
   replaced by Chatbot in `7f800a99`. The secrets still exist in the accounts and
   can be deleted.)

@@ -26,9 +26,12 @@ perustusta, joten sen ajaminen erikseen ei ole tarpeen. Ajantasainen lista asenn
 
 ### Salaisuudet paikallisessa kehityksessä
 
-Sovellus hakee salaisuudet AWS Secrets Managerista `start_local_env.sh` tai
-`start_local_server.sh`-skriptiä käytettäessä.
-Tätä varten [start_local_server.sh](./scripts/start_local_server.sh) konfiguroi automaattisesti `aws`-komentorivityökalun käyttämään OPH:n AWS-tilejä.
+Sovellus hakee salaisuudet AWS Secrets Managerista, kun ympäristö käynnistetään
+[start_local_env.sh](./scripts/start_local_env.sh)-skriptillä: se konfiguroi `aws`-komentorivityökalun
+käyttämään OPH:n AWS-tilejä ([ensure_aws_profiles.sh](./scripts/ensure_aws_profiles.sh)) ja noutaa
+salaisuudet ([ensure_aws_secrets.sh](./scripts/ensure_aws_secrets.sh)).
+Huomaa, että [start_local_server.sh](./scripts/start_local_server.sh) **ei** tee kumpaakaan — se vain
+käynnistää palvelimen, joten salaisuuksien pitää olla jo ympäristössä.
 Voit konfiguroida AWS-profiilit myös erikseen [ensure_aws_profiles.sh](./scripts/ensure_aws_profiles.sh)-komennolla.
 
 ### Kehitysympäristön perustaminen
@@ -118,13 +121,15 @@ Sen lisäksi kotlinista on hyvä olla [K2](https://blog.jetbrains.com/idea/2024/
 
 ## Ympäristöt
 
-Sovellus julkaistaan kolmelle AWS-tilille:
+Sovellus julkaistaan kolmelle AWS-tilille. Niiden lisäksi on jaettu util-tili, jolla sijaitsevat
+yhteinen ECR-repo ja GitHub Actions -roolit:
 
-| Nimi | AWS-tili     |
-| ---- | ------------ |
-| dev  | 682033502734 |
-| test | 961341546901 |
-| prod | 515966535475 |
+| Nimi | AWS-tili     | Käyttötarkoitus                            |
+| ---- | ------------ | ------------------------------------------ |
+| dev  | 682033502734 | Untuva-ympäristö                           |
+| test | 961341546901 | QA-ympäristö                               |
+| prod | 515966535475 | Tuotanto                                   |
+| util | 961341524988 | Yhteinen ECR-repo + GitHub Actions -roolit |
 
 ### Ensimmäinen julkaisu
 
@@ -151,8 +156,14 @@ Julkaisun voi myös ajaa omalta koneelta komennoilla:
 
 Seuraavat salaisuudet pitää luoda manuaalisesti AWS Secret Manageriin.
 
-- `oppijanumero-password`: Oppijanumeropalvelun salaisuus. Ks. [fi.oph.kitu.oppijanumero-paketti](server/src/main/kotlin/fi/oph/kitu/oppijanumero).
+Lista vastaa `secrets`-lohkoa tiedostossa [service-stack.ts](infra/lib/service-stack.ts) — deploy ei
+onnistu, jos jokin näistä puuttuu tililtä.
+
 - `kielitesti-token`: Koealustan salaisuus. Ks. [fi.oph.kitu.kielitesti-paketti](server/src/main/kotlin/fi/oph/kitu/kotoutumiskoulutus).
+- `palvelukayttaja-password`: OPH:n palvelukäyttäjän salasana, jolla mm. oppijanumerorekisteriä
+  kutsutaan. Ks. [fi.oph.kitu.oppijanumero-paketti](server/src/main/kotlin/fi/oph/kitu/oppijanumero).
+- `palvelukayttaja-oauth-password`: saman palvelukäyttäjän OAuth2-salaisuus.
+- `yki-api-user` ja `yki-api-password`: Solkin YKI-rajapinnan tunnukset.
 - `tolgee-api-key`: Tolgee Cloudin **Project API Key** käännösavainten synkronointiin. Vain Test-tilille
   `961341546901` (QA), regioona `eu-west-1`. Tarvittavat scopet: `keys.view`, `keys.create`,
   `keys.delete`, `translations.view`. Personal Access Token ei kelpaa — projekti tulee avaimesta.
@@ -223,7 +234,9 @@ mvn package
 # Playwrightin UI testien ajamiseen --ui flagilla
 npx playwright test
 
-# e2e-testien ajaminen rinnakkain. Määritä haluttu workerien lukumäärä ympäristömuuttujalla TEST_WORKERS. Suurin tuettu
-# arvo on 4. Oletusarvo on 1, joka poistaa testien rinnakkaisuuden käytöstä.
+# e2e-testien ajaminen rinnakkain. Määritä haluttu workerien lukumäärä ympäristömuuttujalla TEST_WORKERS.
+# Oletusarvo on 1, joka poistaa testien rinnakkaisuuden käytöstä. Ylärajaa ei ole konfiguraatiossa, mutta
+# jokainen worker käynnistää oman palvelimensa porttiin 8080+worker-indeksi, joten 4 on käytännön katto.
+# CI ajaa aina yhdellä workerilla.
 TEST_WORKERS=4 npx playwright test
 ```
