@@ -8,7 +8,7 @@ Kielitutkintorekisteri (kitu) — OPH's register for language-exam data. Virkail
 
 ## Toolchain
 
-Tool versions live in `.mise.toml` and are installed automatically by `scripts/start_local_env.sh`: Java 25 (corretto), Node 24, Maven 3.9, ktlint, prettier, shellcheck, aws-cli, go, `cdk-notifier` (PR diff comments in `_deploy-env.yml`), `session-manager-plugin`, esbuild, humanlog. **Kotlin 2.4.10 and the Java release are _not_ in `.mise.toml`** — they live in `server/pom.xml` as `kotlin.version`/`java.version`. `AWS_PROFILE=oph-ktr-dev` and `SPRING_PROFILES_ACTIVE=local` are set by mise. (`esbuild` and `session-manager-plugin` are installed but currently unused — see the Frontend bullet and `scripts/connect_rds.sh`.)
+Tool versions live in `.mise.toml` and are installed automatically by `scripts/start_local_env.sh`: Java 25 (corretto), Node 24, Maven 3.9, ktlint, prettier, shellcheck, aws-cli, go, `cdk-notifier` (PR diff comments in `_deploy-env.yml`), humanlog. **Kotlin 2.4.10 and the Java release are _not_ in `.mise.toml`** — they live in `server/pom.xml` as `kotlin.version`/`java.version`. `AWS_PROFILE=oph-ktr-dev` and `SPRING_PROFILES_ACTIVE=local` are set by mise.
 
 ## Common commands
 
