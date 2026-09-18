@@ -123,7 +123,7 @@ To mint a URL, an OPH admin runs locally:
 ```
 
 The script invokes `infra/scripts/presign-yki-historia-upload.mjs` (uses
-`@aws-sdk/s3-request-presigner` — `aws s3 presign` in AWS CLI 2.x (2.36.44 pinned in `.mise.toml`) is
+`@aws-sdk/s3-request-presigner` — `aws s3 presign` in AWS CLI 2.x (see `.mise.toml` for the pin) is
 GET-only) and prints the URL plus a ready-to-paste `curl --upload-file`
 one-liner for the uploader. Default TTL is 7 days (the SigV4 maximum).
 
