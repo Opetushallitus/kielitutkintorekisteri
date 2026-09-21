@@ -21,7 +21,7 @@ data class KielitestiSuorituksetParams(
     var suoritusloppu: LocalDate? = null,
     val piilotaHenkilotiedot: Boolean = false,
     val testikieli: Testikieli? = null,
-    val naytaKeskeneraiset: Boolean = false,
+    val naytettavatSuoritukset: NaytettavatSuoritukset = NaytettavatSuoritukset.VALMIIT,
 ) {
     fun toFilter(): KielitestiSuoritusFilter =
         KielitestiSuoritusFilter(
@@ -29,7 +29,7 @@ data class KielitestiSuorituksetParams(
             suoritusalku = suoritusalku,
             suoritusloppu = suoritusloppu,
             testikieli = testikieli,
-            naytaKeskeneraiset = naytaKeskeneraiset,
+            naytettavatSuoritukset = naytettavatSuoritukset,
         )
 
     fun toOrder(): KielitestiSuoritusOrder =
@@ -49,7 +49,7 @@ data class KielitestiSuorituksetParams(
             "suoritusloppu" to suoritusloppu?.toString(),
             "testikieli" to testikieli?.toString(),
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
-            "naytaKeskeneraiset" to naytaKeskeneraiset.toTrueOrNull(),
+            "naytettavatSuoritukset" to naytettavatSuoritukset.name,
         )
 
     fun excludeTags(): Set<ColumnTag> =
@@ -71,6 +71,8 @@ data class KielitestiSuorituksetParams(
             aikarajausDescription(suoritusalku, suoritusloppu),
             testikieli?.let { "${UiText.Koto.Sarake.testikieli}: $it" },
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
-            if (naytaKeskeneraiset) UiText.Filter.naytaKeskeneraiset.toString() else null,
+            naytettavatSuoritukset
+                .takeIf { it != NaytettavatSuoritukset.VALMIIT }
+                ?.let { "${UiText.Filter.naytettavatSuoritukset}: ${it.nimi}" },
         )
 }

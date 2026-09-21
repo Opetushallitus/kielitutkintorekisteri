@@ -1,6 +1,7 @@
 package fi.oph.kitu.kotoutumiskoulutus
 
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusFilter
+import fi.oph.kitu.kotoutumiskoulutus.suoritukset.NaytettavatSuoritukset
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.Test
@@ -31,7 +32,10 @@ class KielitestiSuoritusFilterTest {
 
     @Test
     fun `tyhjä organisaatio-OID-lista jättää suodattimen kokonaan pois`() {
-        val filter = KielitestiSuoritusFilter(naytaKeskeneraiset = true).withOrgOids(emptyList())
+        val filter =
+            KielitestiSuoritusFilter(
+                naytettavatSuoritukset = NaytettavatSuoritukset.KAIKKI,
+            ).withOrgOids(emptyList())
 
         assertNull(filter.whereSql())
         assertFalse(filter.params().containsKey("filter_org_oids"))
@@ -41,7 +45,10 @@ class KielitestiSuoritusFilterTest {
     fun `yli yhdeksän organisaatio-OIDin lista pudottaa suodattimen pois (säilytetty käytös)`() {
         val tenOids =
             (0 until 10).map { Oid.parse("1.2.246.562.10.${1_000_000 + it}").getOrThrow() }
-        val filter = KielitestiSuoritusFilter(naytaKeskeneraiset = true).withOrgOids(tenOids)
+        val filter =
+            KielitestiSuoritusFilter(
+                naytettavatSuoritukset = NaytettavatSuoritukset.KAIKKI,
+            ).withOrgOids(tenOids)
 
         assertNull(filter.whereSql())
         assertFalse(filter.params().containsKey("filter_org_oids"))
@@ -51,5 +58,17 @@ class KielitestiSuoritusFilterTest {
     fun `oletuksena haetaan vain valmiit suoritukset`() {
         val filter = KielitestiSuoritusFilter()
         assertEquals("WHERE (completed)", filter.whereSql())
+    }
+
+    @Test
+    fun `keskeneräiset-rajaus hakee vain keskeneräiset suoritukset`() {
+        val filter = KielitestiSuoritusFilter(naytettavatSuoritukset = NaytettavatSuoritukset.KESKENERAISET)
+        assertEquals("WHERE (NOT completed)", filter.whereSql())
+    }
+
+    @Test
+    fun `kaikki-rajaus ei rajaa valmiusasteen mukaan`() {
+        val filter = KielitestiSuoritusFilter(naytettavatSuoritukset = NaytettavatSuoritukset.KAIKKI)
+        assertNull(filter.whereSql())
     }
 }

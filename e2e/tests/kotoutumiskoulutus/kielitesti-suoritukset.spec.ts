@@ -12,6 +12,7 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
     await kotoSuoritus.insert(db, "magdalena")
     await kotoSuoritus.insert(db, "toni")
     await kotoSuoritus.insert(db, "fanniRessu")
+    await kotoSuoritus.insert(db, "valluKesken")
 
     await basePage.login()
   })
@@ -326,6 +327,71 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
           .getPageContent()
           .getByText("Henkilötiedot piilotettu"),
       ).toBeVisible()
+    })
+
+    test("Oletuksena näytetään vain valmiit suoritukset", async ({
+      kielitestiSuorituksetPage,
+    }) => {
+      await kielitestiSuorituksetPage.open()
+
+      const suoritukset = kielitestiSuorituksetPage.getSuoritusRow()
+      await expect(suoritukset).toHaveCount(5)
+      await expect(
+        suoritukset.filter({ hasText: "Vastaanottaja-Testi" }),
+      ).toHaveCount(0)
+    })
+
+    test("Keskeneräisten suoritusten rajaaminen", async ({
+      kielitestiSuorituksetPage,
+    }) => {
+      await kielitestiSuorituksetPage.open()
+      const dialog = await kielitestiSuorituksetPage.openFilterDialog()
+      await dialog.setNaytettavatSuoritukset("KESKENERAISET")
+      await dialog.submit()
+
+      const suoritukset = kielitestiSuorituksetPage.getSuoritusRow()
+      await expect(suoritukset).toHaveCount(1)
+      await expect(suoritukset.nth(0)).toContainText("Vastaanottaja-Testi")
+      await expect(
+        kielitestiSuorituksetPage
+          .getPageContent()
+          .getByText("Näytettävät suoritukset: Keskeneräiset"),
+      ).toBeVisible()
+    })
+
+    test("Kaikkien suoritusten näyttäminen", async ({
+      kielitestiSuorituksetPage,
+    }) => {
+      await kielitestiSuorituksetPage.open()
+      const dialog = await kielitestiSuorituksetPage.openFilterDialog()
+      await dialog.setNaytettavatSuoritukset("KAIKKI")
+      await dialog.submit()
+
+      const suoritukset = kielitestiSuorituksetPage.getSuoritusRow()
+      await expect(suoritukset).toHaveCount(6)
+    })
+
+    test("Suoritusten valmiusrajaus vaikuttaa myös csv:hen", async ({
+      page,
+      kielitestiSuorituksetPage,
+      kotoSuoritus,
+    }) => {
+      const vallu = kotoSuoritus.fixtureData.valluKesken
+      const anniina = kotoSuoritus.fixtureData.anniina
+
+      await kielitestiSuorituksetPage.open()
+      const dialog = await kielitestiSuorituksetPage.openFilterDialog()
+      await dialog.setNaytettavatSuoritukset("KESKENERAISET")
+      await dialog.submit()
+
+      const [download] = await Promise.all([
+        page.waitForEvent("download"),
+        kielitestiSuorituksetPage.getCSVDownloadLink().click(),
+      ])
+      const csvContent = await fs.readFile((await download.path())!, "utf8")
+
+      expect(csvContent).toContain(vallu.oppijanumero)
+      expect(csvContent).not.toContain(anniina.oppijanumero)
     })
 
     test("Hakutermi säilyy kun rajauksia lisätään", async ({
