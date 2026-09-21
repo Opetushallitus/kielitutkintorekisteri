@@ -908,7 +908,10 @@ object UiText {
             )
         val henkilotiedotPiilotettu: LocalizedString
             get() = tr("filter.henkilotiedotPiilotettu", fi = "Henkilötiedot piilotettu")
-        val naytaKeskeneraiset: LocalizedString get() = tr("filter.naytaKeskeneraiset", fi = "Näytä keskeneräiset")
+        val naytettavatSuoritukset: LocalizedString
+            get() = tr("filter.naytettavatSuoritukset", fi = "Näytettävät suoritukset")
+        val valmiit: LocalizedString get() = tr("filter.valmiit", fi = "Valmiit")
+        val keskeneraiset: LocalizedString get() = tr("filter.keskeneraiset", fi = "Keskeneräiset")
     }
 
     object Form {

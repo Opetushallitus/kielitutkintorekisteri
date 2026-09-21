@@ -19,6 +19,12 @@ export class KielitutkintoSuorituksetFilterDialog {
     await this.setEnum("testikieli", value)
   }
 
+  async setNaytettavatSuoritukset(
+    value: "VALMIIT" | "KESKENERAISET" | "KAIKKI",
+  ) {
+    await this.setEnum("naytettavatSuoritukset", value)
+  }
+
   async hideHenkilotiedot(state: boolean) {
     await this.modal
       .getByRole("checkbox", { name: "Piilota henkilötiedot" })

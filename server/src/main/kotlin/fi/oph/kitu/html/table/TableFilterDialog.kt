@@ -99,9 +99,10 @@ inline fun <reified E : Enum<E>> FlowContent.enumFilter(
     id: String,
     labelText: String,
     value: E?,
+    kaikkiOption: Boolean = true,
 ) {
     val options =
-        listOf(null) +
+        (if (kaikkiOption) listOf(null) else emptyList()) +
             enumValues<E>().filterNot {
                 E::class.java.getField(it.name).isAnnotationPresent(HideInTableFilter::class.java)
             }

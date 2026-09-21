@@ -143,10 +143,11 @@ fun FlowContent.kielitestiSuoritusFilterButton(params: KielitestiSuorituksetPara
             )
         }
         fieldSet {
-            toggleFilter(
-                "naytaKeskeneraiset",
-                UiText.Filter.naytaKeskeneraiset.toString(),
-                params.naytaKeskeneraiset,
+            enumFilter<NaytettavatSuoritukset>(
+                "naytettavatSuoritukset",
+                UiText.Filter.naytettavatSuoritukset.toString(),
+                params.naytettavatSuoritukset,
+                kaikkiOption = false,
             )
         }
     }
