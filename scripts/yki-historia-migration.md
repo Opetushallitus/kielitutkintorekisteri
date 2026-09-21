@@ -134,6 +134,18 @@ which casefolds and collapses **inner** whitespace. `raw` only trims the ends, s
 `count(DISTINCT (hetu, etunimet, sukunimi))` counts `Anna Maria` and `Anna  Maria` as two
 people and over-estimates the budget (verified: 4 vs the script's 3 on a test file).
 Cross-check the number against `--backfill-oids --dry-run`, which prints it directly.
+
+```sql
+-- Name variants. eri_henkiloa counts (hetu, etunimet, sukunimi) triples, so a person
+-- written two ways is looked up twice. If eri_hetua is meaningfully below eri_henkiloa,
+-- the gap is wasted ONR calls -- and a hint that the same human sits behind several
+-- osallistuja rows.
+SELECT count(DISTINCT lower(hetu))
+         FILTER (WHERE suorittajan_oid IS NULL AND hetu IS NOT NULL) AS eri_hetua
+FROM raw
+WHERE TRY_CAST(last_modified AS TIMESTAMP) < '2017-01-01';
+```
+
 Hetu _validity_ is not checked here on purpose (one checksum implementation, in Python);
 `--backfill-oids --dry-run` classifies those, see Phase 2.
 
@@ -149,14 +161,45 @@ SELECT
   count(*) FILTER (WHERE tutkintopaiva IS NOT NULL AND TRY_CAST(tutkintopaiva AS DATE) IS NULL)        AS bad_tutkintopaiva
 FROM raw;
 
--- duplicates the app would collapse on upsert
+-- duplicate Solki ids: these DO interact, via YkiSuoritusRepository.save's
+-- findLatestBySolkiIds guard, so the second row is compared against the first
 SELECT count(*) FROM (SELECT suoritus_id FROM raw GROUP BY 1 HAVING count(*) > 1);
-SELECT count(*) FROM (SELECT 1 FROM raw GROUP BY suorittajan_oid, tutkintopaiva, tutkintokieli, tutkintotaso HAVING count(*) > 1);
 
--- henkilö fields YkiSuoritusEntity.from requires (a null here is a guaranteed 400)
-SELECT count(*) FROM raw
-WHERE sukupuoli IS NULL OR sukunimi IS NULL OR etunimet IS NULL OR kansalaisuus IS NULL
-   OR katuosoite IS NULL OR postinumero IS NULL OR postitoimipaikka IS NULL;
+-- natural-key duplicates. NOTE: nothing in the app collapses these. The
+-- UNIQUE (suorittajan_oppijanumero, tutkintopaiva, tutkintokieli, tutkintotaso)
+-- constraint from V6 was DROPPED in V12 in favour of UNIQUE (suoritus_id,
+-- last_modified), and save() guards on solkiId alone -- so each row loads as its
+-- own suoritus and gets its own KOSKI opiskeluoikeus. A hit here is a data-quality
+-- question for OPH (two identical records in Oma Opintopolku), not an import blocker.
+-- `suorittajan_oid IS NOT NULL` is essential: GROUP BY treats NULLs as equal, so
+-- without it every OID-less row collapses with unrelated people who happen to share
+-- the same date/language/level.
+SELECT count(*) AS ryhmat, coalesce(sum(n), 0) AS rivit
+FROM (
+  SELECT count(*) AS n FROM raw
+  WHERE suorittajan_oid IS NOT NULL
+  GROUP BY suorittajan_oid, tutkintopaiva, tutkintokieli, tutkintotaso
+  HAVING count(*) > 1
+);
+
+-- ...and whether those are true duplicates or Solki-side corrections
+SELECT suorittajan_oid, tutkintopaiva, tutkintokieli, tutkintotaso,
+       count(*) AS rivit, list(suoritus_id) AS solki_idt,
+       count(DISTINCT (as_ty, as_ki, as_rs, as_py, as_pu, as_yl)) AS eri_arvosanayhdistelmia
+FROM raw WHERE suorittajan_oid IS NOT NULL
+GROUP BY 1, 2, 3, 4 HAVING count(*) > 1
+ORDER BY rivit DESC LIMIT 20;
+
+-- henkilö fields YkiSuoritusEntity.from requires (a null here is a guaranteed 400).
+-- joista_oidittomia predicts the backfill's skipped_issue count: rows no oppijanumero
+-- can rescue, so they come off the ONR budget before a single lookup is spent.
+-- Mind the parentheses -- the OR chain must be grouped before the scope filter.
+SELECT count(*)                                        AS puutteellisia,
+       count(*) FILTER (WHERE suorittajan_oid IS NULL)  AS joista_oidittomia
+FROM raw
+WHERE (sukupuoli IS NULL OR sukunimi IS NULL OR etunimet IS NULL OR kansalaisuus IS NULL
+    OR katuosoite IS NULL OR postinumero IS NULL OR postitoimipaikka IS NULL)
+  AND TRY_CAST(last_modified AS TIMESTAMP) < '2017-01-01';
 
 -- whitespace forensics, if a count looks wrong
 SELECT count(*) FROM raw_verbatim WHERE sukunimi <> trim(sukunimi);
