@@ -49,3 +49,6 @@ cdk.out/
 /docs/output/
 /uml/
 /test-results/.last-run.json
+
+### Python ###
+__pycache__/

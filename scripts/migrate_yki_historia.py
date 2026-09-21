@@ -28,8 +28,12 @@ Typical use:
 Rows without a suorittajan OID: a --backfill-oids pre-pass resolves them from hetu +
 names via kitu's POST /yki/api/oppijanumero-haku into a resumable --oid-map (JSONL),
 which the normal run then injects. Rows that still lack an OID are diverted to
---unresolved-out as a 30-column CSV, directly reusable as --source in a later round:
+--unresolved-out as a 30-column CSV, directly reusable as --source in a later round.
+Add --dry-run to the pre-pass to only classify the rows (no ONR calls, no credentials
+needed) and see how many are even attemptable:
 
+    ./migrate_yki_historia.py --source s3://.../<key>.csv --dry-run \\
+        --backfill-oids --oid-map oid_map.jsonl --unresolved-out unresolved.csv
     ./migrate_yki_historia.py --source s3://.../<key>.csv --env prod --confirm-prod \\
         --client-id "$CID" --client-secret "$CSECRET" \\
         --backfill-oids --oid-map oid_map.jsonl --unresolved-out unresolved.csv
@@ -43,6 +47,7 @@ import csv
 import io
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -82,6 +87,14 @@ VALID_ARVOSANA = {
     "KT": {0, 1, 2, 3, 4, 9, 10, 11, 12},
     "YT": {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12},
 }
+
+# YkiSuoritusEntity.from throws IllegalArgumentException ("<Field> puuttuu") on each of
+# these, i.e. HTTP 400 — but only after validation has already spent an ONR call
+# verifying the oid, so they are worth catching locally.
+REQUIRED_HENKILO_FIELDS = [
+    "sukupuoli", "sukunimi", "etunimet", "kansalaisuus",
+    "katuosoite", "postinumero", "postitoimipaikka",
+]
 
 # (host, oauth token url). dev/test taken from scripts/upload_yki_suoritus.sh.
 # PROD values are a best guess from the dev/test pattern — VERIFY before a real run
@@ -126,6 +139,26 @@ def decode_bitmask(value):
     if not n:
         return []
     return [code for code, bit in BITMASK if n & bit]
+
+
+HETU_PATTERN = re.compile(r"^(\d{6})([+\-YXWVUABCDEF])(\d{3})([0-9A-Y])$", re.IGNORECASE)
+HETU_CHECKSUM_TABLE = "0123456789ABCDEFHJKLMNPRSTUVWXY"
+
+
+def hetu_issue(hetu):
+    """None when the hetu is well-formed, else the reason it is not. ONR matches on the
+    hetu exactly, so a hetu that fails this cannot resolve — and it would come back as a
+    502 indistinguishable from an ONR outage, after a full name-combination fan-out."""
+    match = HETU_PATTERN.match(hetu)
+    if match is None:
+        return "virheellinen hetun muoto"
+    paivat, _, yksilonumero, tarkiste = match.groups()
+    paiva, kuukausi = int(paivat[0:2]), int(paivat[2:4])
+    if not (1 <= paiva <= 31 and 1 <= kuukausi <= 12):
+        return "virheellinen hetun päivämäärä"
+    if HETU_CHECKSUM_TABLE[int(paivat + yksilonumero) % 31] != tarkiste.upper():
+        return "virheellinen hetun tarkiste"
+    return None
 
 
 LAST_MODIFIED_FORMATS = (
@@ -208,13 +241,21 @@ def local_issues(payload):
     issues = []
     if not s["osat"]:
         issues.append("ei yhtään osakoetta")
-    valid = VALID_ARVOSANA.get(s["tutkintotaso"], set())
-    bad = sorted({o["arvosana"] for o in s["osat"] if o["arvosana"] not in valid})
-    if bad:
-        issues.append(f"virheellinen arvosana tasolle {s['tutkintotaso']}: {bad}")
+    if s["tutkintotaso"] not in VALID_ARVOSANA:
+        issues.append(f"tuntematon tutkintotaso: {s['tutkintotaso']}")
+    else:
+        valid = VALID_ARVOSANA[s["tutkintotaso"]]
+        bad = sorted({o["arvosana"] for o in s["osat"] if o["arvosana"] not in valid})
+        if bad:
+            issues.append(f"virheellinen arvosana tasolle {s['tutkintotaso']}: {bad}")
     t = s.get("tarkistusarviointi")
     if t and set(t["arvosanaMuuttui"]) - set(t["tarkistusarvioidutOsakokeet"]):
         issues.append("arvosanaMuuttui ei ole tarkistettujen osakokeiden osajoukko")
+    if t and t["kasittelypaiva"] and t["kasittelypaiva"] < t["saapumispaiva"]:
+        issues.append("tarkistusarvioinnin käsittelypäivä on ennen saapumispäivää")
+    puuttuvat = [f for f in REQUIRED_HENKILO_FIELDS if not payload["henkilo"][f]]
+    if puuttuvat:
+        issues.append(f"henkilötietoja puuttuu: {', '.join(puuttuvat)}")
     return issues
 
 
@@ -261,38 +302,102 @@ def get_token(token_url, client_id, client_secret):
         return json.load(r)["access_token"]
 
 
-def post_suoritus(host, token, payload):
-    body = json.dumps(payload).encode()
-    req = urllib.request.Request(
-        host + "/yki/api/suoritus", data=body,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(req) as r:
-            return r.status, r.read().decode()
-    except urllib.error.HTTPError as e:
-        return e.code, e.read().decode()
+class Transient(Exception):
+    """A failure that may succeed on a later attempt: an ONR outage, a network error —
+    or a request ONR itself rejected, which the haku endpoint also reports as 502."""
 
 
-def resolve_oid(host, token, hetu, etunimet, sukunimi):
-    """Resolve an oppijanumero from hetu + names via kitu's ONR lookup endpoint.
-    Returns the OID, or None when ONR does not know the person (HTTP 404)."""
-    body = json.dumps({"hetu": hetu, "etunimet": etunimet, "sukunimi": sukunimi}).encode()
-    req = urllib.request.Request(
-        host + "/yki/api/oppijanumero-haku", data=body,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+class Fatal(Exception):
+    """A failure no row will survive: wrong credentials, missing rights, or a response
+    shape we do not understand. Retrying the file would only produce noise."""
+
+
+TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504})
+TRANSIENT_BACKOFF = (2, 5)
+MAX_CONSECUTIVE_TRANSIENT = 10
+
+
+class ApiSession:
+    """Holds the OAuth token and POSTs JSON bodies. Refreshes the token on a 401 (the
+    token outlives neither a 76k-row pass nor, in the dev mock, a minute — and
+    expires_in cannot be trusted) and retries transient failures with a backoff."""
+
+    def __init__(self, host, token_url, client_id, client_secret, timeout):
+        self.host = host
+        self.token_url = token_url
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.timeout = timeout
+        self.token = None
+        self.refreshes = 0
+
+    def fetch_token(self):
+        self.token = get_token(self.token_url, self.client_id, self.client_secret)
+
+    def post_json(self, path, payload):
+        """(status, body) for anything the caller can act on. Raises Transient once the
+        retries are spent, so the caller can leave the row for a later round."""
+        body = json.dumps(payload).encode()
+        status, response = None, ""
+        for attempt in range(len(TRANSIENT_BACKOFF) + 1):
+            if self.token is None:
+                self.fetch_token()
+            status, response = self._send(path, body)
+            if status == 401:
+                log("token hylättiin (401), haetaan uusi")
+                self.refreshes += 1
+                self.fetch_token()
+                status, response = self._send(path, body)
+                if status == 401:
+                    raise Fatal("HTTP 401 myös tokenin uusimisen jälkeen — tarkista client-tunnukset")
+            if status == 403:
+                raise Fatal(f"HTTP 403 {path}: client-tunnuksilta puuttuu YKI_TALLENNUS-oikeus")
+            if status is not None and status not in TRANSIENT_STATUSES:
+                return status, response
+            if attempt < len(TRANSIENT_BACKOFF):
+                delay = TRANSIENT_BACKOFF[attempt]
+                log(f"{path}: HTTP {status}, uudelleenyritys {delay}s kuluttua")
+                time.sleep(delay)
+        raise Transient(f"HTTP {status}: {response[:300]}")
+
+    def _send(self, path, body):
+        """(status, body); status is None on a network-level failure."""
+        req = urllib.request.Request(
+            self.host + path, data=body,
+            headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                return r.status, r.read().decode()
+        except urllib.error.HTTPError as e:
+            return e.code, e.read().decode()
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            return None, str(e)
+
+
+def resolve_oid(session, hetu, etunimet, sukunimi):
+    """Resolve a master oppijanumero from hetu + names via kitu's ONR lookup endpoint.
+    Returns (oid, reason): the OID with reason None, or None with a permanent reason.
+    Raises Transient when the attempt may succeed later."""
+    status, response = session.post_json(
+        "/yki/api/oppijanumero-haku",
+        {"hetu": hetu, "etunimet": etunimet, "sukunimi": sukunimi},
     )
-    try:
-        with urllib.request.urlopen(req) as r:
-            return json.load(r)["oid"]
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            return None
-        raise
+    if 200 <= status < 300:
+        oid = json.loads(response).get("oid")
+        if not oid:
+            raise Fatal(f"haku vastasi {status} ilman oid-kenttää: {response[:200]}")
+        return oid, None
+    if status == 404:
+        return None, "ei löytynyt oppijanumerorekisteristä"
+    if status == 400:
+        return None, f"haku hylkäsi pyynnön: {response[:200]}"
+    raise Transient(f"HTTP {status}: {response[:300]}")
 
 
 def load_oid_map(path):
-    """{solki_id: oid_or_None}; a key's presence means the row was already attempted."""
+    """{solki_id: {"oid": oid_or_None, "reason": reason_or_None}}; a key's presence means
+    the row was already attempted with a permanent outcome."""
     oid_map = {}
     if path and os.path.exists(path):
         with open(path, encoding="utf-8") as f:
@@ -302,7 +407,7 @@ def load_oid_map(path):
                 except json.JSONDecodeError:
                     continue
                 if "solki_id" in rec:
-                    oid_map[rec["solki_id"]] = rec.get("oid")
+                    oid_map[rec["solki_id"]] = {"oid": rec.get("oid"), "reason": rec.get("reason")}
     return oid_map
 
 
@@ -313,22 +418,73 @@ def load_leftover_ids(path):
         with open(path, encoding="utf-8") as f:
             text = f.read()
         if text.strip():
-            delimiter = resolve_delimiter(text.split("\n", 1)[0], None) or "\t"
+            delimiter = resolve_delimiter(text.split("\n", 1)[0].rstrip("\r"), None)
+            if delimiter is None:
+                raise Fatal(
+                    f"{path}: erotinta ei tunnistettu, joten jo kirjattuja rivejä ei voi "
+                    "tunnistaa ja ajo kirjoittaisi ne uudelleen. Siirrä tiedosto pois tieltä "
+                    "tai korjaa sen muoto ennen ajoa."
+                )
             for row in csv.reader(io.StringIO(text), delimiter=delimiter, quotechar='"'):
                 if len(row) == len(COLUMNS):
                     ids.add(to_null(row[SUORITUS_ID_IDX]))
     return ids
 
 
-def backfill_oids(rows, host, token, map_path, capture_unresolved, limit, cutoff, sleep):
+def collapse_ws(value):
+    """Collapse runs of whitespace to a single space. to_null only trims the ends, and
+    the export's name fields carry stray inner whitespace too."""
+    return " ".join(value.split())
+
+
+def person_key(hetu, etunimet, sukunimi):
+    """All of one person's suoritukset come from a single osallistuja row, so this is
+    stable across their rows — one ONR lookup per person instead of per suoritus."""
+    return (hetu.casefold(), collapse_ws(etunimet).casefold(), collapse_ws(sukunimi).casefold())
+
+
+def lookup_fields(row, check_hetu):
+    """(hetu, etunimet, sukunimi, reason); reason is set when the row cannot be looked
+    up at all, and is specific enough for OPH to act on."""
+    hetu = to_null(row[HETU_IDX])
+    etunimet = to_null(row[ETUNIMET_IDX])
+    sukunimi = to_null(row[SUKUNIMI_IDX])
+    if hetu is None:
+        return hetu, etunimet, sukunimi, "hetu puuttuu"
+    if etunimet is None:
+        return hetu, etunimet, sukunimi, "etunimet puuttuu"
+    if sukunimi is None:
+        return hetu, etunimet, sukunimi, "sukunimi puuttuu"
+    if check_hetu:
+        issue = hetu_issue(hetu)
+        if issue:
+            return hetu, etunimet, sukunimi, issue
+    return hetu, etunimet, sukunimi, None
+
+
+def backfill_oids(rows, session, map_path, capture_unresolved, limit, max_lookups, cutoff,
+                  sleep, check_hetu, classify_only):
+    """Resolve OIDs for rows that have none. Permanent outcomes are appended to
+    map_path as {solki_id, oid, reason} so a resume skips them; transient ones are
+    deliberately left out so a resume retries them. classify_only calls no API at all.
+    Returns (counts, aborted)."""
     attempted = load_oid_map(map_path)
     if attempted:
         log(f"backfill resuming: {len(attempted)} rows already attempted will be skipped")
-    counts = {"resolved": 0, "unresolved": 0, "skipped_attempted": 0, "has_oid": 0, "filtered": 0, "failed": 0}
-    with open(map_path, "a", encoding="utf-8") as out:
+    counts = {"resolved": 0, "unresolved": 0, "cached": 0, "failed": 0, "attemptable": 0,
+              "skipped_issue": 0, "skipped_attempted": 0, "has_oid": 0, "filtered": 0,
+              "lookups": 0}
+    aborted = False
+    cache = {}
+    persons = set()
+    consecutive_transient = 0
+    out = None if classify_only else open(map_path, "a", encoding="utf-8")
+    try:
         for i, row in enumerate(rows):
             if limit is not None and i >= limit:
                 break
+            if (i + 1) % 1000 == 0:
+                log(f"...{i + 1} riviä luettu {counts}")
             if not row or len(row) != len(COLUMNS):
                 continue
             if cutoff is not None:
@@ -344,29 +500,66 @@ def backfill_oids(rows, host, token, map_path, capture_unresolved, limit, cutoff
                 counts["skipped_attempted"] += 1
                 continue
 
-            hetu = to_null(row[HETU_IDX])
-            etunimet = to_null(row[ETUNIMET_IDX])
-            sukunimi = to_null(row[SUKUNIMI_IDX])
-            if not (hetu and etunimet and sukunimi):
-                rec = {"solki_id": solki_id, "oid": None, "reason": "hetu tai nimet puuttuu"}
-            else:
-                oid = resolve_oid(host, token, hetu, etunimet, sukunimi)
-                rec = {"solki_id": solki_id, "oid": oid,
-                       "reason": None if oid else "ei löytynyt oppijanumerorekisteristä"}
-
-            out.write(json.dumps(rec, ensure_ascii=False) + "\n")
-            out.flush()
-            attempted[solki_id] = rec["oid"]
-            if rec["oid"] is None:
+            # An OID cannot rescue a row the server would 400 anyway, and every lookup
+            # is expensive. Not written to the map: that file records OID outcomes only,
+            # so a later round still resolves the row if the source data gets fixed.
+            if local_issues(build_payload(row)):
+                counts["skipped_issue"] += 1
                 capture_unresolved(row, solki_id)
-            counts["resolved" if rec["oid"] else "unresolved"] += 1
-            if sleep:
-                time.sleep(sleep)
+                continue
 
-            attempted_now = counts["resolved"] + counts["unresolved"]
-            if attempted_now % 100 == 0:
-                log(f"...{attempted_now} oid lookups done {counts}")
+            hetu, etunimet, sukunimi, reason = lookup_fields(row, check_hetu)
+            oid = None
+            called_api = False
+
+            if reason is None:
+                key = person_key(hetu, etunimet, sukunimi)
+                persons.add(key)
+                if classify_only:
+                    counts["attemptable"] += 1
+                    continue
+                if key in cache:
+                    oid, reason = cache[key]
+                    counts["cached"] += 1
+                else:
+                    if max_lookups is not None and counts["lookups"] >= max_lookups:
+                        log(f"--max-lookups {max_lookups} saavutettu — lopetetaan")
+                        break
+                    counts["lookups"] += 1
+                    try:
+                        oid, reason = resolve_oid(session, hetu, etunimet, sukunimi)
+                    except Transient as e:
+                        counts["failed"] += 1
+                        consecutive_transient += 1
+                        log(f"solki_id={solki_id}: ohimenevä virhe, ei kirjata mappiin ({e})")
+                        if consecutive_transient >= MAX_CONSECUTIVE_TRANSIENT:
+                            log(f"{consecutive_transient} ohimenevää virhettä putkeen — keskeytetään")
+                            aborted = True
+                            break
+                        if sleep:
+                            time.sleep(sleep)
+                        continue
+                    consecutive_transient = 0
+                    called_api = True
+                    cache[key] = (oid, reason)
+
+            rec = {"solki_id": solki_id, "oid": oid, "reason": reason}
+            if out is not None:
+                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                out.flush()
+            attempted[solki_id] = rec
+            if oid is None:
+                capture_unresolved(row, solki_id)
+            counts["resolved" if oid else "unresolved"] += 1
+            if called_api and sleep:
+                time.sleep(sleep)
+    finally:
+        if out is not None:
+            out.close()
     log(f"backfill done: {counts}")
+    log(f"eri henkilöitä oidittomilla riveillä: {len(persons)}"
+        + ("  <- ONR-kutsujen budjetti" if classify_only else ""))
+    return counts, aborted
 
 
 def load_done(out_path):
@@ -378,7 +571,10 @@ def load_done(out_path):
                     rec = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                if rec.get("ok"):
+                # Only a real POST counts as done. A dry-run record also carries
+                # ok: true, and the runbook reuses one --out across both, so accepting
+                # those would make the live run skip the whole file.
+                if rec.get("ok") and rec.get("action") == "posted":
                     done.add(rec.get("solki_id"))
     return done
 
@@ -408,7 +604,7 @@ def main():
     p.add_argument(
         "--backfill-oids", action="store_true",
         help="pre-pass: resolve OIDs for rows without one via /yki/api/oppijanumero-haku "
-             "into --oid-map, POST no suoritukset",
+             "into --oid-map, POST no suoritukset. With --dry-run: classify only, no API calls",
     )
     p.add_argument(
         "--oid-map", metavar="PATH",
@@ -420,13 +616,28 @@ def main():
         help="write rows that still lack a resolvable oppijanumero to this CSV "
              "(same 30-column headerless layout, reusable as --source later)",
     )
+    p.add_argument(
+        "--no-hetu-check", action="store_true",
+        help="skip the local hetu format/checksum check and let ONR judge every hetu",
+    )
+    p.add_argument(
+        "--max-lookups", type=int, metavar="N",
+        help="backfill: stop after N actual ONR lookups (--limit counts input rows, "
+             "which in an interleaved export may yield no lookups at all)",
+    )
+    p.add_argument(
+        "--timeout", type=float, default=180.0, metavar="SECONDS",
+        help="per-request socket timeout; generous by default because an unresolvable "
+             "lookup fans out to 1+2N ONR calls server-side (default: 180)",
+    )
     args = p.parse_args()
 
     if args.backfill_oids:
-        if args.dry_run:
-            p.error("--backfill-oids calls the API and cannot be combined with --dry-run")
         if not args.oid_map:
             p.error("--backfill-oids needs --oid-map")
+        if not args.unresolved_out:
+            p.error("--backfill-oids needs --unresolved-out, or the rows it cannot "
+                    "resolve are not kept for further processing")
 
     cutoff = None
     if args.modified_before:
@@ -453,10 +664,11 @@ def main():
     if done:
         log(f"resuming: {len(done)} rows already recorded ok will be skipped")
 
-    token = None
+    session = None
     if not args.dry_run:
+        session = ApiSession(host, token_url, args.client_id, args.client_secret, args.timeout)
         log(f"fetching OAuth token from {token_url}")
-        token = get_token(token_url, args.client_id, args.client_secret)
+        session.fetch_token()
 
     text = read_text(args.source)
     sample = text.split("\n", 1)[0]
@@ -469,7 +681,10 @@ def main():
     rows = csv.reader(io.StringIO(text), delimiter=delimiter, quotechar='"')
 
     leftover_fh = open(args.unresolved_out, "a", encoding="utf-8", newline="") if args.unresolved_out else None
-    leftover_writer = csv.writer(leftover_fh, delimiter=delimiter, quotechar='"') if leftover_fh else None
+    leftover_writer = (
+        csv.writer(leftover_fh, delimiter=delimiter, quotechar='"', lineterminator="\n")
+        if leftover_fh else None
+    )
     leftover_seen = load_leftover_ids(args.unresolved_out) if args.unresolved_out else set()
 
     def capture_unresolved(row, solki_id):
@@ -480,30 +695,37 @@ def main():
         leftover_seen.add(solki_id)
 
     if args.backfill_oids:
-        backfill_oids(rows, host, token, args.oid_map, capture_unresolved, args.limit, cutoff, args.sleep)
+        _, aborted = backfill_oids(rows, session, args.oid_map, capture_unresolved, args.limit,
+                                   args.max_lookups, cutoff, args.sleep,
+                                   not args.no_hetu_check, args.dry_run)
         if leftover_fh:
             leftover_fh.close()
-        return
+        return 1 if aborted else 0
 
     oid_map = load_oid_map(args.oid_map) if args.oid_map else {}
     if oid_map:
-        resolved = sum(1 for oid in oid_map.values() if oid)
+        resolved = sum(1 for entry in oid_map.values() if entry["oid"])
         log(f"oid map: {resolved} resolved of {len(oid_map)} attempted rows")
 
     payloads_fh = open(args.emit_payloads, "w", encoding="utf-8") if args.emit_payloads else None
-    counts = {"posted": 0, "skipped_issue": 0, "skipped_done": 0, "failed": 0, "dry": 0, "filtered": 0,
-              "unresolved": 0}
+    counts = {"posted": 0, "skipped_issue": 0, "skipped_done": 0, "dry": 0, "filtered": 0,
+              "unresolved": 0, "malformed_row": 0, "bad_last_modified": 0, "post_failed": 0,
+              "transient": 0}
+    consecutive_transient = 0
+    aborted = False
 
     with open(args.out, "a", encoding="utf-8") as out:
         for i, row in enumerate(rows):
             if args.limit is not None and i >= args.limit:
                 break
+            if (i + 1) % 1000 == 0:
+                log(f"...{i + 1} riviä luettu {counts}")
             if not row:
                 continue
             if len(row) != len(COLUMNS):
                 rec = {"row": i, "ok": False, "error": f"odotettiin {len(COLUMNS)} saraketta, saatiin {len(row)}"}
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                counts["failed"] += 1
+                counts["malformed_row"] += 1
                 continue
 
             if cutoff is not None:
@@ -511,17 +733,16 @@ def main():
                 if lm is None:
                     rec = {"row": i, "ok": False, "error": "last_modified ei jäsenny, ei voi suodattaa"}
                     out.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                    counts["failed"] += 1
+                    counts["bad_last_modified"] += 1
                     continue
                 if lm >= cutoff:
                     counts["filtered"] += 1
                     continue
 
-            if oid_map and not to_null(row[SUORITTAJAN_OID_IDX]):
-                backfilled = oid_map.get(to_null(row[SUORITUS_ID_IDX]))
-                if backfilled:
-                    row = list(row)
-                    row[SUORITTAJAN_OID_IDX] = backfilled
+            entry = oid_map.get(to_null(row[SUORITUS_ID_IDX])) if oid_map else None
+            if entry and entry["oid"] and not to_null(row[SUORITTAJAN_OID_IDX]):
+                row = list(row)
+                row[SUORITTAJAN_OID_IDX] = entry["oid"]
 
             payload = build_payload(row)
             solki_id = payload["suoritus"]["lahdejarjestelmanId"]["id"]
@@ -534,24 +755,43 @@ def main():
                 counts["skipped_done"] += 1
                 continue
 
-            if not payload["henkilo"]["oid"]:
-                capture_unresolved(row, solki_id)
-                rec = {"solki_id": solki_id, "ok": False, "action": "unresolved", "reason": "ei oppijanumeroa"}
-                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                counts["unresolved"] += 1
-                continue
-
+            # Issues first: a row the server would 400 is not "waiting for an OID", and
+            # reporting it as such would keep it circulating through backfill rounds.
             if issues:
+                capture_unresolved(row, solki_id)
                 rec = {"solki_id": solki_id, "ok": False, "action": "skipped", "issues": issues}
+                if not payload["henkilo"]["oid"]:
+                    rec["oid_missing"] = True
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 counts["skipped_issue"] += 1
                 continue
 
+            if not payload["henkilo"]["oid"]:
+                capture_unresolved(row, solki_id)
+                rec = {"solki_id": solki_id, "ok": False, "action": "unresolved",
+                       "reason": (entry or {}).get("reason") or "ei oppijanumeroa, ei yritetty"}
+                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                counts["unresolved"] += 1
+                continue
+
             if args.dry_run:
-                out.write(json.dumps({"solki_id": solki_id, "action": "dry-run", "ok": True}, ensure_ascii=False) + "\n")
+                rec = {"solki_id": solki_id, "action": "dry-run", "ok": True, "dry": True}
+                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 counts["dry"] += 1
             else:
-                code, resp = post_suoritus(host, token, payload)
+                try:
+                    code, resp = session.post_json("/yki/api/suoritus", payload)
+                except Transient as e:
+                    counts["transient"] += 1
+                    consecutive_transient += 1
+                    rec = {"solki_id": solki_id, "ok": False, "action": "transient", "error": str(e)}
+                    out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                    if consecutive_transient >= MAX_CONSECUTIVE_TRANSIENT:
+                        log(f"{consecutive_transient} ohimenevää virhettä putkeen — keskeytetään")
+                        aborted = True
+                        break
+                    continue
+                consecutive_transient = 0
                 ok = 200 <= code < 300
                 try:
                     parsed = json.loads(resp)
@@ -559,20 +799,29 @@ def main():
                     parsed = resp
                 rec = {"solki_id": solki_id, "ok": ok, "action": "posted", "http": code, "response": parsed}
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                counts["posted" if ok else "failed"] += 1
+                counts["posted" if ok else "post_failed"] += 1
                 if args.sleep:
                     time.sleep(args.sleep)
-
-            processed = sum(counts.values())
-            if processed % 500 == 0:
-                log(f"...{processed} rows processed {counts}")
 
     if payloads_fh:
         payloads_fh.close()
     if leftover_fh:
         leftover_fh.close()
     log(f"done: {counts}")
+    diverted = counts["unresolved"] + counts["skipped_issue"]
+    if aborted:
+        return 1
+    if diverted and not args.unresolved_out:
+        log(f"VAROITUS: {diverted} riviä ei voitu ladata eikä --unresolved-out ollut "
+            "annettu — rivit eivät jääneet talteen jatkokäsittelyä varten. Aja uudelleen "
+            "--unresolved-out-valitsimella.")
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        sys.exit(main() or 0)
+    except Fatal as e:
+        log(f"VIRHE: {e}")
+        sys.exit(1)

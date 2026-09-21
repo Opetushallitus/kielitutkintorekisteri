@@ -6,9 +6,12 @@ set -euo pipefail
 # wired up, so you can run your own SQL. Intended to be run inside AWS CloudShell
 # in the account that owns the bucket, so sensitive data never leaves AWS.
 #
-# The `raw` view is created with the fixed 30-column YKI Solki export layout
-# (headerless, in YkiSuoritusCsv order), so columns have real names. Point it at
-# a differently-shaped CSV and the named read will fail on query — read it
+# Two views are created over the fixed 30-column YKI Solki export layout
+# (headerless, in YkiSuoritusCsv order), so columns have real names:
+#   raw           - trimmed, with \N mapped to NULL, exactly like the migrate
+#                   script's to_null(). Use this for counting and grouping.
+#   raw_verbatim  - the bytes as read, for whitespace forensics.
+# Point it at a differently-shaped CSV and the named read will fail on query — read it
 # positionally yourself with header := false and no `names`.
 #
 # Usage:
@@ -25,14 +28,38 @@ SOURCE_PATH="${1:-}"
 INIT_FILE=""
 
 # YkiSuoritusCsv @JsonPropertyOrder, mapped from the source export SQL.
-readonly YKI_COLUMN_NAMES="\
-'suorittajan_oid', 'hetu', 'sukupuoli', 'sukunimi', 'etunimet', \
-'kansalaisuus', 'katuosoite', 'postinumero', 'postitoimipaikka', 'email', \
-'suoritus_id', 'last_modified', 'tutkintopaiva', 'tutkintokieli', 'tutkintotaso', \
-'jarjestajan_oid', 'jarjestajan_nimi', 'arviointipaiva', \
-'as_ty', 'as_ki', 'as_rs', 'as_py', 'as_pu', 'as_yl', \
-'tark_saapumis_pvm', 'tark_asiatunnus', 'tark_osakokeet', 'arvosana_muuttui', \
-'perustelu', 'tark_kasittely_pvm'"
+readonly YKI_COLUMNS=(
+  suorittajan_oid hetu sukupuoli sukunimi etunimet
+  kansalaisuus katuosoite postinumero postitoimipaikka email
+  suoritus_id last_modified tutkintopaiva tutkintokieli tutkintotaso
+  jarjestajan_oid jarjestajan_nimi arviointipaiva
+  as_ty as_ki as_rs as_py as_pu as_yl
+  tark_saapumis_pvm tark_asiatunnus tark_osakokeet arvosana_muuttui
+  perustelu tark_kasittely_pvm
+)
+
+function quoted_column_names {
+  local out="" sep="" col
+  for col in "${YKI_COLUMNS[@]}"; do
+    out+="${sep}'${col}'"
+    sep=", "
+  done
+  printf '%s' "$out"
+}
+
+function normalized_projection {
+  # Same normalization as migrate_yki_historia.py's to_null(): trim spaces, tabs and
+  # stray CR/LF off both ends, then map MySQL's \N sentinel to a real NULL. DuckDB
+  # single-quoted strings do not process escapes, so the whitespace set is built with
+  # chr() rather than written as ' \t'.
+  local ws="' ' || chr(9) || chr(13) || chr(10)"
+  local out="" sep="" col
+  for col in "${YKI_COLUMNS[@]}"; do
+    out+="${sep}nullif(trim(\"${col}\", ${ws}), '\\N') AS ${col}"
+    sep=", "
+  done
+  printf '%s' "$out"
+}
 
 function info {
   >&2 echo "INFO  $*"
@@ -86,13 +113,20 @@ function build_init_sql {
     fi
 
     if [ -n "$SOURCE_PATH" ]; then
-      # header := false keeps every row (the export is headerless) while the
-      # delimiter is still auto-detected; names := [...] applies the fixed YKI
-      # column layout so `raw` has real names; nullstr := '\N' maps the MySQL
-      # NULL sentinel (mysqldump / SELECT ... INTO OUTFILE) to real NULLs.
-      echo "CREATE OR REPLACE VIEW raw AS"
-      echo "SELECT * FROM read_csv('${SOURCE_PATH}', all_varchar := true, header := false, sample_size := -1,"
-      echo "                       nullstr := '\\N', names := [${YKI_COLUMN_NAMES}]);"
+      # header := false keeps every row (the export is headerless) while the delimiter
+      # is still auto-detected; names := [...] applies the fixed YKI column layout so
+      # the views have real names.
+      #
+      # `nullstr := '\N'` is deliberately NOT used: it only matches a field that is
+      # exactly \N, and this export carries stray trailing whitespace (sukunimi,
+      # etunimet, katuosoite, postitoimipaikka), so '\N ' would read as a value and
+      # 'M ' would split a GROUP BY. `raw` trims first instead, which also makes its
+      # NULLs mean the same thing as the migrate script's.
+      printf '%s\n' "CREATE OR REPLACE VIEW raw_verbatim AS"
+      printf '%s\n' "SELECT * FROM read_csv('${SOURCE_PATH}', all_varchar := true, header := false,"
+      printf '%s\n' "                       sample_size := -1, names := [$(quoted_column_names)]);"
+      printf '%s\n' "CREATE OR REPLACE VIEW raw AS"
+      printf '%s\n' "SELECT $(normalized_projection) FROM raw_verbatim;"
     fi
   } >"$init_file"
 }
@@ -100,11 +134,13 @@ function build_init_sql {
 function print_hints {
   info "DuckDB session ready (region ${REGION})."
   if [ -n "$SOURCE_PATH" ]; then
-    info "  view 'raw' points at: ${SOURCE_PATH}"
+    info "  views 'raw' and 'raw_verbatim' point at: ${SOURCE_PATH}"
     info "  columns are named per the YKI 30-column layout (suorittajan_oid, hetu, ..., tark_kasittely_pvm)."
+    info "  'raw' is trimmed with \\N -> NULL (same as the migrate script); 'raw_verbatim' is as-read."
     info "  try: DESCRIBE raw;                        -- the column names"
     info "  try: SELECT * FROM raw LIMIT 20;"
     info "  try: SELECT tutkintokieli, count(*) FROM raw GROUP BY 1 ORDER BY 2 DESC;"
+    info "  try: SELECT count(*) FILTER (WHERE suorittajan_oid IS NULL) FROM raw;  -- rows needing a backfill"
   else
     info "  no source given; create a view yourself, e.g.:"
     info "    CREATE VIEW raw AS SELECT * FROM read_csv('s3://bucket/key.csv', all_varchar := true, header := false);"
