@@ -14,6 +14,7 @@ import unittest
 from migrate_yki_historia import (
     COLUMNS,
     build_payload,
+    load_skip_ids,
     collapse_ws,
     decode_bitmask,
     hetu_issue,
@@ -151,6 +152,26 @@ class LookupFieldsTest(unittest.TestCase):
         self.assertIsNone(reason)
         self.assertEqual((hetu, etunimet, sukunimi),
                          ("010866-9260", "Magdalena Testi", "Sallinen-Testi"))
+
+
+class SkipListTest(unittest.TestCase):
+    def test_reads_ids_and_ignores_comments_and_blanks(self):
+        import tempfile, os
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False,
+                                         encoding="utf-8") as f:
+            f.write("# toinen puoli duplikaattiparista\n"
+                    "900123\n"
+                    "  900124  \n"
+                    "\n"
+                    "900125  # samana paivana, sama taso\n")
+            name = f.name
+        try:
+            self.assertEqual(load_skip_ids(name), {"900123", "900124", "900125"})
+        finally:
+            os.unlink(name)
+
+    def test_no_path_means_no_exclusions(self):
+        self.assertEqual(load_skip_ids(None), set())
 
 
 class PayloadTest(unittest.TestCase):

@@ -182,13 +182,62 @@ FROM (
   HAVING count(*) > 1
 );
 
--- ...and whether those are true duplicates or Solki-side corrections
-SELECT suorittajan_oid, tutkintopaiva, tutkintokieli, tutkintotaso,
+-- The oid-based check above is BLIND to the collisions the backfill itself creates: it
+-- excludes precisely the rows about to receive an oppijanumero. Group by hetu instead to
+-- see the whole file. `oidittomia > 0` marks a group the backfill would bring into being,
+-- either among newly-resolved rows or between one of them and a row that already had
+-- that oid. Note this only covers collisions WITHIN the file -- a collision against rows
+-- already in the register can only be checked afterwards, by joining the resolved oids
+-- from --oid-map (which holds no personal data) against yki_suoritus.
+SELECT count(*) AS ryhmat, coalesce(sum(n), 0) AS rivit,
+       count(*) FILTER (WHERE oidittomia > 0) AS taydennyksen_synnyttamat
+FROM (
+  SELECT count(*) AS n, count(*) FILTER (WHERE suorittajan_oid IS NULL) AS oidittomia
+  FROM raw WHERE hetu IS NOT NULL
+  GROUP BY lower(hetu), tutkintopaiva, tutkintokieli, tutkintotaso
+  HAVING count(*) > 1
+);
+
+SELECT lower(hetu) AS hetu, tutkintopaiva, tutkintokieli, tutkintotaso,
        count(*) AS rivit, list(suoritus_id) AS solki_idt,
+       count(*) FILTER (WHERE suorittajan_oid IS NULL) AS oidittomia,
        count(DISTINCT (as_ty, as_ki, as_rs, as_py, as_pu, as_yl)) AS eri_arvosanayhdistelmia
-FROM raw WHERE suorittajan_oid IS NOT NULL
+FROM raw WHERE hetu IS NOT NULL
 GROUP BY 1, 2, 3, 4 HAVING count(*) > 1
 ORDER BY rivit DESC LIMIT 20;
+
+-- A hetu-level group whose rows ALL carry an oid, yet which the oid-based check did not
+-- report, means one hetu with two different oppijanumerot. That is the nastiest case:
+-- HenkilosuoritusValidation.enrichHenkilo replaces henkilo.oid with
+-- mapHenkiloOidToMasterOid(...), so if the two oids are LINKED in ONR both rows collapse
+-- onto the same master oppijanumero and become a real duplicate in the register -- while
+-- in the file they look like two different people. Take the oids to ONR and ask.
+SELECT count(*) AS hetuja_monella_oidilla
+FROM (SELECT 1 FROM raw
+      WHERE hetu IS NOT NULL AND suorittajan_oid IS NOT NULL
+      GROUP BY lower(hetu) HAVING count(DISTINCT suorittajan_oid) > 1);
+
+SELECT lower(hetu) AS hetu, tutkintopaiva, tutkintokieli, tutkintotaso,
+       count(*) AS rivit,
+       count(DISTINCT suorittajan_oid)                            AS eri_oideja,
+       list(DISTINCT suorittajan_oid)                             AS oidit,
+       list(suoritus_id)                                          AS solki_idt,
+       count(DISTINCT (as_ty, as_ki, as_rs, as_py, as_pu, as_yl)) AS eri_arvosanayhdistelmia
+FROM raw WHERE hetu IS NOT NULL
+GROUP BY 1, 2, 3, 4
+HAVING count(*) > 1 AND count(*) FILTER (WHERE suorittajan_oid IS NULL) = 0
+ORDER BY rivit DESC;
+
+-- eri_arvosanayhdistelmia is the discriminator on every duplicate group above:
+--   = 1  identical records, i.e. a Solki-side duplicate
+--   > 1  the grades differ, so it is a correction recorded as a second row, and the
+--        question becomes whether history should show both
+--
+-- NOTE: none of the duplicate queries in this block carry the scope filter, so they span
+-- the whole file. Add `AND TRY_CAST(last_modified AS TIMESTAMP) < '2017-01-01'` inside the
+-- subquery for the count that applies to the run you are about to make. Once you have
+-- decided which row of each pair to drop, feed those ids to the migrate script's
+-- --skip-solki-ids rather than editing the source CSV.
 
 -- henkilö fields YkiSuoritusEntity.from requires (a null here is a guaranteed 400).
 -- joista_oidittomia predicts the backfill's skipped_issue count: rows no oppijanumero
@@ -256,6 +305,12 @@ response|issues|reason}`. `action` is one of `posted`, `dry-run`, `skipped`
 katuosoite, postinumero, postitoimipaikka`). Still **not** covered: the legacy
   kielikoodi rule (`swe10/eng11/eng12` need `tutkintopaiva < 2017-01-01`) and the
   enum domains of `sukupuoli`/`tutkintokieli`, which fail as JSON parse errors.
+- `--skip-solki-ids PATH` leaves listed rows out of the run entirely — one solki_id per
+  line, `#` starts a comment. It applies to **both** the backfill pre-pass (so no ONR
+  lookup is spent on an excluded row) and the migration run, and excluded rows are
+  counted as `excluded` and written to neither the report nor `--unresolved-out`. Intended
+  for rows a human has ruled out, e.g. one half of a duplicate pair found by the Phase 1
+  hetu-level duplicate check — decided deliberately, without editing a CSV full of hetus.
 - `--sleep N` throttles between API calls (recommended: `0.1`); `--limit N` caps the
   input rows read; `--timeout` sets the per-request socket timeout (default 180 s,
   deliberately generous — see the fan-out below); `--delimiter` overrides the
@@ -415,6 +470,15 @@ whitespace/tabs and `\N`/empty is mapped to null.
   returns a material count.
 - **Structurally invalid hetus need a source-system fix.** The backfill reports them
   by class (muoto / päivämäärä / tarkiste) so the counts can go back to Solki.
+- **Duplicate suoritukset the backfill and OID mastering create.** Nothing in the app
+  collapses natural-key duplicates (see Phase 1), so each loads as its own suoritus with
+  its own KOSKI opiskeluoikeus. Two mechanisms produce them, and the oid-based duplicate
+  check sees neither: an OID-less row resolving onto the same person as an existing row,
+  and one hetu carrying two oppijanumerot that ONR masters to the same oppijanumero.
+  Review the Phase 1 hetu-level groups, decide per pair, and exclude the losing side with
+  `--skip-solki-ids`. Collisions against suoritukset **already in the register** are not
+  visible in the file at all — check those after the pre-pass by joining the resolved oids
+  from `--oid-map` (no personal data) against `yki_suoritus`.
 - **The haku endpoint (`POST /yki/api/oppijanumero-haku`) is a single-person hetu→OID
   resolve**, kept at the same trust level as suoritus creation (`YKI_TALLENNUS`).
   Consider removing it once the migration is complete.

@@ -463,7 +463,7 @@ def lookup_fields(row, check_hetu):
 
 
 def backfill_oids(rows, session, map_path, capture_unresolved, limit, max_lookups, cutoff,
-                  sleep, check_hetu, classify_only):
+                  sleep, check_hetu, classify_only, skip_ids):
     """Resolve OIDs for rows that have none. Permanent outcomes are appended to
     map_path as {solki_id, oid, reason} so a resume skips them; transient ones are
     deliberately left out so a resume retries them. classify_only calls no API at all.
@@ -472,8 +472,8 @@ def backfill_oids(rows, session, map_path, capture_unresolved, limit, max_lookup
     if attempted:
         log(f"backfill resuming: {len(attempted)} rows already attempted will be skipped")
     counts = {"resolved": 0, "unresolved": 0, "cached": 0, "failed": 0, "attemptable": 0,
-              "skipped_issue": 0, "skipped_attempted": 0, "has_oid": 0, "filtered": 0,
-              "lookups": 0}
+              "skipped_issue": 0, "skipped_attempted": 0, "excluded": 0, "has_oid": 0,
+              "filtered": 0, "lookups": 0}
     aborted = False
     cache = {}
     persons = set()
@@ -496,6 +496,9 @@ def backfill_oids(rows, session, map_path, capture_unresolved, limit, max_lookup
                 counts["has_oid"] += 1
                 continue
             solki_id = to_null(row[SUORITUS_ID_IDX])
+            if solki_id in skip_ids:
+                counts["excluded"] += 1
+                continue
             if solki_id in attempted:
                 counts["skipped_attempted"] += 1
                 continue
@@ -562,6 +565,21 @@ def backfill_oids(rows, session, map_path, capture_unresolved, limit, max_lookup
     return counts, aborted
 
 
+def load_skip_ids(path):
+    """Solki ids to leave out of the run entirely, one per line; '#' starts a comment.
+    For rows a human has decided against — e.g. one half of a duplicate pair found by
+    the runbook's hetu-level duplicate check — without editing the sensitive source CSV."""
+    ids = set()
+    if path:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.split("#", 1)[0].strip()
+                if line:
+                    ids.add(line)
+        log(f"skip list: {len(ids)} solki_id(s) will be excluded")
+    return ids
+
+
 def load_done(out_path):
     done = set()
     if out_path and os.path.exists(out_path):
@@ -626,6 +644,11 @@ def main():
              "which in an interleaved export may yield no lookups at all)",
     )
     p.add_argument(
+        "--skip-solki-ids", metavar="PATH",
+        help="file of solki_ids to exclude from the run (one per line, '#' comments); "
+             "for rows a human has ruled out, e.g. one half of a duplicate pair",
+    )
+    p.add_argument(
         "--timeout", type=float, default=180.0, metavar="SECONDS",
         help="per-request socket timeout; generous by default because an unresolvable "
              "lookup fans out to 1+2N ONR calls server-side (default: 180)",
@@ -660,6 +683,7 @@ def main():
         if "opintopolku.fi" in host and "untuva" not in host and "testi" not in host:
             log(f"PROD TARGET: host={host} token_url={token_url} — verify these before continuing.")
 
+    skip_ids = load_skip_ids(args.skip_solki_ids)
     done = load_done(args.out) if not (args.dry_run or args.backfill_oids) else set()
     if done:
         log(f"resuming: {len(done)} rows already recorded ok will be skipped")
@@ -697,7 +721,7 @@ def main():
     if args.backfill_oids:
         _, aborted = backfill_oids(rows, session, args.oid_map, capture_unresolved, args.limit,
                                    args.max_lookups, cutoff, args.sleep,
-                                   not args.no_hetu_check, args.dry_run)
+                                   not args.no_hetu_check, args.dry_run, skip_ids)
         if leftover_fh:
             leftover_fh.close()
         return 1 if aborted else 0
@@ -708,9 +732,9 @@ def main():
         log(f"oid map: {resolved} resolved of {len(oid_map)} attempted rows")
 
     payloads_fh = open(args.emit_payloads, "w", encoding="utf-8") if args.emit_payloads else None
-    counts = {"posted": 0, "skipped_issue": 0, "skipped_done": 0, "dry": 0, "filtered": 0,
-              "unresolved": 0, "malformed_row": 0, "bad_last_modified": 0, "post_failed": 0,
-              "transient": 0}
+    counts = {"posted": 0, "skipped_issue": 0, "skipped_done": 0, "excluded": 0, "dry": 0,
+              "filtered": 0, "unresolved": 0, "malformed_row": 0, "bad_last_modified": 0,
+              "post_failed": 0, "transient": 0}
     consecutive_transient = 0
     aborted = False
 
@@ -738,6 +762,10 @@ def main():
                 if lm >= cutoff:
                     counts["filtered"] += 1
                     continue
+
+            if to_null(row[SUORITUS_ID_IDX]) in skip_ids:
+                counts["excluded"] += 1
+                continue
 
             entry = oid_map.get(to_null(row[SUORITUS_ID_IDX])) if oid_map else None
             if entry and entry["oid"] and not to_null(row[SUORITTAJAN_OID_IDX]):
