@@ -4,6 +4,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class LocalizedStringTest {
     @AfterEach
@@ -20,6 +21,45 @@ class LocalizedStringTest {
 
         TolgeeMessages.set(mapOf("test.avain" to LocalizedString(sv = "Ändrad")))
         assertEquals("Ändrad", frozen.get(Language.SV), "Sama instanssi heijastaa myöhemmän päivityksen")
+    }
+
+    @Test
+    fun `Tolgeen suomi voittaa koodin oletustekstin`() {
+        val teksti = LocalizedString.withTolgeeKey("nav.tehtavapaketit", "Tehtäväpaketit")
+
+        assertEquals("Tehtäväpaketit", teksti.get(Language.FI), "Ilman Tolgeeta näytetään koodin oletus")
+
+        TolgeeMessages.set(mapOf("nav.tehtavapaketit" to LocalizedString(fi = "Testipaketit")))
+
+        assertEquals("Testipaketit", teksti.get(Language.FI))
+        assertEquals("Testipaketit", teksti.toString(), "Ambientti oletuskieli on suomi")
+        assertEquals("Testipaketit", teksti.get(Language.SV), "Kääntämätön kieli varautuu Tolgeen suomeen")
+    }
+
+    @Test
+    fun `koodin oletusteksti jaa voimaan kun Tolgeessa ei ole suomea`() {
+        val teksti = LocalizedString.withTolgeeKey("nav.tehtavapaketit", "Tehtäväpaketit")
+
+        TolgeeMessages.set(mapOf("nav.tehtavapaketit" to LocalizedString(sv = "Uppgiftspaket")))
+
+        assertEquals("Tehtäväpaketit", teksti.get(Language.FI))
+        assertEquals("Uppgiftspaket", teksti.get(Language.SV))
+    }
+
+    @Test
+    fun `haku osuu Tolgeen suomenkieliseen tekstiin`() {
+        val teksti = LocalizedString.withTolgeeKey("nav.tehtavapaketit", "Tehtäväpaketit")
+
+        TolgeeMessages.set(mapOf("nav.tehtavapaketit" to LocalizedString(fi = "Testipaketit")))
+
+        assertTrue(teksti.contains("Testi"), "Suodatus näkee saman tekstin kuin käyttäjä")
+    }
+
+    @Test
+    fun `interpolate kayttaa Tolgeen suomea`() {
+        TolgeeMessages.set(mapOf("error.jarjestelmassaVirheita" to LocalizedString(fi = "Virheitä: {count}")))
+
+        assertEquals("Virheitä: 3", UiText.Error.jarjestelmassaVirheita(3L).get(Language.FI))
     }
 
     @Test

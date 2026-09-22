@@ -85,6 +85,19 @@ class HomeControllerTest(
     }
 
     @Test
+    fun `Tolgeen suomenkielinen teksti nakyy navigaatiossa koodin oletuksen sijaan`() {
+        TolgeeMessages.set(mapOf("nav.tehtavapaketit" to LocalizedString(fi = "Testipaketit")))
+
+        val response = getHtml("/")
+
+        assertContains(response, "Testipaketit")
+        assertFalse(
+            response.contains("Tehtäväpaketit"),
+            "Koodin oletusteksti korvautuu Tolgeen suomennoksella",
+        )
+    }
+
+    @Test
     fun `kayttajan asiointikieli ohjaa oletuskielen kun kielivalintaa ei ole tehty`() {
         TolgeeMessages.set(mapOf("nav.yki" to LocalizedString(sv = "Allmän språkexamen")))
 
