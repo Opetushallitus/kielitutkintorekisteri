@@ -1,6 +1,7 @@
 package fi.oph.kitu.webmvc
 
 import fi.oph.kitu.config.ApplicationProperties
+import fi.oph.kitu.i18n.LokalisointiViewController
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.kotoutumiskoulutus.KielitestiApiController
 import fi.oph.kitu.kotoutumiskoulutus.KielitestiViewController
@@ -19,7 +20,7 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn
 
 object Links {
-    fun home(): String = linkTo(methodOn(HomeController::class.java).home()).toString()
+    fun home(): String = linkTo(methodOn(HomeController::class.java).home(null)).toString()
 
     object Dashboard {
         fun yki(): String = linkTo(methodOn(HomeController::class.java).ykiCard()).toString()
@@ -33,6 +34,9 @@ object Links {
 
     object Admin {
         fun dbScheduler(): String = "${ApplicationProperties.kitu.appUrl}/db-scheduler"
+
+        fun tyhjennaKaannosvalimuisti(): String =
+            linkTo(methodOn(LokalisointiViewController::class.java).tyhjennaValimuisti(null)).toString()
     }
 
     object Vkt {

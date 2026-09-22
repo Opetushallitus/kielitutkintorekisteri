@@ -1,11 +1,14 @@
 package fi.oph.kitu.webmvc
 
 import fi.oph.kitu.html.Page
+import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.cardContent
 import fi.oph.kitu.html.classes
+import fi.oph.kitu.html.formPost
 import fi.oph.kitu.html.javascript
 import fi.oph.kitu.html.testId
+import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.html.warningMessage
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.formatRelativeTime
@@ -14,6 +17,7 @@ import fi.oph.kitu.i18n.tolgee.TolgeeSyncStatus
 import kotlinx.html.FlowContent
 import kotlinx.html.UL
 import kotlinx.html.a
+import kotlinx.html.button
 import kotlinx.html.div
 import kotlinx.html.h1
 import kotlinx.html.h2
@@ -26,9 +30,10 @@ import java.time.Instant
 object HomePage {
     private const val SKELETON_ROW_COUNT = 5
 
-    fun render(): String =
+    fun render(message: ViewMessageData? = null): String =
         Page.renderHtml {
             h1 { +"Kielitutkintorekisteri" }
+            viewMessage(message)
             tolgeeSyncWarning()
             div(classes = "grid dashboard-grid") {
                 testId("dashboard")
@@ -136,6 +141,25 @@ object HomePage {
             errorIfNonZero = true,
         )
         statRow("Eräajojen hallinta", value = null, href = Links.Admin.dbScheduler())
+        actionRow(
+            label = "Tyhjennä käännösvälimuisti",
+            action = Links.Admin.tyhjennaKaannosvalimuisti(),
+            rowTestId = "tyhjenna-kaannosvalimuisti",
+        )
+    }
+
+    private fun UL.actionRow(
+        label: String,
+        action: String,
+        rowTestId: String,
+    ) = li(classes = "stat-row") {
+        formPost(action) {
+            button(classes = "stat-link") {
+                testId(rowTestId)
+                span(classes = "stat-label") { +label }
+                span(classes = "stat-value") { +"→" }
+            }
+        }
     }
 
     private fun FlowContent.lazyCard(

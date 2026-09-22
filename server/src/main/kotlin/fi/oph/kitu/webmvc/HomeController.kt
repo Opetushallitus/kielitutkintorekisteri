@@ -1,5 +1,6 @@
 package fi.oph.kitu.webmvc
 
+import fi.oph.kitu.html.ViewMessage
 import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,7 +12,8 @@ class HomeController(
     private val dashboardService: DashboardService,
 ) {
     @GetMapping("/", produces = ["text/html"])
-    fun home(): ResponseEntity<String> = ResponseEntity.ok(HomePage.render())
+    fun home(viewMessage: ViewMessage? = null): ResponseEntity<String> =
+        ResponseEntity.ok(HomePage.render(message = viewMessage?.consume()))
 
     @GetMapping("/dashboard/yki", produces = ["text/html"])
     fun ykiCard(): ResponseEntity<String> =

@@ -9,4 +9,6 @@ object TolgeeMessages {
     fun set(messages: Map<String, LocalizedString>) {
         store = messages
     }
+
+    fun clear() = set(emptyMap())
 }

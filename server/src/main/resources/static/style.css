@@ -412,6 +412,28 @@ ul.dashboard-stats li.stat-row:first-child {
   text-decoration: underline;
 }
 
+button.stat-link,
+button.stat-link:is(:hover, :active, :focus) {
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.stat-link:focus-visible {
+  outline: 2px solid var(--pico-primary);
+  outline-offset: 2px;
+}
+
 .stat-label {
   flex: 1;
 }
