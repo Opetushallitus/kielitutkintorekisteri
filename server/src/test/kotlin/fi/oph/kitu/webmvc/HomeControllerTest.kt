@@ -162,6 +162,27 @@ class HomeControllerTest(
     }
 
     @Test
+    fun `kojelaudan statirivien otsikot kaantyvat`() {
+        TolgeeMessages.set(
+            mapOf(
+                "etusivu.kaynnissaOlevatErajot" to LocalizedString(sv = "Pågående satskörningar"),
+                "nav.erajojenHallinta" to LocalizedString(sv = "Hantering av satskörningar"),
+            ),
+        )
+
+        val fragment =
+            mockMvc
+                .perform(get("/dashboard/admin?lang=sv").session(virkailijaSession()))
+                .andExpect(status().isOk)
+                .andReturn()
+                .response.contentAsString
+
+        assertContains(fragment, "Pågående satskörningar", message = "Etusivun oma avain kääntyy")
+        assertContains(fragment, "Hantering av satskörningar", message = "Navigaatiosta jaettu avain kääntyy")
+        assertFalse(fragment.contains("Käynnissä olevat eräajot"), "Suomenkielinen oletus ei jää näkyviin")
+    }
+
+    @Test
     fun `dashboard yki -fragmentti palauttaa statirivit`() {
         val fragment = getHtml("/dashboard/yki")
 
