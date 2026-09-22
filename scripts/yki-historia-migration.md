@@ -449,10 +449,16 @@ whitespace/tabs and `\N`/empty is mapped to null.
 
 ## Open items / decisions
 
-- **Prod host + OAuth token URL are a best guess** in the script's `ENV_PRESETS`,
-  extrapolated from the dev/test values in `scripts/upload_yki_suoritus.sh`. Verify them,
-  or override with `--host` / `--token-url`. The script prints the resolved prod URLs and
-  refuses to POST to prod without `--confirm-prod`.
+- ~~Prod host + OAuth token URL are a best guess~~ — **resolved 22.9.2026.** The guessed
+  prod token URL (`virkailija.opintopolku.fi/kayttooikeus-service/oauth2/token`) was wrong
+  and returned HTTP 401. The presets now come from
+  `application-{untuva,qa,prod}.properties` (`kitu.appUrl` and
+  `spring.security.oauth2.client.provider.otuva.token-uri`): the token host is
+  `dev.otuva` / `qa.otuva` / **`prod.otuva`** `.opintopolku.fi`, never the virkailija host.
+  It has to match that env's `resourceserver.jwt.issuer-uri`, or kitu rejects the token
+  even if the fetch succeeds. All envs use `client_secret_post`, i.e. credentials in the
+  body. The script still prints the resolved prod URLs and refuses to POST to prod without
+  `--confirm-prod`.
 - **Tarkistus rows land as `TARKISTUSARVIOITU`** (those with a käsittelypäivä; any
   without one land as `TARKISTUSARVIOITAVA`), **not `TARKISTUSARVIOINTI_HYVAKSYTTY`.**
   The JSON import path cannot set the "approved" state. If these historical tarkistukset
@@ -490,6 +496,18 @@ whitespace/tabs and `\N`/empty is mapped to null.
 - The live run reports `skipped_done` for everything → you reused a dry run's `--out`.
   Only `action: "posted"` records resume now, but an old report file may predate that;
   use a fresh `--out`.
+- **HTTP 401 while fetching the token** (before any row is processed) → the token URL or
+  the credentials are wrong for that environment. The script now names the URL, prints the
+  response body and lists the three correct otuva hosts. Check it in isolation with:
+  ```bash
+  curl -sS -X POST https://prod.otuva.opintopolku.fi/kayttooikeus-service/oauth2/token \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode grant_type=client_credentials \
+    --data-urlencode "client_id=$CID" --data-urlencode "client_secret=$CSECRET"
+  ```
+  An empty `$CID`/`$CSECRET` is caught earlier by argparse, so if the run got as far as
+  "fetching OAuth token" the credentials were non-empty — the problem is the URL, or the
+  credentials belong to another environment.
 - Migration rows returning HTTP 400 → read `response` in the report; the field path in the
   `TiedonsiirtoFailure` points at the offending value. HTTP 401 is retried once after a
   token refresh; a second 401, or any 403, aborts — wrong client credentials or the

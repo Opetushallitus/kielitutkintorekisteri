@@ -96,9 +96,9 @@ REQUIRED_HENKILO_FIELDS = [
     "katuosoite", "postinumero", "postitoimipaikka",
 ]
 
-# (host, oauth token url). dev/test taken from scripts/upload_yki_suoritus.sh.
-# PROD values are a best guess from the dev/test pattern — VERIFY before a real run
-# (or pass --host/--token-url explicitly).
+# (host, oauth token url), read off application-{untuva,qa,prod}.properties:
+# kitu.appUrl and spring.security.oauth2.client.provider.otuva.token-uri. The token must
+# come from the same otuva as that env's resourceserver issuer-uri, or kitu rejects it.
 ENV_PRESETS = {
     "dev": (
         "https://virkailija.untuvaopintopolku.fi/kielitutkinnot",
@@ -110,7 +110,7 @@ ENV_PRESETS = {
     ),
     "prod": (
         "https://virkailija.opintopolku.fi/kielitutkinnot",
-        "https://virkailija.opintopolku.fi/kayttooikeus-service/oauth2/token",
+        "https://prod.otuva.opintopolku.fi/kayttooikeus-service/oauth2/token",
     ),
 }
 
@@ -289,6 +289,8 @@ def resolve_delimiter(sample_line, override):
 
 
 def get_token(token_url, client_id, client_secret):
+    """client_credentials token. All envs use client_secret_post, i.e. the credentials go
+    in the body, not in a Basic header."""
     data = urllib.parse.urlencode({
         "grant_type": "client_credentials",
         "client_id": client_id,
@@ -298,8 +300,30 @@ def get_token(token_url, client_id, client_secret):
         token_url, data=data,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    with urllib.request.urlopen(req) as r:
-        return json.load(r)["access_token"]
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            payload = json.load(r)
+    except urllib.error.HTTPError as e:
+        # One line: a real OAuth error is short JSON, but a proxy or error page can
+        # answer with pages of HTML that would bury the hint below.
+        body = " ".join(e.read().decode(errors="replace").split())[:300]
+        raise Fatal(
+            f"tokenin haku epäonnistui: HTTP {e.code} {token_url}\n"
+            f"  vastaus: {body or '(tyhjä)'}\n"
+            "  Tarkista --token-url ja client-tunnukset. Tokenin on tultava saman "
+            "ympäristön otuvasta kuin kohde:\n"
+            "    dev  -> https://dev.otuva.opintopolku.fi/kayttooikeus-service/oauth2/token\n"
+            "    test -> https://qa.otuva.opintopolku.fi/kayttooikeus-service/oauth2/token\n"
+            "    prod -> https://prod.otuva.opintopolku.fi/kayttooikeus-service/oauth2/token"
+        ) from None
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        raise Fatal(f"tokenin hakuun ei saatu yhteyttä ({token_url}): {e}") from None
+    except json.JSONDecodeError as e:
+        raise Fatal(f"tokenivastaus ei ollut JSONia ({token_url}): {e}") from None
+    token = payload.get("access_token")
+    if not token:
+        raise Fatal(f"tokenivastauksessa ei ole access_token-kenttää: {json.dumps(payload)[:300]}")
+    return token
 
 
 class Transient(Exception):
