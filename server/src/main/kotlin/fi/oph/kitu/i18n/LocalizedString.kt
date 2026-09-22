@@ -15,32 +15,30 @@ data class LocalizedString(
 
     override fun toString(): String = get(CurrentLanguage.get())
 
-    fun get(lang: Language): String {
-        val tolgee = tolgeeKey?.let { TolgeeMessages.get(it) }
-        return when (lang) {
-            Language.FI -> fi
-            Language.SV -> tolgee?.sv ?: sv
-            Language.EN -> tolgee?.en ?: en
-        } ?: fi ?: "<invalid LocalizedString>"
-    }
+    fun get(lang: Language): String = resolve(lang) ?: resolve(Language.FI) ?: "<invalid LocalizedString>"
 
     fun contains(
         other: CharSequence,
         ignoreCase: Boolean = false,
-    ): Boolean {
-        val tolgee = tolgeeKey?.let { TolgeeMessages.get(it) }
-        return listOfNotNull(fi, tolgee?.sv ?: sv, tolgee?.en ?: en).any { it.contains(other, ignoreCase) }
-    }
+    ): Boolean = Language.entries.mapNotNull { resolve(it) }.any { it.contains(other, ignoreCase) }
 
     fun interpolate(vararg args: Pair<String, Any?>): LocalizedString {
         fun substitute(text: String?): String? =
             args.fold(text) { acc, (name, value) -> acc?.replace("{$name}", value.toString()) }
-        val tolgee = tolgeeKey?.let { TolgeeMessages.get(it) }
         return LocalizedString(
-            fi = substitute(fi),
-            sv = substitute(tolgee?.sv ?: sv),
-            en = substitute(tolgee?.en ?: en),
+            fi = substitute(resolve(Language.FI)),
+            sv = substitute(resolve(Language.SV)),
+            en = substitute(resolve(Language.EN)),
         )
+    }
+
+    private fun resolve(lang: Language): String? {
+        val tolgee = tolgeeKey?.let { TolgeeMessages.get(it) }
+        return when (lang) {
+            Language.FI -> tolgee?.fi ?: fi
+            Language.SV -> tolgee?.sv ?: sv
+            Language.EN -> tolgee?.en ?: en
+        }
     }
 
     companion object {
