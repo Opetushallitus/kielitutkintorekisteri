@@ -11,9 +11,11 @@ import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.html.warningMessage
 import fi.oph.kitu.i18n.LocalizedString
+import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.formatRelativeTime
 import fi.oph.kitu.i18n.tolgee.TolgeeSyncResult
 import fi.oph.kitu.i18n.tolgee.TolgeeSyncStatus
+import fi.oph.kitu.i18n.unaryPlus
 import kotlinx.html.FlowContent
 import kotlinx.html.UL
 import kotlinx.html.a
@@ -32,19 +34,19 @@ object HomePage {
 
     fun render(message: ViewMessageData? = null): String =
         Page.renderHtml {
-            h1 { +"Kielitutkintorekisteri" }
+            h1 { +UiText.appTitle }
             viewMessage(message)
             tolgeeSyncWarning()
             div(classes = "grid dashboard-grid") {
                 testId("dashboard")
-                lazyCard(groupId = "yki", contentKey = "yki", title = "Yleinen kielitutkinto")
-                lazyCard(groupId = "vkt", contentKey = "vkt", title = "Valtionhallinnon kielitutkinto")
+                lazyCard(groupId = "yki", contentKey = "yki", title = UiText.Nav.yki)
+                lazyCard(groupId = "vkt", contentKey = "vkt", title = UiText.Nav.vkt)
                 lazyCard(
                     groupId = "koto-kielitesti",
                     contentKey = "koto",
-                    title = "Kotoutumiskoulutuksen kielitaidon päättötesti",
+                    title = UiText.Nav.kotoutumiskoulutuksenPaattotesti,
                 )
-                lazyCard(groupId = "admin", contentKey = "admin", title = "Ylläpito")
+                lazyCard(groupId = "admin", contentKey = "admin", title = UiText.Nav.yllapito)
             }
             javascript(loaderScript())
         }
@@ -70,23 +72,27 @@ object HomePage {
         }
 
     private fun UL.ykiRows(s: YkiStats) {
-        statRow("Suoritukset", s.suoritusCount, Links.Yki.suoritukset())
-        statRow("Arvioijat", s.arvioijaCount, Links.Yki.arvioijat())
-        statRow("Tarkistusarvioinnit", s.tarkistusarvioinnitOdottamassaCount, Links.Yki.tarkistusArvioinnit())
+        statRow(UiText.Nav.suoritukset, s.suoritusCount, Links.Yki.suoritukset())
+        statRow(UiText.Nav.arvioijat, s.arvioijaCount, Links.Yki.arvioijat())
         statRow(
-            label = "Arvioijien Solki-lähetyksen virheet",
+            UiText.Nav.tarkistusarvioinnit,
+            s.tarkistusarvioinnitOdottamassaCount,
+            Links.Yki.tarkistusArvioinnit(),
+        )
+        statRow(
+            label = UiText.Etusivu.arvioijienSolkiVirheet,
             value = s.arvioijaSolkiErrorCount,
             href = Links.Yki.arvioijat() + "?vainSolkiVirheet=true",
             errorIfNonZero = true,
         )
         statRow(
-            label = "Suoritusten tuonnin virheet",
+            label = UiText.Yki.suoritustenTuonninVirheet,
             value = s.suoritusImportErrorCount,
             href = Links.Yki.suorituksetVirheet(),
             errorIfNonZero = true,
         )
         statRow(
-            label = "Koski-siirron virheet",
+            label = UiText.Etusivu.koskiSiirronVirheet,
             value = s.koskiErrorCount,
             href = Links.Yki.koskiVirheet(),
             errorIfNonZero = true,
@@ -95,24 +101,24 @@ object HomePage {
     }
 
     private fun UL.vktRows(s: VktStats) {
-        statRow("Kaikki suoritukset", s.suoritusCount, Links.Vkt.suoritukset())
+        statRow(UiText.Nav.kaikkiSuoritukset, s.suoritusCount, Links.Vkt.suoritukset())
         statRow(
-            label = "Erinomaisen taidon ilmoittautuneet",
+            label = UiText.Nav.erinomaisenTaidonIlmoittautuneet,
             value = s.ilmoittautuneetErinomaisenTaso,
             href = Links.Vkt.erinomaisenTaitotasonIlmoittautuneet(),
         )
         statRow(
-            label = "Erinomaisen taidon suoritukset",
+            label = UiText.Nav.erinomaisenTaidonSuoritukset,
             value = s.suorituksetErinomaisenTaso,
             href = Links.Vkt.erinomaisenTaitotasonArvioidutSuoritukset(),
         )
         statRow(
-            label = "Hyvän ja tyydyttävän taidon suoritukset",
+            label = UiText.Nav.hyvanJaTyydyttavanSuoritukset,
             value = s.suorituksetHyvaJaTyydyttavaTaso,
             href = Links.Vkt.hyvanJaTyydyttavanTaitotasonSuoritukset(),
         )
         statRow(
-            label = "Koski-siirron virheet",
+            label = UiText.Etusivu.koskiSiirronVirheet,
             value = s.koskiErrorCount,
             href = Links.Vkt.koskiVirheet(),
             errorIfNonZero = true,
@@ -121,10 +127,10 @@ object HomePage {
     }
 
     private fun UL.kotoRows(s: KotoStats) {
-        statRow("Suoritukset", s.suoritusCount, Links.Kielitesti.suoritukset())
-        statRow("Tehtäväpaketit", s.tehtavapaketitCount, Links.Tehtavapankki.list())
+        statRow(UiText.Nav.suoritukset, s.suoritusCount, Links.Kielitesti.suoritukset())
+        statRow(UiText.Nav.tehtavapaketit, s.tehtavapaketitCount, Links.Tehtavapankki.list())
         statRow(
-            label = "Tuonnin virheet",
+            label = UiText.Etusivu.tuonninVirheet,
             value = s.importErrorCount,
             href = Links.Kielitesti.virheet(),
             errorIfNonZero = true,
@@ -133,23 +139,23 @@ object HomePage {
     }
 
     private fun UL.adminRows(s: AdminStats) {
-        statRow("Käynnissä olevat eräajot", s.runningCount, Links.Admin.dbScheduler())
+        statRow(UiText.Etusivu.kaynnissaOlevatErajot, s.runningCount, Links.Admin.dbScheduler())
         statRow(
-            label = "Eräajot virhetilassa",
+            label = UiText.Etusivu.erajotVirhetilassa,
             value = s.failingCount,
             href = Links.Admin.dbScheduler(),
             errorIfNonZero = true,
         )
-        statRow("Eräajojen hallinta", value = null, href = Links.Admin.dbScheduler())
+        statRow(UiText.Nav.erajojenHallinta, value = null, href = Links.Admin.dbScheduler())
         actionRow(
-            label = "Tyhjennä käännösvälimuisti",
+            label = UiText.Etusivu.tyhjennaKaannosvalimuisti,
             action = Links.Admin.tyhjennaKaannosvalimuisti(),
             rowTestId = "tyhjenna-kaannosvalimuisti",
         )
     }
 
     private fun UL.actionRow(
-        label: String,
+        label: LocalizedString,
         action: String,
         rowTestId: String,
     ) = li(classes = "stat-row") {
@@ -165,7 +171,7 @@ object HomePage {
     private fun FlowContent.lazyCard(
         groupId: String,
         contentKey: String,
-        title: String,
+        title: LocalizedString,
     ) = card {
         testId("$groupId-links")
         cardContent {
@@ -184,7 +190,7 @@ object HomePage {
     }
 
     private fun UL.statRow(
-        label: String,
+        label: LocalizedString,
         value: Long?,
         href: String,
         errorIfNonZero: Boolean = false,
@@ -213,7 +219,7 @@ object HomePage {
         href: String,
     ) = li(classes = "stat-row") {
         a(href = href, classes = "stat-link") {
-            span(classes = "stat-label") { +"Viimeisin saapunut suoritus" }
+            span(classes = "stat-label") { +UiText.Etusivu.viimeisinSaapunutSuoritus }
             span(classes = "stat-value stat-value-muted") {
                 testId("latest-received")
                 +formatRelativeTime(latestReceivedAt)

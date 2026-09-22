@@ -24,6 +24,22 @@ object UiText {
         val erajojenHallinta: LocalizedString get() = tr("nav.erajojenHallinta", fi = "Eräajojen hallinta")
     }
 
+    object Etusivu {
+        val arvioijienSolkiVirheet: LocalizedString
+            get() = tr("etusivu.arvioijienSolkiVirheet", fi = "Arvioijien Solki-lähetyksen virheet")
+        val koskiSiirronVirheet: LocalizedString
+            get() = tr("etusivu.koskiSiirronVirheet", fi = "Koski-siirron virheet")
+        val tuonninVirheet: LocalizedString get() = tr("etusivu.tuonninVirheet", fi = "Tuonnin virheet")
+        val kaynnissaOlevatErajot: LocalizedString
+            get() = tr("etusivu.kaynnissaOlevatErajot", fi = "Käynnissä olevat eräajot")
+        val erajotVirhetilassa: LocalizedString
+            get() = tr("etusivu.erajotVirhetilassa", fi = "Eräajot virhetilassa")
+        val viimeisinSaapunutSuoritus: LocalizedString
+            get() = tr("etusivu.viimeisinSaapunutSuoritus", fi = "Viimeisin saapunut suoritus")
+        val tyhjennaKaannosvalimuisti: LocalizedString
+            get() = tr("etusivu.tyhjennaKaannosvalimuisti", fi = "Tyhjennä käännösvälimuisti")
+    }
+
     object Error {
         val internalServerError: LocalizedString get() = tr("error.internalServerError", fi = "Sisäinen palvelinvirhe")
         val sivuaEiLoydy: LocalizedString get() = tr("error.sivuaEiLoydy", fi = "Sivua ei löydy")
