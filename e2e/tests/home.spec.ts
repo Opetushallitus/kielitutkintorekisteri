@@ -53,6 +53,18 @@ describe("Etusivun kojelautanäkymä", () => {
     await expect(latest).toHaveText("—")
   })
 
+  test("Ylläpito-kortista voi tyhjentää käännösvälimuistin", async ({
+    indexPage,
+    page,
+  }) => {
+    await indexPage.open()
+    await indexPage.getTyhjennaKaannosvalimuistiButton().click()
+
+    await expect(page.getByTestId("viewMessage")).toContainText(
+      "Käännösvälimuisti tyhjennettiin",
+    )
+  })
+
   test("yki/vkt/koto-korttien sisältö ladataan fragmenttina ja korvaa paikkamerkit", async ({
     indexPage,
     page,

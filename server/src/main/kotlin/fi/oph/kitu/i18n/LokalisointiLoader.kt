@@ -13,15 +13,16 @@ class LokalisointiLoader(
 ) : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun run(args: ApplicationArguments) = refresh()
+    override fun run(args: ApplicationArguments) {
+        refresh()
+    }
 
-    fun refresh() {
+    fun refresh(): Result<Int> =
         runCatching { lokalisointiClient.fetchAll() }
             .onSuccess { messages ->
                 TolgeeMessages.set(messages)
                 logger.info("Ladattiin {} käännösavainta lokalisointipalvelusta", messages.size)
             }.onFailure { e ->
                 logger.warn("Käännösten lataus lokalisointipalvelusta epäonnistui, käytetään oletuskäännöksiä", e)
-            }
-    }
+            }.map { it.size }
 }
