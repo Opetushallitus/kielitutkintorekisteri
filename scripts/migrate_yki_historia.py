@@ -97,7 +97,7 @@ ENV_PRESETS = {
     ),
     "prod": (
         "https://virkailija.opintopolku.fi/kielitutkinnot",
-        "https://virkailija.opintopolku.fi/kayttooikeus-service/oauth2/token",
+        "https://prod.otuva.opintopolku.fi/kayttooikeus-service/oauth2/token",
     ),
 }
 
@@ -247,7 +247,31 @@ def resolve_delimiter(sample_line, override):
     return None
 
 
+def check_credential(name, value):
+    """Otuva answers every credential problem with the same opaque
+    `invalid_client`, so catch the locally detectable causes first: an unset or
+    misspelled env var expands to an empty string, and a value pasted from a
+    file or mangled by shell expansion carries whitespace the server never sees
+    as part of the credential."""
+    if not value:
+        return f"{name} is empty (unset or misspelled env var?)"
+    if value.strip() != value:
+        return f"{name} has leading/trailing whitespace ({len(value)} chars)"
+    if any(not c.isprintable() for c in value):
+        return f"{name} contains a non-printable character ({len(value)} chars)"
+    return None
+
+
 def get_token(token_url, client_id, client_secret):
+    problems = [
+        problem for problem in (
+            check_credential("client id", client_id),
+            check_credential("client secret", client_secret),
+        ) if problem
+    ]
+    if problems:
+        raise SystemExit("VIRHE: " + "; ".join(problems))
+
     data = urllib.parse.urlencode({
         "grant_type": "client_credentials",
         "client_id": client_id,
@@ -257,8 +281,20 @@ def get_token(token_url, client_id, client_secret):
         token_url, data=data,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    with urllib.request.urlopen(req) as r:
-        return json.load(r)["access_token"]
+    try:
+        with urllib.request.urlopen(req) as r:
+            return json.load(r)["access_token"]
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors="replace")
+        log(f"VIRHE: tokenin haku epäonnistui: HTTP {e.code} {token_url}")
+        log(f"  vastaus: {body}")
+        if "invalid_client" in body:
+            log("  invalid_client = otuva ei hyväksy tunnuksia. Tarkista että")
+            log("    - tunnukset on luotu SAMAAN ympäristöön kuin --token-url")
+            log("    - client id ja secret ovat oikein päin ja kokonaisia")
+            log("    - secret ei ole rikkoutunut shellissä: lainausmerkeissä")
+            log("      \"...$...\" laajenee, käytä yksinkertaisia lainausmerkkejä")
+        raise SystemExit(1)
 
 
 def post_suoritus(host, token, payload):
