@@ -27,6 +27,15 @@ interface OppijanumeroService {
 
     fun getLinkedOids(henkiloOid: Oid): Either<OppijanumeroException, Set<Oid>>
 
+    /**
+     * Ratkaisee oppijanumerot pelkillä henkilötunnuksilla, ilman nimivertailua.
+     * [getMasterOid] kulkee yleistunniste/hae-rajapinnan kautta, joka vastaa 409:llä kun
+     * annetut nimet eivät täsmää rekisterin tietoihin — historiadatassa nimet ovat usein
+     * vanhentuneita, vaikka henkilö on rekisterissä. Palauttaa vain ne henkilötunnukset
+     * jotka ratkesivat; muut jäävät tuloksesta pois.
+     */
+    fun getOppijanumerotByHetut(hetut: List<String>): Either<OppijanumeroException, Map<String, Oid>>
+
     fun getHenkiloByHenkiloOid(henkiloOid: Oid): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> =
         either {
             val masterOid = getMasterOid(henkiloOid).bind()
@@ -44,6 +53,29 @@ interface OppijanumeroService {
 class OppijanumeroServiceImpl(
     val client: OppijanumerorekisteriClient,
 ) : OppijanumeroService {
+    @WithSpan
+    @RetryOutboundIntegration
+    override fun getOppijanumerotByHetut(hetut: List<String>): Either<OppijanumeroException, Map<String, Oid>> =
+        either {
+            val perustiedot =
+                client
+                    .onrPost(
+                        "henkilo/henkiloPerustietosByHenkiloHetuList",
+                        HetulistaRequest(hetut),
+                        Array<OppijanumerorekisteriPerustieto>::class.java,
+                    ).bind()
+
+            Span.current().setAttribute("hetulista.kysytty", hetut.size.toLong())
+            Span.current().setAttribute("hetulista.loytyi", perustiedot.size.toLong())
+
+            perustiedot
+                .mapNotNull { perustieto ->
+                    val hetu = perustieto.hetu ?: return@mapNotNull null
+                    val henkiloOid = parseOid(perustieto.oidHenkilo).getOrNull() ?: return@mapNotNull null
+                    getOppijanumero(henkiloOid).getOrNull()?.let { hetu to it }
+                }.toMap()
+        }
+
     @WithSpan
     @RetryOutboundIntegration
     override fun getMasterOid(oppija: Oppija): Either<OppijanumeroException, Oid> {

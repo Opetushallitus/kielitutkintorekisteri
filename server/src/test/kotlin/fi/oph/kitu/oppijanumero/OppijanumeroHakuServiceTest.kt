@@ -41,6 +41,10 @@ class OppijanumeroHakuServiceTest {
 
             override fun getLinkedOids(henkiloOid: Oid): Either<OppijanumeroException, Set<Oid>> =
                 throw NotImplementedError()
+
+            override fun getOppijanumerotByHetut(
+                hetut: List<String>,
+            ): Either<OppijanumeroException, Map<String, Oid>> = throw NotImplementedError()
         }
 
     private fun badRequest(status: HttpStatus) =
