@@ -15,6 +15,7 @@ import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
+import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.ClassPathResource
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockHttpSession
@@ -836,6 +838,22 @@ class YkiApiControllerTest(
             """{"hetu": "010101-999X", "etunimet": "Tuntematon", "sukunimi": "Testaaja"}""",
         ) {
             status { isNotFound() }
+        }
+    }
+
+    @Test
+    fun `Oppijanumeron haun 502 kertoo oppijanumerorekisterin oman vastauksen`() {
+        post(
+            "/yki/api/oppijanumero-haku",
+            """{"hetu": "INVALID_HETU", "etunimet": "Ranja Testi", "sukunimi": "Öhman-Testi"}""",
+        ) {
+            status { isBadGateway() }
+            verboseContentJson(
+                TiedonsiirtoFailure(
+                    HttpStatus.BAD_GATEWAY,
+                    listOf("Oppijanumeron haku epäonnistui (BadRequest): oppijanumerorekisteri vastasi HTTP 400"),
+                ),
+            )
         }
     }
 

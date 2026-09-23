@@ -198,7 +198,13 @@ class YkiApiController(
             ApiResponse(responseCode = "200", description = "OK"),
             ApiResponse(responseCode = "400", description = "Pakollinen kenttä puuttuu"),
             ApiResponse(responseCode = "404", description = "Oppijaa ei löytynyt Oppijanumerorekisteristä"),
-            ApiResponse(responseCode = "502", description = "Oppijanumerorekisteri ei vastannut"),
+            ApiResponse(
+                responseCode = "502",
+                description =
+                    "Oppijanumerorekisterin haku epäonnistui. Virheteksti sisältää " +
+                        "oppijanumerorekisterin oman HTTP-statuksen ja vastauksen, jotta " +
+                        "esimerkiksi validointivirhe ja kuormanrajoitus erottuvat toisistaan.",
+            ),
         ],
     )
     fun postOppijanumeroHaku(
@@ -232,8 +238,8 @@ class YkiApiController(
                         TiedonsiirtoFailure(
                             HttpStatus.BAD_GATEWAY,
                             listOf(
-                                "Oppijanumeron haku epäonnistui (${error::class.simpleName}). " +
-                                    "Yritä myöhemmin uudestaan.",
+                                "Oppijanumeron haku epäonnistui (${error::class.simpleName}): " +
+                                    oppijanumeroVirheenKuvaus(error),
                             ),
                         ).toResponseEntity()
                     }
@@ -241,6 +247,23 @@ class YkiApiController(
             },
             ifRight = { oid -> ResponseEntity.ok(OppijanumeroHakuResponse(oid)) },
         )
+    }
+
+    private fun oppijanumeroVirheenKuvaus(error: OppijanumeroException): String {
+        val vastaus = (error as? OppijanumeroException.HasResponse)?.response
+        return listOfNotNull(
+            vastaus?.let { "oppijanumerorekisteri vastasi HTTP ${it.statusCode.value()}" },
+            error.oppijanumeroServiceError
+                ?.message
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() },
+            vastaus
+                ?.body
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?.take(ONR_VIRHEEN_ENIMMAISPITUUS),
+            error.message?.takeIf { vastaus == null },
+        ).joinToString(", ").ifBlank { "ei lisätietoja" }
     }
 
     @PostMapping("/arvioija")
@@ -353,3 +376,5 @@ data class OppijanumeroHakuRequest(
 data class OppijanumeroHakuResponse(
     val oid: Oid,
 )
+
+private const val ONR_VIRHEEN_ENIMMAISPITUUS = 300
