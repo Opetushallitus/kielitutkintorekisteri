@@ -6,16 +6,60 @@ import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.content
+import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class OppijanumeroServiceTests {
+    @Test
+    fun `hetulistahaku lahettaa hetut taulukkona ja ratkaisee oppijanumerot`() {
+        val baseUrl = "http://localhost:8080/oppijanumerorekisteri-service"
+        val restClientBuilder = RestClient.builder().baseUrl(baseUrl)
+        val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
+
+        mockServer
+            .expect(requestTo("$baseUrl/henkilo/henkiloPerustietosByHenkiloHetuList"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(content().json("""["010180-9026", "010866-9260"]"""))
+            .andRespond(
+                withSuccess(
+                    """[{"oidHenkilo": "1.2.246.562.24.10691606777", "hetu": "010180-9026"}]""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+        mockServer
+            .expect(requestTo("$baseUrl/yleistunniste/hae/1.2.246.562.24.10691606777"))
+            .andRespond(
+                withSuccess(
+                    """{"oid": "1.2.246.562.24.10691606777", "oppijanumero": "1.2.246.562.24.59267607404"}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        val service =
+            OppijanumeroServiceImpl(
+                OppijanumerorekisteriClient(restClientBuilder.build(), baseUrl),
+            )
+
+        val tulos = service.getOppijanumerotByHetut(listOf("010180-9026", "010866-9260")).getOrThrow()
+
+        assertEquals(
+            mapOf("010180-9026" to Oid.parse("1.2.246.562.24.59267607404").getOrThrow()),
+            tulos,
+            "vain löytyneet palautetaan, ja arvona on oppijanumero",
+        )
+        mockServer.verify()
+    }
+
     @Test
     fun `oppijanumero service does not find user`() {
         // Facade

@@ -249,6 +249,61 @@ class YkiApiController(
         )
     }
 
+    @PostMapping("/oppijanumero-haku-hetulista")
+    @Tag(name = "oauth2")
+    @Operation(
+        summary = "Oppijanumeroiden haku pelkillä henkilötunnuksilla",
+        description =
+            "Palauttaa oppijanumerot annetuille henkilötunnuksille ilman nimivertailua. " +
+                "Tarkoitettu historiadatan migraatioon, jossa nimet ovat usein vanhentuneita: " +
+                "nimillä tehty haku hylkää tällaiset henkilöt vaikka he ovat rekisterissä. " +
+                "Vastaus sisältää vain ratkenneet tunnukset; loput luetellaan kentässä puuttuvat.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "OK"),
+            ApiResponse(responseCode = "400", description = "Tyhjä tai liian suuri hetulista"),
+            ApiResponse(responseCode = "502", description = "Oppijanumerorekisterin haku epäonnistui"),
+        ],
+    )
+    fun postOppijanumeroHakuHetulista(
+        @RequestBody haku: OppijanumeroHetulistaRequest,
+    ): ResponseEntity<*> {
+        val hetut =
+            haku.hetut
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .distinct()
+        if (hetut.isEmpty()) {
+            return TiedonsiirtoFailure.badRequest("hetut ei saa olla tyhjä").toResponseEntity()
+        }
+        if (hetut.size > HETULISTAN_ENIMMAISKOKO) {
+            return TiedonsiirtoFailure
+                .badRequest("hetut: enintään $HETULISTAN_ENIMMAISKOKO kerralla, sai ${hetut.size}")
+                .toResponseEntity()
+        }
+
+        return oppijanumeroHaku.haeOppijanumerotHetuilla(hetut).fold(
+            ifLeft = { error ->
+                TiedonsiirtoFailure(
+                    HttpStatus.BAD_GATEWAY,
+                    listOf(
+                        "Oppijanumeroiden haku epäonnistui (${error::class.simpleName}): " +
+                            oppijanumeroVirheenKuvaus(error),
+                    ),
+                ).toResponseEntity()
+            },
+            ifRight = { oppijanumerot ->
+                ResponseEntity.ok(
+                    OppijanumeroHetulistaResponse(
+                        oppijanumerot = oppijanumerot.mapValues { (_, oid) -> oid.toString() },
+                        puuttuvat = hetut.filterNot { oppijanumerot.containsKey(it) },
+                    ),
+                )
+            },
+        )
+    }
+
     private fun oppijanumeroVirheenKuvaus(error: OppijanumeroException): String {
         val vastaus = (error as? OppijanumeroException.HasResponse)?.response
         return listOfNotNull(
@@ -377,4 +432,14 @@ data class OppijanumeroHakuResponse(
     val oid: Oid,
 )
 
+data class OppijanumeroHetulistaRequest(
+    val hetut: List<String>,
+)
+
+data class OppijanumeroHetulistaResponse(
+    val oppijanumerot: Map<String, String>,
+    val puuttuvat: List<String>,
+)
+
 private const val ONR_VIRHEEN_ENIMMAISPITUUS = 300
+private const val HETULISTAN_ENIMMAISKOKO = 1000

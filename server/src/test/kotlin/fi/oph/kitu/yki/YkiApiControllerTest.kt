@@ -858,6 +858,37 @@ class YkiApiControllerTest(
     }
 
     @Test
+    fun `Hetulistahaku palauttaa oppijanumerot ilman nimivertailua`() {
+        post(
+            "/yki/api/oppijanumero-haku-hetulista",
+            """{"hetut": ["010180-9026", "010101-999X"]}""",
+        ) {
+            status { isOk() }
+            verboseContentJson(
+                OppijanumeroHetulistaResponse(
+                    oppijanumerot = mapOf("010180-9026" to "1.2.246.562.24.33342764709"),
+                    puuttuvat = listOf("010101-999X"),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `Hetulistahaku hylkaa tyhjan listan`() {
+        post("/yki/api/oppijanumero-haku-hetulista", """{"hetut": []}""") {
+            isBadRequest("hetut ei saa olla tyhjä")
+        }
+    }
+
+    @Test
+    fun `Hetulistahaku hylkaa liian suuren listan`() {
+        val liikaa = (1..1001).joinToString(",") { """"0101$it"""" }
+        post("/yki/api/oppijanumero-haku-hetulista", """{"hetut": [$liikaa]}""") {
+            isBadRequest("hetut: enintään 1000 kerralla, sai 1001")
+        }
+    }
+
+    @Test
     fun `Oppijanumeron haku palauttaa 400, kun pakollinen kentta on tyhja`() {
         post(
             "/yki/api/oppijanumero-haku",

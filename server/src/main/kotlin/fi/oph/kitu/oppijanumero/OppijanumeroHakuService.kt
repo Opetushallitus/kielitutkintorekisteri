@@ -30,6 +30,10 @@ class OppijanumeroHakuService(
             ifRight = { it.right() },
         )
 
+    @WithSpan
+    fun haeOppijanumerotHetuilla(hetut: List<String>): Either<OppijanumeroException, Map<String, Oid>> =
+        oppijanumeroService.getOppijanumerotByHetut(hetut)
+
     private fun OppijanumeroException.voiJohtuaNimienMuodosta(): Boolean =
         when (this) {
             is OppijanumeroException.OppijaNotIdentifiedException,
