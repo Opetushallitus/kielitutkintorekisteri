@@ -404,6 +404,133 @@ def resolve_oid(host, tokens, hetu, etunimet, sukunimi):
             raise TransientLookupError(str(e))
 
 
+HETULISTAN_ENIMMAISKOKO = 1000
+
+
+def post_hetulista(host, tokens, hetut):
+    """Resolve a chunk of hetus through kitu's name-free batch lookup. Returns
+    {HETU: oid} keyed by the upper-cased hetu, since the register echoes back its
+    own spelling rather than the one that was sent."""
+    body = json.dumps({"hetut": hetut}).encode()
+    for attempt in (1, 2):
+        req = urllib.request.Request(
+            host + "/yki/api/oppijanumero-haku-hetulista", data=body,
+            headers={"Authorization": f"Bearer {tokens.token}", "Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req) as r:
+                vastaus = json.load(r)
+            return {
+                hetu.strip().upper(): oid
+                for hetu, oid in (vastaus.get("oppijanumerot") or {}).items()
+            }
+        except urllib.error.HTTPError as e:
+            response = e.read().decode(errors="replace")
+            if e.code == 401 and attempt == 1:
+                tokens.refresh()
+                continue
+            if e.code in (401, 403) or "HTTP 403" in response:
+                raise FatalLookupError(
+                    f"HTTP {e.code}: {response}\n"
+                    "  hetulistahaku vaatii oppijanumerorekisterin oikeuden "
+                    "'rekisterinpitäjä read' (REKISTERINPITAJA_READ) OPH:n juuriorganisaatioon "
+                    "1.2.246.562.10.00000000001",
+                )
+            if e.code == 404:
+                raise FatalLookupError(
+                    "hetulistahaku puuttuu palvelimelta — onko uusi versio ehtinyt ympäristöön? "
+                    f"HTTP 404: {response}",
+                )
+            raise TransientLookupError(f"HTTP {e.code}: {response}")
+        except urllib.error.URLError as e:
+            raise TransientLookupError(str(e))
+
+
+def backfill_oids_hetulista(rows, host, tokens, map_path, capture_unresolved, limit, cutoff,
+                            sleep, chunk_size=HETULISTAN_ENIMMAISKOKO):
+    """Resolve oppijanumerot for OID-less rows by hetu alone, in batches.
+
+    The name-based lookup answers 409 whenever the register's names differ from the
+    ones the source export carries, which is the normal case for decades-old data.
+    Hetus that fail the local check are sent too: a batch slot costs nothing, and a
+    bad check character simply will not match anything."""
+    attempted = load_oid_map(map_path)
+    if attempted:
+        log(f"backfill resuming: {len(attempted)} rows already attempted will be skipped")
+    counts = {"resolved": 0, "unresolved": 0, "skipped_attempted": 0, "has_oid": 0,
+              "filtered": 0, "failed": 0, "transient": 0, "ilman_hetua": 0, "erissa": 0}
+
+    kasiteltavat = []
+    for i, row in enumerate(rows):
+        if limit is not None and i >= limit:
+            break
+        if not row or len(row) != len(COLUMNS):
+            continue
+        if cutoff is not None:
+            lm = parse_last_modified(row[LAST_MODIFIED_IDX])
+            if lm is None or lm >= cutoff:
+                counts["filtered"] += 1
+                continue
+        if to_null(row[SUORITTAJAN_OID_IDX]):
+            counts["has_oid"] += 1
+            continue
+        if to_null(row[SUORITUS_ID_IDX]) in attempted:
+            counts["skipped_attempted"] += 1
+            continue
+        kasiteltavat.append(row)
+
+    hetut = sorted({
+        to_null(row[HETU_IDX]).strip().upper()
+        for row in kasiteltavat
+        if to_null(row[HETU_IDX])
+    })
+    log(f"hetulistahaku: {len(kasiteltavat)} riviä, {len(hetut)} eri henkilötunnusta")
+
+    ratkaistut = {}
+    epaonnistuneet = set()
+    with open(map_path, "a", encoding="utf-8") as out:
+        for alku in range(0, len(hetut), chunk_size):
+            era = hetut[alku:alku + chunk_size]
+            counts["erissa"] += 1
+            try:
+                ratkaistut.update(post_hetulista(host, tokens, era))
+            except TransientLookupError as e:
+                counts["transient"] += len(era)
+                epaonnistuneet.update(era)
+                log(f"erä {alku}-{alku + len(era)} ei vastannut, yritetään uudelleen resumessa: {e}")
+            log(f"...{min(alku + chunk_size, len(hetut))}/{len(hetut)} hetua, {len(ratkaistut)} ratkennut")
+            if sleep:
+                time.sleep(sleep)
+
+        if hetut and not epaonnistuneet and not ratkaistut:
+            log("VAROITUS: yksikään hetu ei ratkennut vaikka haku onnistui. Oikeus "
+                "'rekisterinpitäjä read' suodattaa rivit pois, jos se on myönnetty muuhun kuin "
+                "OPH:n juuriorganisaatioon 1.2.246.562.10.00000000001 — tarkista oikeus ennen "
+                "kuin tulkitset tämän datan ongelmaksi.")
+
+        for row in kasiteltavat:
+            solki_id = to_null(row[SUORITUS_ID_IDX])
+            hetu = to_null(row[HETU_IDX])
+            avain = hetu.strip().upper() if hetu else None
+            if avain in epaonnistuneet:
+                continue
+            if not hetu:
+                rec = {"solki_id": solki_id, "oid": None, "reason": "hetu puuttuu"}
+                counts["ilman_hetua"] += 1
+            else:
+                oid = ratkaistut.get(avain)
+                rec = {
+                    "solki_id": solki_id, "oid": oid,
+                    "reason": None if oid else "ei löytynyt oppijanumerorekisteristä (hetulista)",
+                }
+            out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            out.flush()
+            if rec["oid"] is None:
+                capture_unresolved(row, solki_id)
+            counts["resolved" if rec["oid"] else "unresolved"] += 1
+    log(f"backfill done: {counts}")
+
+
 def load_oid_map(path):
     """{solki_id: oid_or_None}; a key's presence means the row was already attempted."""
     oid_map = {}
@@ -551,6 +678,10 @@ def main():
              "read by the normal run to inject OIDs into OID-less rows",
     )
     p.add_argument(
+        "--hetu-batch", action="store_true",
+        help="backfill: ratkaise oppijanumerot pelkillä hetuilla erissä, ilman nimivertailua",
+    )
+    p.add_argument(
         "--no-hetu-check", action="store_true",
         help="backfill: skip the local hetu format/checksum/date check before each lookup",
     )
@@ -620,8 +751,12 @@ def main():
 
     if args.backfill_oids:
         try:
-            backfill_oids(rows, host, tokens, args.oid_map, capture_unresolved, args.limit, cutoff,
-                          args.sleep, check_hetu=not args.no_hetu_check)
+            if args.hetu_batch:
+                backfill_oids_hetulista(rows, host, tokens, args.oid_map, capture_unresolved,
+                                        args.limit, cutoff, args.sleep)
+            else:
+                backfill_oids(rows, host, tokens, args.oid_map, capture_unresolved, args.limit,
+                              cutoff, args.sleep, check_hetu=not args.no_hetu_check)
         except FatalLookupError as e:
             log(f"VIRHE: oppijanumerohaku ei ole käytettävissä, keskeytetään: {e}")
             raise SystemExit(1)

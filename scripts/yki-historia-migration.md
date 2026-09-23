@@ -212,6 +212,33 @@ unresolved, since kitu has no ONR-create capability.
   `cache_hits` counter shows how many rows were answered without a call; the oid map still
   gets one record per row, so resuming is unaffected.
 
+#### `--hetu-batch`: haku pelkillä henkilötunnuksilla
+
+Nimillä tehty haku vastaa **409:llä aina kun rekisterin nimet eroavat lähdeaineiston
+nimistä** — vanhassa datassa se on pikemminkin sääntö kuin poikkeus, ja ONR:n koodi
+osoittaa 409:n tarkoittavan "henkilö on olemassa, nimet eivät täsmää". `--hetu-batch`
+ohittaa nimet kokonaan ja ratkaisee oppijanumerot erissä (1 000 hetua/kutsu):
+
+```bash
+./scripts/migrate_yki_historia.py --source unresolved_r2.csv --env prod --confirm-prod \
+    --modified-before 2017-01-01 --client-id "$CID" --client-secret "$CSECRET" \
+    --backfill-oids --hetu-batch \
+    --oid-map oid_map_hetut.jsonl --unresolved-out unresolved_r3.csv
+```
+
+- Vaatii palvelinpuolen `POST /yki/api/oppijanumero-haku-hetulista` -rajapinnan **ja**
+  oppijanumerorekisterin oikeuden **`rekisterinpitäjä read` (`REKISTERINPITAJA_READ`) OPH:n
+  juuriorganisaatioon `1.2.246.562.10.00000000001`**. Muuhun organisaatioon myönnettynä
+  kutsu onnistuu mutta rekisteri suodattaa rivit pois, jolloin vastaus on tyhjä — skripti
+  varoittaa erikseen tästä tilanteesta. HTTP 403 kertoo puuttuvasta oikeudesta ja 404 siitä
+  ettei rajapinta ole vielä ympäristössä; molemmat pysäyttävät ajon.
+- Hetut lähetetään myös niiltä riveiltä jotka eivät läpäise paikallista tarkistusta: erän
+  paikka ei maksa mitään, ja virheellinen tarkistusmerkki jää vain löytymättä. Näin myös
+  kirjoitusvirheelliset hetut tulevat kokeilluiksi kerran.
+- Saman henkilön monta suoritusta vievät yhden paikan erässä, mutta oid-karttaan kirjoitetaan
+  rivikohtainen tietue, joten resume toimii ennallaan. Erä joka ei vastannut jätetään
+  **kokonaan kirjaamatta**, jolloin seuraava ajo yrittää sen uudelleen.
+
 ```bash
 # Later round, when ONR knows more people: feed the leftover file back in.
 ./scripts/migrate_yki_historia.py --source unresolved.csv --env prod --confirm-prod \
