@@ -138,15 +138,20 @@ grep '"ok": false' report.jsonl        # rows that would be rejected, with reaso
     --modified-before 2017-01-01 --client-id "$CID" --client-secret "$CSECRET" --out report.jsonl
 ```
 
+Only rows that were really POSTed (`action=posted`, `ok=true`) resume as `skipped_done`,
+so pointing the dry run, the smoke test and the full run at the same `report.jsonl` is
+safe: the dry run's records are ignored, and the smoke test's five rows are correctly
+skipped. A row that failed to POST is retried on the next run.
+
 - `--modified-before YYYY-MM-DD` migrates only rows whose `last_modified` is strictly
   before that date (UTC); the rest are counted as `filtered` in the run summary. Omit it
   to migrate every row.
 - Credentials: pass `--client-id/--client-secret` or set `KITU_CLIENT_ID` /
   `KITU_CLIENT_SECRET`. This is the palvelukäyttäjä OAuth client allowed to POST YKI
   suoritukset.
-- The report (`report.jsonl`) has one line per row: `{solki_id, ok, http, response|issues}`.
-  Re-running with the same `--out` skips rows already `ok` (idempotent anyway — the API
-  upserts on the Solki id).
+- The report (`report.jsonl`) has one line per row: `{solki_id, ok, action, http,
+response|issues}`. Re-running with the same `--out` skips rows already POSTed
+  (idempotent anyway — the API upserts on the Solki id).
 - Local pre-checks skip rows that would 400 (no osat, invalid arvosana for the taso,
   `arvosanaMuuttui ⊄ tarkistetut`) so they're reported without a wasted POST. They do
   **not** cover everything the server checks — notably `tark_kasittely_pvm <
@@ -191,6 +196,21 @@ unresolved, since kitu has no ONR-create capability.
   same safety boundary as the source CSV, keep it in AWS.
 - The pre-pass respects `--modified-before` and `--limit`, so it only resolves rows the
   migration would actually load.
+- **A 502 `(BadRequest)` is a per-row data fault, not an outage.** kitu maps every ONR
+  answer except not-found to 502 with the text "Yritä myöhemmin uudestaan", so the
+  exception name in the body is the only signal: `(BadRequest)` means ONR rejected that
+  row (a malformed hetu, usually) and retrying gives the same 400. Such rows are recorded
+  in the map with a reason and the pass continues. Genuine transients (other 502s, 5xx,
+  connection errors) are counted as `transient` and deliberately **not** written to the
+  map, so a resume retries them. 401 refreshes the token once; 403 or a second 401 stops
+  the pass (exit 1).
+- Hetus are checked locally (format, century marker, checksum, calendar date) before a
+  lookup is spent, and recorded as `virheellinen hetu (...)`. `--no-hetu-check` bypasses
+  it if you would rather let ONR decide.
+- Lookups are cached per person — `(hetu, etunimet, sukunimi)`, case-folded with inner
+  whitespace collapsed — so one person's several suoritukset cost one ONR call. The
+  `cache_hits` counter shows how many rows were answered without a call; the oid map still
+  gets one record per row, so resuming is unaffected.
 
 ```bash
 # Later round, when ONR knows more people: feed the leftover file back in.
