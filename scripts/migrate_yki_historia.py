@@ -704,6 +704,10 @@ def main():
         help="backfill: skip the local hetu format/checksum/date check before each lookup",
     )
     p.add_argument(
+        "--fast-resume", action="store_true",
+        help="ohita jo siirretyt rivit ennen payloadin rakentamista (nopea jatkaminen)",
+    )
+    p.add_argument(
         "--failed-out", metavar="PATH",
         help="kaikki siirtämättä jääneet rivit sellaisenaan + syy 31. sarakkeena",
     )
@@ -813,6 +817,14 @@ def main():
               "unresolved": 0}
 
     with open(args.out, "a", encoding="utf-8") as out:
+
+        def kirjaa(rec):
+            """Raportti on ajon ainoa muisti siitä mikä on jo siirretty, joten se
+            huuhdellaan joka rivillä: puskuriin jäänyt hännän menettäisi tiedon
+            riveistä jotka on oikeasti POSTattu."""
+            out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            out.flush()
+
         for i, row in enumerate(rows):
             if args.limit is not None and i >= args.limit:
                 break
@@ -820,8 +832,7 @@ def main():
                 continue
             if len(row) != len(COLUMNS):
                 virhe = f"odotettiin {len(COLUMNS)} saraketta, saatiin {len(row)}"
-                rec = {"row": i, "ok": False, "error": virhe}
-                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                kirjaa({"row": i, "ok": False, "error": virhe})
                 capture_failed(row, None, virhe)
                 counts["failed"] += 1
                 continue
@@ -830,8 +841,7 @@ def main():
                 lm = parse_last_modified(row[LAST_MODIFIED_IDX])
                 if lm is None:
                     virhe = "last_modified ei jäsenny, ei voi suodattaa"
-                    rec = {"row": i, "ok": False, "error": virhe}
-                    out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                    kirjaa({"row": i, "ok": False, "error": virhe})
                     capture_failed(row, to_null(row[SUORITUS_ID_IDX]), virhe)
                     counts["failed"] += 1
                     continue
@@ -844,6 +854,10 @@ def main():
                 if backfilled:
                     row = list(row)
                     row[SUORITTAJAN_OID_IDX] = backfilled
+
+            if args.fast_resume and to_null(row[SUORITUS_ID_IDX]) in done:
+                counts["skipped_done"] += 1
+                continue
 
             payload = build_payload(row)
             solki_id = payload["suoritus"]["lahdejarjestelmanId"]["id"]
@@ -859,20 +873,18 @@ def main():
             if not payload["henkilo"]["oid"]:
                 capture_unresolved(row, solki_id)
                 capture_failed(row, solki_id, "ei oppijanumeroa")
-                rec = {"solki_id": solki_id, "ok": False, "action": "unresolved", "reason": "ei oppijanumeroa"}
-                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                kirjaa({"solki_id": solki_id, "ok": False, "action": "unresolved", "reason": "ei oppijanumeroa"})
                 counts["unresolved"] += 1
                 continue
 
             if issues:
-                rec = {"solki_id": solki_id, "ok": False, "action": "skipped", "issues": issues}
-                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                kirjaa({"solki_id": solki_id, "ok": False, "action": "skipped", "issues": issues})
                 capture_failed(row, solki_id, "; ".join(issues))
                 counts["skipped_issue"] += 1
                 continue
 
             if args.dry_run:
-                out.write(json.dumps({"solki_id": solki_id, "action": "dry-run", "ok": True}, ensure_ascii=False) + "\n")
+                kirjaa({"solki_id": solki_id, "action": "dry-run", "ok": True})
                 counts["dry"] += 1
             else:
                 code, resp = post_suoritus(host, tokens, payload)
@@ -881,8 +893,7 @@ def main():
                     parsed = json.loads(resp)
                 except json.JSONDecodeError:
                     parsed = resp
-                rec = {"solki_id": solki_id, "ok": ok, "action": "posted", "http": code, "response": parsed}
-                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                kirjaa({"solki_id": solki_id, "ok": ok, "action": "posted", "http": code, "response": parsed})
                 if not ok:
                     capture_failed(row, solki_id, f"HTTP {code}: {resp}"[:500])
                 counts["posted" if ok else "failed"] += 1
