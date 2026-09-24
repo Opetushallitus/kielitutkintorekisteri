@@ -138,6 +138,13 @@ grep '"ok": false' report.jsonl        # rows that would be rejected, with reaso
     --modified-before 2017-01-01 --client-id "$CID" --client-secret "$CSECRET" --out report.jsonl
 ```
 
+Raportti huuhdellaan levylle joka rivillä, joten keskeytyneenkin ajon tila on tallessa:
+CloudShell-istunnon katkeaminen ei hukkaa tietoa jo siirretyistä riveistä. Jatka ajamalla
+sama komento uudelleen; `--fast-resume` ohittaa jo siirretyt rivit ennen payloadin
+rakentamista ja paikallisia tarkistuksia, mikä nopeuttaa pitkän tiedoston läpikäyntiä
+olennaisesti silloin kun suurin osa riveistä on jo siirretty. Lopputulos on sama kummallakin
+tavalla.
+
 Only rows that were really POSTed (`action=posted`, `ok=true`) resume as `skipped_done`,
 so pointing the dry run, the smoke test and the full run at the same `report.jsonl` is
 safe: the dry run's records are ignored, and the smoke test's five rows are correctly
