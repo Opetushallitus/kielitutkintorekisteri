@@ -429,12 +429,19 @@ def post_hetulista(host, tokens, hetut):
             if e.code == 401 and attempt == 1:
                 tokens.refresh()
                 continue
-            if e.code in (401, 403) or "HTTP 403" in response:
+            if e.code in (401, 403):
                 raise FatalLookupError(
                     f"HTTP {e.code}: {response}\n"
-                    "  hetulistahaku vaatii oppijanumerorekisterin oikeuden "
-                    "'rekisterinpitäjä read' (REKISTERINPITAJA_READ) OPH:n juuriorganisaatioon "
-                    "1.2.246.562.10.00000000001",
+                    "  kitu ei päästänyt kutsua läpi. Hetulistahaku on rajattu nimettyihin\n"
+                    "  kutsujiin (kitu.yki.hetulistahaku.sallitutKutsujat) — tarkista että\n"
+                    "  käyttämäsi client on listalla. Oppijanumerorekisterin oikeusongelmat\n"
+                    "  näkyvät 502:na, eivät 403:na.",
+                )
+            if e.code == 502 and "vastasi HTTP 403" in response:
+                raise FatalLookupError(
+                    f"HTTP {e.code}: {response}\n"
+                    "  oppijanumerorekisteri epäsi haun: vaatii oikeuden 'rekisterinpitäjä read'\n"
+                    "  (REKISTERINPITAJA_READ) OPH:n juuriorganisaatioon 1.2.246.562.10.00000000001",
                 )
             if e.code == 404:
                 raise FatalLookupError(
