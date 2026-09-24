@@ -26,6 +26,7 @@ import org.springframework.core.env.Environment
 import org.springframework.http.HttpMethod.GET
 import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpMethod.PUT
+import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.authorization.AuthorizationManager
 import org.springframework.security.cas.web.CasAuthenticationFilter
 import org.springframework.security.config.annotation.web.AuthorizeHttpRequestsDsl
@@ -35,6 +36,7 @@ import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext
@@ -53,6 +55,7 @@ fun AuthorizeHttpRequestsDsl.configureCommonAuthorizations(environment: Environm
     authorize(POST, "/yki/api/suoritus", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
     authorize(POST, "/yki/api/arvioija", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
     authorize(POST, "/yki/api/oppijanumero-haku", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
+    authorize(POST, "/yki/api/oppijanumero-haku-hetulista", sallitutHetulistahaunKutsujat(environment))
     authorize(GET, "/yhteystiedot/api/**", hasAnyAuthority(*Authority.TODISTUS_YHTEYSTIEDOT_LUKEMINEN.authStrings()))
 
     authorize("/actuator/health", permitAll)
@@ -61,6 +64,29 @@ fun AuthorizeHttpRequestsDsl.configureCommonAuthorizations(environment: Environm
     authorize("/v3/api-docs/**", permitAll)
     authorize("/schema-examples/**", permitAll)
     authorize("/uml/**", permitAll)
+}
+
+/**
+ * Hetulistahaku palauttaa oppijanumeron pelkällä henkilötunnuksella, ilman nimivertailua.
+ * YKI_TALLENNUS on myönnetty muillekin kuin migraatiolle, joten reitti rajataan
+ * nimettyihin kutsujiin: tyhjä lista estää kutsut kokonaan.
+ */
+private fun sallitutHetulistahaunKutsujat(
+    environment: Environment,
+): AuthorizationManager<RequestAuthorizationContext> {
+    val sallitut =
+        environment
+            .getProperty("kitu.yki.hetulistahaku.sallitutKutsujat")
+            .orEmpty()
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+
+    return AuthorizationManager { authentication, _ ->
+        val subject = (authentication.get() as? JwtAuthenticationToken)?.token?.subject
+        AuthorizationDecision(subject != null && subject in sallitut)
+    }
 }
 
 @Configuration
