@@ -152,6 +152,14 @@ skipped. A row that failed to POST is retried on the next run.
 - The report (`report.jsonl`) has one line per row: `{solki_id, ok, action, http,
 response|issues}`. Re-running with the same `--out` skips rows already POSTed
   (idempotent anyway — the API upserts on the Solki id).
+- `--failed-out` kerää **kaikki siirtämättä jääneet rivit yhteen tiedostoon** sellaisenaan
+  ja lisää syyn 31. sarakkeeksi: puuttuva oppijanumero, paikallisten tarkistusten hylkäämät,
+  API:n hylkäämät POSTit, rikkinäiset rivit ja jäsentymättömät `last_modified`-arvot. Tämä on
+  se tiedosto josta kannattaa rakentaa siivoustaulu jatkokäsittelyä varten. Syysarake on
+  tarkoituksella ylimääräinen: jos siivottu tiedosto syötetään takaisin `--source`:ksi ilman
+  sarakkeen poistoa, ajo kaatuu sarakemäärään sen sijaan että lukisi datan väärin.
+  (`--unresolved-out` on edelleen eri asia: vain oppijanumerottomat, 30 saraketta, suoraan
+  uudelleen syötettävissä.)
 - Local pre-checks skip rows that would 400 (no osat, invalid arvosana for the taso,
   `arvosanaMuuttui ⊄ tarkistetut`) so they're reported without a wasted POST. They do
   **not** cover everything the server checks — notably `tark_kasittely_pvm <
