@@ -553,6 +553,17 @@ def load_oid_map(path):
     return oid_map
 
 
+def load_failed_ids(path, delimiter):
+    """solki_ids already written to the failure CSV, so re-runs do not duplicate rows."""
+    ids = set()
+    if path and os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            for row in csv.reader(f, delimiter=delimiter, quotechar='"'):
+                if len(row) > SUORITUS_ID_IDX:
+                    ids.add(to_null(row[SUORITUS_ID_IDX]))
+    return ids
+
+
 def load_leftover_ids(path):
     """solki_ids already written to the unresolved CSV, so re-runs don't duplicate rows."""
     ids = set()
@@ -693,6 +704,10 @@ def main():
         help="backfill: skip the local hetu format/checksum/date check before each lookup",
     )
     p.add_argument(
+        "--failed-out", metavar="PATH",
+        help="kaikki siirtämättä jääneet rivit sellaisenaan + syy 31. sarakkeena",
+    )
+    p.add_argument(
         "--unresolved-out", metavar="PATH",
         help="write rows that still lack a resolvable oppijanumero to this CSV "
              "(same 30-column headerless layout, reusable as --source later)",
@@ -756,6 +771,23 @@ def main():
         leftover_fh.flush()
         leftover_seen.add(solki_id)
 
+    failed_fh = open(args.failed_out, "a", encoding="utf-8", newline="") if args.failed_out else None
+    failed_writer = csv.writer(failed_fh, delimiter=delimiter, quotechar='"') if failed_fh else None
+    failed_seen = load_failed_ids(args.failed_out, delimiter) if args.failed_out else set()
+
+    def capture_failed(row, solki_id, syy):
+        """Every row the run did not post, verbatim plus the reason as a 31st column.
+        One file to load into a cleanup table; the extra column makes a careless
+        re-run fail loudly on the column count instead of misreading the data."""
+        if failed_writer is None:
+            return
+        avain = solki_id if solki_id else f"rivi:{row[:1]}"
+        if avain in failed_seen:
+            return
+        failed_writer.writerow(list(row) + [syy])
+        failed_fh.flush()
+        failed_seen.add(avain)
+
     if args.backfill_oids:
         try:
             if args.hetu_batch:
@@ -787,16 +819,20 @@ def main():
             if not row:
                 continue
             if len(row) != len(COLUMNS):
-                rec = {"row": i, "ok": False, "error": f"odotettiin {len(COLUMNS)} saraketta, saatiin {len(row)}"}
+                virhe = f"odotettiin {len(COLUMNS)} saraketta, saatiin {len(row)}"
+                rec = {"row": i, "ok": False, "error": virhe}
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                capture_failed(row, None, virhe)
                 counts["failed"] += 1
                 continue
 
             if cutoff is not None:
                 lm = parse_last_modified(row[LAST_MODIFIED_IDX])
                 if lm is None:
-                    rec = {"row": i, "ok": False, "error": "last_modified ei jäsenny, ei voi suodattaa"}
+                    virhe = "last_modified ei jäsenny, ei voi suodattaa"
+                    rec = {"row": i, "ok": False, "error": virhe}
                     out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                    capture_failed(row, to_null(row[SUORITUS_ID_IDX]), virhe)
                     counts["failed"] += 1
                     continue
                 if lm >= cutoff:
@@ -822,6 +858,7 @@ def main():
 
             if not payload["henkilo"]["oid"]:
                 capture_unresolved(row, solki_id)
+                capture_failed(row, solki_id, "ei oppijanumeroa")
                 rec = {"solki_id": solki_id, "ok": False, "action": "unresolved", "reason": "ei oppijanumeroa"}
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 counts["unresolved"] += 1
@@ -830,6 +867,7 @@ def main():
             if issues:
                 rec = {"solki_id": solki_id, "ok": False, "action": "skipped", "issues": issues}
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                capture_failed(row, solki_id, "; ".join(issues))
                 counts["skipped_issue"] += 1
                 continue
 
@@ -845,6 +883,8 @@ def main():
                     parsed = resp
                 rec = {"solki_id": solki_id, "ok": ok, "action": "posted", "http": code, "response": parsed}
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                if not ok:
+                    capture_failed(row, solki_id, f"HTTP {code}: {resp}"[:500])
                 counts["posted" if ok else "failed"] += 1
                 if args.sleep:
                     time.sleep(args.sleep)
@@ -857,6 +897,8 @@ def main():
         payloads_fh.close()
     if leftover_fh:
         leftover_fh.close()
+    if failed_fh:
+        failed_fh.close()
     log(f"done: {counts}")
 
 
