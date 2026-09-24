@@ -230,8 +230,14 @@ ohittaa nimet kokonaan ja ratkaisee oppijanumerot erissä (1 000 hetua/kutsu):
   oppijanumerorekisterin oikeuden **`rekisterinpitäjä read` (`REKISTERINPITAJA_READ`) OPH:n
   juuriorganisaatioon `1.2.246.562.10.00000000001`**. Muuhun organisaatioon myönnettynä
   kutsu onnistuu mutta rekisteri suodattaa rivit pois, jolloin vastaus on tyhjä — skripti
-  varoittaa erikseen tästä tilanteesta. HTTP 403 kertoo puuttuvasta oikeudesta ja 404 siitä
-  ettei rajapinta ole vielä ympäristössä; molemmat pysäyttävät ajon.
+  varoittaa erikseen tästä tilanteesta.
+- **403 ja 502 tarkoittavat eri asioita.** Kitu kääntää oppijanumerorekisterin virheet
+  502:ksi, joten paljas 403 tulee aina kitun omasta valtuutuksesta: hetulistahaku on rajattu
+  nimettyihin kutsujiin (`kitu.yki.hetulistahaku.sallitutKutsujat`), koska pelkällä
+  hetulla tehtävää hakua ei voi avata `YKI_TALLENNUS`-oikeudelle — se on myönnetty myös
+  Solkin tiedonsiirrolle. 502, jonka tekstissä lukee "oppijanumerorekisteri vastasi HTTP
+  403", kertoo puuttuvasta `REKISTERINPITAJA_READ`-oikeudesta, ja 404 siitä ettei rajapinta
+  ole vielä ympäristössä. Kaikki kolme pysäyttävät ajon.
 - Hetut lähetetään myös niiltä riveiltä jotka eivät läpäise paikallista tarkistusta: erän
   paikka ei maksa mitään, ja virheellinen tarkistusmerkki jää vain löytymättä. Näin myös
   kirjoitusvirheelliset hetut tulevat kokeilluiksi kerran.
