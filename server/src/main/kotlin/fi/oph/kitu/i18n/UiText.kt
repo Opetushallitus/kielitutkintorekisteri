@@ -22,6 +22,8 @@ object UiText {
         val hyvanJaTyydyttavanSuoritukset: LocalizedString
             get() = tr("nav.hyvanJaTyydyttavanSuoritukset", fi = "Hyvän ja tyydyttävän taidon suoritukset")
         val erajojenHallinta: LocalizedString get() = tr("nav.erajojenHallinta", fi = "Eräajojen hallinta")
+        val historiaSiirtymattomat: LocalizedString
+            get() = tr("nav.historiaSiirtymattomat", fi = "Siirtymättä jääneet historiarivit")
     }
 
     object Etusivu {
@@ -667,6 +669,49 @@ object UiText {
             val aikaleima: LocalizedString get() = tr("yki.sarake.aikaleima", fi = "Aikaleima")
             val pyynto: LocalizedString get() = tr("yki.sarake.pyynto", fi = "Pyyntö")
             val piilotus: LocalizedString get() = tr("yki.sarake.piilotus", fi = "Piilotus")
+        }
+
+        object Historia {
+            val kuvaus: LocalizedString
+                get() =
+                    tr(
+                        "yki.historia.kuvaus",
+                        fi =
+                            "Vuosien 2011-2016 historiasiirrossa rekisteriin siirtymättä jääneet lähderivit. " +
+                                "Rivit eivät ole suorituksia: niitä ei siirretä KOSKEen eikä niistä lähde " +
+                                "mitään muuhunkaan järjestelmään.",
+                    )
+            val rivejaYhteensa: LocalizedString get() = tr("yki.historia.rivejaYhteensa", fi = "Rivejä yhteensä")
+            val eiRiveja: LocalizedString
+                get() = tr("yki.historia.eiRiveja", fi = "Ei siirtymättä jääneitä rivejä")
+            val hakusana: LocalizedString
+                get() = tr("yki.historia.hakusana", fi = "Solki-ID, nimi, henkilötunnus tai järjestäjä")
+            val syy: LocalizedString get() = tr("yki.historia.syy", fi = "Syy")
+            val syyluokka: LocalizedString get() = tr("yki.historia.syyluokka", fi = "Syyn luokka")
+            val oidHaunSyy: LocalizedString
+                get() = tr("yki.historia.oidHaunSyy", fi = "Oppijanumerohaun tulos")
+            val oidHakuaEiYritetty: LocalizedString
+                get() = tr("yki.historia.oidHakuaEiYritetty", fi = "Hakua ei yritetty")
+            val rikkinainenRivi: LocalizedString
+                get() = tr("yki.historia.rikkinainenRivi", fi = "Rikkinäinen rivi")
+            val lahdetiedosto: LocalizedString get() = tr("yki.historia.lahdetiedosto", fi = "Lähdetiedosto")
+            val ladattu: LocalizedString get() = tr("yki.historia.ladattu", fi = "Ladattu")
+            val muutosaikaleima: LocalizedString
+                get() = tr("yki.historia.muutosaikaleima", fi = "Muutosaikaleima")
+            val postinumero: LocalizedString get() = tr("yki.historia.postinumero", fi = "Postinumero")
+            val postitoimipaikka: LocalizedString
+                get() = tr("yki.historia.postitoimipaikka", fi = "Postitoimipaikka")
+            val syyEiOppijanumeroa: LocalizedString
+                get() = tr("yki.historia.syyEiOppijanumeroa", fi = "Ei oppijanumeroa")
+            val syyPaikallinenValidointi: LocalizedString
+                get() = tr("yki.historia.syyPaikallinenValidointi", fi = "Paikallinen tarkistus hylkäsi")
+            val syyApiHylkasi: LocalizedString
+                get() = tr("yki.historia.syyApiHylkasi", fi = "Rajapinta hylkäsi")
+            val syyRikkinainenRivi: LocalizedString
+                get() = tr("yki.historia.syyRikkinainenRivi", fi = "Rikkinäinen rivi")
+            val syyLastModifiedEiJasenny: LocalizedString
+                get() = tr("yki.historia.syyLastModifiedEiJasenny", fi = "Muutosaikaleima ei jäsenny")
+            val syyMuu: LocalizedString get() = tr("yki.historia.syyMuu", fi = "Muu syy")
         }
 
         object Virhesarake {

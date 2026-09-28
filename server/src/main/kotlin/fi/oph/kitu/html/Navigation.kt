@@ -14,6 +14,7 @@ object Navigation {
                     MenuItem(UiText.Nav.suoritukset, Links.Yki.suoritukset()),
                     MenuItem(UiText.Nav.arvioijat, Links.Yki.arvioijat()),
                     MenuItem(UiText.Nav.tarkistusarvioinnit, Links.Yki.tarkistusArvioinnit()),
+                    MenuItem(UiText.Nav.historiaSiirtymattomat, Links.Yki.historiaSiirtymattomat()),
                 ),
             ),
             MenuItemGroup(
