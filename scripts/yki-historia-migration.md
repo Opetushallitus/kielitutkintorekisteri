@@ -3,10 +3,11 @@
 Analyse a historical YKI suoritus CSV in S3 and migrate it into the register.
 Two scripts cover the flow:
 
-| Phase       | Script                            | Purpose                                              |
-| ----------- | --------------------------------- | ---------------------------------------------------- |
-| 1. Analysis | `scripts/duckdb_session.sh`       | Query the CSV in place with DuckDB (read-only).      |
-| 2. Migrate  | `scripts/migrate_yki_historia.py` | Map each row → JSON and POST to `/yki/api/suoritus`. |
+| Phase            | Script                                        | Purpose                                              |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------- |
+| 1. Analysis      | `scripts/duckdb_session.sh`                   | Query the CSV in place with DuckDB (read-only).      |
+| 2. Migrate       | `scripts/migrate_yki_historia.py`             | Map each row → JSON and POST to `/yki/api/suoritus`. |
+| 3. Aukon kirjaus | `scripts/load_yki_historia_siirtymattomat.py` | Lataa siirtymättä jääneet rivit karanteenitauluun.   |
 
 ## Safety boundary (read first)
 
@@ -18,9 +19,12 @@ The CSV is **sensitive personal data**. Keep it inside AWS end to end:
 - Analysis is read-only. Migration writes to prod — **take an Aurora snapshot first**,
   and go dry-run → smoke test → full.
 - Keep the report / payload files in CloudShell; don't `aws s3 cp` them out.
-- Migration goes through the validated API (`POST /yki/api/suoritus`), never a raw DB
-  write — so validation, dedup, KOSKI forwarding and ilmoittautumisjärjestelmä
-  notification all run.
+- Suoritukset go into the **register** through the validated API
+  (`POST /yki/api/suoritus`), never a raw DB write — so validation, dedup, KOSKI
+  forwarding and ilmoittautumisjärjestelmä notification all run. The single documented
+  exception is **phase 3**, which writes the karanteenitaulu `yki_historia_siirtymaton`
+  straight over the RDS Data API: those rows are not suoritukset, nothing reads them into
+  the register, and none of that machinery applies to them.
 
 ## The data (as verified for the 2011–2020 export)
 
@@ -270,6 +274,99 @@ ohittaa nimet kokonaan ja ratkaisee oppijanumerot erissä (1 000 hetua/kutsu):
     --oid-map oid_map_round2.jsonl --unresolved-out unresolved2.csv --out report2.jsonl
 ```
 
+## Phase 3 — siirtymättä jääneiden rivien lataus (`load_yki_historia_siirtymattomat.py`)
+
+Migraatioajon `--failed-out`-tiedosto on ainoa tallenne siitä mikä **ei** siirtynyt, ja se
+elää vain CloudShellissä. Tämä vaihe siirtää sen kitun karanteenitauluun
+`yki_historia_siirtymaton` (migraatio V127), jota virkailija katselee osoitteessa
+`/yki/historia-siirtymattomat` ja josta saa CSV:n. Taulu **ei ole osa rekisteriä**: siitä ei
+lähde mitään KOSKEen, oppijanumerorekisteriin eikä ilmoittautumisjärjestelmään.
+
+### Tarkista ensin ettei aukkoon ole päätynyt ratkeavia rivejä
+
+Latausskripti laskee itse tarkistusluvut, joten aja se ensin `--dry-run`illa — se ei tarvitse
+tunnuksia eikä kirjoita mitään:
+
+```bash
+./load_yki_historia_siirtymattomat.py --source failed_final.csv \
+    --lahdetiedosto yki-historia-2.csv --oid-map oid_map_yhdistetty.jsonl --dry-run
+```
+
+Funnelin kolme oppijanumeroa koskevaa lukua on tarkoituksella erotettu, ja juuri ne
+kertovat onko lataus ylipäätään oikea seuraava askel:
+
+| Luku                     | Merkitys                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `oid_haku_epaonnistui`   | Haku yritettiin ja se kirjasi syyn (katkaistu hetu, tarkistusmerkki, ei ONR:ssä). Näistä aukko koostuu.                                                                                                |
+| `oid_hakua_ei_yritetty`  | Riviä ei ole oid-kartassa lainkaan. **Nämä eivät ole aukkoa** vaan kesken jäänyt kierros: aja `--backfill-oids` tuoreella kartalla ja migraatio uudelleen ennen latausta.                              |
+| `oid_ratkennut_kartassa` | Kartasta löytyy oppijanumero, mutta migraatioajo kirjasi rivin silti oppijanumerottomaksi = **karttaa ei käytetty ajossa**. Skripti varoittaa tästä erikseen. Aja migraatio uudelleen `--oid-map`illa. |
+
+Vertailukohta: 25.9.2026 ajo raportoi `8 890 unresolved`, kun taustatyön perusteella
+pysyvästi ratkeamattomia oli ~2 443. Ero on juuri se mitä nämä luvut erottelevat — lataa
+vasta kun tiedät kummasta on kyse.
+
+### Lataus
+
+Taulun on oltava tuotannossa ennen latausta: V127 menee prodiin normaalin `main`-deployn
+mukana. Varmista ensin että taulu on olemassa, ja hae ARN:t:
+
+```bash
+CLUSTER_ARN=$(aws rds describe-db-clusters \
+  --query "DBClusters[?DatabaseName=='kios'].DBClusterArn" --output text)
+SECRET_ARN=$(aws secretsmanager list-secrets \
+  --query "SecretList[?contains(Name,'DbStackSecret')].ARN" --output text)
+
+aws rds-data execute-statement --resource-arn "$CLUSTER_ARN" --secret-arn "$SECRET_ARN" \
+  --database kios --sql "SELECT count(*) FROM yki_historia_siirtymaton"
+
+./load_yki_historia_siirtymattomat.py --source failed_final.csv \
+    --lahdetiedosto yki-historia-2.csv --oid-map oid_map_yhdistetty.jsonl \
+    --cluster-arn "$CLUSTER_ARN" --secret-arn "$SECRET_ARN" --confirm-prod
+```
+
+- Kirjoitus tapahtuu **RDS Data API:n** kautta (`enableDataApi: true`,
+  `infra/lib/db-stack.ts`). Ei tunnelia, ei bastionia, ei uutta HTTP-rajapintaa — ja
+  aineisto pysyy AWS:ssä. Tunnukset tulevat CloudShellin omasta istunnosta.
+- **Toistettavissa**: rivit upsertataan `solki_id`:n perusteella. Aja `--limit 5`
+  savutestinä ensin; uudelleenajo ei monista mitään.
+- Rikkinäiset rivit (väärä sarakemäärä) menevät talteen kokonaisina `raw_rivi`-sarakkeeseen
+  ilman `solki_id`:tä. Koska NULL ei ole ristiriidassa itsensä kanssa, skripti poistaa saman
+  lähdetiedoston tunnisteettomat rivit ennen latausta, jotta uudelleenajo pysyy
+  idempotenttina.
+- `--batch-size` on oletuksena 200 riviä/kutsu, mikä pysyy hyvin Data API:n 4 MiB:n
+  pyyntörajan alla 31 kentän riveille.
+- Syysarake talletetaan sellaisenaan, ja sen rinnalle johdetaan `syyluokka`, jottei
+  ryhmittely jäsennä vapaata tekstiä:
+
+| Migraatioskriptin syy                        | `syyluokka`                |
+| -------------------------------------------- | -------------------------- |
+| `ei oppijanumeroa`                           | `EI_OPPIJANUMEROA`         |
+| `ei yhtään osakoetta` yms. paikalliset       | `PAIKALLINEN_VALIDOINTI`   |
+| `HTTP 400: ...`                              | `API_HYLKASI`              |
+| `odotettiin 30 saraketta, saatiin N`         | `RIKKINAINEN_RIVI`         |
+| `last_modified ei jäsenny, ei voi suodattaa` | `LAST_MODIFIED_EI_JASENNY` |
+| tunnistamaton                                | `MUU`                      |
+
+- `--unresolved-out`-tiedostoa **ei** syötetä tähän: siinä on 30 saraketta eikä syytä, ja
+  skripti kaatuu sarakemäärään ennen kuin lukee datan väärin. `--failed-out` on
+  oppijanumerottomien ylijoukko, joten se riittää yksin.
+
+### Täsmäytys
+
+```bash
+aws rds-data execute-statement --resource-arn "$CLUSTER_ARN" --secret-arn "$SECRET_ARN" \
+  --database kios --sql "SELECT syyluokka, count(*) FROM yki_historia_siirtymaton GROUP BY 1 ORDER BY 2 DESC"
+```
+
+Jakauman on vastattava `--dry-run`in funnelia ja kokonaismäärän `failed_final.csv`:n
+rivimäärää. Lopuksi avaa `/yki/historia-siirtymattomat` virkailijana ja lataa CSV kertaalleen.
+
+### Testit
+
+`python3 scripts/test_load_yki_historia_siirtymattomat.py` (25 tapausta, stdlib unittest, ei
+CI:ssä) kattaa syyluokittelun, rikkinäiset rivit, oid-kartan täydennyksen, erotintunnistuksen
+ja SQL:n muodon.
+
 ### Column → JSON mapping (reference)
 
 CSV row → `Henkilosuoritus<YkiSuoritus>`. Every field is trimmed of surrounding
@@ -308,8 +405,10 @@ whitespace/tabs and `\N`/empty is mapped to null.
   without that filter is available — see "Source export completeness" for the queries
   that quantify what it excluded.
 - **People ONR has never seen cannot be backfilled** — the haku endpoint is
-  resolve-only. Whether the final unresolved remainder should be created in ONR (a
-  capability kitu doesn't have) or documented as a permanent gap is a domain decision.
+  resolve-only. The remainder is now **documented** in kitu: phase 3 loads every
+  non-migrated row into `yki_historia_siirtymaton`, visible at
+  `/yki/historia-siirtymattomat`. Whether those people should additionally be _created_ in
+  ONR (a capability kitu doesn't have) is still a domain decision.
 - **The haku endpoint (`POST /yki/api/oppijanumero-haku`) is a bulk hetu→OID lookup**
   kept at the same trust level as suoritus creation (`YKI_TALLENNUS`). Consider
   removing it once the migration is complete.

@@ -89,10 +89,15 @@ order (because of dependencies):
 7. **`Database`** — Aurora Postgres ServerlessV2. Always one writer; prod
    additionally gets a reader replica with auto-scaling, deletion protection,
    and Performance Insights. The cluster is in private subnets and only the
-   Service stack's task security group is granted ingress on `5432`. Direct
-   developer access from a laptop is intentionally not wired today; if you
-   need it, add a bastion or `aws ecs run-task`-based tunnel as a separate
-   stack.
+   Service stack's task security group is granted ingress on `5432`. No
+   network path for a developer is wired today: if you need a psql session,
+   add a bastion or `aws ecs run-task`-based tunnel as a separate stack.
+   For SQL without a network path, `enableDataApi: true` is set, so
+   `aws rds-data execute-statement` / `batch-execute-statement` reach the
+   cluster over the AWS API (IAM + the cluster secret, no VPC route). That is
+   how `scripts/load_yki_historia_siirtymattomat.py` writes the YKI historia
+   karanteenitaulu; it is IAM-gated, audited in CloudTrail, and deliberately
+   not used for anything in the register itself.
 8. **`Service`** — the application Fargate service, see below.
 9. **`Route53HealthChecks`** (region: `us-east-1`) — HTTPS check against the
    public domain; alarm wired to `usEastAlarmsStack.investigationActions`.
