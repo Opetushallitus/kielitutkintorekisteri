@@ -184,7 +184,7 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
 
     const csvContent = await fs.readFile(path!, "utf8")
     let headers =
-      "Oppijanumero;Sukunimi;Etunimet;Kutsumanimi;Sähköposti;Kurssin ID;Kurssin nimi;Testikieli;Oppilaitos OID;Oppilaitos;Opettajan sähköposti;Suoritusaika;Luetun ymmärtäminen;Kuullun ymmärtäminen;Puhe;Kirjoittaminen"
+      "Oppijanumero;Sukunimi;Etunimet;Kutsumanimi;Sähköposti;Kurssin ID;Testin nimi;Testikieli;Oppilaitos OID;Oppilaitos;Opettajan sähköposti;Suoritusaika;Luetun ymmärtäminen;Kuullun ymmärtäminen;Puhuminen;Kirjoittaminen"
     let anniina =
       "1.2.246.562.24.24941612410;Torvinen-Testi;Anniina Testi;Anniina;devnull-12@oph.fi;33;Integrationstestning;SWE;1.2.3.4.5.7;1.2.3.4.5.7;opettaja@testi.oph.fi;2025-01-22T10:30:27Z;A1;B1;Yli B1;A2\n"
     let eino =
@@ -283,7 +283,7 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
 
       const csvContent = await fs.readFile(path!, "utf8")
       let headers =
-        "Kurssin ID;Kurssin nimi;Testikieli;Oppilaitos OID;Oppilaitos;Suoritusaika;Luetun ymmärtäminen;Kuullun ymmärtäminen;Puhe;Kirjoittaminen"
+        "Kurssin ID;Testin nimi;Testikieli;Oppilaitos OID;Oppilaitos;Suoritusaika;Luetun ymmärtäminen;Kuullun ymmärtäminen;Puhuminen;Kirjoittaminen"
       let anniina =
         "\n33;Integrationstestning;SWE;1.2.3.4.5.7;1.2.3.4.5.7;2025-01-22T10:30:27Z;A1;B1;Yli B1;A2\n"
       let eino =

@@ -588,7 +588,7 @@ class YkiArvioijaMuokkausTest(
         timeService.runWithFixedClock(HETKI) { nappi = passivointiNappi(id) }
 
         assertContains(nappi, """aria-disabled="true"""", message = "paattynytta merkintaa ei passivoida uudelleen")
-        assertContains(nappi, "Arviointikausi on päättynyt", message = "esto on perusteltava tooltipilla")
+        assertContains(nappi, "Rekisteröintikausi on päättynyt", message = "esto on perusteltava tooltipilla")
         assertNull(
             repository.findArvioijaById(id)!!.passivoitu,
             "kauden umpeutuminen ei ole passivointihetki: sailytysaika lasketaan kauden paattymisesta",
