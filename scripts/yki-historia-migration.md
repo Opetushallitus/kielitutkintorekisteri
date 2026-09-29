@@ -364,6 +364,38 @@ aws rds-data execute-statement --resource-arn "$CLUSTER_ARN" --secret-arn "$SECR
   skripti kaatuu sarakemäärään ennen kuin lukee datan väärin. `--failed-out` on
   oppijanumerottomien ylijoukko, joten se riittää yksin.
 
+### Uusintakierros: `--prune`
+
+Kun migraatio ajetaan uudelleen (esim. ONR tuntee nyt useamman henkilön, tai kitun
+oppijanumerohaku on korjattu), osa riveistä siirtyy rekisteriin eikä enää esiinny uudessa
+`--failed-out`-tiedostossa. Lataus yksinään **ei poista niitä taulusta**, koska se vain
+upsertaa `solki_id`:n perusteella — taulu jäisi näyttämään siirtymättöminä rivejä jotka ovat
+jo rekisterissä. `--prune` poistaa ne lopuksi:
+
+```bash
+# Katso ensin mitä tulossa on; dry-run ei tarvitse tunnuksia eikä ota yhteyttä kantaan.
+./load_yki_historia_siirtymattomat.py --source failed_r4.csv \
+    --lahdetiedosto yki-historia-2.csv --oid-map oid_map_r4.jsonl --dry-run --prune
+
+./load_yki_historia_siirtymattomat.py --source failed_r4.csv \
+    --lahdetiedosto yki-historia-2.csv --oid-map oid_map_r4.jsonl \
+    --cluster-arn "$CLUSTER_ARN" --secret-arn "$SECRET_ARN" --confirm-prod --prune
+```
+
+- **`--lahdetiedoston` on oltava sama kuin alkuperäisessä latauksessa.** Prune rajaa siihen,
+  joten eri nimellä se ei osu mihinkään ja vanhat rivit jäävät orvoiksi vanhan nimen alle.
+- Poisto perustuu `ladattu`-sarakkeeseen: jokainen tässä ajossa kirjoitettu rivi saa tuoreen
+  arvon (uusi rivi sarakkeen oletuksesta, päivitetty `ON CONFLICT`-lauseesta), joten ajon
+  aloitushetkeä vanhemmiksi jäävät tasan ne jotka puuttuvat syötteestä. Aikaraja luetaan
+  **kannan omasta kellosta** (`SELECT now()`), ei CloudShellin, jottei kellojen ero poista
+  juuri kirjoitettuja rivejä.
+- Prune ajetaan vasta kun **jokainen** erä on kirjoitettu. Kesken jäänyt lataus ei poista
+  mitään, koska muuten se pyyhkisi rivit jotka olivat vain vielä kirjoittamatta.
+- **Tyhjä syöte ei poista kaikkea.** Jos uusi `--failed-out` on tyhjä, skripti varoittaa ja
+  ohittaa prunen: katkennut migraatioajo tuottaa samannäköisen tiedoston kuin täydellinen
+  onnistuminen, eikä ero saa olla koko taulun kokoinen. Poista jäännökset silloin käsin.
+- Ilman `--prune` lataus käyttäytyy täsmälleen kuten ennen.
+
 ### Täsmäytys
 
 ```bash
