@@ -18,6 +18,11 @@ ARN:t loytyvat nain:
     aws secretsmanager list-secrets --query "SecretList[?contains(Name,'DbStackSecret')].ARN" --output text
 
 Lataus on toistettavissa: rivit paivitetaan solki_id:n perusteella (ON CONFLICT).
+
+Uusintakierroksella --prune poistaa lopuksi ne saman --lahdetiedoston rivit jotka
+puuttuvat uudesta syotteesta, eli onnistuneesti siirtyneet. Ilman sita taulu jaa
+nayttamaan siirtymattomina rivit jotka ovat jo rekisterissa. --lahdetiedoston on
+oltava sama kuin alkuperaisessa latauksessa, muuten prune ei osu mihinkaan.
 """
 
 import argparse
@@ -162,6 +167,44 @@ def insert_sql():
     )
 
 
+def prune_sql():
+    """Poistaa riveja jotka eivat enaa kuulu karanteeniin.
+
+    Jokainen tassa ajossa kirjoitettu rivi saa tuoreen ladattu-arvon (uusi rivi
+    sarakkeen oletuksesta, paivitetty ON CONFLICT -lauseesta), joten rajan alle
+    jaavat tasan ne jotka puuttuvat uudesta --failed-out-tiedostosta: onnistuneesti
+    siirtyneet. Aikaraja on kannan omasta kellosta, ei CloudShellin.
+    """
+    return (
+        "DELETE FROM yki_historia_siirtymaton "
+        "WHERE lahdetiedosto = :lahdetiedosto AND ladattu < CAST(:ajon_alku AS timestamptz)"
+    )
+
+
+def run_start_timestamp(client, args):
+    vastaus = client.execute_statement(
+        resourceArn=args.cluster_arn,
+        secretArn=args.secret_arn,
+        database=args.database,
+        sql="SELECT CAST(now() AS text)",
+    )
+    return vastaus["records"][0][0]["stringValue"]
+
+
+def prune_vanhentuneet(client, args, lahdetiedosto, ajon_alku):
+    vastaus = client.execute_statement(
+        resourceArn=args.cluster_arn,
+        secretArn=args.secret_arn,
+        database=args.database,
+        sql=prune_sql(),
+        parameters=[
+            {"name": "lahdetiedosto", "value": {"stringValue": lahdetiedosto}},
+            {"name": "ajon_alku", "value": {"stringValue": ajon_alku}},
+        ],
+    )
+    return vastaus.get("numberOfRecordsUpdated", 0)
+
+
 def to_parameter_set(values):
     return [
         {"name": column, "value": {"isNull": True} if values[column] is None else {"stringValue": values[column]}}
@@ -219,11 +262,24 @@ def main():
     parser.add_argument("--delimiter", help="tab|comma|semicolon|pipe tai merkki; oletus tunnistetaan")
     parser.add_argument("--dry-run", action="store_true", help="jasenna ja luokittele, ei kirjoituksia")
     parser.add_argument("--confirm-prod", action="store_true", help="vaaditaan ennen kirjoituksia")
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="poista lopuksi taman lahdetiedoston rivit jotka puuttuvat syotteesta (siirtyneet)",
+    )
     args = parser.parse_args()
 
     text = read_text(args.source)
     if not text.strip():
         log("lahde on tyhja, ei ladattavaa")
+        if args.prune:
+            # Tyhja syote tarkoittaisi "poista kaikki", mika on liian iso seuraus
+            # tyhjalle tiedostolle - esim. katkennut migraatioajo tuottaa samanlaisen.
+            log(
+                "VAROITUS: --prune ohitettiin koska lahde on tyhja. Jos jokainen rivi todella "
+                f"siirtyi, poista jaannokset kasin: DELETE FROM yki_historia_siirtymaton WHERE "
+                f"lahdetiedosto = '{args.lahdetiedosto or os.path.basename(args.source)}';"
+            )
         return 0
 
     delimiter = resolve_delimiter(text.split("\n", 1)[0], args.delimiter)
@@ -259,6 +315,12 @@ def main():
 
     if args.dry_run:
         log(f"dry-run: ei kirjoitettu. Esimerkkirivi: {json.dumps(parsed[0], ensure_ascii=False)}")
+        if args.prune:
+            log(
+                f"dry-run: --prune poistaisi lahdetiedoston {lahdetiedosto} rivit jotka eivat ole "
+                f"naiden {len(parsed)} joukossa. Dry-run ei ota yhteytta kantaan, joten maaraa ei "
+                "voi nayttaa etukateen."
+            )
         return 0
 
     if not args.confirm_prod:
@@ -272,6 +334,7 @@ def main():
 
     client = boto3.client("rds-data", region_name=args.region)
     sql = insert_sql()
+    ajon_alku = run_start_timestamp(client, args) if args.prune else None
 
     rikkinaisia = sum(1 for row in parsed if not row["solki_id"])
     if rikkinaisia:
@@ -301,6 +364,15 @@ def main():
         )
         kirjoitettu += len(batch)
         log(f"...{kirjoitettu}/{len(parsed)} riviä kirjoitettu")
+
+    if args.prune:
+        # Vasta tassa: jokainen era on mennyt lapi, joten rajan alle jaavat rivit ovat
+        # tosiaan poissa syotteesta eivatka vain viela kirjoittamatta.
+        if kirjoitettu != len(parsed):
+            log(f"VIRHE: --prune ohitettiin, kirjoitettuja {kirjoitettu}/{len(parsed)}")
+            return 1
+        poistettu = prune_vanhentuneet(client, args, lahdetiedosto, ajon_alku)
+        log(f"prune: poistettu {poistettu} riviä jotka eivät enää ole siirtymättä")
 
     log(f"done: {kirjoitettu} riviä tauluun yki_historia_siirtymaton")
     return 0

@@ -168,6 +168,71 @@ class SqlTest(unittest.TestCase):
             self.assertIn(column, sql)
 
 
+class FakeArgs:
+    cluster_arn = "arn:cluster"
+    secret_arn = "arn:secret"
+    database = "kios"
+
+
+class FakeClient:
+    """Tallentaa kutsut; ei mockkikirjastoa, kuten muuallakin tassa repossa."""
+
+    def __init__(self, records=None, updated=0):
+        self.records = records or [[{"stringValue": "2026-09-29 12:00:00+03"}]]
+        self.updated = updated
+        self.kutsut = []
+
+    def execute_statement(self, **kwargs):
+        self.kutsut.append(kwargs)
+        return {"records": self.records, "numberOfRecordsUpdated": self.updated}
+
+
+class PruneSqlTest(unittest.TestCase):
+    def test_rajaa_lahdetiedostoon_ja_aikarajaan(self):
+        sql = loader.prune_sql()
+        self.assertIn("DELETE FROM yki_historia_siirtymaton", sql)
+        self.assertIn("lahdetiedosto = :lahdetiedosto", sql)
+        self.assertIn("ladattu < CAST(:ajon_alku AS timestamptz)", sql)
+
+    def test_ei_kaksoiskaksoispistetta(self):
+        # Sama syy kuin insert_sql:ssa: ::-syntaksi sotkee Data APIn parametrit.
+        self.assertNotIn("::", loader.prune_sql())
+
+    def test_ei_poista_ilman_lahdetiedostorajausta(self):
+        # Ilman rajausta prune pyyhkisi myos toisen lahdeaineiston rivit.
+        self.assertNotIn("DELETE FROM yki_historia_siirtymaton WHERE ladattu", loader.prune_sql())
+
+
+class RunStartTimestampTest(unittest.TestCase):
+    def test_lukee_kannan_kellon_tekstina(self):
+        client = FakeClient(records=[[{"stringValue": "2026-09-29 12:00:00+03"}]])
+
+        tulos = loader.run_start_timestamp(client, FakeArgs())
+
+        self.assertEqual("2026-09-29 12:00:00+03", tulos)
+        # CloudShellin kello voi olla eri kuin kannan, joten aika on haettava kannasta.
+        self.assertEqual("SELECT CAST(now() AS text)", client.kutsut[0]["sql"])
+
+
+class PruneVanhentuneetTest(unittest.TestCase):
+    def test_valittaa_parametrit_ja_palauttaa_poistettujen_maaran(self):
+        client = FakeClient(updated=7)
+
+        poistettu = loader.prune_vanhentuneet(client, FakeArgs(), "yki-historia-2.csv", "2026-09-29 12:00:00+03")
+
+        self.assertEqual(7, poistettu)
+        params = {p["name"]: p["value"]["stringValue"] for p in client.kutsut[0]["parameters"]}
+        self.assertEqual("yki-historia-2.csv", params["lahdetiedosto"])
+        self.assertEqual("2026-09-29 12:00:00+03", params["ajon_alku"])
+
+    def test_puuttuva_maara_on_nolla(self):
+        class TyhjaVastaus(FakeClient):
+            def execute_statement(self, **kwargs):
+                return {}
+
+        self.assertEqual(0, loader.prune_vanhentuneet(TyhjaVastaus(), FakeArgs(), "x.csv", "2026-09-29"))
+
+
 class ParameterSetTest(unittest.TestCase):
     def test_null_ja_arvo(self):
         values = loader.parse_row(rivi(), "lahde.csv", {}, ",")
