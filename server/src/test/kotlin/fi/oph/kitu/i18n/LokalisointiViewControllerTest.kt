@@ -30,6 +30,7 @@ import org.springframework.web.context.WebApplicationContext
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 @SpringBootTest
@@ -60,7 +61,14 @@ class LokalisointiViewControllerTest(
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("http://localhost/"))
 
-        assertNull(TolgeeMessages.get("nav.yki"))
+        assertNull(
+            TolgeeMessages.get("nav.yki")?.sv,
+            "Elävä ruotsinkielinen käännös katosi välimuistin mukana",
+        )
+        assertNotNull(
+            TolgeeMessages.get("nav.yki")?.fi,
+            "Repon lähdeteksti jää voimaan: tyhjennys koskee vain elävää kerrosta",
+        )
     }
 
     @Test

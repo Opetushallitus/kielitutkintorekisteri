@@ -24,19 +24,8 @@ class LokalisointiClient(
 ) {
     @WithSpan
     @RetryOutboundIntegration
-    fun fetchAll(): Map<String, LocalizedString> {
-        val translationsByLanguage = Language.entries.associateWith { fetchLocale(it) }
-        return translationsByLanguage.values
-            .flatMap { it.keys }
-            .toSet()
-            .associateWith { key ->
-                LocalizedString(
-                    fi = translationsByLanguage[Language.FI]?.get(key),
-                    sv = translationsByLanguage[Language.SV]?.get(key),
-                    en = translationsByLanguage[Language.EN]?.get(key),
-                )
-            }
-    }
+    fun fetchAll(): Map<String, LocalizedString> =
+        Language.entries.associateWith { fetchLocale(it) }.yhdistaKaannokset()
 
     private fun fetchLocale(language: Language): Map<String, String> =
         tracer

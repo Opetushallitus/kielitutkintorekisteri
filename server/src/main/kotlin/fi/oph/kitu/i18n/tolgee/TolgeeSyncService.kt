@@ -1,6 +1,7 @@
 package fi.oph.kitu.i18n.tolgee
 
 import fi.oph.kitu.config.ConditionalOnNonEmptyProperty
+import fi.oph.kitu.i18n.TolgeeMessages
 import fi.oph.kitu.i18n.UiTextRegistry
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
@@ -23,7 +24,7 @@ class TolgeeSyncService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @WithSpan
-    fun sync(): TolgeeSyncResult = sync(UiTextRegistry.all())
+    fun sync(): TolgeeSyncResult = sync(UiTextRegistry.all().associateWith { TolgeeMessages.sourceText(it) ?: it })
 
     fun sync(koodinAvaimet: Map<String, String>): TolgeeSyncResult {
         if (namespace.isBlank()) {

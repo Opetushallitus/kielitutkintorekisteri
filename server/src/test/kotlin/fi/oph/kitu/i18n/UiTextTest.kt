@@ -1,38 +1,31 @@
 package fi.oph.kitu.i18n
 
 import org.junit.jupiter.api.Test
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
+/**
+ * Lähdetekstit ovat `lokalisointi/fi.json`issa ja [UiText] sisältää vain avaimet, joten mikään
+ * kääntäjä ei enää valvo niiden vastaavuutta. Tämä testi on se valvonta: kumpikin suunta on
+ * tarkistettava, koska puuttuva lähdeteksti renderöisi avainmerkkijonon ja ylimääräinen
+ * lähdeteksti jäisi ikuisesti roikkumaan Tolgeeseen.
+ */
 class UiTextTest {
     @Test
-    fun `kaikilla UiText-merkkijonoilla on suomenkielinen oletusteksti koodissa`() {
-        val strings = collectLocalizedStrings(UiText, "UiText")
-        assertTrue(strings.isNotEmpty(), "UiText-katalogista ei löytynyt yhtään LocalizedStringia")
-        strings.forEach { (path, ls) ->
-            assertFalse(ls.fi.isNullOrBlank(), "$path: suomenkielinen oletusteksti puuttuu")
-        }
-    }
+    fun `UiTextin ja lahdetekstien avaimet vastaavat toisiaan`() {
+        UiTextWarmup().warmUp(UiText)
 
-    private fun collectLocalizedStrings(
-        obj: Any,
-        prefix: String,
-    ): List<Pair<String, LocalizedString>> {
-        val result = mutableListOf<Pair<String, LocalizedString>>()
-        obj::class.memberProperties.forEach { prop ->
-            prop.isAccessible = true
-            val value = prop.getter.call(obj)
-            if (value is LocalizedString) {
-                result.add("$prefix.${prop.name}" to value)
-            }
-        }
-        obj::class.nestedClasses.forEach { nested ->
-            nested.objectInstance?.let { instance ->
-                result.addAll(collectLocalizedStrings(instance, "$prefix.${nested.simpleName}"))
-            }
-        }
-        return result
+        val koodissa = UiTextRegistry.all()
+        val lahteessa = TolgeeMessages.sourceKeys()
+
+        assertEquals(
+            emptySet(),
+            koodissa - lahteessa,
+            "UiTextissä on avaimia joille ei ole suomenkielistä lähdetekstiä lokalisointi/fi.json:ssa",
+        )
+        assertEquals(
+            emptySet(),
+            lahteessa - koodissa,
+            "lokalisointi/fi.json:ssa on avaimia joita UiText ei käytä — poista ne",
+        )
     }
 }

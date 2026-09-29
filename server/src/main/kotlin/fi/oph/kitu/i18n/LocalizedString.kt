@@ -15,7 +15,7 @@ data class LocalizedString(
 
     override fun toString(): String = get(CurrentLanguage.get())
 
-    fun get(lang: Language): String = resolve(lang) ?: resolve(Language.FI) ?: "<invalid LocalizedString>"
+    fun get(lang: Language): String = resolve(lang) ?: resolve(Language.FI) ?: tolgeeKey ?: "<invalid LocalizedString>"
 
     fun contains(
         other: CharSequence,
@@ -26,11 +26,20 @@ data class LocalizedString(
         fun substitute(text: String?): String? =
             args.fold(text) { acc, (name, value) -> acc?.replace("{$name}", value.toString()) }
         return LocalizedString(
-            fi = substitute(resolve(Language.FI)),
+            fi = substitute(resolve(Language.FI)) ?: tolgeeKey,
             sv = substitute(resolve(Language.SV)),
             en = substitute(resolve(Language.EN)),
         )
     }
+
+    override fun equals(other: Any?): Boolean =
+        other is LocalizedString &&
+            fi == other.fi &&
+            sv == other.sv &&
+            en == other.en &&
+            tolgeeKey == other.tolgeeKey
+
+    override fun hashCode(): Int = listOf(fi, sv, en, tolgeeKey).hashCode()
 
     private fun resolve(lang: Language): String? {
         val tolgee = tolgeeKey?.let { TolgeeMessages.get(it) }
@@ -42,9 +51,23 @@ data class LocalizedString(
     }
 
     companion object {
-        fun withTolgeeKey(
-            key: String,
-            fi: String,
-        ): LocalizedString = LocalizedString(fi = fi).also { it.tolgeeKey = key }
+        fun withTolgeeKey(key: String): LocalizedString = LocalizedString().also { it.tolgeeKey = key }
     }
 }
+
+/**
+ * Yhdistää kielikohtaiset litteät käännöskartat avainkohtaisiksi [LocalizedString]eiksi.
+ * Yhteinen sekä lokalisointipalvelun haulle että luokkapolun lähdeteksteille, jottei
+ * kahta yhdistelysääntöä pääse syntymään.
+ */
+internal fun Map<Language, Map<String, String>>.yhdistaKaannokset(): Map<String, LocalizedString> =
+    values
+        .flatMap { it.keys }
+        .toSet()
+        .associateWith { key ->
+            LocalizedString(
+                fi = this[Language.FI]?.get(key),
+                sv = this[Language.SV]?.get(key),
+                en = this[Language.EN]?.get(key),
+            )
+        }

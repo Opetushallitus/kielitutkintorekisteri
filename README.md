@@ -171,17 +171,41 @@ onnistu, jos jokin näistä puuttuu tililtä.
 
 ## Käyttöliittymän käännökset (lokalisointi)
 
-Virkailijakäyttöliittymän tekstit ovat oletuksena suomeksi koodissa
-([UiText.kt](server/src/main/kotlin/fi/oph/kitu/i18n/UiText.kt)). Ruotsin- ja englanninkieliset
-käännökset haetaan Tolgeesta OPH:n lokalisointipalvelun kautta sovelluksen käynnistyessä (ja
-ajoittain uudelleen) polusta `/lokalisointi/tolgee/kielitutkintorekisteri/{fi,sv,en}.json`.
+Virkailijakäyttöliittymän **lähdetekstit ovat repossa JSONina**,
+[server/src/main/resources/lokalisointi/{fi,sv,en}.json](server/src/main/resources/lokalisointi).
+[UiText.kt](server/src/main/kotlin/fi/oph/kitu/i18n/UiText.kt) on tyypitetty luettelo, joka sisältää
+vain avaimet — suomenkielistä tekstiä ei ole enää koodissa, jottei sama teksti eläisi kahdessa
+paikassa. Lähdetekstit ladataan luokkapolulta jokaisessa profiilissa, joten offline-ajo näyttää
+samat tekstit kuin tuotanto.
 
+Tuoreimmat käännökset haetaan lisäksi ajossa Tolgeesta OPH:n lokalisointipalvelun kautta polusta
+`/lokalisointi/tolgee/kielitutkintorekisteri/{fi,sv,en}.json`. Kerrokset yhdistetään
+**kielikohtaisesti**: elävä arvo voittaa kielen kerrallaan ja repon lähdeteksti täyttää puuttuvat.
 Haku on käytössä ympäristöissä, joissa `kitu.lokalisointi.namespace` on asetettu (untuva, qa,
-tuotanto sekä paikallinen `local`-profiili, joka lukee untuvan proxysta). Nimiavaruus (namespace)
-erottaa eri sovellusten käännökset jaetussa lokalisointipalvelussa; kitun nimiavaruus on
-`kielitutkintorekisteri` (vrt. KOSKIn `koski`). Testeissä, e2e:ssä ja `local-opintopolku`-profiilissa
-nimiavaruus on tyhjä, jolloin käytetään koodin suomenkielisiä oletuksia eikä proxya kutsuta.
-Erillistä salaisuutta ei lukemiseen tarvita, koska proxy tarjoilee julkaistut käännöstiedostot.
+tuotanto). Nimiavaruus (namespace) erottaa eri sovellusten käännökset jaetussa
+lokalisointipalvelussa; kitun nimiavaruus on `kielitutkintorekisteri` (vrt. KOSKIn `koski`).
+Testeissä, e2e:ssä sekä `local`- ja `local-opintopolku`-profiileissa nimiavaruus on tyhjä, jolloin
+käytetään pelkkiä repon lähdetekstejä eikä proxya kutsuta. Erillistä salaisuutta ei lukemiseen
+tarvita, koska proxy tarjoilee julkaistut käännöstiedostot.
+
+### Käännösten päivitys repoon
+
+Kääntäjien Tolgeessa tekemät muutokset tuodaan repoon käsin ajettavalla skriptillä:
+
+```shell
+python3 scripts/fetch_kaannokset.py           # hae ja kirjoita
+python3 scripts/fetch_kaannokset.py --check   # kerro vanhentuneisuus, älä kirjoita
+```
+
+Oletuslähde on **testiopintopolku (QA)**: se on ainoa ympäristö, johon avainsynkronointi työntää
+avaimet, ja ainoa joka julkaisee ruotsin ja englannin. Skripti ei lisää avaimia — avainjoukon
+omistaa `fi.json` ja `UiTextTest` vaatii, että se vastaa `UiText`iä täsmälleen. Uuden tekstin
+lisääminen on siis kaksi riviä: avain `UiText.kt`:hen ja teksti `fi.json`iin.
+
+**Olemassa olevan avaimen suomenkielistä tekstiä ei kannata muokata `fi.json`issa:** synkronointi
+käyttää Tolgeen `resolution: NEW` -tilaa eikä koskaan ylikirjoita olemassa olevaa lähdetekstiä, joten
+muutos katoaa seuraavassa haussa. Kun suomenkielisen tekstin merkitys muuttuu, **nimeä avain
+uudelleen**.
 
 ### Avainten synkronointi Tolgeehen
 

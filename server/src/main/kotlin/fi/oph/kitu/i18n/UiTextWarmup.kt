@@ -17,6 +17,10 @@ import kotlin.reflect.jvm.isAccessible
  * synkronoinnille avaimelta, jota ei enää ole koodissa, ja se poistettaisiin Tolgeesta.
  * Siksi jokainen [LocalizedString]ia palauttava jäsen on pakko saada kutsutuksi, ja
  * epäonnistuminen kaataa käynnistyksen — myös testeissä ja paikallisesti.
+ *
+ * Lisäksi tarkistetaan että jokaiselle avaimelle löytyy lähdeteksti luokkapolulta. Ilman sitä
+ * käyttöliittymään renderöityisi avainmerkkijonoja, ja Tolgeeseen työnnettäisiin avain ilman
+ * lähdetekstiä.
  */
 @Component
 @Order(0)
@@ -25,6 +29,14 @@ class UiTextWarmup : ApplicationRunner {
         val virheet = warmUp(UiText)
         if (virheet.isNotEmpty()) {
             error("UiText-avaimia ei saatu luettua: ${virheet.joinToString("; ")}")
+        }
+
+        val puuttuvat = UiTextRegistry.all() - TolgeeMessages.sourceKeys()
+        if (puuttuvat.isNotEmpty()) {
+            error(
+                "UiText-avaimia puuttuu lähdeteksteistä ($KAANNOSHAKEMISTO/fi.json): " +
+                    puuttuvat.sorted().joinToString(", "),
+            )
         }
     }
 
