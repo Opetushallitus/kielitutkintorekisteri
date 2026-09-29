@@ -80,6 +80,11 @@ object HomePage {
             Links.Yki.tarkistusArvioinnit(),
         )
         statRow(
+            UiText.Nav.historiaSiirtymattomat,
+            s.historiaSiirtymattomatCount,
+            Links.Yki.historiaSiirtymattomat(),
+        )
+        statRow(
             label = UiText.Etusivu.arvioijienSolkiVirheet,
             value = s.arvioijaSolkiErrorCount,
             href = Links.Yki.arvioijat() + "?vainSolkiVirheet=true",
