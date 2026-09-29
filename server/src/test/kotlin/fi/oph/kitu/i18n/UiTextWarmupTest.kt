@@ -1,17 +1,26 @@
 package fi.oph.kitu.i18n
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.DefaultApplicationArguments
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+
+/**
+ * Huom: testikatalogien `record` ei kirjaa [UiTextRegistry]yn. Rekisteri on globaali ja
+ * [UiTextWarmup.run] vertaa sitä lähdeteksteihin, joten synteettinen `test.*`-avain kaataisi
+ * käynnistystarkistuksen kaikissa myöhemmissä testeissä.
+ */
+private val kutsutut = mutableMapOf<String, String>()
 
 private fun record(
     key: String,
     fi: String,
 ): LocalizedString {
-    UiTextRegistry.record(key, fi)
-    return LocalizedString.withTolgeeKey(key, fi)
+    kutsutut[key] = fi
+    return LocalizedString.withTolgeeKey(key)
 }
 
 private object TestTexts {
@@ -40,26 +49,29 @@ private object TestTextsHajoava {
 }
 
 class UiTextWarmupTest {
+    @AfterEach
+    fun palautaLahdetekstit() = TolgeeMessages.reloadSourceTexts()
+
     @Test
     fun `warmup rekisteroi propertyt, parametrittomat ja Long-funktiot seka sisakkaiset objektit`() {
+        kutsutut.clear()
         val virheet = UiTextWarmup().warmUp(TestTexts)
 
         assertEquals(emptyList(), virheet, "Kelvollisesta katalogista ei saa tulla virheitä")
-        val keys = UiTextRegistry.all().keys
-        assertContains(keys, "test.pelkkaProperty", "Propertyn avaimen tulee rekisteröityä")
-        assertContains(keys, "test.ilmanParametreja", "Parametrittoman funktion avaimen tulee rekisteröityä")
-        assertContains(keys, "test.yksiParametri", "Yhden Long-parametrin funktion avaimen tulee rekisteröityä")
-        assertContains(keys, "test.kaksiParametria", "Kahden Long-parametrin funktion avaimen tulee rekisteröityä")
-        assertContains(keys, "test.sisakkainen.teksti", "Sisäkkäisen objektin avaimen tulee rekisteröityä")
+        assertContains(kutsutut.keys, "test.pelkkaProperty", "Propertyn tulee tulla kutsutuksi")
+        assertContains(kutsutut.keys, "test.ilmanParametreja", "Parametrittoman funktion tulee tulla kutsutuksi")
+        assertContains(kutsutut.keys, "test.yksiParametri", "Yhden Long-parametrin funktion tulee tulla kutsutuksi")
+        assertContains(kutsutut.keys, "test.kaksiParametria", "Kahden Long-parametrin funktion tulee tulla kutsutuksi")
+        assertContains(kutsutut.keys, "test.sisakkainen.teksti", "Sisäkkäisen objektin tulee tulla kutsutuksi")
     }
 
     @Test
     fun `warmup kutsuu Long-parametrit nollilla`() {
+        kutsutut.clear()
         UiTextWarmup().warmUp(TestTexts)
 
-        val all = UiTextRegistry.all()
-        assertEquals("count=0", all["test.yksiParametri"])
-        assertEquals("eka=0 toka=0", all["test.kaksiParametria"])
+        assertEquals("count=0", kutsutut["test.yksiParametri"])
+        assertEquals("eka=0 toka=0", kutsutut["test.kaksiParametria"])
     }
 
     @Test
@@ -85,6 +97,22 @@ class UiTextWarmupTest {
         assertTrue(
             UiTextRegistry.all().size > 400,
             "UiTextin avaimia pitäisi rekisteröityä satoja, saatiin ${UiTextRegistry.all().size}",
+        )
+    }
+
+    @Test
+    fun `puuttuva lahdeteksti kaataa kaynnistyksen`() {
+        TolgeeMessages.setSourceTexts(mapOf("appTitle" to LocalizedString(fi = "Vain tämä")))
+
+        val virhe =
+            assertFailsWith<IllegalStateException> {
+                UiTextWarmup().run(DefaultApplicationArguments())
+            }
+
+        assertContains(
+            virhe.message.orEmpty(),
+            "puuttuu lähdeteksteistä",
+            message = "Käynnistyksen on kaaduttava selkeään virheeseen, ei renderöitävä avainmerkkijonoja",
         )
     }
 }

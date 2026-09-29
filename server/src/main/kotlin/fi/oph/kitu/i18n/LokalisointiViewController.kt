@@ -21,7 +21,7 @@ class LokalisointiViewController(
         if (loader == null) {
             viewMessage?.showInfo(
                 "Käännösvälimuisti tyhjennettiin. Lokalisointipalvelu ei ole käytössä tässä ympäristössä, " +
-                    "joten käyttöliittymä näytetään suomeksi.",
+                    "joten käytössä ovat repoon tallennetut lähdetekstit.",
             )
         } else {
             loader.refresh().fold(
@@ -34,7 +34,7 @@ class LokalisointiViewController(
                 onFailure = {
                     viewMessage?.showError(
                         "Käännösvälimuisti tyhjennettiin, mutta käännösten lataus lokalisointipalvelusta " +
-                            "epäonnistui. Käyttöliittymä näytetään suomeksi kunnes lataus onnistuu.",
+                            "epäonnistui. Käytössä ovat repoon tallennetut lähdetekstit kunnes lataus onnistuu.",
                     )
                 },
             )

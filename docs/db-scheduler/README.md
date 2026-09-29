@@ -97,6 +97,8 @@ joiden istuntoa ei enää ole. Ajetaan päivittäin klo 04:30.
 
 ### Päivitä käännökset lokalisointipalvelusta
 
-Hakee sv/en-käännökset OPH:n lokalisointiproxysta Tolgeesta ja päivittää muistinvaraisen
-käännösvaraston. Ajo on olemassa vain ympäristöissä, joissa `kitu.lokalisointi.namespace` on
-asetettu.
+Hakee fi/sv/en-käännökset OPH:n lokalisointiproxysta Tolgeesta ja päivittää muistinvaraisen
+käännösvaraston elävän kerroksen. Repoon tallennetut lähdetekstit
+(`server/src/main/resources/lokalisointi/*.json`) jäävät alle ja täyttävät ne kielet, joita proxy ei
+tarjoa, joten ajo ei voi jättää käyttöliittymää tekstittömäksi. Ajo on olemassa vain ympäristöissä,
+joissa `kitu.lokalisointi.namespace` on asetettu.
