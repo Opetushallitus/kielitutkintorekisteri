@@ -73,6 +73,23 @@ class OppijanumeroHakuServiceTest {
     }
 
     @Test
+    fun `ONR-n 409 yritetaan uudelleen nimivaihtoehdoilla`() {
+        val service =
+            palvelu { yritetty ->
+                if (yritetty.kutsumanimi == "Ilmari") loydettyOid.right() else badRequest(HttpStatus.CONFLICT)
+            }
+
+        val tulos = OppijanumeroHakuService(service, OppijanumeroTroubleshootingService(service)).haeMasterOid(oppija)
+
+        assertEquals(loydettyOid, tulos.getOrNull())
+        assertTrue(
+            service.kutsutut.any { it.kutsumanimi == "Ilmari" },
+            "409 tarkoittaa etta henkilo loytyi mutta nimet eivat tasmanneet - juuri silloin " +
+                "nimivaihtoehdot ovat ainoa asia joka voi auttaa",
+        )
+    }
+
+    @Test
     fun `kuormanrajoitusta ei yriteta uudelleen nimivaihtoehdoilla`() {
         val service = palvelu { badRequest(HttpStatus.TOO_MANY_REQUESTS) }
 

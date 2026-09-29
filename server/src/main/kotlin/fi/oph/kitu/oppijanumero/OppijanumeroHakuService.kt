@@ -38,11 +38,18 @@ class OppijanumeroHakuService(
         when (this) {
             is OppijanumeroException.OppijaNotIdentifiedException,
             is OppijanumeroException.OppijaNotFoundException,
-            -> true
+            -> {
+                true
+            }
 
-            is OppijanumeroException.BadRequest -> response.statusCode == HttpStatus.BAD_REQUEST
+            is OppijanumeroException.BadRequest -> {
+                response.statusCode == HttpStatus.BAD_REQUEST ||
+                    response.statusCode == HttpStatus.CONFLICT
+            }
 
-            else -> false
+            else -> {
+                false
+            }
         }
 
     fun oppijaOf(
