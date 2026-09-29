@@ -189,8 +189,17 @@ completeness"), a pre-pass resolves OIDs from hetu + names through kitu's
 `POST /yki/api/oppijanumero-haku` (same `YKI_TALLENNUS` OAuth2 client as the suoritus
 POST; the endpoint queries ONR `yleistunniste/hae` and falls back to
 `OppijanumeroTroubleshootingService` name combinations — each etunimi as kutsumanimi,
-swapped etunimet/sukunimi). It is resolve-only: people ONR has never seen stay
-unresolved, since kitu has no ONR-create capability.
+swapped etunimet/sukunimi).
+
+It is **not** resolve-only. ONR's `yleistunniste/hae` is `findOrCreate`
+(`YleistunnisteServiceImpl`): when the hetu is unknown to ONR, `YksilointiServiceImpl.exists`
+queries **VTJ (DVV) live**, and the henkilö is **created** if VTJ knows the hetu and the
+names match. The endpoint is gated on `YLEISTUNNISTE_LUONTI`, which kitu necessarily holds
+— without it the call would 403 instead of answering. A row therefore stays unresolved on
+only two outcomes: **409** (the person is in ONR or VTJ but the source names differ — in
+this data the rule rather than the exception) or **404** (VTJ does not know the hetu
+either). Note also that `hae` attaches the henkilö to the **caller's** organisations, so it
+writes to the register; it is not a lookup.
 
 ```bash
 # Pre-pass: resolve OIDs for OID-less rows into a resumable map. POSTs no suoritukset.
@@ -263,6 +272,10 @@ ohittaa nimet kokonaan ja ratkaisee oppijanumerot erissä (1 000 hetua/kutsu):
 - Saman henkilön monta suoritusta vievät yhden paikan erässä, mutta oid-karttaan kirjoitetaan
   rivikohtainen tietue, joten resume toimii ennallaan. Erä joka ei vastannut jätetään
   **kokonaan kirjaamatta**, jolloin seuraava ajo yrittää sen uudelleen.
+- **Hetulistahaku ei luo ketään.** `henkiloPerustietosByHenkiloHetuList` lukee vain
+  oppijanumerorekisterin oman taulun eikä kysy VTJ:ltä mitään. Nimihaku on siis ainoa reitti
+  joka voi luoda henkilön VTJ:n tiedoista. Reitit täydentävät toisiaan: hetulista näkee
+  vanhentuneiden nimien läpi, nimihaku luo ne joita rekisterissä ei vielä ole.
 
 ```bash
 # Later round, when ONR knows more people: feed the leftover file back in.
