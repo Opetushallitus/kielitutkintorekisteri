@@ -678,8 +678,7 @@ object UiText {
                         "yki.historia.kuvaus",
                         fi =
                             "Vuosien 2011-2016 historiasiirrossa rekisteriin siirtymättä jääneet lähderivit. " +
-                                "Rivit eivät ole suorituksia: niitä ei siirretä KOSKEen eikä niistä lähde " +
-                                "mitään muuhunkaan järjestelmään.",
+                                "Näitä rivejä ei siirretä KOSKI-palveluun tai muihin järjestelmiin.",
                     )
             val rivejaYhteensa: LocalizedString get() = tr("yki.historia.rivejaYhteensa", fi = "Rivejä yhteensä")
             val eiRiveja: LocalizedString

@@ -5,8 +5,10 @@ import fi.oph.kitu.config.isQA
 import fi.oph.kitu.dev.mockdata.VktSuoritusMockGenerator
 import fi.oph.kitu.dev.mockdata.generateRandomKielitestiSuoritus
 import fi.oph.kitu.dev.mockdata.generateRandomYkiArvioijaEntity
+import fi.oph.kitu.dev.mockdata.generateRandomYkiHistoriaSiirtymatonEntity
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusErrorEntity
+import fi.oph.kitu.dev.mockdata.insertSiirtymattomatMockRivit
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
 import fi.oph.kitu.tiedontuontischema.VktValidation
@@ -14,6 +16,7 @@ import fi.oph.kitu.vkt.VktSuoritusEntity
 import fi.oph.kitu.vkt.VktSuoritusRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
+import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorEntity
@@ -24,6 +27,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.SpringApplication
 import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -43,6 +47,7 @@ class CreateMockDataController(
     private val kielitestiSuoritusRepository: KielitestiSuoritusRepository,
     private val vktSuoritusRepository: VktSuoritusRepository,
     private val vktValidation: VktValidation,
+    private val namedJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -98,6 +103,24 @@ class CreateMockDataController(
             )
         return arvioijaRepository.findAllById(ids)
     }
+
+    /**
+     * Historiasiirrossa siirtymatta jaaneet rivit. Kirjoitus tehdaan mockdatan omalla
+     * apurilla, koska tuotantokoodi vain lukee taman taulun - rivit tulevat oikeasti
+     * CloudShellista ajettavalla latausskriptilla.
+     */
+    @GetMapping(
+        "/mockdata/yki/historia-siirtymaton/",
+        "/mockdata/yki/historia-siirtymaton/{count}",
+    )
+    fun createYkiHistoriaSiirtymatonMockData(
+        @PathVariable count: Int?,
+    ): Iterable<YkiHistoriaSiirtymatonEntity> =
+        namedJdbcTemplate.insertSiirtymattomatMockRivit(
+            List(count ?: 1000) {
+                generateRandomYkiHistoriaSiirtymatonEntity()
+            },
+        )
 
     // Koto
     @GetMapping(
