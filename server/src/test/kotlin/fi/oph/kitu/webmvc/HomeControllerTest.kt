@@ -86,14 +86,14 @@ class HomeControllerTest(
 
     @Test
     fun `Tolgeen suomenkielinen teksti nakyy navigaatiossa koodin oletuksen sijaan`() {
-        TolgeeMessages.set(mapOf("nav.tehtavapaketit" to LocalizedString(fi = "Testipaketit")))
+        TolgeeMessages.set(mapOf("nav.tehtavapaketit" to LocalizedString(fi = "Elävät testipaketit")))
 
         val response = getHtml("/")
 
-        assertContains(response, "Testipaketit")
+        assertContains(response, "Elävät testipaketit")
         assertFalse(
-            response.contains("Tehtäväpaketit"),
-            "Koodin oletusteksti korvautuu Tolgeen suomennoksella",
+            response.contains(">Testipaketit<"),
+            "Repon lähdeteksti korvautuu lokalisointipalvelun suomennoksella",
         )
     }
 
@@ -212,7 +212,7 @@ class HomeControllerTest(
 
         assertContains(fragment, """class="dashboard-stats"""")
         assertContains(fragment, "Suoritukset")
-        assertContains(fragment, "Tehtäväpaketit")
+        assertContains(fragment, "Testipaketit")
         assertContains(fragment, "Tuonnin virheet")
         assertFalse(fragment.contains("<html"), "Fragmenttivastaus ei sisällä sivun kuorta")
     }

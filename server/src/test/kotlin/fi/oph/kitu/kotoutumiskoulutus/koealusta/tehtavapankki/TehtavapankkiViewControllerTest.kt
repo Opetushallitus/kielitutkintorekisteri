@@ -98,7 +98,7 @@ class TehtavapankkiViewControllerTest(
                 .andReturn()
                 .response.contentAsString
 
-        assertContains(response, "Ei tehtäväpaketteja.")
+        assertContains(response, "Ei testipaketteja.")
     }
 
     @Test
