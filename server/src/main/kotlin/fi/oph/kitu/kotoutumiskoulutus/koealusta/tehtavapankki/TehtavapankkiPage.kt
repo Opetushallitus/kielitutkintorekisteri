@@ -7,6 +7,7 @@ import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.i18n.finnishDateTime
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.tehtavapankki.TehtavapakettiEntity
+import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.webmvc.Links
 import kotlinx.html.a
 import kotlinx.html.h1
@@ -19,7 +20,6 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.thead
 import kotlinx.html.tr
-import java.time.ZoneId
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -40,7 +40,7 @@ object TehtavapankkiPage {
                 paketti.lahdeFilegenerated?.let {
                     add(
                         "${UiText.Koto.generoituLabel} ${it.atZoneSameInstant(
-                            ZoneId.systemDefault(),
+                            TimeService.zoneId,
                         ).toLocalDate().finnishDate()}",
                     )
                 }

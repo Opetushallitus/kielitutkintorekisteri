@@ -1,13 +1,13 @@
 package fi.oph.kitu.i18n
 
 import fi.oph.kitu.html.testId
+import fi.oph.kitu.util.TimeService
 import kotlinx.html.FlowContent
 import kotlinx.html.span
 import kotlinx.html.title
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val finnishDateFormatter = DateTimeFormatter.ofPattern("d.M.yyyy")
@@ -33,7 +33,7 @@ fun aikarajausDescription(
 
 fun Instant.finnishDateTime(includeTimeZone: Boolean = true): String =
     (if (includeTimeZone) finnishDateTimeWithZoneFormatter else finnishDateTimeFormatter)
-        .format(this.atZone(ZoneId.systemDefault()))
+        .format(this.atZone(TimeService.zoneId))
 
 fun FlowContent.finnishDate(d: LocalDate) {
     span {
@@ -64,6 +64,6 @@ fun formatRelativeTime(
         seconds < 60 * 60 * 24 -> UiText.Time.tuntiaSitten(seconds / 3_600).get(lang)
         seconds < 60 * 60 * 24 * 2 -> UiText.Time.eilen.get(lang)
         seconds < 60 * 60 * 24 * 7 -> UiText.Time.paivaaSitten(seconds / 86_400).get(lang)
-        else -> t.atZone(ZoneId.systemDefault()).toLocalDate().finnishDate()
+        else -> t.atZone(TimeService.zoneId).toLocalDate().finnishDate()
     }
 }
