@@ -1,7 +1,6 @@
 package fi.oph.kitu.html
 
 import fi.oph.kitu.i18n.LocalizedString
-import fi.oph.kitu.yki.suoritukset.YkiSuoritusPage.orDash
 import kotlinx.html.FlowContent
 import kotlinx.html.stream.createHTML
 import kotlinx.html.table
@@ -74,3 +73,5 @@ data class Comparison(
         )
     }
 }
+
+fun String?.orDash() = this ?: "–"

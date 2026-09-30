@@ -1,8 +1,8 @@
 package fi.oph.kitu
 
-import fi.oph.kitu.dev.mockdata.OidClass
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oid.Oid.Companion.isOidOfClass
+import fi.oph.kitu.oid.OidClass
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.Test

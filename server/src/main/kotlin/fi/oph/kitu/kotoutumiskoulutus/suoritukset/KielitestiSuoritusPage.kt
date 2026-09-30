@@ -2,6 +2,7 @@ package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.infoTable
+import fi.oph.kitu.html.orDash
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
 import fi.oph.kitu.i18n.unaryPlus
@@ -28,7 +29,7 @@ object KielitestiSuoritusPage {
         h3 { +UiText.Koto.henkilotiedot }
         card(compact = true) {
             infoTable(
-                UiText.Koto.Sarake.oppijanumero to { +(suoritus.oppijanumero?.toString() ?: "-") },
+                UiText.Koto.Sarake.oppijanumero to { +suoritus.oppijanumero?.toString().orDash() },
                 UiText.Koto.Sarake.sukunimi to { +suoritus.sukunimi },
                 UiText.Koto.Sarake.etunimet to { +suoritus.etunimet },
                 UiText.Koto.Sarake.kutsumanimi to { +suoritus.kutsumanimi },
@@ -50,7 +51,7 @@ object KielitestiSuoritusPage {
                 UiText.Koto.Sarake.opettajanSahkopostiosoite to { +suoritus.opettajanEmail.orEmpty() },
                 UiText.Koto.Sarake.suoritusaika to
                     { suoritus.suoritusaika?.let { finnishDateTime(it) } ?: +"-" },
-                UiText.Koto.Sarake.testikieli to { +(suoritus.testikieli?.toString() ?: "-") },
+                UiText.Koto.Sarake.testikieli to { +suoritus.testikieli?.toString().orDash() },
                 UiText.Koto.tehtavapaketti to { +suoritus.tehtavapaketti.orEmpty() },
             )
         }
@@ -61,11 +62,11 @@ object KielitestiSuoritusPage {
         card(compact = true) {
             infoTable(
                 UiText.Koto.Sarake.luetunYmmartaminen to
-                    { +(suoritus.luetunYmmartaminen?.toString() ?: "-") },
+                    { +suoritus.luetunYmmartaminen?.toString().orDash() },
                 UiText.Koto.Sarake.kuullunYmmartaminen to
-                    { +(suoritus.kuullunYmmartaminen?.toString() ?: "-") },
-                UiText.Koto.Sarake.puhe to { +(suoritus.puhe?.toString() ?: "-") },
-                UiText.Koto.Sarake.kirjoittaminen to { +(suoritus.kirjoittaminen?.toString() ?: "-") },
+                    { +suoritus.kuullunYmmartaminen?.toString().orDash() },
+                UiText.Koto.Sarake.puhe to { +suoritus.puhe?.toString().orDash() },
+                UiText.Koto.Sarake.kirjoittaminen to { +suoritus.kirjoittaminen?.toString().orDash() },
             )
         }
     }

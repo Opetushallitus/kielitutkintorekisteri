@@ -2,9 +2,9 @@ package fi.oph.kitu.yki
 
 import arrow.core.Either
 import fi.oph.kitu.DBContainerConfiguration
-import fi.oph.kitu.dev.mockdata.OidClass
 import fi.oph.kitu.dev.mockdata.createOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
+import fi.oph.kitu.oid.OidClass
 import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter

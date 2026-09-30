@@ -2,8 +2,8 @@ package fi.oph.kitu.util
 
 import arrow.core.NonEmptySet
 import arrow.core.toNonEmptySetOrNull
-import fi.oph.kitu.dev.mockdata.OidClass
 import fi.oph.kitu.oid.Oid.Companion.isOidOfClass
+import fi.oph.kitu.oid.OidClass
 
 data class SearchTerms(
     val terms: Map<TermKind, NonEmptySet<String>>,
