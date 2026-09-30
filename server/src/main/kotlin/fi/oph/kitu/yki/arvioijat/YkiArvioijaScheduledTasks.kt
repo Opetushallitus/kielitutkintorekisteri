@@ -3,7 +3,6 @@ package fi.oph.kitu.yki.arvioijat
 import com.github.kagkarlsson.scheduler.task.Task
 import fi.oph.kitu.util.scheduling.recurringTask
 import io.opentelemetry.api.trace.Tracer
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,7 +20,6 @@ class YkiArvioijaScheduledTasks(
     @Value($$"${kitu.yki.scheduling.synkronoiArvioijaKaudet.schedule}")
     lateinit var kausisynkronointiSchedule: String
 
-    @WithSpan
     @Bean
     fun poistaVanhentuneetArvioijat(arvioijaService: YkiArvioijaService): Task<Void> =
         tracer.recurringTask(
@@ -31,7 +29,6 @@ class YkiArvioijaScheduledTasks(
             arvioijaService.poistaSailytysajanYlittaneet()
         }
 
-    @WithSpan
     @Bean
     fun paivitaArvioijaProjektiot(kausiService: YkiArvioijaKausiService): Task<Void> =
         tracer.recurringTask(
@@ -41,7 +38,6 @@ class YkiArvioijaScheduledTasks(
             kausiService.paivitaProjektiot()
         }
 
-    @WithSpan
     @Bean
     fun synkronoiArvioijaKaudet(kausiService: YkiArvioijaKausiService): Task<Void> =
         tracer.recurringTask(

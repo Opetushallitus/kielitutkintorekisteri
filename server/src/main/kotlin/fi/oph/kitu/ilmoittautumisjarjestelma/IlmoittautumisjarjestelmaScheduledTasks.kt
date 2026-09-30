@@ -3,7 +3,6 @@ package fi.oph.kitu.ilmoittautumisjarjestelma
 import com.github.kagkarlsson.scheduler.task.Task
 import fi.oph.kitu.util.scheduling.recurringTask
 import io.opentelemetry.api.trace.Tracer
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,7 +14,6 @@ class IlmoittautumisjarjestelmaScheduledTasks(
     @Value($$"${kitu.yki.scheduling.retrySendingFailedArviointitilat.schedule}")
     lateinit var retrySendingFailedArviointitilatSchedule: String
 
-    @WithSpan
     @Bean
     fun retrySendingFailedArviointitilat(ilmoittautumisjarjestelma: IlmoittautumisjarjestelmaService): Task<Void> =
         tracer.recurringTask(

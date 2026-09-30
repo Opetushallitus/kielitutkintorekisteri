@@ -5,18 +5,11 @@ DB=kitu-schemaspy
 USER=kitu
 PASSWORD=kitu
 PORT=5432
-HOST="host.docker.internal"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 OUTPUT_DIR="$SCRIPT_DIR/output"
 
 HOST=localhost
-
-# Github actionsin puolella tämä pitää ajaa hieman erilaisilla arvoilla
-if [ -n "${CI:-}" ]; then
-  echo "Ajetaan CI-profiililla"
-  HOST="localhost"
-fi
 
 # Käynnistä tietokanta
 echo "Käynnistä tietokanta..."

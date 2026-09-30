@@ -49,7 +49,7 @@ WINDOW="workspace"
 tmux new-window -t $SESS_NAME -n "$WINDOW"
 tmux send-keys -t $SESS_NAME:"$WINDOW" "cd $REPO_ROOT" C-m
 tmux send-keys -t $SESS_NAME:"$WINDOW" "git log --decorate=full --graph --all --oneline" C-m
-tmux split-window -h -t "${SESSION-}":"$WINDOW"
+tmux split-window -h -t $SESS_NAME:"$WINDOW"
 tmux send-keys -t $SESS_NAME:"$WINDOW.1" "cd $REPO_ROOT" C-m
 tmux send-keys -t $SESS_NAME:"$WINDOW.1" "git diff --color | cat" C-m
 tmux send-keys -t $SESS_NAME:"$WINDOW.1" "git status" C-m
