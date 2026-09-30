@@ -4,11 +4,10 @@ import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.buttonLink
 import fi.oph.kitu.html.card
-import fi.oph.kitu.html.csvDownloadButton
-import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.hiddenValue
 import fi.oph.kitu.html.hiddenValues
 import fi.oph.kitu.html.input
+import fi.oph.kitu.html.listViewHeader
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
@@ -28,18 +27,13 @@ import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
-import kotlinx.html.article
 import kotlinx.html.button
 import kotlinx.html.fieldSet
 import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
-import kotlinx.html.header
 import kotlinx.html.li
-import kotlinx.html.nav
 import kotlinx.html.section
-import kotlinx.html.span
-import kotlinx.html.ul
 
 object YkiArvioijaPage {
     fun render(
@@ -56,37 +50,26 @@ object YkiArvioijaPage {
 
             arvioijaSearch(params)
 
-            article {
-                header {
-                    nav {
-                        ul {
-                            li {
-                                +UiText.Yki.arvioijiaYhteensa
-                                +": "
-                                span {
-                                    testId("numberOfRows")
-                                    +pagination.numberOfItems.toString()
-                                }
-                            }
-                            li { csvDownloadButton(Links.Yki.arvioijatCsv() + httpParams(params.toMap())) }
-                            li { arvioijaFilterButton(params) }
-                            if (CurrentUser.hasAuthority(Authority.YKI_ARVIOIJAREKISTERI)) {
-                                li {
-                                    buttonLink(
-                                        href = Links.Yki.uusiArvioija(),
-                                        enabled = muokkausKaytossa,
-                                        testId = "lisaaArvioija",
-                                        disabledTooltip = UiText.Yki.Arvioija.kirjoitusEiKaytossa,
-                                    ) {
-                                        +UiText.Yki.lisaaArvioija
-                                    }
-                                }
+            listViewHeader(
+                countLabel = UiText.Yki.arvioijiaYhteensa,
+                numberOfItems = pagination.numberOfItems,
+                csvHref = Links.Yki.arvioijatCsv() + httpParams(params.toMap()),
+                filterDescriptions = params.filterDescriptions(),
+                extraActions = {
+                    if (CurrentUser.hasAuthority(Authority.YKI_ARVIOIJAREKISTERI)) {
+                        li {
+                            buttonLink(
+                                href = Links.Yki.uusiArvioija(),
+                                enabled = muokkausKaytossa,
+                                testId = "lisaaArvioija",
+                                disabledTooltip = UiText.Yki.Arvioija.kirjoitusEiKaytossa,
+                            ) {
+                                +UiText.Yki.lisaaArvioija
                             }
                         }
                     }
-                }
-                filterDescriptionList(params.filterDescriptions())
-            }
+                },
+            ) { arvioijaFilterButton(params) }
 
             arvioijaTable(arvioijat, params, pagination)
         }

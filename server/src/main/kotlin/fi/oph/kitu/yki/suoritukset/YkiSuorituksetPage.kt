@@ -2,12 +2,12 @@ package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessageData
-import fi.oph.kitu.html.csvDownloadButton
 import fi.oph.kitu.html.errorsArticle
 import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.formPost
 import fi.oph.kitu.html.input
 import fi.oph.kitu.html.koskiErrorsArticle
+import fi.oph.kitu.html.listViewActions
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
@@ -36,11 +36,8 @@ import kotlinx.html.footer
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.header
-import kotlinx.html.li
-import kotlinx.html.nav
 import kotlinx.html.section
 import kotlinx.html.table
-import kotlinx.html.ul
 import org.springframework.security.web.csrf.CsrfToken
 
 object YkiSuorituksetPage {
@@ -86,20 +83,11 @@ object YkiSuorituksetPage {
 
             article(classes = "overflow-auto") {
                 header {
-                    nav {
-                        ul {
-                            li {
-                                +UiText.Yki.suorituksiaYhteensa
-                                +": $totalSuoritukset"
-                            }
-                            li {
-                                csvDownloadButton(
-                                    Links.Yki.suorituksetCsv() + httpParams(filterParams.toMap()),
-                                )
-                            }
-                            li { ykiSuoritusFilterButton(filterParams) }
-                        }
-                    }
+                    listViewActions(
+                        countLabel = UiText.Yki.suorituksiaYhteensa,
+                        numberOfItems = totalSuoritukset,
+                        csvHref = Links.Yki.suorituksetCsv() + httpParams(filterParams.toMap()),
+                    ) { ykiSuoritusFilterButton(filterParams) }
                     filterDescriptionList(filterParams.filterDescriptions())
                 }
 

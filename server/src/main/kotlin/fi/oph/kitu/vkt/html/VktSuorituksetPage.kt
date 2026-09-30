@@ -3,9 +3,8 @@ import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.card
-import fi.oph.kitu.html.csvDownloadButton
-import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.hiddenValue
+import fi.oph.kitu.html.listViewHeader
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
@@ -18,7 +17,6 @@ import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.viewMessage
-import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
@@ -28,15 +26,9 @@ import fi.oph.kitu.vkt.VktSuoritusFlat
 import fi.oph.kitu.vkt.VktSuoritusOrder
 import fi.oph.kitu.webmvc.Links
 import kotlinx.html.FlowContent
-import kotlinx.html.article
 import kotlinx.html.fieldSet
 import kotlinx.html.h1
 import kotlinx.html.h2
-import kotlinx.html.header
-import kotlinx.html.li
-import kotlinx.html.nav
-import kotlinx.html.span
-import kotlinx.html.ul
 
 object VktSuorituksetPage {
     fun render(
@@ -54,29 +46,12 @@ object VktSuorituksetPage {
             h2 { +UiText.Nav.kaikkiSuoritukset }
             messages.forEach { viewMessage(it) }
             vktSearch(filter)
-            article {
-                header {
-                    nav {
-                        ul {
-                            li {
-                                +UiText.Vkt.yhteensa
-                                +": "
-                                span {
-                                    testId("numberOfRows")
-                                    +pagination.numberOfItems.toString()
-                                }
-                            }
-                            li {
-                                csvDownloadButton(
-                                    Links.Vkt.suorituksetCsv() + httpParams(filter.toMap()),
-                                )
-                            }
-                            li { vktSuoritusFilterButton(filter) }
-                        }
-                    }
-                }
-                filterDescriptionList(filter.filterDescriptions())
-            }
+            listViewHeader(
+                countLabel = UiText.Vkt.yhteensa,
+                numberOfItems = pagination.numberOfItems,
+                csvHref = Links.Vkt.suorituksetCsv() + httpParams(filter.toMap()),
+                filterDescriptions = filter.filterDescriptions(),
+            ) { vktSuoritusFilterButton(filter) }
             vktKaikkiSuorituksetTable(suoritukset, filter, order, pagination, translations)
         }
 }
