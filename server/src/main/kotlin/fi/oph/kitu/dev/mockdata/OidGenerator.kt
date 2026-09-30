@@ -1,16 +1,9 @@
 package fi.oph.kitu.dev.mockdata
 
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oid.OidClass
 import fi.oph.kitu.util.result.getOrThrow
 import kotlin.random.Random
-
-enum class OidClass(
-    val node: String,
-) {
-    OPPIJA("1.2.246.562.24"),
-    USER("1.2.246.562.240"),
-    ORG("1.2.246.562.100"),
-}
 
 fun createOid(
     oidClass: OidClass,

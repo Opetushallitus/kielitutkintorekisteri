@@ -3,6 +3,7 @@ package fi.oph.kitu.dev.mockdata
 import arrow.core.raise.either
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oid.OidClass
 import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
