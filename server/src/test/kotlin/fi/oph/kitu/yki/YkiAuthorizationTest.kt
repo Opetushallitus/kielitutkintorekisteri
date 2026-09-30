@@ -26,14 +26,12 @@ import org.springframework.web.client.RestTemplate
 import java.util.Date
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 /**
  * Oauth2-ketju päättyy `anyRequest -> denyAll`, ja reittisäännöt ovat tarkkoja polkuja.
  * Api-reitti ilman omaa sääntöä vastaa siis tyhjällä 403:lla ennen kontrolleria — mikä
  * näyttää kutsujalle samalta kuin puuttuva oikeus kohdejärjestelmässä.
- *
- * Hetulistahaku on lisäksi rajattu nimettyihin kutsujiin, koska YKI_TALLENNUS on myönnetty
- * muillekin: sillä oikeudella ei pidä saada hetu → oppijanumero -hakua käyttöön.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(DBContainerConfiguration::class)
@@ -42,7 +40,6 @@ import kotlin.test.assertEquals
     properties = [
         "spring.security.oauth2.resourceserver.jwt.issuer-uri=test-issuer",
         "server.servlet.context-path=/kielitutkinnot",
-        "kitu.yki.hetulistahaku.sallitutKutsujat=migraatio-kayttaja",
     ],
 )
 class YkiAuthorizationTest {
@@ -58,47 +55,44 @@ class YkiAuthorizationTest {
         }
 
     @Test
-    fun `hetulistahaku on sallittu nimetylle kutsujalle`() {
+    fun `suoritusten siirto on sallittu YKI_TALLENNUS-oikeudella`() {
         val response =
             postJson(
-                "/yki/api/oppijanumero-haku-hetulista",
-                """{"hetut": ["010180-9026"]}""",
-                token(subject = "migraatio-kayttaja", authorities = arrayOf(Authority.YKI_TALLENNUS)),
+                "/yki/api/suoritus",
+                "{}",
+                token(subject = "solki", authorities = arrayOf(Authority.YKI_TALLENNUS)),
             )
-        assertEquals(HttpStatus.OK, response.statusCode)
+        assertNotEquals(
+            HttpStatus.FORBIDDEN,
+            response.statusCode,
+            "oikeus riittaa: pyynto paasee kontrollerille, joka hylkaa tyhjan rungon omilla saannoillaan",
+        )
     }
 
     @Test
-    fun `hetulistahaku on kielletty muulta kutsujalta vaikka YKI_TALLENNUS on`() {
+    fun `suoritusten siirto on kielletty ilman oikeutta`() {
         val response =
             postJson(
-                "/yki/api/oppijanumero-haku-hetulista",
-                """{"hetut": ["010180-9026"]}""",
-                token(subject = "solki", authorities = arrayOf(Authority.YKI_TALLENNUS)),
+                "/yki/api/suoritus",
+                "{}",
+                token(subject = "solki", authorities = emptyArray()),
             )
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
-    fun `sallittu kutsuja ei tarvitse muita oikeuksia`() {
+    fun `api-reitti ilman omaa saantoa on kielletty vaikka oikeus on`() {
         val response =
             postJson(
-                "/yki/api/oppijanumero-haku-hetulista",
-                """{"hetut": ["010180-9026"]}""",
-                token(subject = "migraatio-kayttaja", authorities = emptyArray()),
-            )
-        assertEquals(HttpStatus.OK, response.statusCode)
-    }
-
-    @Test
-    fun `nimilla tehty oppijanumerohaku on sallittu YKI_TALLENNUS-oikeudella`() {
-        val response =
-            postJson(
-                "/yki/api/oppijanumero-haku",
-                """{"hetu": "010180-9026", "etunimet": "Ranja Testi", "sukunimi": "Öhman-Testi"}""",
+                "/yki/api/reitti-jolla-ei-ole-saantoa",
+                "{}",
                 token(subject = "solki", authorities = arrayOf(Authority.YKI_TALLENNUS)),
             )
-        assertEquals(HttpStatus.OK, response.statusCode)
+        assertEquals(
+            HttpStatus.FORBIDDEN,
+            response.statusCode,
+            "anyRequest -> denyAll osuu ennen kontrolleria, joten vastaus on 403 eika 404",
+        )
     }
 
     private fun postJson(

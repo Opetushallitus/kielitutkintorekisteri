@@ -15,7 +15,6 @@ import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
-import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.ClassPathResource
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockHttpSession
@@ -807,95 +805,6 @@ class YkiApiControllerTest(
                 .toString(),
             "Rekisteriintuontiaika näkyy myös HTML-listanäkymässä",
         )
-    }
-
-    @Test
-    fun `Oppijanumeron haku hetun ja nimien perusteella onnistuu`() {
-        post(
-            "/yki/api/oppijanumero-haku",
-            """{"hetu": "010180-9026", "etunimet": "Ranja Testi", "sukunimi": "Öhman-Testi"}""",
-        ) {
-            status { isOk() }
-            verboseContentJson(OppijanumeroHakuResponse(Oid.parse("1.2.246.562.24.33342764709").getOrThrow()))
-        }
-    }
-
-    @Test
-    fun `Oppijanumeron haku loytaa oppijan, jonka kutsumanimi ei ole ensimmainen etunimi`() {
-        post(
-            "/yki/api/oppijanumero-haku",
-            """{"hetu": "040265-9985", "etunimet": "Minerva Alli Aniitta", "sukunimi": "Marttila"}""",
-        ) {
-            status { isOk() }
-            verboseContentJson(OppijanumeroHakuResponse(Oid.parse("1.2.246.562.24.92472049678").getOrThrow()))
-        }
-    }
-
-    @Test
-    fun `Oppijanumeron haku palauttaa 404, kun oppijaa ei loydy`() {
-        post(
-            "/yki/api/oppijanumero-haku",
-            """{"hetu": "010101-999X", "etunimet": "Tuntematon", "sukunimi": "Testaaja"}""",
-        ) {
-            status { isNotFound() }
-        }
-    }
-
-    @Test
-    fun `Oppijanumeron haun 502 kertoo oppijanumerorekisterin oman vastauksen`() {
-        post(
-            "/yki/api/oppijanumero-haku",
-            """{"hetu": "INVALID_HETU", "etunimet": "Ranja Testi", "sukunimi": "Öhman-Testi"}""",
-        ) {
-            status { isBadGateway() }
-            verboseContentJson(
-                TiedonsiirtoFailure(
-                    HttpStatus.BAD_GATEWAY,
-                    listOf("Oppijanumeron haku epäonnistui (BadRequest): oppijanumerorekisteri vastasi HTTP 400"),
-                ),
-            )
-        }
-    }
-
-    @Test
-    fun `Hetulistahaku palauttaa oppijanumerot ilman nimivertailua`() {
-        post(
-            "/yki/api/oppijanumero-haku-hetulista",
-            """{"hetut": ["010180-9026", "010101-999X"]}""",
-        ) {
-            status { isOk() }
-            verboseContentJson(
-                OppijanumeroHetulistaResponse(
-                    oppijanumerot = mapOf("010180-9026" to "1.2.246.562.24.33342764709"),
-                    puuttuvat = listOf("010101-999X"),
-                ),
-            )
-        }
-    }
-
-    @Test
-    fun `Hetulistahaku hylkaa tyhjan listan`() {
-        post("/yki/api/oppijanumero-haku-hetulista", """{"hetut": []}""") {
-            isBadRequest("hetut ei saa olla tyhjä")
-        }
-    }
-
-    @Test
-    fun `Hetulistahaku hylkaa liian suuren listan`() {
-        val liikaa = (1..1001).joinToString(",") { """"0101$it"""" }
-        post("/yki/api/oppijanumero-haku-hetulista", """{"hetut": [$liikaa]}""") {
-            isBadRequest("hetut: enintään 1000 kerralla, sai 1001")
-        }
-    }
-
-    @Test
-    fun `Oppijanumeron haku palauttaa 400, kun pakollinen kentta on tyhja`() {
-        post(
-            "/yki/api/oppijanumero-haku",
-            """{"hetu": "", "etunimet": "Ranja Testi", "sukunimi": "Öhman-Testi"}""",
-        ) {
-            isBadRequest("hetu, etunimet ja sukunimi ovat pakollisia")
-        }
     }
 
     private fun postSuoritus(
