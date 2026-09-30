@@ -72,11 +72,16 @@ data class YkiArvioijaParams(
 
     private fun hakusanat(): List<String> = search.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
 
-    fun whereSql(): String? = toSql().whereClauseOrNull()
+    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
 
-    fun sqlParams(): Map<String, Any?> = toSql().params()
+    fun sqlParams(): Map<String, Any?> = sqlSpec.params()
 
-    private fun toSql() =
+    /**
+     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
+     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
+     * kyselylla kahdesti.
+     */
+    private val sqlSpec by lazy {
         SqlFilterBuilder().apply {
             // Jokaisen hakusanan on osuttava johonkin kenttaan, jolloin "Ranja Ohman"
             // loytaa henkilon vaikka termit ovat eri sarakkeissa.
@@ -102,6 +107,7 @@ data class YkiArvioijaParams(
             }
             if (vainSolkiVirheet) add("solki_lahetysvirhe IS NOT NULL")
         }
+    }
 }
 
 data class YkiArvioijaOrder(

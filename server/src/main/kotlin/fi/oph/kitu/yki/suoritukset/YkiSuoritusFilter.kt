@@ -22,9 +22,9 @@ data class YkiSuoritusFilter(
     val tutkintotaso: Tutkintotaso? = null,
     val arviointitila: Arviointitila? = null,
 ) {
-    fun whereSql(): String? = toSql().whereClauseOrNull()
+    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
 
-    fun params(): Map<String, Any?> = toSql().params()
+    fun params(): Map<String, Any?> = sqlSpec.params()
 
     fun requiresSubTables(): Boolean = tutkintokieli != null || tutkintotaso != null
 
@@ -47,7 +47,12 @@ data class YkiSuoritusFilter(
             copy(search = currentSearch.withHenkiloOids(expanded))
         }
 
-    private fun toSql() =
+    /**
+     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
+     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
+     * kyselylla kahdesti.
+     */
+    private val sqlSpec by lazy {
         SqlFilterBuilder().apply {
             search?.texts()?.forEachIndexed { i, term ->
                 val param = "filter_search_$i"
@@ -71,6 +76,7 @@ data class YkiSuoritusFilter(
                 "filter_arviointitila" to arviointitila?.name,
             )
         }
+    }
 
     private fun searchTermClause(param: String): String =
         """

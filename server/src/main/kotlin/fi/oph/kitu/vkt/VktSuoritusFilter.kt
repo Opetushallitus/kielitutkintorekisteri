@@ -67,11 +67,16 @@ data class VktSuoritusFilter(
             if (piilotaHenkilotiedot) ColumnTag.PERSONAL_DATA else null,
         )
 
-    fun whereSql(): String? = toSql().whereClauseOrNull()
+    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
 
-    fun params(): Map<String, Any?> = toSql().params()
+    fun params(): Map<String, Any?> = sqlSpec.params()
 
-    private fun toSql() =
+    /**
+     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
+     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
+     * kyselylla kahdesti.
+     */
+    private val sqlSpec by lazy {
         SqlFilterBuilder().apply {
             add(searchQuery(), "filter_search" to "%${search.orEmpty()}%")
             add(alkupaiva?.let { "osakokeet.tutkintopaiva >= :filter_alkupaiva" }, "filter_alkupaiva" to alkupaiva)
@@ -81,6 +86,7 @@ data class VktSuoritusFilter(
             add(arvioituQuery())
             add(merkittyPoistettavaksiQuery())
         }
+    }
 
     private fun searchQuery(): String? =
         search?.takeIf { it.isNotEmpty() }?.let {

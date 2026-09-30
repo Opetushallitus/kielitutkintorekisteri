@@ -46,17 +46,24 @@ class CustomKielitestiSuoritusRepository(
         return jdbcNamedParameterTemplate.query(sql, KielitestiSuoritus.fromRow)
     }
 
+    /**
+     * Organisaatiohaun laajennus tehtiin ennen erikseen molemmissa kyselyissa, ja
+     * withOrgOids kutsuttiin kummassakin kahdesti — eli suodatin rakennettiin nelisti.
+     */
+    private fun KielitestiSuoritusFilter.withOrganisaatiohaku(): KielitestiSuoritusFilter =
+        withOrgOids(
+            search
+                ?.let { organisaatioService.searchOrganisaatiot(it) }
+                ?.nimet
+                ?.keys
+                ?.toList() ?: emptyList(),
+        )
+
     fun findSuoritukset(
         filter: KielitestiSuoritusFilter = KielitestiSuoritusFilter(),
         order: KielitestiSuoritusOrder = KielitestiSuoritusOrder(),
     ): List<KielitestiSuoritus> {
-        val orgOids =
-            filter.search
-                ?.let { organisaatioService.searchOrganisaatiot(it) }
-                ?.nimet
-                ?.keys
-                ?.toList() ?: emptyList()
-        val searchQuery = filter.withOrgOids(orgOids).whereSql()
+        val haku = filter.withOrganisaatiohaku()
 
         val sql =
             """
@@ -64,21 +71,15 @@ class CustomKielitestiSuoritusRepository(
                 SELECT DISTINCT ON (kurssi_id, oppijanumero, suoritusaika) * FROM koto_suoritus
                 ORDER BY kurssi_id, oppijanumero, suoritusaika, last_modified DESC
                 )
-            ${searchQuery.orEmpty()}
+            ${haku.whereSql().orEmpty()}
             ORDER BY $order
             ${order.pageSql().orEmpty()}
             """.trimIndent()
-        return jdbcNamedParameterTemplate.query(sql, filter.withOrgOids(orgOids).params(), KielitestiSuoritus.fromRow)
+        return jdbcNamedParameterTemplate.query(sql, haku.params(), KielitestiSuoritus.fromRow)
     }
 
     fun countSuoritukset(filter: KielitestiSuoritusFilter = KielitestiSuoritusFilter()): Int {
-        val orgOids =
-            filter.search
-                ?.let { organisaatioService.searchOrganisaatiot(it) }
-                ?.nimet
-                ?.keys
-                ?.toList() ?: emptyList()
-        val searchQuery = filter.withOrgOids(orgOids).whereSql()
+        val haku = filter.withOrganisaatiohaku()
 
         val sql =
             """
@@ -86,15 +87,10 @@ class CustomKielitestiSuoritusRepository(
                 SELECT DISTINCT ON (kurssi_id, oppijanumero, suoritusaika) * FROM koto_suoritus
                 ORDER BY kurssi_id, oppijanumero, suoritusaika, last_modified DESC
                 )
-            ${searchQuery.orEmpty()}
+            ${haku.whereSql().orEmpty()}
             """.trimIndent()
 
-        return jdbcNamedParameterTemplate.queryForObject(
-            sql,
-            filter.withOrgOids(orgOids).params(),
-            Int::class.java,
-        )
-            ?: 0
+        return jdbcNamedParameterTemplate.queryForObject(sql, haku.params(), Int::class.java) ?: 0
     }
 
     // Dashboard käyttää tätä "Viimeisin saapunut suoritus" -aikaleimana. Semantiikka on oikea koska
@@ -150,11 +146,16 @@ data class KielitestiSuoritusFilter(
 ) {
     fun withOrgOids(oids: List<Oid>): KielitestiSuoritusFilter = copy(orgOids = oids)
 
-    fun whereSql(): String? = toSql().whereClauseOrNull()
+    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
 
-    fun params(): Map<String, Any?> = toSql().params()
+    fun params(): Map<String, Any?> = sqlSpec.params()
 
-    private fun toSql() =
+    /**
+     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
+     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
+     * kyselylla kahdesti.
+     */
+    private val sqlSpec by lazy {
         SqlFilterBuilder().apply {
             add(searchAndOrgQuery(), searchParams() + orgOidsParams())
             add(testikieli?.let { "testikieli = :filter_kieli" }, "filter_kieli" to testikieli?.name)
@@ -165,6 +166,7 @@ data class KielitestiSuoritusFilter(
             )
             add(naytettavatSuoritukset.whereSql)
         }
+    }
 
     private fun searchParams(): Map<String, String> =
         search

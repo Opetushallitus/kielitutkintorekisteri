@@ -54,13 +54,18 @@ data class YkiHistoriaSiirtymatonParams(
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
         )
 
-    fun whereSql(): String? = toSql().whereClauseOrNull()
+    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
 
-    fun sqlParams(): Map<String, Any?> = toSql().params()
+    fun sqlParams(): Map<String, Any?> = sqlSpec.params()
 
     private fun hakusanat(): List<String> = search.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
 
-    private fun toSql() =
+    /**
+     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
+     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
+     * kyselylla kahdesti.
+     */
+    private val sqlSpec by lazy {
         SqlFilterBuilder().apply {
             hakusanat().forEachIndexed { i, term ->
                 val param = "hakusana_$i"
@@ -79,6 +84,7 @@ data class YkiHistoriaSiirtymatonParams(
                 add("syyluokka = :syyluokka::yki_historia_siirtymattomyyden_syy", "syyluokka" to it.name)
             }
         }
+    }
 }
 
 data class YkiHistoriaSiirtymatonOrder(
