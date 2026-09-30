@@ -1,14 +1,10 @@
 package fi.oph.kitu.yki
 
 import fi.oph.kitu.DBContainerConfiguration
-import fi.oph.kitu.oid.Oid
-import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
-import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
-import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -46,7 +42,7 @@ class YkiArvioijaTilaSqlTest(
     fun seed() {
         repository.deleteAll()
         tapaukset.forEachIndexed { i, (alku, loppu, tallennettu) ->
-            repository.tallenna(arvioija(i, alku, loppu, tallennettu))
+            repository.tallenna(testiarvioija(i, alku, loppu, tallennettu))
         }
     }
 
@@ -95,34 +91,22 @@ class YkiArvioijaTilaSqlTest(
 
     private fun sukunimi(i: Int) = "Tapaus-$i"
 
-    private fun arvioija(
+    private fun testiarvioija(
         i: Int,
         alku: LocalDate?,
         loppu: LocalDate?,
         tallennettu: YkiArvioijaTila?,
-    ) = YkiArvioijaEntity(
-        id = null,
-        arvioijaOid = Oid.parse("1.2.246.562.24.1000000000$i").getOrThrow(),
-        henkilotunnus = null,
+    ) = arvioija(
+        oid = arvioijaOid(i),
         sukunimi = sukunimi(i),
-        etunimet = "Testi",
         sahkopostiosoite = null,
-        katuosoite = "Testikuja 5",
-        postinumero = "40100",
-        postitoimipaikka = "Testilä",
-        arviointioikeudet =
+        oikeudet =
             listOf(
-                YkiArviointioikeusEntity(
-                    id = null,
-                    arvioijaId = null,
-                    kieli = Tutkintokieli.FIN,
+                arviointioikeus(
                     tasot = setOf(Tutkintotaso.PT),
                     tila = tallennettu,
                     kaudenAlkupaiva = alku,
                     kaudenPaattymispaiva = loppu,
-                    jatkorekisterointi = false,
-                    ensimmainenRekisterointipaiva = alku ?: LocalDate.of(2021, 1, 1),
-                    rekisteriintuontiaika = null,
                 ),
             ),
     )

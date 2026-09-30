@@ -9,7 +9,6 @@ import fi.oph.kitu.yki.arvioijat.TallennaKausi
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiService
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
-import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import fi.oph.kitu.yki.arvioijat.solki.Lahetystulos
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaService
 import org.junit.jupiter.api.BeforeEach
@@ -96,7 +95,7 @@ class YkiArvioijaKausiLahetysTest(
     fun setup() {
         repository.deleteAll()
         TransaktiotaValvovaSolki.kausiNakyvissaLahetettaessa.clear()
-        repository.tallenna(arvioija())
+        repository.tallenna(testiarvioija())
     }
 
     @Test
@@ -124,31 +123,12 @@ class YkiArvioijaKausiLahetysTest(
         )
     }
 
-    private fun arvioija() =
-        YkiArvioijaEntity(
-            id = null,
-            arvioijaOid = Oid.parse(petro).getOrThrow(),
-            henkilotunnus = null,
+    private fun testiarvioija() =
+        arvioija(
+            oid = Oid.parse(petro).getOrThrow(),
             sukunimi = "Kivinen-Testi",
             etunimet = "Petro Testi",
             sahkopostiosoite = null,
-            katuosoite = "Testikuja 5",
-            postinumero = "40100",
-            postitoimipaikka = "Testilä",
-            arviointioikeudet =
-                listOf(
-                    YkiArviointioikeusEntity(
-                        id = null,
-                        arvioijaId = null,
-                        kieli = Tutkintokieli.FIN,
-                        tasot = setOf(Tutkintotaso.PT),
-                        tila = null,
-                        kaudenAlkupaiva = LocalDate.of(2021, 1, 1),
-                        kaudenPaattymispaiva = LocalDate.of(2026, 1, 1),
-                        jatkorekisterointi = false,
-                        ensimmainenRekisterointipaiva = LocalDate.of(2021, 1, 1),
-                        rekisteriintuontiaika = null,
-                    ),
-                ),
+            oikeudet = listOf(arviointioikeus(tasot = setOf(Tutkintotaso.PT))),
         )
 }

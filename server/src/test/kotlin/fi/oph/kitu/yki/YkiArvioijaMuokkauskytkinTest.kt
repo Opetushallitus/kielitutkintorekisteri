@@ -5,10 +5,8 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
-import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
-import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -28,7 +26,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertFalse
@@ -51,7 +48,7 @@ class YkiArvioijaMuokkauskytkinTest(
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
         repository.deleteAll()
-        arvioijaId = repository.tallenna(arvioija())
+        arvioijaId = repository.tallenna(testiarvioija())
     }
 
     @Test
@@ -164,30 +161,20 @@ class YkiArvioijaMuokkauskytkinTest(
         return result.response.contentAsString
     }
 
-    private fun arvioija() =
-        YkiArvioijaEntity(
-            id = null,
-            arvioijaOid = Oid.parse("1.2.246.562.24.59267607404").getOrThrow(),
-            henkilotunnus = null,
+    private fun testiarvioija() =
+        arvioija(
+            oid = Oid.parse("1.2.246.562.24.59267607404").getOrThrow(),
             sukunimi = "Kivinen-Testi",
             etunimet = "Petro Testi",
             sahkopostiosoite = "kivinen-testi@oph.fi",
             katuosoite = "Kivinenkatu 2 A 3",
             postinumero = "00100",
             postitoimipaikka = "HELSINKI",
-            arviointioikeudet =
+            oikeudet =
                 listOf(
-                    YkiArviointioikeusEntity(
-                        id = null,
-                        arvioijaId = null,
-                        kieli = Tutkintokieli.FIN,
+                    arviointioikeus(
                         tasot = setOf(Tutkintotaso.PT),
                         tila = YkiArvioijaTila.AKTIIVINEN,
-                        kaudenAlkupaiva = LocalDate.of(2021, 1, 1),
-                        kaudenPaattymispaiva = LocalDate.of(2026, 1, 1),
-                        jatkorekisterointi = false,
-                        ensimmainenRekisterointipaiva = LocalDate.of(2021, 1, 1),
-                        rekisteriintuontiaika = null,
                     ),
                 ),
         )

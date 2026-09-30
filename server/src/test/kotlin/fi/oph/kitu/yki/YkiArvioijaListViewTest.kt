@@ -8,12 +8,10 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaColumn
-import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaListRow
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
-import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -37,10 +35,10 @@ class YkiArvioijaListViewTest(
     fun nukeDb() {
         repository.deleteAll()
         listOf(
-            arvioija("1.2.246.562.24.20281155246", "Öhman-Testi", Tutkintokieli.FIN),
-            arvioija("1.2.246.562.24.59267607404", "Andersson-Testi", Tutkintokieli.SWE),
+            testiarvioija("1.2.246.562.24.20281155246", "Öhman-Testi", Tutkintokieli.FIN),
+            testiarvioija("1.2.246.562.24.59267607404", "Andersson-Testi", Tutkintokieli.SWE),
             // Kausi on päättynyt ennen tarkasteluhetkeä, joten tila lasketaan passivoiduksi.
-            arvioija(
+            testiarvioija(
                 "1.2.246.562.24.74064782358",
                 "Kivinen-Testi",
                 Tutkintokieli.ENG,
@@ -49,36 +47,25 @@ class YkiArvioijaListViewTest(
         ).forEach { repository.tallenna(it) }
     }
 
-    private fun arvioija(
+    private fun testiarvioija(
         oid: String,
         sukunimi: String,
         kieli: Tutkintokieli,
-        kaudenAlkupaiva: LocalDate = LocalDate.of(2021, 1, 1),
-        kaudenPaattymispaiva: LocalDate = LocalDate.of(2026, 1, 1),
+        kaudenAlkupaiva: LocalDate = OLETUSKAUDEN_ALKU,
+        kaudenPaattymispaiva: LocalDate = OLETUSKAUDEN_LOPPU,
         tila: YkiArvioijaTila? = null,
-    ) = YkiArvioijaEntity(
-        id = null,
-        arvioijaOid = Oid.parse(oid).getOrThrow(),
-        henkilotunnus = null,
+    ) = arvioija(
+        oid = Oid.parse(oid).getOrThrow(),
         sukunimi = sukunimi,
-        etunimet = "Testi",
         sahkopostiosoite = "$sukunimi@testi.fi".lowercase(),
-        katuosoite = "Testikuja 5",
-        postinumero = "40100",
-        postitoimipaikka = "Testilä",
-        arviointioikeudet =
+        oikeudet =
             listOf(
-                YkiArviointioikeusEntity(
-                    id = null,
-                    arvioijaId = null,
+                arviointioikeus(
                     kieli = kieli,
-                    tasot = setOf(Tutkintotaso.PT, Tutkintotaso.KT),
                     tila = tila,
                     kaudenAlkupaiva = kaudenAlkupaiva,
                     kaudenPaattymispaiva = kaudenPaattymispaiva,
-                    jatkorekisterointi = false,
-                    ensimmainenRekisterointipaiva = LocalDate.of(2021, 1, 1),
-                    rekisteriintuontiaika = null,
+                    ensimmainenRekisterointipaiva = OLETUSKAUDEN_ALKU,
                 ),
             ),
     )

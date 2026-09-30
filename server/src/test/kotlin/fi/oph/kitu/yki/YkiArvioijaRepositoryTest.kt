@@ -59,18 +59,13 @@ class YkiArvioijaRepositoryTest(
         rekisteriintuontiaika = null,
     )
 
-    private fun arvioija(vararg arviointioikeudet: YkiArviointioikeusEntity) =
-        YkiArvioijaEntity(
-            id = null,
-            arvioijaOid = oid,
+    private fun testiarvioija(vararg arviointioikeudet: YkiArviointioikeusEntity) =
+        arvioija(
+            oid = oid,
             henkilotunnus = "010180-9026",
             sukunimi = "Öhman-Testi",
             etunimet = "Ranja Testi",
-            sahkopostiosoite = "testi@testi.fi",
-            katuosoite = "Testikuja 5",
-            postinumero = "40100",
-            postitoimipaikka = "Testilä",
-            arviointioikeudet = arviointioikeudet.toList(),
+            oikeudet = arviointioikeudet.toList(),
         )
 
     /** Kanta tayttaa luotu- ja muokattu-leimat, joten ne nollataan vertailua varten. */
@@ -92,12 +87,12 @@ class YkiArvioijaRepositoryTest(
         val swe = arviointioikeus(Tutkintokieli.SWE)
         val eng = arviointioikeus(Tutkintokieli.ENG)
 
-        arvioijaRepository.tallenna(arvioija(swe))
+        arvioijaRepository.tallenna(testiarvioija(swe))
 
-        val savedId = arvioijaRepository.tallenna(arvioija(swe, eng))
+        val savedId = arvioijaRepository.tallenna(testiarvioija(swe, eng))
         val saved = arvioijaRepository.findById(savedId).getOrNull()
 
-        assertEquals(arvioija(swe, eng).normalisoi(), saved?.normalisoi())
+        assertEquals(testiarvioija(swe, eng).normalisoi(), saved?.normalisoi())
         assertEquals(1, arvioijaRepository.findAll().count())
     }
 
@@ -106,11 +101,11 @@ class YkiArvioijaRepositoryTest(
         val swe = arviointioikeus(Tutkintokieli.SWE)
         val eng = arviointioikeus(Tutkintokieli.ENG)
 
-        arvioijaRepository.tallenna(arvioija(swe, eng))
+        arvioijaRepository.tallenna(testiarvioija(swe, eng))
         assertEquals(2, arvioijaRepository.findByArvioijaOid(oid)?.arviointioikeudet?.size)
 
         // Ruotsin arviointioikeus perutaan: se katoaa payloadista, jolloin sen on kadottava kannastakin.
-        arvioijaRepository.tallenna(arvioija(eng))
+        arvioijaRepository.tallenna(testiarvioija(eng))
 
         val jaljella = arvioijaRepository.findByArvioijaOid(oid)?.arviointioikeudet.orEmpty()
         assertEquals(listOf(Tutkintokieli.ENG), jaljella.map { it.kieli })
@@ -121,8 +116,8 @@ class YkiArvioijaRepositoryTest(
         val swe = arviointioikeus(Tutkintokieli.SWE)
         val eng = arviointioikeus(Tutkintokieli.ENG)
 
-        arvioijaRepository.tallenna(arvioija(swe, eng))
-        arvioijaRepository.tallenna(arvioija(eng), lahde = Tallennuslahde.SOLKI)
+        arvioijaRepository.tallenna(testiarvioija(swe, eng))
+        arvioijaRepository.tallenna(testiarvioija(eng), lahde = Tallennuslahde.SOLKI)
 
         val jaljella = arvioijaRepository.findByArvioijaOid(oid)?.arviointioikeudet.orEmpty()
         assertEquals(
@@ -133,9 +128,9 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Solkin push ei jata rivia lahetysjonoon`() {
-        arvioijaRepository.tallenna(arvioija(arviointioikeus()), lahde = Tallennuslahde.SOLKI)
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus()), lahde = Tallennuslahde.SOLKI)
         // Toinen push samaan riviin kayttaa ON CONFLICT -haaraa.
-        arvioijaRepository.tallenna(arvioija(arviointioikeus()), lahde = Tallennuslahde.SOLKI)
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus()), lahde = Tallennuslahde.SOLKI)
 
         val tallennettu = arvioijaRepository.findByArvioijaOid(oid)
         val lahetetty = tallennettu?.solkiinLahetetty
@@ -148,7 +143,7 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Kitun oma tallennus jaa lahetysjonoon`() {
-        arvioijaRepository.tallenna(arvioija(arviointioikeus()))
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus()))
 
         assertNull(
             arvioijaRepository.findByArvioijaOid(oid)?.solkiinLahetetty,
@@ -158,11 +153,11 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Vanhentunut muokkaushetki estaa tallennuksen`() {
-        arvioijaRepository.tallenna(arvioija(arviointioikeus(Tutkintokieli.SWE)))
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus(Tutkintokieli.SWE)))
 
         assertFailsWith<OptimisticLockingFailureException> {
             arvioijaRepository.tallenna(
-                arvioija(arviointioikeus(Tutkintokieli.ENG)),
+                testiarvioija(arviointioikeus(Tutkintokieli.ENG)),
                 odotettuMuokkaushetki = OffsetDateTime.parse("2020-01-01T00:00:00Z"),
             )
         }
@@ -176,11 +171,11 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Ajantasainen muokkaushetki sallii tallennuksen`() {
-        arvioijaRepository.tallenna(arvioija(arviointioikeus(Tutkintokieli.SWE)))
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus(Tutkintokieli.SWE)))
         val nykyinen = arvioijaRepository.findByArvioijaOid(oid)?.muokattu
 
         arvioijaRepository.tallenna(
-            arvioija(arviointioikeus(Tutkintokieli.ENG)),
+            testiarvioija(arviointioikeus(Tutkintokieli.ENG)),
             odotettuMuokkaushetki = nykyinen,
         )
 
@@ -193,9 +188,9 @@ class YkiArvioijaRepositoryTest(
     @Test
     fun `Solkin push ei siivoa kitun lahettamatonta muutosta jonosta`() {
         // Kitun oma tallennus jattaa rivin lahetysjonoon (solkiin_lahetetty = NULL).
-        arvioijaRepository.tallenna(arvioija(arviointioikeus(Tutkintokieli.SWE)))
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus(Tutkintokieli.SWE)))
 
-        arvioijaRepository.tallenna(arvioija(arviointioikeus(Tutkintokieli.SWE)), lahde = Tallennuslahde.SOLKI)
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus(Tutkintokieli.SWE)), lahde = Tallennuslahde.SOLKI)
 
         assertNull(
             arvioijaRepository.findByArvioijaOid(oid)?.solkiinLahetetty,
@@ -206,13 +201,13 @@ class YkiArvioijaRepositoryTest(
     @Test
     fun `Solkin push ei pyyhi kitussa syotettyja kenttia`() {
         val kitunMerkinta =
-            arvioija(arviointioikeus(Tutkintokieli.SWE)).copy(
+            testiarvioija(arviointioikeus(Tutkintokieli.SWE)).copy(
                 passivoitu = OffsetDateTime.parse("2026-02-01T00:00:00Z"),
             )
         arvioijaRepository.tallenna(kitunMerkinta)
 
         // Solkin payload ei kanna tata kenttaa lainkaan.
-        arvioijaRepository.tallenna(arvioija(arviointioikeus(Tutkintokieli.SWE)), lahde = Tallennuslahde.SOLKI)
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus(Tutkintokieli.SWE)), lahde = Tallennuslahde.SOLKI)
 
         val tallennettu = arvioijaRepository.findByArvioijaOid(oid)
         assertNotNull(tallennettu?.passivoitu, "passivointihetki on sailytysajan laskennan alkupiste")
@@ -220,11 +215,11 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Tasomuutos saman kauden sisalla kirjataan historiaan`() {
-        val arvioijaId = arvioijaRepository.tallenna(arvioija(arviointioikeus(tasot = setOf(Tutkintotaso.PT))))
+        val arvioijaId = arvioijaRepository.tallenna(testiarvioija(arviointioikeus(tasot = setOf(Tutkintotaso.PT))))
         assertEquals(1, kausihistorianTasot(arvioijaId).size)
 
         arvioijaRepository.tallenna(
-            arvioija(arviointioikeus(tasot = setOf(Tutkintotaso.PT, Tutkintotaso.KT))),
+            testiarvioija(arviointioikeus(tasot = setOf(Tutkintotaso.PT, Tutkintotaso.KT))),
         )
 
         assertEquals(
@@ -238,11 +233,11 @@ class YkiArvioijaRepositoryTest(
     fun `Muuttumaton kausi ei kasvata historiaa vaikka tasot tulisivat eri jarjestyksessa`() {
         val arvioijaId =
             arvioijaRepository.tallenna(
-                arvioija(arviointioikeus(tasot = linkedSetOf(Tutkintotaso.PT, Tutkintotaso.KT))),
+                testiarvioija(arviointioikeus(tasot = linkedSetOf(Tutkintotaso.PT, Tutkintotaso.KT))),
             )
 
         arvioijaRepository.tallenna(
-            arvioija(arviointioikeus(tasot = linkedSetOf(Tutkintotaso.KT, Tutkintotaso.PT))),
+            testiarvioija(arviointioikeus(tasot = linkedSetOf(Tutkintotaso.KT, Tutkintotaso.PT))),
         )
 
         assertEquals(1, kausihistorianTasot(arvioijaId).size, "sama kausi, sama tasojoukko")
@@ -253,7 +248,7 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Duplikaatteja ei tallenneta`() {
-        val arvioija = arvioija(arviointioikeus())
+        val arvioija = testiarvioija(arviointioikeus())
 
         arvioijaRepository.saveAllNewEntities(listOf(arvioija))
         assertEquals(1, arvioijaRepository.findAll().count())
@@ -268,7 +263,7 @@ class YkiArvioijaRepositoryTest(
     fun `different versions of the same arvioija are saved`() {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val arvioija =
-            arvioija(
+            testiarvioija(
                 arviointioikeus(
                     kaudenAlkupaiva = LocalDate.parse("2024-09-01", dateFormatter),
                     kaudenPaattymispaiva = LocalDate.parse("2025-09-01", dateFormatter),
@@ -296,7 +291,7 @@ class YkiArvioijaRepositoryTest(
     @Test
     fun `Päivitys nollaa aiemmin tallennetun henkilötunnuksen, jos tulevassa datassa hetua ei ole`() {
         val arvioijaHetulla =
-            arvioija(
+            testiarvioija(
                 arviointioikeus(
                     kaudenAlkupaiva = LocalDate.of(2026, 3, 1),
                     kaudenPaattymispaiva = LocalDate.of(2027, 3, 1),
@@ -320,15 +315,15 @@ class YkiArvioijaRepositoryTest(
                 kaudenAlkupaiva = LocalDate.of(2021, 1, 1),
                 kaudenPaattymispaiva = LocalDate.of(2026, 1, 1),
             )
-        val id = arvioijaRepository.tallenna(arvioija(kausi1))
+        val id = arvioijaRepository.tallenna(testiarvioija(kausi1))
         assertEquals(1, arvioijaRepository.findKausihistoria(id).size)
 
         // Sama kausi uudelleen: historia ei kasva.
-        arvioijaRepository.tallenna(arvioija(kausi1))
+        arvioijaRepository.tallenna(testiarvioija(kausi1))
         assertEquals(1, arvioijaRepository.findKausihistoria(id).size)
 
         // Pelkka yhteystiedon korjaus ei myoskaan kasvata historiaa.
-        arvioijaRepository.tallenna(arvioija(kausi1).copy(sahkopostiosoite = "uusi@testi.fi"))
+        arvioijaRepository.tallenna(testiarvioija(kausi1).copy(sahkopostiosoite = "uusi@testi.fi"))
         assertEquals(1, arvioijaRepository.findKausihistoria(id).size)
 
         // Uusi kausi kirjautuu historiaan omana rivinaan.
@@ -338,7 +333,7 @@ class YkiArvioijaRepositoryTest(
                 kaudenPaattymispaiva = LocalDate.of(2031, 1, 1),
                 jatkorekisterointi = true,
             )
-        arvioijaRepository.tallenna(arvioija(kausi2))
+        arvioijaRepository.tallenna(testiarvioija(kausi2))
 
         val historia = arvioijaRepository.findKausihistoria(id)
         assertEquals(2, historia.size)
@@ -348,7 +343,7 @@ class YkiArvioijaRepositoryTest(
 
     @Test
     fun `Tallennus merkitsee rivin lähetettäväksi Solkiin`() {
-        val id = arvioijaRepository.tallenna(arvioija(arviointioikeus()))
+        val id = arvioijaRepository.tallenna(testiarvioija(arviointioikeus()))
         val saved = arvioijaRepository.findById(id).getOrNull()
 
         assertNotNull(saved)
@@ -363,11 +358,11 @@ class YkiArvioijaRepositoryTest(
     fun `Uudet kentät tallentuvat ja luotu-leima säilyy päivityksessä`() {
         val tekija = Oid.parse("1.2.246.562.24.59267607404").getOrThrow()
         val id =
-            arvioijaRepository.tallenna(arvioija(arviointioikeus()), tekija = tekija)
+            arvioijaRepository.tallenna(testiarvioija(arviointioikeus()), tekija = tekija)
         val luotu = arvioijaRepository.findById(id).getOrNull()?.luotu
         assertNotNull(luotu)
 
-        arvioijaRepository.tallenna(arvioija(arviointioikeus()), tekija = tekija)
+        arvioijaRepository.tallenna(testiarvioija(arviointioikeus()), tekija = tekija)
 
         val saved = arvioijaRepository.findById(id).getOrNull()
         assertNotNull(saved)
