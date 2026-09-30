@@ -33,6 +33,15 @@ describe("Etusivun kojelautanäkymä", () => {
     ).toBeVisible()
   })
 
+  test("sivun otsikko on Kielitutkintorekisteri", async ({
+    indexPage,
+    page,
+  }) => {
+    await indexPage.open()
+
+    await expect(page).toHaveTitle("Kielitutkintorekisteri")
+  })
+
   test("YKI-kortin Suoritukset-linkki vie YKI:n suoritussivulle", async ({
     indexPage,
     ykiSuorituksetPage,

@@ -2,16 +2,10 @@
   "name": "e2e",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
   "engines": {
     "node": "^24",
     "npm": ">=11"
   },
-  "scripts": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@playwright/test": "^1.47.0",
     "@types/node": "^24.0.0",

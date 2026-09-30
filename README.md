@@ -54,6 +54,29 @@ skriptille voi antaa `--setup-only` parametrin. Tällöin suoritetaan kehitysymp
 ./scripts/start_local_env.sh --setup-only
 ```
 
+`tmux`-session saa ajettua alas [stop_tmux.sh](./scripts/stop_tmux.sh)-skriptillä. Se lähettää
+jokaiseen ikkunaan ja paneeliin `C-c`:n, odottaa hetken ja sulkee session. Skripti on ajettava
+session sisältä.
+
+```shell
+./scripts/stop_tmux.sh
+```
+
+### YKI-suorituksen lähettäminen käsin
+
+[upload_yki_suoritus.sh](./scripts/upload_yki_suoritus.sh) lähettää YKI-suorituksen
+`POST /yki/api/suoritus` -rajapintaan ja hoitaa OAuth2:n `client_credentials`-kirjautumisen.
+Oletuspayload on `server/src/test/resources/yki-tiedonsiirto-example.json`. `dev`- ja
+`test`-ympäristöjen tunnukset kysytään ensimmäisellä ajolla ja välimuistitetaan
+`~/.config/kitu`-hakemistoon.
+
+```shell
+./scripts/upload_yki_suoritus.sh                      # paikallinen palvelin
+./scripts/upload_yki_suoritus.sh --env dev            # untuva
+./scripts/upload_yki_suoritus.sh --payload oma.json
+./scripts/upload_yki_suoritus.sh --help
+```
+
 ### Offline-kehitys
 
 Kun internet-yhteyttä ei ole saatavilla (esim. lentokoneessa tai junassa), sovelluksen voi käynnistää

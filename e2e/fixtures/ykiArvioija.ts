@@ -2,13 +2,6 @@ import SQL from "sql-template-strings"
 import { TestDB } from "./baseFixture"
 import { FixturePerson, peopleFixture } from "./basePeopleFixture"
 
-export const create = async () => {
-  const response = await fetch(
-    "http://localhost:8080/dev/mockdata/yki/arvioija/1",
-  )
-  return await response.json()
-}
-
 export interface YkiArvioija {
   arvioijanOppijanumero: string
   henkilotunnus: string | null

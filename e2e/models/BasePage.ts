@@ -1,5 +1,5 @@
 import { Locator, Page } from "@playwright/test"
-import { Config, createConfig } from "../config"
+import { Config } from "../config"
 import { expect } from "../fixtures/baseFixture"
 
 type GotoParams = Parameters<Page["goto"]>[1]

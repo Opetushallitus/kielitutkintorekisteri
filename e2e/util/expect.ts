@@ -1,4 +1,4 @@
-import { Expect, expect, Locator, Page } from "@playwright/test"
+import { expect, Locator } from "@playwright/test"
 
 export const expectToHaveTexts = async (
   locator: Locator,
@@ -51,8 +51,6 @@ export const testForEachTestId = async (
 
 export const expectToHaveText = (expected: string) => (l: Locator) =>
   expect(l).toHaveText(expected)
-
-export const expectToBeEmpty = () => expectToHaveText("")
 
 export const expectToHaveInputValue = (expected: string) => (l: Locator) =>
   expect(l).toHaveValue(expected)
