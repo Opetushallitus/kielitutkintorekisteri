@@ -16,6 +16,10 @@
       "automerge": true
     },
     {
+      "matchUpdateTypes": ["digest", "pinDigest", "lockFileMaintenance"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
       "matchPackageNames": [
         "io.opentelemetry:**",
         "io.opentelemetry.instrumentation:**"
