@@ -1,9 +1,6 @@
 import { Config } from "../config"
 import { APIRequestContext } from "@playwright/test"
 import { expect } from "./baseFixture"
-import { Serializable } from "playwright-core/types/structs"
-import { ReadStream } from "fs"
-import { APIResponse } from "playwright-core"
 
 export class OauthRequestContext {
   readonly baseUrl: string

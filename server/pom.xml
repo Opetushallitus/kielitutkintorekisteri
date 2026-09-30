@@ -129,6 +129,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>
         </dependency>
+        <!-- Ei suoria importteja: luokkapolulla ollessaan Spring valitsee
+             HttpComponentsClientHttpRequestFactoryn RestClientin taustalle. -->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
@@ -301,6 +303,8 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
+        <!-- Ei suoria importteja: tarvitaan ajonaikana @EnableRetryn ja
+             @Retryablen proxyihin (KituApplication) seka @WithSpan-aspektiin. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aspectj</artifactId>
@@ -364,12 +368,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jdbc</artifactId>
-        </dependency>
-
-        <!-- CRUD Repository related  -->
-        <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
         </dependency>
 
         <!-- Jackson 3 — jackson-core/databind/annotations are pulled in
