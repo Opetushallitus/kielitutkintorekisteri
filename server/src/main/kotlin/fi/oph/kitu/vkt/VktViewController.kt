@@ -20,6 +20,7 @@ import fi.oph.kitu.vkt.html.VktHyvaJaTyydyttavaTarkasteluPage
 import fi.oph.kitu.vkt.html.VktKoskiErrors
 import fi.oph.kitu.vkt.html.VktSuorituksetPage
 import fi.oph.kitu.webmvc.Links
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import kotlinx.html.a
 import kotlinx.html.br
 import org.springframework.beans.factory.annotation.Qualifier
@@ -240,5 +241,4 @@ class VktViewController(
         }
 }
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "VKT suoritusta ei löytynyt")
-class VktSuoritusNotFoundError : RuntimeException()
+class VktSuoritusNotFoundError : ResourceNotFoundException("VKT suoritusta ei löytynyt")

@@ -1,5 +1,9 @@
 package fi.oph.kitu.yki.arvioijat
 
+import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getEnumOrNull
+import fi.oph.kitu.jdbc.getLocalDateOrNull
+import fi.oph.kitu.jdbc.getOffsetDateTimeOrNull
 import fi.oph.kitu.jdbc.getTypedArray
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oid.getOid
@@ -53,17 +57,17 @@ data class YkiArvioijaEntity(
                     postinumero = rs.getString("postinumero"),
                     postitoimipaikka = rs.getString("postitoimipaikka"),
                     arvioijanEnsimmainenRekisterointipaiva =
-                        rs.getDate("arvioijan_ensimmainen_rekisterointipaiva")?.toLocalDate(),
-                    passivoitu = rs.getObject("passivoitu", OffsetDateTime::class.java),
-                    luotu = rs.getObject("luotu", OffsetDateTime::class.java),
+                        rs.getLocalDateOrNull("arvioijan_ensimmainen_rekisterointipaiva"),
+                    passivoitu = rs.getOffsetDateTimeOrNull("passivoitu"),
+                    luotu = rs.getOffsetDateTimeOrNull("luotu"),
                     luojaOid = rs.getOidOrNull("luoja_oid"),
-                    muokattu = rs.getObject("muokattu", OffsetDateTime::class.java),
+                    muokattu = rs.getOffsetDateTimeOrNull("muokattu"),
                     muokkaajaOid = rs.getOidOrNull("muokkaaja_oid"),
-                    solkiinLahetetty = rs.getObject("solkiin_lahetetty", OffsetDateTime::class.java),
+                    solkiinLahetetty = rs.getOffsetDateTimeOrNull("solkiin_lahetetty"),
                     solkiLahetysvirhe = rs.getString("solki_lahetysvirhe"),
                     solkiLahetysyritykset = rs.getInt("solki_lahetysyritykset"),
                     solkiViimeisinLahetysyritys =
-                        rs.getObject("solki_viimeisin_lahetysyritys", OffsetDateTime::class.java),
+                        rs.getOffsetDateTimeOrNull("solki_viimeisin_lahetysyritys"),
                     solkiTunnus = rs.getString("solki_tunnus"),
                     arviointioikeudet = emptyList(),
                 )
@@ -92,13 +96,13 @@ data class YkiArviointioikeusEntity(
                 YkiArviointioikeusEntity(
                     id = rs.getInt("id"),
                     arvioijaId = rs.getInt("arvioija_id"),
-                    kieli = Tutkintokieli.valueOf(rs.getString("kieli")),
+                    kieli = rs.getEnum<Tutkintokieli>("kieli"),
                     tasot = rs.getTypedArray("tasot") { taso -> Tutkintotaso.valueOf(taso) }.toSet(),
-                    tila = rs.getString("tila")?.let(YkiArvioijaTila::valueOf),
-                    kaudenAlkupaiva = rs.getDate("kauden_alkupaiva")?.toLocalDate(),
-                    kaudenPaattymispaiva = rs.getDate("kauden_paattymispaiva")?.toLocalDate(),
+                    tila = rs.getEnumOrNull<YkiArvioijaTila>("tila"),
+                    kaudenAlkupaiva = rs.getLocalDateOrNull("kauden_alkupaiva"),
+                    kaudenPaattymispaiva = rs.getLocalDateOrNull("kauden_paattymispaiva"),
                     jatkorekisterointi = rs.getBoolean("jatkorekisterointi"),
-                    rekisteriintuontiaika = rs.getObject("rekisteriintuontiaika", OffsetDateTime::class.java),
+                    rekisteriintuontiaika = rs.getOffsetDateTimeOrNull("rekisteriintuontiaika"),
                     ensimmainenRekisterointipaiva = rs.getDate("ensimmainen_rekisterointipaiva").toLocalDate(),
                     ashaNumero = rs.getString("asha_numero"),
                 )
@@ -133,16 +137,16 @@ data class YkiArvioijaKausiEntity(
                 YkiArvioijaKausiEntity(
                     id = rs.getInt("id"),
                     arvioijaId = rs.getInt("arvioija_id"),
-                    kieli = Tutkintokieli.valueOf(rs.getString("kieli")),
+                    kieli = rs.getEnum<Tutkintokieli>("kieli"),
                     tasot = rs.getTypedArray("tasot") { taso -> Tutkintotaso.valueOf(taso) }.toSet(),
-                    tila = rs.getString("tila")?.let(YkiArvioijaTila::valueOf),
-                    kaudenAlkupaiva = rs.getDate("kauden_alkupaiva")?.toLocalDate(),
-                    kaudenPaattymispaiva = rs.getDate("kauden_paattymispaiva")?.toLocalDate(),
+                    tila = rs.getEnumOrNull<YkiArvioijaTila>("tila"),
+                    kaudenAlkupaiva = rs.getLocalDateOrNull("kauden_alkupaiva"),
+                    kaudenPaattymispaiva = rs.getLocalDateOrNull("kauden_paattymispaiva"),
                     jatkorekisterointi = rs.getBoolean("jatkorekisterointi"),
                     ashaNumero = rs.getString("asha_numero"),
-                    toimenpide = rs.getString("toimenpide")?.let(Kausitoimenpide::valueOf),
+                    toimenpide = rs.getEnumOrNull<Kausitoimenpide>("toimenpide"),
                     kausiId = rs.getObject("kausi_id", Integer::class.java),
-                    kirjattu = rs.getObject("kirjattu", OffsetDateTime::class.java),
+                    kirjattu = rs.getOffsetDateTimeOrNull("kirjattu"),
                     kirjaajaOid = rs.getOidOrNull("kirjaaja_oid"),
                 )
             }

@@ -1,5 +1,7 @@
 package fi.oph.kitu.yki.suoritukset.error
 
+import fi.oph.kitu.jdbc.getInstant
+import fi.oph.kitu.jdbc.getInstantOrNull
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.sql.ResultSet
@@ -33,10 +35,10 @@ fun YkiSuoritusErrorEntity.Companion.fromResultSet(rs: ResultSet): YkiSuoritusEr
         rs.getString("suorittajan_oid"),
         rs.getString("hetu"),
         rs.getString("nimi"),
-        rs.getTimestamp("last_modified")?.toInstant(),
+        rs.getInstantOrNull("last_modified"),
         rs.getString("virheellinen_kentta"),
         rs.getString("virheellinen_arvo"),
         rs.getString("virheellinen_rivi"),
         rs.getInt("virheen_rivinumero"),
-        rs.getTimestamp("virheen_luontiaika").toInstant(),
+        rs.getInstant("virheen_luontiaika"),
     )

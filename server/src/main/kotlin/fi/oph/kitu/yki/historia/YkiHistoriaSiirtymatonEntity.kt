@@ -1,5 +1,7 @@
 package fi.oph.kitu.yki.historia
 
+import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getOffsetDateTimeOrNull
 import org.springframework.jdbc.core.RowMapper
 import java.time.OffsetDateTime
 
@@ -82,11 +84,11 @@ data class YkiHistoriaSiirtymatonEntity(
                     perustelu = rs.getString("perustelu"),
                     tarkKasittelyPvm = rs.getString("tark_kasittely_pvm"),
                     syy = rs.getString("syy"),
-                    syyluokka = YkiHistoriaSiirtymattomyydenSyy.valueOf(rs.getString("syyluokka")),
+                    syyluokka = rs.getEnum<YkiHistoriaSiirtymattomyydenSyy>("syyluokka"),
                     oidHaunSyy = rs.getString("oid_haun_syy"),
                     rawRivi = rs.getString("raw_rivi"),
                     lahdetiedosto = rs.getString("lahdetiedosto"),
-                    ladattu = rs.getObject("ladattu", OffsetDateTime::class.java),
+                    ladattu = rs.getOffsetDateTimeOrNull("ladattu"),
                 )
             }
     }

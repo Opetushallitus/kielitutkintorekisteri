@@ -11,6 +11,7 @@ import fi.oph.kitu.security.CurrentUser
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.Validation.ValidationError
 import fi.oph.kitu.webmvc.Links
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.arvioijat.solki.Lahetystulos
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -282,5 +283,4 @@ class YkiArvioijaViewController(
         )
 }
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "YKI-arvioijaa ei löytynyt")
-class YkiArvioijaNotFoundError : RuntimeException()
+class YkiArvioijaNotFoundError : ResourceNotFoundException("YKI-arvioijaa ei löytynyt")
