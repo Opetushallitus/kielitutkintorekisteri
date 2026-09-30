@@ -14,9 +14,10 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorService
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Instant
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration
 
 @Service
 class DashboardService(
@@ -30,11 +31,20 @@ class DashboardService(
     private val tehtavapankkiServiceProvider: ObjectProvider<TehtavapankkiService>,
     private val schedulerStatsRepository: SchedulerStatsRepository,
     private val koskiErrorService: KoskiErrorService,
+    /**
+     * Konstruktorissa eika @Value-kenttana, koska valimuistit alustetaan property-initialisoijissa
+     * — kenttainjektio tapahtuisi vasta niiden jalkeen. Nolla poistaa valimuistin kaytosta;
+     * e2e-profiili tekee niin, koska sovelluksen valimuisti ei tyhjenny kun testi tyhjentaa kannan.
+     */
+    @param:Value($$"${kitu.dashboard.cache.ttl}")
+    private val cacheTtlSetting: String,
 ) {
-    private val ykiCache = InMemoryCache<Unit, YkiStats>(ttl = 60.seconds) { computeYki() }
-    private val vktCache = InMemoryCache<Unit, VktStats>(ttl = 60.seconds) { computeVkt() }
-    private val kotoCache = InMemoryCache<Unit, KotoStats>(ttl = 60.seconds) { computeKoto() }
-    private val adminCache = InMemoryCache<Unit, AdminStats>(ttl = 60.seconds) { computeAdmin() }
+    private val cacheTtl = Duration.parse(cacheTtlSetting)
+
+    private val ykiCache = InMemoryCache<Unit, YkiStats>(ttl = cacheTtl) { computeYki() }
+    private val vktCache = InMemoryCache<Unit, VktStats>(ttl = cacheTtl) { computeVkt() }
+    private val kotoCache = InMemoryCache<Unit, KotoStats>(ttl = cacheTtl) { computeKoto() }
+    private val adminCache = InMemoryCache<Unit, AdminStats>(ttl = cacheTtl) { computeAdmin() }
 
     @WithSpan
     fun getYkiStats(): YkiStats = ykiCache.get(Unit) ?: error("ykiCache returned null; computeYki must yield non-null")

@@ -8,10 +8,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
+import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class InMemoryCacheTest {
     @Test
@@ -22,6 +25,29 @@ class InMemoryCacheTest {
         val second = cache.get(Unit)
 
         assertSame(first, second)
+    }
+
+    @Test
+    fun `nolla-ttl palauttaa aina tuoreen arvon`() {
+        val kutsuja = AtomicInteger()
+        val cache =
+            InMemoryCache<Unit, Any>(ttl = Duration.ZERO) {
+                kutsuja.incrementAndGet()
+                Any()
+            }
+
+        val first = cache.get(Unit)
+        val second = cache.get(Unit)
+
+        assertNotSame(first, second)
+        assertEquals(2, kutsuja.get())
+    }
+
+    @Test
+    fun `negatiivinen ttl palauttaa aina tuoreen arvon`() {
+        val cache = InMemoryCache<Unit, Any>(ttl = (-1).seconds) { Any() }
+
+        assertNotSame(cache.get(Unit), cache.get(Unit))
     }
 
     @Test
