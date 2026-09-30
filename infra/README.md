@@ -39,14 +39,12 @@ infra/
     ├── log-groups-stack.ts          # Log groups + LogErrors/LogWarnings filters + alarms
     ├── backups-stack.ts             # AWS Backup vault for the Aurora cluster
     ├── koski-audit-logs-integration-stack.ts  # Subscription filter + Lambda → KOSKI SQS
-    ├── koski-audit-logs-integration/  # Lambda source for the above
-    └── yki-historia-upload-stack.ts   # Prod-only S3 bucket for YKI-historia uploads
+    └── koski-audit-logs-integration/  # Lambda source for the above
 ```
 
 `infra/scripts/` holds helpers that belong to the CDK app rather than to the
-server: `presign-yki-historia-upload.mjs` (see below) and
-`audit-deployed-stacks.sh` + `cdk-app-inventory.mjs` (see _Stack lifecycle_
-below).
+server: `audit-deployed-stacks.sh` + `cdk-app-inventory.mjs` (see _Stack
+lifecycle_ below).
 
 ## Util stage (`bin/infra.ts`, `lib/utility-stage.ts`)
 
@@ -95,9 +93,9 @@ order (because of dependencies):
    For SQL without a network path, `enableDataApi: true` is set, so
    `aws rds-data execute-statement` / `batch-execute-statement` reach the
    cluster over the AWS API (IAM + the cluster secret, no VPC route). That is
-   how `scripts/load_yki_historia_siirtymattomat.py` writes the YKI historia
-   karanteenitaulu; it is IAM-gated, audited in CloudTrail, and deliberately
-   not used for anything in the register itself.
+   how the YKI historia karanteenitaulu was populated during the 2011–2016
+   migration (by a script since removed); it is IAM-gated, audited in
+   CloudTrail, and deliberately not used for anything in the register itself.
 8. **`Service`** — the application Fargate service, see below.
 9. **`Route53HealthChecks`** (region: `us-east-1`) — HTTPS check against the
    public domain; alarm wired to `usEastAlarmsStack.investigationActions`.
@@ -110,27 +108,19 @@ order (because of dependencies):
 
 ### Prod-only stacks
 
-`Prod/YkiHistoriaUpload` (`lib/yki-historia-upload-stack.ts`) is wired
-directly in `bin/infra.ts` as a child of the `Prod` stage — not in
-`environment-stage.ts`, since there is no Dev/Test analogue. It creates a
-single S3 bucket `kitu-yki-historia-upload-prod` that an external
-organization writes to via on-demand presigned PUT URLs (≤5 GB per file).
-The bucket is versioned, BlockPublicAccess all, S3-managed encryption,
-`enforceSSL`, ACLs disabled (`BUCKET_OWNER_ENFORCED`), removalPolicy
-RETAIN, and aborts incomplete multipart uploads after 7 days. The Spring
-Boot app does not access this bucket — OPH admins download the files via
-the AWS console.
+There are none. `Prod/YkiHistoriaUpload` (`lib/yki-historia-upload-stack.ts`)
+used to be wired directly in `bin/infra.ts` as a child of the `Prod` stage,
+providing the S3 bucket `kitu-yki-historia-upload-prod` that an external
+organization uploaded the YKI history export to via presigned PUT URLs. It was
+removed once the 2011–2016 migration had been run, together with the presign
+helper and the migration scripts.
 
-To mint a URL, an OPH admin runs locally:
-
-```bash
-./scripts/yki_historia_upload_presign.sh --key <object-key>
-```
-
-The script invokes `infra/scripts/presign-yki-historia-upload.mjs` (uses
-`@aws-sdk/s3-request-presigner` — `aws s3 presign` in AWS CLI 2.x (see `.mise.toml` for the pin) is
-GET-only) and prints the URL plus a ready-to-paste `curl --upload-file`
-one-liner for the uploader. Default TTL is 7 days (the SigV4 maximum).
+**The bucket had `removalPolicy: RETAIN`, so deleting the CloudFormation stack
+leaves it behind — holding the source export, which contains henkilötunnuksia,
+names and addresses.** Deleting the stack is therefore not enough: decide
+explicitly whether the bucket and its versions should be emptied and deleted,
+and do that deliberately rather than leaving an unmanaged bucket of personal
+data behind. See _Stack lifecycle_ for why an orphaned stack is a hazard.
 
 ## Service stack details (`lib/service-stack.ts`)
 
@@ -541,6 +531,4 @@ Listed here because deploys silently or loudly fail when these don't exist:
   automatically; locally use `TAG=$(git rev-parse main)` to deploy main's
   image, or pin to a specific commit.
 
-`Prod/YkiHistoriaUpload` has no manual prerequisites — the bucket is
-CDK-managed and the `oph-ktr-prod` SSO profile is already configured by
-`scripts/ensure_aws_profiles.sh`.
+There are no Prod-only stacks left, so nothing extra beyond the above.

@@ -152,10 +152,6 @@ class YkiSuoritusFilterTest {
                     .map { Oid.parse(it).getOrThrow() }
                     .toSet()
                     .right()
-
-            override fun getOppijanumerotByHetut(
-                hetut: List<String>,
-            ): Either<OppijanumeroException, Map<String, Oid>> = throw NotImplementedError()
         }
     }
 
@@ -173,9 +169,5 @@ class YkiSuoritusFilterTest {
             ): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> = throw NotImplementedError()
 
             override fun getLinkedOids(henkiloOid: Oid): Either<OppijanumeroException, Set<Oid>> = error.left()
-
-            override fun getOppijanumerotByHetut(
-                hetut: List<String>,
-            ): Either<OppijanumeroException, Map<String, Oid>> = error.left()
         }
 }

@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import java.time.LocalDate
 import kotlin.random.Random
 
-/** Oppijanumerohaun kirjaamat syyt, samat merkkijonot kuin migrate_yki_historia.py:ssa. */
+/** Oppijanumerohaun kirjaamat syyt, samat merkkijonot kuin migraatioskriptissa oli. */
 private val oidHaunSyyt =
     listOf(
         "virheellinen hetu (muoto)",
