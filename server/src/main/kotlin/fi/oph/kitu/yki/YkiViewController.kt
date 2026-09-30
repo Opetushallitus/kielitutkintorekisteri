@@ -169,7 +169,7 @@ class YkiViewController(
 
         return ResponseEntity.ok(
             YkiKoskiErrors.render(
-                errors = koskiErrorService.findAllByEntity("yki", hidden),
+                errors = errors,
                 suoritukset = ykiSuoritusRepository.findLatestBySolkiIds(suoritusIds),
                 hiddenCount = hiddenCount,
             ),
