@@ -1,16 +1,12 @@
 package fi.oph.kitu.ilmoittautumisjarjestelma
 
 import arrow.core.Either
-import arrow.core.left
-import fi.oph.kitu.restclient.retrieveEntitySafely
-import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.restclient.fetchOphService
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import java.net.URI
@@ -36,37 +32,21 @@ class IlmoittautumisjarjestelmaClientImpl(
         endpoint: String,
         body: IlmoittautumisjarjestelmaRequest,
         responseType: Class<T>,
-    ): Either<IlmoittautumisjarjestelmaException, T> {
-        val uri = URI.create("$serviceUrl/$endpoint")
-        val rawResponse =
-            restClient
-                .method(HttpMethod.POST)
-                .uri(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieveEntitySafely(String::class.java)
-
-        return if (rawResponse == null) {
-            IlmoittautumisjarjestelmaException.NullResponse(body).left()
-        } else if (rawResponse.statusCode.is4xxClientError) {
-            IlmoittautumisjarjestelmaException.BadRequest(body, rawResponse).left()
-        } else if (!rawResponse.statusCode.is2xxSuccessful) {
-            IlmoittautumisjarjestelmaException.UnexpectedError(body, rawResponse).left()
-        } else {
-            deserializeResponse(body, rawResponse, responseType)
-        }
-    }
-
-    @WithSpan
-    fun <T> deserializeResponse(
-        request: IlmoittautumisjarjestelmaRequest,
-        response: ResponseEntity<String>,
-        clazz: Class<T>,
     ): Either<IlmoittautumisjarjestelmaException, T> =
-        Either
-            .catch {
-                defaultObjectMapper.readValue(response.body, clazz)
-            }.mapLeft { _ ->
-                IlmoittautumisjarjestelmaException.MalformedResponse(request, response)
-            }
+        restClient.fetchOphService(
+            httpMethod = HttpMethod.POST,
+            uri = URI.create("$serviceUrl/$endpoint"),
+            body = body,
+            emptyRequest = body,
+            responseType = responseType,
+            nullResponse = { IlmoittautumisjarjestelmaException.NullResponse(it) },
+            // Tama palvelu ei erottele 404:aa muista 4xx-virheista, toisin kuin ONR ja
+            // organisaatiopalvelu — sailytetaan entinen kaytos.
+            notFound = { req, res -> IlmoittautumisjarjestelmaException.BadRequest(req, res) },
+            badRequest = { req, res -> IlmoittautumisjarjestelmaException.BadRequest(req, res) },
+            unexpected = { req, res -> IlmoittautumisjarjestelmaException.UnexpectedError(req, res) },
+            decodeFailure = { req, res, _ ->
+                IlmoittautumisjarjestelmaException.MalformedResponse(req, res)
+            },
+        )
 }
