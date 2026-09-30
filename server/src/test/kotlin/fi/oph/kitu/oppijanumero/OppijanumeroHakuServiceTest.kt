@@ -70,6 +70,11 @@ class OppijanumeroHakuServiceTest {
 
         assertEquals(loydettyOid, tulos.getOrNull())
         assertTrue(service.kutsutut.any { it.kutsumanimi == "Ilmari" }, "nimivaihtoehtoja kokeiltiin")
+        assertEquals(
+            3,
+            service.kutsutut.size,
+            "alkuperainen + kaksi etunimivaihtoehtoa; loytynytta yhdistelmaa ei kysyta uudelleen",
+        )
     }
 
     @Test
@@ -86,6 +91,28 @@ class OppijanumeroHakuServiceTest {
             service.kutsutut.any { it.kutsumanimi == "Ilmari" },
             "409 tarkoittaa etta henkilo loytyi mutta nimet eivat tasmanneet - juuri silloin " +
                 "nimivaihtoehdot ovat ainoa asia joka voi auttaa",
+        )
+    }
+
+    @Test
+    fun `ONR-n 404 ei yriteta uudelleen nimivaihtoehdoilla`() {
+        val service =
+            palvelu {
+                OppijanumeroException
+                    .OppijaNotFoundException(
+                        EmptyRequest(),
+                        response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("ei loydy"),
+                    ).left()
+            }
+
+        val tulos = OppijanumeroHakuService(service, OppijanumeroTroubleshootingService(service)).haeMasterOid(oppija)
+
+        assertTrue(tulos.isLeft())
+        assertEquals(
+            1,
+            service.kutsutut.size,
+            "404 ratkeaa pelkasta hetusta: VTJ ei tunne sita, eivatka nimivaihtoehdot muuta sita - " +
+                "jokainen uusinta olisi turha VTJ-kysely",
         )
     }
 

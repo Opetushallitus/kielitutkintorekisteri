@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @SpringBootTest
 @Import(DBContainerConfiguration::class)
@@ -30,6 +31,7 @@ class OppijanumeroTroubleshootingServiceTest(
                 "Marttila",
             )
         val result = service.tryEachEtunimiAsKutsumanimi(oppija)
-        assertEquals(expectedOppija, result)
+        assertEquals(expectedOppija, result?.oppija)
+        assertNotNull(result?.oppijanumero, "oppijanumero palautetaan, jottei sita tarvitse hakea uudelleen")
     }
 }

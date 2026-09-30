@@ -19,6 +19,7 @@ fun OppijanumeroTroubleshootingService.troubleshootOppijanumero(
             Mahdollisesti henkilötunnuksessa tai jossain nimistä on kirjoitusvirhe, joku nimi puuttuu, tai nimet ovat väärässä järjestyksessä.
             """.trimIndent()
         troubleshootOppijaNameCombinations(oppija)
+            ?.oppija
             ?.let { success ->
                 "etunimet: ${success.etunimet}, kutsumanimi: ${success.kutsumanimi}, sukunimi: ${success.sukunimi}"
             }

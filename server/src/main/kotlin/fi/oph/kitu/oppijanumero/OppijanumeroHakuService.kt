@@ -20,7 +20,7 @@ class OppijanumeroHakuService(
                 if (virhe.voiJohtuaNimienMuodosta()) {
                     troubleshooting
                         .troubleshootOppijaNameCombinations(oppija)
-                        ?.let { oppijanumeroService.getMasterOid(it).getOrNull() }
+                        ?.oppijanumero
                         ?.right()
                         ?: virhe.left()
                 } else {
@@ -36,9 +36,7 @@ class OppijanumeroHakuService(
 
     private fun OppijanumeroException.voiJohtuaNimienMuodosta(): Boolean =
         when (this) {
-            is OppijanumeroException.OppijaNotIdentifiedException,
-            is OppijanumeroException.OppijaNotFoundException,
-            -> {
+            is OppijanumeroException.OppijaNotIdentifiedException -> {
                 true
             }
 
