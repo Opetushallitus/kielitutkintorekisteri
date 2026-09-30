@@ -18,6 +18,7 @@ import fi.oph.kitu.koski.YkiMappingId
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.result.splitIntoValuesAndErrors
 import fi.oph.kitu.webmvc.Links
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.suoritukset.YkiSuorituksetPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -298,5 +299,4 @@ fun YkiSuorituksetParams.withRecalledSearch(session: HttpSession?): YkiSuorituks
             },
     )
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "YKI-suoritusta ei löytynyt")
-class YkiSuoritusNotFoundError : RuntimeException()
+class YkiSuoritusNotFoundError : ResourceNotFoundException("YKI-suoritusta ei löytynyt")

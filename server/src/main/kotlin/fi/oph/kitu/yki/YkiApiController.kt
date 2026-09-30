@@ -6,7 +6,7 @@ import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
 import fi.oph.kitu.util.validation.ValidationService
-import fi.oph.kitu.util.validation.getOrThrow
+import fi.oph.kitu.util.validation.orThrowBadRequest
 import fi.oph.kitu.webmvc.csvAttachmentResponse
 import fi.oph.kitu.yki.Arviointitila.ARVIOITU
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
@@ -168,7 +168,7 @@ class YkiApiController(
     fun postHenkilosuoritus(
         @RequestBody data: Henkilosuoritus<YkiSuoritus>,
     ): ResponseEntity<*> {
-        val enrichedData = validationService.validateAndEnrich(data).getOrThrow()
+        val enrichedData = validationService.validateAndEnrich(data).orThrowBadRequest()
         val entity =
             try {
                 YkiSuoritusEntity.from(enrichedData)
@@ -254,7 +254,7 @@ class YkiApiController(
     fun postArvioija(
         @RequestBody arvioija: YkiArvioija,
     ): ResponseEntity<*> {
-        val validatedArvioija = validationService.validateAndEnrich(arvioija).getOrThrow()
+        val validatedArvioija = validationService.validateAndEnrich(arvioija).orThrowBadRequest()
 
         return if (asetukset.integraatioKaytossa) {
             paivitaYhteystiedot(validatedArvioija)

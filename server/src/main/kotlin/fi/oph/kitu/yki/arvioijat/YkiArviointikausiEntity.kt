@@ -2,6 +2,9 @@ package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
+import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getLocalDateOrNull
+import fi.oph.kitu.jdbc.getOffsetDateTimeOrNull
 import fi.oph.kitu.jdbc.getTypedArray
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oid.getOidOrNull
@@ -46,13 +49,13 @@ data class YkiArviointikausiEntity(
                     id = rs.getInt("id"),
                     arvioijaId = rs.getInt("arvioija_id"),
                     alkupaiva = rs.getDate("alkupaiva").toLocalDate(),
-                    paattymispaiva = rs.getDate("paattymispaiva")?.toLocalDate(),
+                    paattymispaiva = rs.getLocalDateOrNull("paattymispaiva"),
                     ashaNumero = rs.getString("asha_numero"),
-                    passivoitu = rs.getObject("passivoitu", OffsetDateTime::class.java),
+                    passivoitu = rs.getOffsetDateTimeOrNull("passivoitu"),
                     passivoijaOid = rs.getOidOrNull("passivoija_oid"),
-                    luotu = rs.getObject("luotu", OffsetDateTime::class.java),
+                    luotu = rs.getOffsetDateTimeOrNull("luotu"),
                     luojaOid = rs.getOidOrNull("luoja_oid"),
-                    muokattu = rs.getObject("muokattu", OffsetDateTime::class.java),
+                    muokattu = rs.getOffsetDateTimeOrNull("muokattu"),
                     muokkaajaOid = rs.getOidOrNull("muokkaaja_oid"),
                     oikeudet = emptyList(),
                 )
@@ -74,7 +77,7 @@ data class YkiArviointikausiOikeusEntity(
                 YkiArviointikausiOikeusEntity(
                     id = rs.getInt("id"),
                     kausiId = rs.getInt("kausi_id"),
-                    kieli = Tutkintokieli.valueOf(rs.getString("kieli")),
+                    kieli = rs.getEnum<Tutkintokieli>("kieli"),
                     tasot = rs.getTypedArray("tasot") { taso -> Tutkintotaso.valueOf(taso) }.toSet(),
                 )
             }

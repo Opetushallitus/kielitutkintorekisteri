@@ -6,7 +6,7 @@ import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
 import fi.oph.kitu.tiedontuontischema.VktSuoritus
 import fi.oph.kitu.util.validation.ValidationService
-import fi.oph.kitu.util.validation.getOrThrow
+import fi.oph.kitu.util.validation.orThrowBadRequest
 import fi.oph.kitu.webmvc.csvAttachmentResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -112,7 +112,7 @@ class VktApiController(
     fun putHenkilosuoritus(
         @RequestBody data: Henkilosuoritus<VktSuoritus>,
     ): ResponseEntity<*> {
-        val enrichedData = validation.validateAndEnrich(data).getOrThrow()
+        val enrichedData = validation.validateAndEnrich(data).orThrowBadRequest()
         customSuoritusRepository.save(VktSuoritusEntity.from(enrichedData))
         return TiedonsiirtoSuccess().toResponseEntity()
     }

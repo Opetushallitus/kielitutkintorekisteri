@@ -1,5 +1,6 @@
 package fi.oph.kitu.tehtavapankki
 
+import fi.oph.kitu.jdbc.getOffsetDateTimeOrNull
 import fi.oph.kitu.util.defaultObjectMapper
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.jdbc.core.SingleColumnRowMapper
@@ -58,7 +59,7 @@ class TehtavapankkiRepository(
                 LIMIT 1
                 """.trimIndent(),
                 mapOf("lahdejarjestelma" to lahdejarjestelma, "lahde_id" to lahdeId),
-            ) { rs, _ -> rs.getObject("lahde_filegenerated", OffsetDateTime::class.java) }
+            ) { rs, _ -> rs.getOffsetDateTimeOrNull("lahde_filegenerated") }
             .firstOrNull()
 
     @WithSpan
