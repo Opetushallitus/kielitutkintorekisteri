@@ -1,6 +1,9 @@
 package fi.oph.kitu.yki.suoritukset
 
 import fi.oph.kitu.i18n.finnishDate
+import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getEnumOrNull
+import fi.oph.kitu.jdbc.getInstant
 import fi.oph.kitu.jdbc.getTypedArrayOrNull
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.oid.Oid
@@ -235,7 +238,7 @@ data class YkiSuoritusEntity(
                 id = rs.getInt("id"),
                 suorittajanOID = Oid.parse(rs.getString("suorittajan_oid")).getOrThrow(),
                 hetu = rs.getString("hetu"),
-                sukupuoli = Sukupuoli.valueOf(rs.getString("sukupuoli")),
+                sukupuoli = rs.getEnum<Sukupuoli>("sukupuoli"),
                 sukunimi = rs.getString("sukunimi"),
                 etunimet = rs.getString("etunimet"),
                 kansalaisuus = rs.getString("kansalaisuus"),
@@ -245,12 +248,12 @@ data class YkiSuoritusEntity(
                 maa = rs.getString("maa"),
                 email = rs.getString("email"),
                 solkiId = rs.getInt("solki_id"),
-                lastModified = rs.getTimestamp("last_modified").toInstant(),
-                receivedAt = rs.getTimestamp("received_at").toInstant(),
+                lastModified = rs.getInstant("last_modified"),
+                receivedAt = rs.getInstant("received_at"),
                 tutkintopaiva = rs.getObject("tutkintopaiva", LocalDate::class.java),
-                tutkintokieli = Tutkintokieli.valueOf(rs.getString("tutkintokieli")),
-                tutkintotaso = Tutkintotaso.valueOf(rs.getString("tutkintotaso")),
-                todistuskieli = rs.getString("todistuskieli")?.let { Todistuskieli.valueOf(it) },
+                tutkintokieli = rs.getEnum<Tutkintokieli>("tutkintokieli"),
+                tutkintotaso = rs.getEnum<Tutkintotaso>("tutkintotaso"),
+                todistuskieli = rs.getEnumOrNull<Todistuskieli>("todistuskieli"),
                 jarjestajanTunnusOid = Oid.parse(rs.getString("jarjestajan_tunnus_oid")).getOrThrow(),
                 jarjestajanNimi = rs.getString("jarjestajan_nimi"),
                 arviointipaiva = arviointipaiva,
@@ -269,7 +272,7 @@ data class YkiSuoritusEntity(
                 tarkistusarviointiHyvaksyttyPvm = tarkistusarviointiHyvaksyttyPvm,
                 koskiOpiskeluoikeus = koskiOpiskeluoikeus,
                 koskiSiirtoKasitelty = koskiSiirtoKasitelty,
-                arviointitila = Arviointitila.valueOf(rs.getString("arviointitila")),
+                arviointitila = rs.getEnum<Arviointitila>("arviointitila"),
                 arviointitilaLahetetty = arviointitilaLahetetty,
                 arviointitilanLahetysvirhe = arviointitilanLahetysvirhe,
                 lahdejarjestelmanTunnus = rs.getString("lahdejarjestelmantunnus"),

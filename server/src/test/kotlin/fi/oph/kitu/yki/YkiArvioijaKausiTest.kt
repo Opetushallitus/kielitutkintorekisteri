@@ -8,10 +8,8 @@ import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.arvioijat.Kausitoimenpide
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
-import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
-import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -70,7 +68,7 @@ class YkiArvioijaKausiTest(
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
         repository.deleteAll()
-        repository.tallenna(arvioija(petro))
+        repository.tallenna(testiarvioija(petro))
     }
 
     @Test
@@ -415,30 +413,17 @@ class YkiArvioijaKausiTest(
 
     private fun idOf(oid: String): Int = repository.findByArvioijaOid(Oid.parse(oid).getOrThrow())!!.id!!.toInt()
 
-    private fun arvioija(oid: String) =
-        YkiArvioijaEntity(
-            id = null,
-            arvioijaOid = Oid.parse(oid).getOrThrow(),
-            henkilotunnus = null,
+    private fun testiarvioija(oid: String) =
+        arvioija(
+            oid = Oid.parse(oid).getOrThrow(),
             sukunimi = "Kivinen-Testi",
             etunimet = "Petro Testi",
-            sahkopostiosoite = "testi@testi.fi",
-            katuosoite = "Testikuja 5",
-            postinumero = "40100",
-            postitoimipaikka = "Testilä",
-            arviointioikeudet =
+            oikeudet =
                 listOf(
-                    YkiArviointioikeusEntity(
-                        id = null,
-                        arvioijaId = null,
-                        kieli = Tutkintokieli.FIN,
+                    arviointioikeus(
                         tasot = setOf(Tutkintotaso.PT),
-                        tila = null,
                         kaudenAlkupaiva = VANHA_ALKU,
                         kaudenPaattymispaiva = VANHA_LOPPU,
-                        jatkorekisterointi = false,
-                        ensimmainenRekisterointipaiva = VANHA_ALKU,
-                        rekisteriintuontiaika = null,
                     ),
                 ),
         )

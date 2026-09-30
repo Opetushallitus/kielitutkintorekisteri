@@ -1,12 +1,12 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.Pagination
-import fi.oph.kitu.html.csvDownloadButton
 import fi.oph.kitu.html.errorsArticle
 import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.hiddenValue
 import fi.oph.kitu.html.hiddenValues
 import fi.oph.kitu.html.input
+import fi.oph.kitu.html.listViewActions
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
@@ -33,10 +33,7 @@ import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.header
 import kotlinx.html.id
-import kotlinx.html.li
-import kotlinx.html.nav
 import kotlinx.html.table
-import kotlinx.html.ul
 
 object KielitestiSuorituksetPage {
     fun render(
@@ -75,20 +72,11 @@ object KielitestiSuorituksetPage {
 
             article(classes = "overflow-auto") {
                 header {
-                    nav {
-                        ul {
-                            li {
-                                +UiText.Koto.suorituksiaYhteensa
-                                +": $numberOfSuoritukset"
-                            }
-                            li {
-                                csvDownloadButton(
-                                    Links.Kielitesti.suorituksetCsv() + httpParams(filterParams.toMap()),
-                                )
-                            }
-                            li { kielitestiSuoritusFilterButton(filterParams) }
-                        }
-                    }
+                    listViewActions(
+                        countLabel = UiText.Koto.suorituksiaYhteensa,
+                        numberOfItems = numberOfSuoritukset,
+                        csvHref = Links.Kielitesti.suorituksetCsv() + httpParams(filterParams.toMap()),
+                    ) { kielitestiSuoritusFilterButton(filterParams) }
                     filterDescriptionList(filterParams.filterDescriptions())
                 }
 

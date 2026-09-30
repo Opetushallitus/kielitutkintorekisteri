@@ -11,7 +11,8 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+source "$( dirname "${BASH_SOURCE[0]}" )/common-functions.sh"
+
 WORKFLOWS_DIR="$REPO_ROOT/.github/workflows"
 
 if grep -rn "pull_request_target" "$WORKFLOWS_DIR"; then

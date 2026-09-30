@@ -11,12 +11,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClient
-import org.springframework.web.client.toEntity
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 data class ExtendedFilter(
     val filter: YkiSuoritusFilter,
@@ -25,8 +20,6 @@ data class ExtendedFilter(
 
 @Service
 class YkiService(
-    @param:Qualifier("solkiRestClient")
-    private val solkiRestClient: RestClient,
     private val suoritusRepository: YkiSuoritusRepository,
     private val auditLogger: AuditLogger,
     private val oppijanumeroService: OppijanumeroService,
@@ -53,18 +46,6 @@ class YkiService(
                 auditLogger.log(AuditLogOperation.YkiSuoritusViewed, oid)
             }
         }
-
-    @WithSpan
-    fun debugImportSuoritukset(from: Instant): String {
-        val url = "suoritukset?m=${DateTimeFormatter.ISO_INSTANT.format(from)}"
-        val response =
-            solkiRestClient
-                .get()
-                .uri(url)
-                .retrieve()
-                .toEntity<String>()
-        return response.body ?: "No body"
-    }
 
     @WithSpan
     fun allSuoritukset(

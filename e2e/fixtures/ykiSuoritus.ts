@@ -1,8 +1,6 @@
 import SQL from "sql-template-strings"
 import { expect, TestDB } from "./baseFixture"
 import { FixturePerson, peopleFixture } from "./basePeopleFixture"
-import { Config } from "../config"
-import { APIRequestContext } from "@playwright/test"
 import { OauthRequestContext } from "./oauthRequestContext"
 
 export interface YkiSuoritus {

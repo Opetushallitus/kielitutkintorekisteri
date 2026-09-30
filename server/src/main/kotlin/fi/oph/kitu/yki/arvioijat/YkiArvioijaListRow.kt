@@ -2,6 +2,9 @@ package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
+import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getLocalDateOrNull
+import fi.oph.kitu.jdbc.getOffsetDateTimeOrNull
 import fi.oph.kitu.jdbc.getTypedArray
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oid.getOid
@@ -60,15 +63,15 @@ data class YkiArvioijaListRow(
                     postinumero = rs.getString("postinumero"),
                     postitoimipaikka = rs.getString("postitoimipaikka"),
                     ashaNumero = rs.getString("asha_numero"),
-                    kieli = Tutkintokieli.valueOf(rs.getString("kieli")),
+                    kieli = rs.getEnum<Tutkintokieli>("kieli"),
                     tasot = rs.getTypedArray("tasot") { taso -> Tutkintotaso.valueOf(taso) }.toSet(),
-                    tila = Rekisterointitila.valueOf(rs.getString("tila")),
-                    kaudenAlkupaiva = rs.getDate("kauden_alkupaiva")?.toLocalDate(),
-                    kaudenPaattymispaiva = rs.getDate("kauden_paattymispaiva")?.toLocalDate(),
+                    tila = rs.getEnum<Rekisterointitila>("tila"),
+                    kaudenAlkupaiva = rs.getLocalDateOrNull("kauden_alkupaiva"),
+                    kaudenPaattymispaiva = rs.getLocalDateOrNull("kauden_paattymispaiva"),
                     jatkorekisterointi = rs.getBoolean("jatkorekisterointi"),
                     ensimmainenRekisterointipaiva = rs.getDate("ensimmainen_rekisterointipaiva").toLocalDate(),
-                    muokattu = rs.getObject("muokattu", OffsetDateTime::class.java),
-                    solkiinLahetetty = rs.getObject("solkiin_lahetetty", OffsetDateTime::class.java),
+                    muokattu = rs.getOffsetDateTimeOrNull("muokattu"),
+                    solkiinLahetetty = rs.getOffsetDateTimeOrNull("solkiin_lahetetty"),
                     solkiLahetysvirhe = rs.getString("solki_lahetysvirhe"),
                     solkiLahetysyritykset = rs.getInt("solki_lahetysyritykset"),
                 )

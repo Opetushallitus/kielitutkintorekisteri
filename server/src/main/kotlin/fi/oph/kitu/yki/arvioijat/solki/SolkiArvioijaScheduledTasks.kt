@@ -3,7 +3,6 @@ package fi.oph.kitu.yki.arvioijat.solki
 import com.github.kagkarlsson.scheduler.task.Task
 import fi.oph.kitu.util.scheduling.recurringTask
 import io.opentelemetry.api.trace.Tracer
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -25,7 +24,6 @@ class SolkiArvioijaScheduledTasks(
     lateinit var yollinenSchedule: String
 
     /** "3 kertaa": nopeat uusinnat vain riveille joilla yrityksia on viela jaljella. */
-    @WithSpan
     @Bean
     fun lahetaArvioijatSolkiin(solki: SolkiArvioijaService): Task<Void> =
         tracer.recurringTask("Laheta YKI-arvioijat Solkiin", lahetysSchedule) {
@@ -33,7 +31,6 @@ class SolkiArvioijaScheduledTasks(
         }
 
     /** "sen jalkeen saannollisesti": yollinen ajo ei valita yrityslaskurista. */
-    @WithSpan
     @Bean
     fun lahetaEpaonnistuneetArvioijatSolkiin(solki: SolkiArvioijaService): Task<Void> =
         tracer.recurringTask("Laheta epaonnistuneet YKI-arvioijat Solkiin", yollinenSchedule) {

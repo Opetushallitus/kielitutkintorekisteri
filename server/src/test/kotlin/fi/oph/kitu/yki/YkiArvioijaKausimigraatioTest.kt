@@ -3,10 +3,8 @@ package fi.oph.kitu.yki
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.result.getOrThrow
-import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
-import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -51,7 +49,7 @@ class YkiArvioijaKausimigraatioTest(
 
     @Test
     fun `vanhalla saannolla laskettu kausi siirtyy paivaa aikaisemmaksi`() {
-        val id = arvioija(paattymispaiva = VANHA_SAANTO)
+        val id = testiarvioija(paattymispaiva = VANHA_SAANTO)
 
         ajaMigraatio()
 
@@ -63,7 +61,7 @@ class YkiArvioijaKausimigraatioTest(
     fun `karkauspaivalta alkava kausi siirtyy kuten plusYears`() {
         // java.timen plusYears leikkaa 2024-02-29 + 5 v -> 2029-02-28, ja Postgresin interval
         // tekee saman. Ilman sita ehto ei osuisi juuri niihin riveihin jotka vanha laskenta tuotti.
-        val id = arvioija(alkupaiva = LocalDate.of(2024, 2, 29), paattymispaiva = LocalDate.of(2029, 2, 28))
+        val id = testiarvioija(alkupaiva = LocalDate.of(2024, 2, 29), paattymispaiva = LocalDate.of(2029, 2, 28))
 
         ajaMigraatio()
 
@@ -75,7 +73,7 @@ class YkiArvioijaKausimigraatioTest(
     fun `passivoidun kauden katkaistu paattymispaiva ei siirry`() {
         // Passivointipaiva on hallintopaatos, ei laskettu arvo. Kausi on tassa katkaistu sattumalta
         // tasan vanhan saannon mukaisena paivana, joten vain passivoitu-sarake erottaa sen.
-        val id = arvioija(paattymispaiva = VANHA_SAANTO)
+        val id = testiarvioija(paattymispaiva = VANHA_SAANTO)
         passivoiKausi(id)
 
         ajaMigraatio()
@@ -87,7 +85,7 @@ class YkiArvioijaKausimigraatioTest(
     @Test
     fun `saannosta poikkeava tuotu paivapari ei siirry`() {
         val poikkeava = LocalDate.of(2026, 6, 30)
-        val id = arvioija(paattymispaiva = poikkeava)
+        val id = testiarvioija(paattymispaiva = poikkeava)
 
         ajaMigraatio()
 
@@ -99,7 +97,7 @@ class YkiArvioijaKausimigraatioTest(
     fun `jaadytetty vanhentuneen kielen rivi ei siirry`() {
         // Legacy-kielet jaivat V122:ssa ilman kautta. Sama alkupaiva kuin hallitulla kaudella ei
         // saa vetaa niita mukaan, joten tassa arvioijalla on molemmat.
-        val id = arvioija(paattymispaiva = VANHA_SAANTO)
+        val id = testiarvioija(paattymispaiva = VANHA_SAANTO)
         lisaaJaadytettyOikeus(id, Tutkintokieli.SWE10, ALKU, VANHA_SAANTO)
 
         ajaMigraatio()
@@ -112,7 +110,7 @@ class YkiArvioijaKausimigraatioTest(
     fun `projektio ilman kautta ei siirry`() {
         // V122 ei siirtanyt alkupaivatonta arvioijaa masteriin, joten sen projektiolla ei ole
         // kautta jota seurata. Siirto jattaisi rivin eri linjalle kuin master.
-        val id = arvioija(paattymispaiva = VANHA_SAANTO)
+        val id = testiarvioija(paattymispaiva = VANHA_SAANTO)
         poistaKaudet(id)
 
         ajaMigraatio()
@@ -122,7 +120,7 @@ class YkiArvioijaKausimigraatioTest(
 
     @Test
     fun `korjaus ei aja arvioijaa Solki-lahetysjonoon`() {
-        val id = arvioija(paattymispaiva = VANHA_SAANTO)
+        val id = testiarvioija(paattymispaiva = VANHA_SAANTO)
         merkitseLahetetyksi(id)
 
         ajaMigraatio()
@@ -183,34 +181,21 @@ class YkiArvioijaKausimigraatioTest(
     }
 
     /** Tallennus synkronoi kaudet arviointioikeuksista, joten master ja projektio syntyvat yhdessa. */
-    private fun arvioija(
+    private fun testiarvioija(
         alkupaiva: LocalDate = ALKU,
         paattymispaiva: LocalDate,
     ): Int =
         repository.tallenna(
-            YkiArvioijaEntity(
-                id = null,
-                arvioijaOid = Oid.parse("1.2.246.562.24.59267607404").getOrThrow(),
-                henkilotunnus = null,
+            arvioija(
+                oid = Oid.parse("1.2.246.562.24.59267607404").getOrThrow(),
                 sukunimi = "Kivinen-Testi",
                 etunimet = "Petro Testi",
-                sahkopostiosoite = "testi@testi.fi",
-                katuosoite = "Testikuja 5",
-                postinumero = "40100",
-                postitoimipaikka = "Testilä",
-                arviointioikeudet =
+                oikeudet =
                     listOf(
-                        YkiArviointioikeusEntity(
-                            id = null,
-                            arvioijaId = null,
-                            kieli = Tutkintokieli.FIN,
+                        arviointioikeus(
                             tasot = setOf(Tutkintotaso.PT),
-                            tila = null,
                             kaudenAlkupaiva = alkupaiva,
                             kaudenPaattymispaiva = paattymispaiva,
-                            jatkorekisterointi = false,
-                            ensimmainenRekisterointipaiva = alkupaiva,
-                            rekisteriintuontiaika = null,
                         ),
                     ),
             ),

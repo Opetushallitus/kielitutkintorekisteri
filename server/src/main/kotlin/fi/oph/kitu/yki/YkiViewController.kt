@@ -1,5 +1,4 @@
 package fi.oph.kitu.yki
-import fi.oph.kitu.dev.mockdata.toInstant
 import fi.oph.kitu.html.KituRequest
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessage
@@ -18,6 +17,7 @@ import fi.oph.kitu.koski.YkiMappingId
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.result.splitIntoValuesAndErrors
 import fi.oph.kitu.webmvc.Links
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.suoritukset.YkiSuorituksetPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -169,7 +169,7 @@ class YkiViewController(
 
         return ResponseEntity.ok(
             YkiKoskiErrors.render(
-                errors = koskiErrorService.findAllByEntity("yki", hidden),
+                errors = errors,
                 suoritukset = ykiSuoritusRepository.findLatestBySolkiIds(suoritusIds),
                 hiddenCount = hiddenCount,
             ),
@@ -269,15 +269,6 @@ class YkiViewController(
         }
     }
 
-    // Väliaikainen rajapinta yki-import-ongelman selvittelyyn
-    @GetMapping("/debug/import/{date}", produces = ["text/plain"])
-    fun debugYkiImport(
-        @PathVariable date: LocalDate,
-    ): ResponseEntity<String> =
-        ResponseEntity.ok(
-            ykiService.debugImportSuoritukset(date.toInstant()),
-        )
-
     companion object {
         const val YKI_SEARCH_KEY = "YkiSearch"
 
@@ -298,5 +289,4 @@ fun YkiSuorituksetParams.withRecalledSearch(session: HttpSession?): YkiSuorituks
             },
     )
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "YKI-suoritusta ei löytynyt")
-class YkiSuoritusNotFoundError : RuntimeException()
+class YkiSuoritusNotFoundError : ResourceNotFoundException("YKI-suoritusta ei löytynyt")

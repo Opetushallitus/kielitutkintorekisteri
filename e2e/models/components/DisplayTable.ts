@@ -1,4 +1,4 @@
-import { Locator, Page } from "@playwright/test"
+import { Locator } from "@playwright/test"
 
 export default class DisplayTable {
   head: Locator

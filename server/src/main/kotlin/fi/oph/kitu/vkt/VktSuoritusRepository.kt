@@ -1,5 +1,6 @@
 package fi.oph.kitu.vkt
 
+import fi.oph.kitu.jdbc.getEnum
 import fi.oph.kitu.jdbc.pageSql
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
@@ -309,8 +310,8 @@ class CustomVktSuoritusRepository(
                 RowMapper { rs, _ ->
                     Tutkintoryhma(
                         oppijanumero = rs.getString("oppijanumero"),
-                        tutkintokieli = Koodisto.Tutkintokieli.valueOf(rs.getString("tutkintokieli")),
-                        taitotaso = Koodisto.VktTaitotaso.valueOf(rs.getString("taitotaso")),
+                        tutkintokieli = rs.getEnum<Koodisto.Tutkintokieli>("tutkintokieli"),
+                        taitotaso = rs.getEnum<Koodisto.VktTaitotaso>("taitotaso"),
                     )
                 }
         }

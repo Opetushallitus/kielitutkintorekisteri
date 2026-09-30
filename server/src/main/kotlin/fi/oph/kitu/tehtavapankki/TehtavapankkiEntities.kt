@@ -1,5 +1,6 @@
 package fi.oph.kitu.tehtavapankki
 
+import fi.oph.kitu.jdbc.getOffsetDateTimeOrNull
 import fi.oph.kitu.util.defaultObjectMapper
 import org.springframework.jdbc.core.RowMapper
 import tools.jackson.databind.JsonNode
@@ -39,9 +40,9 @@ data class TehtavapakettiEntity(
                     versioHash = rs.getString("versio_hash"),
                     s3Avain = rs.getString("s3_avain"),
                     metadata = defaultObjectMapper.readTree(rs.getString("metadata")),
-                    luotu = rs.getObject("luotu", OffsetDateTime::class.java),
-                    lahdeFilegenerated = rs.getObject("lahde_filegenerated", OffsetDateTime::class.java),
-                    lahdePublished = rs.getObject("lahde_published", OffsetDateTime::class.java),
+                    luotu = rs.getOffsetDateTimeOrNull("luotu"),
+                    lahdeFilegenerated = rs.getOffsetDateTimeOrNull("lahde_filegenerated"),
+                    lahdePublished = rs.getOffsetDateTimeOrNull("lahde_published"),
                     lahdeVersion = rs.getString("lahde_version"),
                     lahdeLanguage = rs.getString("lahde_language"),
                 )
@@ -111,7 +112,7 @@ data class TehtavaEntity(
                     tekstinFormaatti = rs.getString("tekstin_formaatti"),
                     jarjestys = rs.getInt("jarjestys"),
                     metadata = defaultObjectMapper.readTree(rs.getString("metadata")),
-                    luotu = rs.getObject("luotu", OffsetDateTime::class.java),
+                    luotu = rs.getOffsetDateTimeOrNull("luotu"),
                 )
             }
     }

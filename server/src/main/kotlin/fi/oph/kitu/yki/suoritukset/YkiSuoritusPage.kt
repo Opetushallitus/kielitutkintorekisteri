@@ -9,6 +9,7 @@ import fi.oph.kitu.html.comparisonTable
 import fi.oph.kitu.html.errorMessage
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.html.json
+import fi.oph.kitu.html.orDash
 import fi.oph.kitu.html.warningMessage
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.Translations
@@ -276,6 +277,4 @@ object YkiSuoritusPage {
             },
         )
     }
-
-    fun String?.orDash() = this ?: "–"
 }

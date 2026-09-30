@@ -63,7 +63,12 @@ final class ValidationService(
         either { with(paivitaArvioijanTiedot) { validateAndEnrich(komento) } }
 }
 
-fun <T> ValidationResult<T>.getOrThrow(): T =
+/**
+ * Heittaa ValidationExceptionin, jonka GlobalControllerExceptionHandler kaantaa 400:ksi.
+ * Nimi erottaa taman util.result.getOrThrow'sta, joka heittaa Leftin sellaisenaan tai
+ * IllegalStateExceptionin eli paatyy 500:aan — vaara import vaihtaisi statuskoodin hiljaa.
+ */
+fun <T> ValidationResult<T>.orThrowBadRequest(): T =
     fold(
         ifLeft = { errors: NonEmptyList<Validation.ValidationError> ->
             throw Validation.ValidationException(errors)

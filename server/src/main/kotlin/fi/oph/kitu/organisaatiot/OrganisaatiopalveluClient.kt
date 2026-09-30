@@ -1,17 +1,12 @@
 package fi.oph.kitu.organisaatiot
 
 import arrow.core.Either
-import arrow.core.left
-import fi.oph.kitu.restclient.nullableBody
-import fi.oph.kitu.restclient.retrieveEntitySafely
-import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.restclient.decodeFailureFor
+import fi.oph.kitu.restclient.fetchOphService
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.util.UriComponentsBuilder
@@ -40,67 +35,39 @@ class OrganisaatiopalveluClient(
     ): Either<OrganisaatiopalveluException, T> {
         val uriBuilder = UriComponentsBuilder.fromUriString("$serviceUrl/$endpoint")
         query.forEach { (key, value) -> uriBuilder.queryParam(key, value) }
-        val uri = uriBuilder.build().toUri()
 
-        val rawResponse =
-            restClient
-                .method(httpMethod)
-                .uri(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .nullableBody(body)
-                .retrieveEntitySafely(String::class.java)
-
-        return if (rawResponse == null) {
-            OrganisaatiopalveluException.NullResponse(body ?: EmptyRequest()).left()
-        } else if (rawResponse.statusCode == HttpStatus.NOT_FOUND) {
-            OrganisaatiopalveluException.NotFoundException(body ?: EmptyRequest()).left()
-        } else if (rawResponse.statusCode.is4xxClientError) {
-            OrganisaatiopalveluException.BadRequest(body ?: EmptyRequest(), rawResponse).left()
-        } else if (!rawResponse.statusCode.is2xxSuccessful) {
-            OrganisaatiopalveluException.UnexpectedError(body ?: EmptyRequest(), rawResponse).left()
-        } else {
-            deserializeResponse(body ?: EmptyRequest(), rawResponse, responseType)
-        }
-    }
-
-    /**
-     * Tries to convert `HttpResponse<String>` into the given `T`.
-     * If the conversion fails, it checks whether the response was OppijanumeroServiceError.
-     * In that case [fi.oph.kitu.oppijanumero.OppijanumeroException.BadResponse] will be thrown.
-     * Otherwise, the underlying exception will be thrown
-     */
-    @WithSpan
-    fun <T> deserializeResponse(
-        request: OrganisaatiopalveluRequest,
-        response: ResponseEntity<String>,
-        clazz: Class<T>,
-    ): Either<OrganisaatiopalveluException, T> =
-        Either
-            .catch {
-                defaultObjectMapper.readValue(response.body, clazz)
-            }.mapLeft { decodeError ->
-                Either
-                    .catch {
-                        defaultObjectMapper.readValue(
-                            response.body,
-                            OrganisaatiopalveluError::class.java,
+        return restClient.fetchOphService(
+            httpMethod = httpMethod,
+            uri = uriBuilder.build().toUri(),
+            body = body,
+            emptyRequest = EmptyRequest(),
+            responseType = responseType,
+            nullResponse = { OrganisaatiopalveluException.NullResponse(it) },
+            notFound = { req, _ -> OrganisaatiopalveluException.NotFoundException(req) },
+            badRequest = { req, res -> OrganisaatiopalveluException.BadRequest(req, res) },
+            unexpected = { req, res -> OrganisaatiopalveluException.UnexpectedError(req, res) },
+            decodeFailure = { req, res, cause ->
+                decodeFailureFor(
+                    serviceErrorType = OrganisaatiopalveluError::class.java,
+                    response = res,
+                    cause = cause,
+                    badResponse = { orgError ->
+                        OrganisaatiopalveluException.BadResponse(
+                            request = req,
+                            response = res,
+                            organisaatiopalveluError = orgError,
+                            cause = cause,
                         )
-                    }.fold(
-                        ifRight = { orgError ->
-                            OrganisaatiopalveluException.BadResponse(
-                                request = request,
-                                response = response,
-                                organisaatiopalveluError = orgError,
-                                cause = decodeError,
-                            )
-                        },
-                        ifLeft = { _ ->
-                            OrganisaatiopalveluException.MalformedResponse(
-                                request = request,
-                                response = response,
-                                cause = decodeError,
-                            )
-                        },
-                    )
-            }
+                    },
+                    malformed = {
+                        OrganisaatiopalveluException.MalformedResponse(
+                            request = req,
+                            response = res,
+                            cause = cause,
+                        )
+                    },
+                )
+            },
+        )
+    }
 }

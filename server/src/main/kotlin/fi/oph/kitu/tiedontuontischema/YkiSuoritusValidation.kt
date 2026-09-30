@@ -59,7 +59,6 @@ class YkiSuoritusValidation(
             value
         }
 
-    @Suppress("DEPRECATION")
     private fun Raise<Validation.ValidationError>.validateArviointitilaVastaaArvosanoja(s: YkiHenkilosuoritus) {
         val arvosanat = s.suoritus.osat.map { it.arvosana }
         val tarkistusarviointi = s.suoritus.tarkistusarviointi
@@ -133,7 +132,6 @@ class YkiSuoritusValidation(
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun Raise<Validation.ValidationError>.validateTarkistusarviointiSallittu(s: YkiHenkilosuoritus) {
         val onTarkistusarviointi = s.suoritus.tarkistusarviointi != null
         when (s.suoritus.arviointitila) {

@@ -13,6 +13,7 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorC
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorPage
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.sortByOrgName
 import fi.oph.kitu.organisaatiot.OrganisaatioService
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
@@ -102,5 +103,4 @@ class KielitestiViewController(
         )
 }
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Kielitestin suoritusta ei löytynyt")
-class KielitestiSuoritusNotFoundError : RuntimeException()
+class KielitestiSuoritusNotFoundError : ResourceNotFoundException("Kielitestin suoritusta ei löytynyt")

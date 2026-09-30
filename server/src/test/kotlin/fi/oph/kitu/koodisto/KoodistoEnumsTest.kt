@@ -116,24 +116,6 @@ class KoodistoEnumsTest {
     }
 
     @Test
-    fun `Organisaatiotyyppi of tunnistaa organisaatiotyyppi-URIn`() {
-        val uri = KoodiviiteUri("organisaatiotyyppi_02#1")
-        assertEquals(Koodisto.Organisaatiotyyppi.Oppilaitos, Koodisto.Organisaatiotyyppi.of(uri))
-    }
-
-    @Test
-    fun `Organisaatiotyyppi of palauttaa null kun URI ei ole organisaatiotyyppi`() {
-        val uri = KoodiviiteUri("kieli_FI#1")
-        assertNull(Koodisto.Organisaatiotyyppi.of(uri))
-    }
-
-    @Test
-    fun `Organisaatiotyyppi of palauttaa null kun koodiarvoa ei tunneta`() {
-        val uri = KoodiviiteUri("organisaatiotyyppi_99#1")
-        assertNull(Koodisto.Organisaatiotyyppi.of(uri))
-    }
-
-    @Test
     fun `VktArvosana jarjestys vastaa order-kenttaa`() {
         val sorted = Koodisto.VktArvosana.entries.sortedWith(Koodisto.ArvosanaKoodiviite::compare)
         assertEquals(

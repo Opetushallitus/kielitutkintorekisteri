@@ -2,15 +2,13 @@ package fi.oph.kitu.yki
 
 import fi.oph.kitu.i18n.UiText
 
-enum class TutkinnonOsa(
-    val bitmask: Int,
-) {
-    PU(1),
-    KI(2),
-    TY(4),
-    PY(8),
-    RS(0),
-    YL(0),
+enum class TutkinnonOsa {
+    PU,
+    KI,
+    TY,
+    PY,
+    RS,
+    YL,
     ;
 
     val viewText: String

@@ -102,9 +102,6 @@ class YkiArvioijaService(
                 }
             }
 
-    @WithSpan
-    fun haeKausihistoria(id: Int): List<YkiArvioijaKausiEntity> = repository.findKausihistoria(id)
-
     /**
      * Passivointi ei kulje lomakkeen kautta, joten se rakentaa entiteetin suoraan olemassa olevasta
      * rivista. Tila lasketaan kaudesta, joten passivointi paattaa kauden tahan paivaan — mutta vain

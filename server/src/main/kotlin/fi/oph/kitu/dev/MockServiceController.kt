@@ -1,6 +1,7 @@
 package fi.oph.kitu.dev
 
 import fi.oph.kitu.dev.mockdata.generateRandomSsnBirthdayAndSex
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.Sukupuoli
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.ClassPathResource
@@ -59,5 +60,4 @@ class MockServiceController {
     private fun getSeed(input: String): Random = Random(input.fold(0) { acc, char -> acc + char.code })
 }
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-class MockResourceNotFoundError : RuntimeException()
+class MockResourceNotFoundError : ResourceNotFoundException("Mock-resurssia ei löytynyt")

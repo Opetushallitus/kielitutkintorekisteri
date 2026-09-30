@@ -3,11 +3,10 @@ package fi.oph.kitu.yki.historia
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.card
-import fi.oph.kitu.html.csvDownloadButton
-import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.hiddenValue
 import fi.oph.kitu.html.hiddenValues
 import fi.oph.kitu.html.input
+import fi.oph.kitu.html.listViewHeader
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
@@ -24,19 +23,13 @@ import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
-import kotlinx.html.article
 import kotlinx.html.button
 import kotlinx.html.fieldSet
 import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
-import kotlinx.html.header
-import kotlinx.html.li
-import kotlinx.html.nav
 import kotlinx.html.p
 import kotlinx.html.section
-import kotlinx.html.span
-import kotlinx.html.ul
 
 object YkiHistoriaSiirtymatonPage {
     fun render(
@@ -53,29 +46,12 @@ object YkiHistoriaSiirtymatonPage {
 
             siirtymatonSearch(params)
 
-            article {
-                header {
-                    nav {
-                        ul {
-                            li {
-                                +UiText.Yki.Historia.rivejaYhteensa
-                                +": "
-                                span {
-                                    testId("numberOfRows")
-                                    +pagination.numberOfItems.toString()
-                                }
-                            }
-                            li {
-                                csvDownloadButton(
-                                    Links.Yki.historiaSiirtymattomatCsv() + httpParams(params.toMap()),
-                                )
-                            }
-                            li { siirtymatonFilterButton(params) }
-                        }
-                    }
-                }
-                filterDescriptionList(params.filterDescriptions())
-            }
+            listViewHeader(
+                countLabel = UiText.Yki.Historia.rivejaYhteensa,
+                numberOfItems = pagination.numberOfItems,
+                csvHref = Links.Yki.historiaSiirtymattomatCsv() + httpParams(params.toMap()),
+                filterDescriptions = params.filterDescriptions(),
+            ) { siirtymatonFilterButton(params) }
 
             if (rivit.isEmpty()) {
                 p { +UiText.Yki.Historia.eiRiveja }

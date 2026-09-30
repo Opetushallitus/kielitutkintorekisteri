@@ -1,10 +1,8 @@
 package fi.oph.kitu.yki.suoritukset.error
-import fi.oph.kitu.html.Page
-import fi.oph.kitu.html.card
 import fi.oph.kitu.html.errorMessageDetails
-import fi.oph.kitu.html.hiddenErrorsBanner
+import fi.oph.kitu.html.hideErrorLink
+import fi.oph.kitu.html.koskiErrorsPage
 import fi.oph.kitu.html.table.DisplayTableEnum
-import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
@@ -14,74 +12,60 @@ import fi.oph.kitu.koski.YkiMappingId
 import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import kotlinx.html.a
-import kotlinx.html.h1
-import kotlinx.html.h2
 
 object YkiKoskiErrors {
     fun render(
         errors: List<KoskiErrorEntity>,
         suoritukset: Iterable<YkiSuoritusEntity>,
         hiddenCount: Int?,
-    ): String =
-        Page.renderHtml(wideContent = true) {
-            val errorIdToSuoritusMap =
-                errors
-                    .mapNotNull { error ->
-                        YkiMappingId
-                            .parse(error.id)
-                            ?.suoritusId
-                            ?.let { id -> suoritukset.find { it.solkiId == id } }
-                            ?.let { error.id to it }
-                    }.toMap()
+    ): String {
+        val errorIdToSuoritusMap =
+            errors
+                .mapNotNull { error ->
+                    YkiMappingId
+                        .parse(error.id)
+                        ?.suoritusId
+                        ?.let { id -> suoritukset.find { it.solkiId == id } }
+                        ?.let { error.id to it }
+                }.toMap()
 
-            h1 { +UiText.Nav.yki }
-            h2 { +UiText.Yki.koskiTiedonsiirtovirheet }
-
-            hiddenErrorsBanner(hiddenCount)
-
-            card(overflowAuto = true, compact = true) {
-                displayTable(
-                    rows = errors,
-                    columns =
-                        listOf(
-                            Column.Oppijanumero.withHtml { error ->
-                                val suoritus = errorIdToSuoritusMap[error.id]
-                                val oppijanumero = suoritus?.suorittajanOID?.toString()
-                                if (suoritus?.id != null && oppijanumero != null) {
-                                    a(href = Links.Yki.suoritus(suoritus.id)) { +oppijanumero }
-                                } else {
-                                    +(oppijanumero ?: "???")
-                                }
-                            },
-                            Column.SuorituksenTunniste.withHtml { error ->
-                                val suoritus = errorIdToSuoritusMap[error.id]
-                                val tunniste = suoritus?.solkiId?.toString() ?: "#${error.id}"
-                                if (suoritus?.id != null) {
-                                    a(href = Links.Yki.suoritus(suoritus.id)) { +tunniste }
-                                } else {
-                                    +tunniste
-                                }
-                            },
-                            Column.Aikaleima.withHtml {
-                                finnishDateTime(it.timestamp)
-                            },
-                            Column.Virhe.withHtml { errorMessageDetails(it) },
-                            Column.Request.withHtml { error ->
-                                a(href = Links.Yki.koskiRequestJson(error.id.toInt())) {
-                                    +UiText.Yki.naytaJson
-                                }
-                            },
-                            Column.Hidden.withHtml { error ->
-                                hideErrorUrl(error, !error.hidden)?.let { url ->
-                                    a(
-                                        href = url,
-                                    ) { if (error.hidden) +UiText.Toiminto.palauta else +UiText.Toiminto.piilota }
-                                }
-                            },
-                        ),
-                )
-            }
-        }
+        return koskiErrorsPage(
+            title = UiText.Nav.yki,
+            subtitle = UiText.Yki.koskiTiedonsiirtovirheet,
+            errors = errors,
+            hiddenCount = hiddenCount,
+            wideContent = true,
+            columns =
+                listOf(
+                    Column.Oppijanumero.withHtml { error ->
+                        val suoritus = errorIdToSuoritusMap[error.id]
+                        val oppijanumero = suoritus?.suorittajanOID?.toString()
+                        if (suoritus?.id != null && oppijanumero != null) {
+                            a(href = Links.Yki.suoritus(suoritus.id)) { +oppijanumero }
+                        } else {
+                            +(oppijanumero ?: "???")
+                        }
+                    },
+                    Column.SuorituksenTunniste.withHtml { error ->
+                        val suoritus = errorIdToSuoritusMap[error.id]
+                        val tunniste = suoritus?.solkiId?.toString() ?: "#${error.id}"
+                        if (suoritus?.id != null) {
+                            a(href = Links.Yki.suoritus(suoritus.id)) { +tunniste }
+                        } else {
+                            +tunniste
+                        }
+                    },
+                    Column.Aikaleima.withHtml { finnishDateTime(it.timestamp) },
+                    Column.Virhe.withHtml { errorMessageDetails(it) },
+                    Column.Request.withHtml { error ->
+                        a(href = Links.Yki.koskiRequestJson(error.id.toInt())) {
+                            +UiText.Yki.naytaJson
+                        }
+                    },
+                    Column.Hidden.withHtml { error -> hideErrorLink(error, ::hideErrorUrl) },
+                ),
+        )
+    }
 
     enum class Column(
         override val entityName: String?,

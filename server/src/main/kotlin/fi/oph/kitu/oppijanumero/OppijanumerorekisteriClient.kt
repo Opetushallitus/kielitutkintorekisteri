@@ -1,17 +1,12 @@
 package fi.oph.kitu.oppijanumero
 
 import arrow.core.Either
-import arrow.core.left
-import fi.oph.kitu.restclient.nullableBody
-import fi.oph.kitu.restclient.retrieveEntitySafely
-import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.restclient.decodeFailureFor
+import fi.oph.kitu.restclient.fetchOphService
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import java.net.URI
@@ -41,68 +36,38 @@ class OppijanumerorekisteriClient(
         endpoint: String,
         body: OppijanumerorekisteriRequest? = null,
         responseType: Class<T>,
-    ): Either<OppijanumeroException, T> {
-        val uri = "$serviceUrl/$endpoint"
-
-        val rawResponse =
-            restClient
-                .method(httpMethod)
-                .uri(URI.create(uri))
-                .contentType(MediaType.APPLICATION_JSON)
-                .nullableBody(body)
-                .retrieveEntitySafely(String::class.java)
-
-        return if (rawResponse == null) {
-            OppijanumeroException.NullResponse(body ?: EmptyRequest()).left()
-        } else if (rawResponse.statusCode == HttpStatus.NOT_FOUND) {
-            OppijanumeroException.OppijaNotFoundException(body ?: EmptyRequest(), rawResponse).left()
-        } else if (rawResponse.statusCode.is4xxClientError) {
-            OppijanumeroException.BadRequest(body ?: EmptyRequest(), rawResponse).left()
-        } else if (!rawResponse.statusCode.is2xxSuccessful) {
-            OppijanumeroException.UnexpectedError(body ?: EmptyRequest(), rawResponse).left()
-        } else {
-            deserializeResponse(body ?: EmptyRequest(), rawResponse, responseType)
-        }
-    }
-
-    /**
-     * Tries to convert `HttpResponse<String>` into the given `T`.
-     * If the conversion fails, it checks whether the response was OppijanumeroServiceError.
-     * In that case [OppijanumeroException.BadResponse] will be thrown.
-     * Otherwise, the underlying exception will be thrown
-     */
-    @WithSpan
-    fun <T> deserializeResponse(
-        request: OppijanumerorekisteriRequest,
-        response: ResponseEntity<String>,
-        clazz: Class<T>,
     ): Either<OppijanumeroException, T> =
-        Either
-            .catch {
-                defaultObjectMapper.readValue(response.body, clazz)
-            }.mapLeft { decodeError ->
-                Either
-                    .catch {
-                        defaultObjectMapper.readValue(
-                            response.body,
-                            OppijanumeroServiceError::class.java,
+        restClient.fetchOphService(
+            httpMethod = httpMethod,
+            uri = URI.create("$serviceUrl/$endpoint"),
+            body = body,
+            emptyRequest = EmptyRequest(),
+            responseType = responseType,
+            nullResponse = { OppijanumeroException.NullResponse(it) },
+            notFound = { req, res -> OppijanumeroException.OppijaNotFoundException(req, res) },
+            badRequest = { req, res -> OppijanumeroException.BadRequest(req, res) },
+            unexpected = { req, res -> OppijanumeroException.UnexpectedError(req, res) },
+            decodeFailure = { req, res, cause ->
+                decodeFailureFor(
+                    serviceErrorType = OppijanumeroServiceError::class.java,
+                    response = res,
+                    cause = cause,
+                    badResponse = { onrError ->
+                        OppijanumeroException.BadResponse(
+                            request = req,
+                            response = res,
+                            oppijanumeroServiceError = onrError,
+                            cause = cause,
                         )
-                    }.fold(
-                        ifRight = { onrError ->
-                            OppijanumeroException.BadResponse(
-                                request = request,
-                                response = response,
-                                oppijanumeroServiceError = onrError,
-                                cause = decodeError,
-                            )
-                        },
-                        ifLeft = { _ ->
-                            OppijanumeroException.MalformedResponse(
-                                request = request,
-                                response = response,
-                                cause = decodeError,
-                            )
-                        },
-                    )
-            }
+                    },
+                    malformed = {
+                        OppijanumeroException.MalformedResponse(
+                            request = req,
+                            response = res,
+                            cause = cause,
+                        )
+                    },
+                )
+            },
+        )
 }

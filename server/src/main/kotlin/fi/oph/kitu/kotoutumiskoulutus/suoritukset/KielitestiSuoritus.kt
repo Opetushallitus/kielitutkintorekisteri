@@ -1,6 +1,9 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 
 import fi.oph.kitu.jdbc.SortDirection
+import fi.oph.kitu.jdbc.getEnumOrNull
+import fi.oph.kitu.jdbc.getInstant
+import fi.oph.kitu.jdbc.getInstantOrNull
 import fi.oph.kitu.jdbc.sortedWithDirectionBy
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.organisaatiot.Organisaatiot
@@ -49,17 +52,17 @@ data class KielitestiSuoritus(
                     kutsumanimi = rs.getString("kutsumanimi"),
                     oppijanumero = rs.getString("oppijanumero")?.let { Oid.parse(it).getOrThrow() },
                     email = rs.getString("email"),
-                    suoritusaika = rs.getTimestamp("suoritusaika")?.toInstant(),
+                    suoritusaika = rs.getInstantOrNull("suoritusaika"),
                     oppilaitosOid = Oid.parse(rs.getString("oppilaitos_oid")).getOrThrow(),
                     opettajanEmail = rs.getString("opettajan_email"),
                     kurssiId = rs.getInt("kurssi_id"),
                     kurssi = rs.getString("kurssi"),
-                    luetunYmmartaminen = rs.getString("luetun_ymmartaminen")?.let { Arvosana.valueOf(it) },
-                    kuullunYmmartaminen = rs.getString("kuullun_ymmartaminen")?.let { Arvosana.valueOf(it) },
-                    puhe = rs.getString("puhe")?.let { Arvosana.valueOf(it) },
-                    kirjoittaminen = rs.getString("kirjoittaminen")?.let { Arvosana.valueOf(it) },
-                    testikieli = rs.getString("testikieli")?.let { Testikieli.valueOf(it) },
-                    lastModified = rs.getTimestamp("last_modified").toInstant(),
+                    luetunYmmartaminen = rs.getEnumOrNull<Arvosana>("luetun_ymmartaminen"),
+                    kuullunYmmartaminen = rs.getEnumOrNull<Arvosana>("kuullun_ymmartaminen"),
+                    puhe = rs.getEnumOrNull<Arvosana>("puhe"),
+                    kirjoittaminen = rs.getEnumOrNull<Arvosana>("kirjoittaminen"),
+                    testikieli = rs.getEnumOrNull<Testikieli>("testikieli"),
+                    lastModified = rs.getInstant("last_modified"),
                     tehtavapaketti = rs.getString("tehtavapaketti"),
                     completed = rs.getBoolean("completed"),
                 )

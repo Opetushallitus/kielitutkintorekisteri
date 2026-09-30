@@ -1,6 +1,7 @@
 package fi.oph.kitu.kotoutumiskoulutus.koealusta.tehtavapankki
 
 import fi.oph.kitu.tehtavapankki.TehtavapankkiRepository
+import fi.oph.kitu.webmvc.ResourceNotFoundException
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -77,5 +78,4 @@ class TehtavapankkiViewController(
     }
 }
 
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Tehtäväpankin sisältöä ei löytynyt")
-class TehtavapankkiNotFoundError : RuntimeException()
+class TehtavapankkiNotFoundError : ResourceNotFoundException("Tehtäväpankin sisältöä ei löytynyt")
