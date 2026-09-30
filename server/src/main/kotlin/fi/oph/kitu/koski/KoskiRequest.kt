@@ -71,11 +71,6 @@ data class KoskiRequest(
                 val myöntäjäOrganisaatio: Organisaatio,
                 val paikkakunta: KoskiKoodiviite, // koodistoUri: kunta
             ) : Vahvistus
-
-            data class Organisaatiohenkilo(
-                val nimi: String,
-                val organisaatio: Organisaatio,
-            )
         }
     }
 }

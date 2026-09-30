@@ -24,7 +24,6 @@ import kotlin.test.assertEquals
 
 @SpringBootTest(properties = ["kitu.yki.convertLegacyArviointitila.enabled=true"])
 @Import(DBContainerConfiguration::class)
-@Suppress("DEPRECATION")
 class YkiArviointitilanMuunnosTest(
     @param:Autowired val validation: ValidationService,
 ) {

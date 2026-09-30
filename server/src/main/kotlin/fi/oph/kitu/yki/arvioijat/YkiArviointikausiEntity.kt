@@ -37,8 +37,6 @@ data class YkiArviointikausiEntity(
     @MappedCollection(keyColumn = "id", idColumn = "kausi_id")
     val oikeudet: List<YkiArviointikausiOikeusEntity> = emptyList(),
 ) {
-    fun sisaltaa(kieli: Tutkintokieli): Boolean = oikeudet.any { it.kieli == kieli }
-
     companion object {
         val fromRow =
             RowMapper { rs, _ ->

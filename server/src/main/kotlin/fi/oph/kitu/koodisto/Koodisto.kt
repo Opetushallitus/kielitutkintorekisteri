@@ -260,34 +260,6 @@ object Koodisto {
 
         override val koodistoUri: String = "vktarvosana"
     }
-
-    enum class Organisaatiotyyppi(
-        override val koodiarvo: String,
-    ) : Koodiviite {
-        Koulutustoimija("01"),
-        Oppilaitos("02"),
-        Toimipiste("03"),
-        Oppisopimustoimipiste("04"),
-        MuuOrganisaatio("05"),
-        Tyoelamajarjesto("06"),
-        VarhaiskasvatuksenJarjestaja("07"),
-        VarhaiskasvatuksenToimipaikka("08"),
-        Kunta("09"),
-        ;
-
-        override val koodistoUri: String = ORGANISAATIOTYYPPI_KOODISTO_URI
-
-        companion object {
-            fun of(uri: KoodiviiteUri): Organisaatiotyyppi? =
-                if (uri.koodistoUri == ORGANISAATIOTYYPPI_KOODISTO_URI) {
-                    entries.firstOrNull { it.koodiarvo == uri.koodiarvo }
-                } else {
-                    null
-                }
-        }
-    }
-
-    const val ORGANISAATIOTYYPPI_KOODISTO_URI = "organisaatiotyyppi"
 }
 
 data class InvalidYkiArvosanaError(
