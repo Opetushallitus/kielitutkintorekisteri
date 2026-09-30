@@ -1,9 +1,13 @@
 package fi.oph.kitu.yki
 
+import arrow.core.Either
 import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
+import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
@@ -12,6 +16,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 data class ExtendedFilter(
     val filter: YkiSuoritusFilter,
@@ -23,6 +28,7 @@ class YkiService(
     private val suoritusRepository: YkiSuoritusRepository,
     private val auditLogger: AuditLogger,
     private val oppijanumeroService: OppijanumeroService,
+    private val timeService: TimeService,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -111,4 +117,35 @@ class YkiService(
                     )
                 }
             }
+
+    @WithSpan
+    fun findViimeisinBySolkiId(solkiId: Int): YkiSuoritusEntity =
+        suoritusRepository.findLatestBySolkiIds(listOf(solkiId)).first()
+
+    @WithSpan
+    fun findOpiskeluoikeusOid(solkiId: Int): Oid? =
+        suoritusRepository.findOpiskeluoikeusOidsBySolkiIds(listOf(solkiId))[solkiId]
+
+    @WithSpan
+    fun findLatestBySolkiIds(solkiIds: List<Int>): List<YkiSuoritusEntity> =
+        suoritusRepository.findLatestBySolkiIds(solkiIds)
+
+    @WithSpan
+    fun findTarkistusarvioidut(arviointitila: Arviointitila): List<YkiSuoritusEntity> =
+        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila).toList()
+
+    /**
+     * Oletuspaiva tulee TimeServicelta, ei LocalDate.now():lta: kontti ajaa UTC:ssa ja
+     * sovelluksen kasitys tasta paivasta on Europe/Helsinki, joten klo 21-24 UTC valilla
+     * hyvaksyntapaiva olisi mennyt edelliselle paivalle.
+     */
+    @WithSpan
+    fun hyvaksyTarkistusarvioinnit(
+        suoritusIds: List<Int>,
+        pvm: LocalDate?,
+    ): Either<HyvaksyTarkistusarviointiError, Int> =
+        suoritusRepository.hyvaksyTarkistusarvioinnit(
+            suoritusIds = suoritusIds,
+            pvm = pvm ?: timeService.today(),
+        )
 }
