@@ -133,8 +133,6 @@ object UiText {
         val merkittyKasitellyksiEiOid: LocalizedString
             get() =
                 tr("vkt.merkittyKasitellyksiEiOid")
-        val suoritustaEiLoytynyt: LocalizedString get() =
-            tr("vkt.suoritustaEiLoytynyt")
 
         object Sarake {
             val ilmoittautumisenTunniste: LocalizedString
@@ -531,9 +529,6 @@ object UiText {
             val muokattu: LocalizedString get() = tr("yki.sarake.muokattu")
             val solkiId: LocalizedString get() = tr("yki.sarake.solkiId")
             val kentta: LocalizedString get() = tr("yki.sarake.kentta")
-            val arvoKitussa: LocalizedString get() = tr("yki.sarake.arvoKitussa")
-            val arvoSolkissa: LocalizedString get() = tr("yki.sarake.arvoSolkissa")
-            val havaittu: LocalizedString get() = tr("yki.sarake.havaittu")
             val paivamaara: LocalizedString get() = tr("yki.sarake.paivamaara")
             val asiatunnus: LocalizedString get() = tr("yki.sarake.asiatunnus")
             val tarkistusarviointi: LocalizedString

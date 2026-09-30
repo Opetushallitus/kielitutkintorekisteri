@@ -1,5 +1,4 @@
 package fi.oph.kitu.yki
-import fi.oph.kitu.dev.mockdata.toInstant
 import fi.oph.kitu.html.KituRequest
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessage
@@ -268,15 +267,6 @@ class YkiViewController(
                 )
         }
     }
-
-    // Väliaikainen rajapinta yki-import-ongelman selvittelyyn
-    @GetMapping("/debug/import/{date}", produces = ["text/plain"])
-    fun debugYkiImport(
-        @PathVariable date: LocalDate,
-    ): ResponseEntity<String> =
-        ResponseEntity.ok(
-            ykiService.debugImportSuoritukset(date.toInstant()),
-        )
 
     companion object {
         const val YKI_SEARCH_KEY = "YkiSearch"

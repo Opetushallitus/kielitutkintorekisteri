@@ -19,11 +19,6 @@
       "name": "otel.resource.providers.aws.enabled",
       "type": "java.lang.String",
       "description": "Enables the AWS Resource Provides for Open Telemetry."
-    },
-    {
-      "name": "spring.session.store-type",
-      "type": "java.lang.String",
-      "description": "Chooses StoreType that you wish to use to store the sessions."
     }
   ]
 }

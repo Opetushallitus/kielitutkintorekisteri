@@ -1,7 +1,6 @@
 package fi.oph.kitu.yki
 
 import fi.oph.kitu.html.DisplayEnum
-import fi.oph.kitu.html.table.HideInTableFilter
 import fi.oph.kitu.i18n.UiText
 import java.time.LocalDate
 
@@ -17,7 +16,6 @@ enum class Arviointitila : DisplayEnum {
     TARKISTUSARVIOINTI_HYVAKSYTTY,
     ;
 
-    @Suppress("DEPRECATION")
     val viewText: String
         get() =
             when (this) {

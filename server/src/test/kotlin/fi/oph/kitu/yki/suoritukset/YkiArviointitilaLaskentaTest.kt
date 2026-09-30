@@ -6,7 +6,6 @@ import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@Suppress("DEPRECATION")
 class YkiArviointitilaLaskentaTest {
     private fun laske(
         nykyinen: Arviointitila,
