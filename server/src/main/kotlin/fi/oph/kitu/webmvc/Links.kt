@@ -10,6 +10,7 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.vkt.VktApiController
 import fi.oph.kitu.vkt.VktViewController
 import fi.oph.kitu.yki.YkiApiController
+import fi.oph.kitu.yki.YkiKoskiDebugController
 import fi.oph.kitu.yki.YkiViewController
 import fi.oph.kitu.yki.arvioijat.ArvioijaHakuFormData
 import fi.oph.kitu.yki.arvioijat.KausiFormData
@@ -175,7 +176,7 @@ object Links {
         fun koskiVirheet(): String = linkTo(methodOn(YkiViewController::class.java).koskiVirheetView()).toString()
 
         fun koskiRequestJson(suoritusId: Int): String =
-            linkTo(methodOn(YkiViewController::class.java).koskiRequestJson(suoritusId)).toString()
+            linkTo(methodOn(YkiKoskiDebugController::class.java).koskiRequestJson(suoritusId)).toString()
 
         fun hideKoskiVirheet(
             suoritusId: Int,

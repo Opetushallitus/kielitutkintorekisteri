@@ -15,18 +15,15 @@ import fi.oph.kitu.koski.KoskiYkiMappingError
 import fi.oph.kitu.koski.KoskiYkiRequestMapper
 import fi.oph.kitu.koski.YkiMappingId
 import fi.oph.kitu.oppijanumero.OppijanumeroService
-import fi.oph.kitu.util.result.splitIntoValuesAndErrors
 import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.suoritukset.YkiSuorituksetPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusPage
-import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitPage
 import fi.oph.kitu.yki.suoritukset.error.YkiKoskiErrors
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorColumn
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorService
 import jakarta.servlet.http.HttpSession
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.web.csrf.CsrfToken
@@ -39,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.view.RedirectView
-import tools.jackson.databind.json.JsonMapper
 import java.time.LocalDate
 
 @Controller
@@ -48,10 +44,7 @@ class YkiViewController(
     private val ykiService: YkiService,
     private val suoritusErrorService: YkiSuoritusErrorService,
     private val koskiErrorService: KoskiErrorService,
-    private val ykiSuoritusRepository: YkiSuoritusRepository,
     private val koskiYkiRequestMapper: KoskiYkiRequestMapper,
-    @param:Qualifier("koskiObjectMapper")
-    private val koskiObjectMapper: JsonMapper,
     private val ilmoittautumisjarjestelma: IlmoittautumisjarjestelmaService,
     private val oppijanumeroService: OppijanumeroService,
     private val localizationService: LocalizationService,
@@ -62,9 +55,8 @@ class YkiViewController(
     ): ResponseEntity<String> {
         val suoritus = ykiService.findSuoritusById(id)
         return suoritus?.let {
-            val viimeisinSuoritus = ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).first()
-            val opiskeluoikeusOid =
-                ykiSuoritusRepository.findOpiskeluoikeusOidsBySolkiIds(listOf(suoritus.solkiId))[suoritus.solkiId]
+            val viimeisinSuoritus = ykiService.findViimeisinBySolkiId(suoritus.solkiId)
+            val opiskeluoikeusOid = ykiService.findOpiskeluoikeusOid(suoritus.solkiId)
             val (koskiError, koskiSiirronEstonSyyt) =
                 if (suoritus.id == viimeisinSuoritus.id) {
                     Pair(
@@ -170,7 +162,7 @@ class YkiViewController(
         return ResponseEntity.ok(
             YkiKoskiErrors.render(
                 errors = errors,
-                suoritukset = ykiSuoritusRepository.findLatestBySolkiIds(suoritusIds),
+                suoritukset = ykiService.findLatestBySolkiIds(suoritusIds),
                 hiddenCount = hiddenCount,
             ),
         )
@@ -188,22 +180,9 @@ class YkiViewController(
         return RedirectView(Links.Yki.koskiVirheet())
     }
 
-    @GetMapping("/koski-request/{suoritusId}", produces = ["application/json"])
-    fun koskiRequestJson(
-        @PathVariable suoritusId: Int,
-    ): ResponseEntity<String> =
-        ykiSuoritusRepository
-            .findLatestBySolkiIds(listOf(suoritusId))
-            .firstOrNull()
-            ?.let {
-                koskiYkiRequestMapper.ykiSuoritusToKoskiRequest(it)
-            }?.let {
-                ResponseEntity.ok(koskiObjectMapper.writeValueAsString(it))
-            } ?: ResponseEntity.notFound().build()
-
     @GetMapping("/tarkistusarvioinnit", produces = ["text/html"])
     fun tarkistusArvioinnitView(viewMessage: ViewMessage? = null): ResponseEntity<String> =
-        ykiSuoritusRepository.findTarkistusarvoidutSuoritukset(Arviointitila.TARKISTUSARVIOITU).let {
+        ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU).let {
             ResponseEntity.ok(
                 YkiTarkistusarvioinnitPage.render(
                     suoritukset = it.toList(),
@@ -214,7 +193,7 @@ class YkiViewController(
 
     @GetMapping("/tarkistusarvioinnit/hyvaksytyt", produces = ["text/html"])
     fun hyvaksytytTarkistusArvioinnitView(viewMessage: ViewMessage? = null): ResponseEntity<String> =
-        ykiSuoritusRepository.findTarkistusarvoidutSuoritukset(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY).let {
+        ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY).let {
             ResponseEntity.ok(
                 YkiTarkistusarvioinnitPage.renderHyvaksytyt(
                     suoritukset = it.toList(),
@@ -249,10 +228,10 @@ class YkiViewController(
         viewMessage: ViewMessage?,
     ) {
         suoritukset?.let {
-            ykiSuoritusRepository
+            ykiService
                 .hyvaksyTarkistusarvioinnit(
                     suoritusIds = suoritukset,
-                    pvm = hyvaksyttyPvm ?: LocalDate.now(),
+                    pvm = hyvaksyttyPvm,
                 ).fold(
                     ifLeft = { error -> viewMessage?.showError(error.message) },
                     ifRight = { updated ->
