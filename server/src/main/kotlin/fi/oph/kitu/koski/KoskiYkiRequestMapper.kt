@@ -3,6 +3,7 @@ package fi.oph.kitu.koski
 import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.koodisto.Koodisto.YkiArvosana
 import fi.oph.kitu.koski.KoskiRequest.Henkilo
@@ -30,12 +31,17 @@ class KoskiYkiRequestMapper {
     private val keskeytetty = YkiArvosana.Keskeytetty.koodiarvo.toInt()
     private val vilppi = YkiArvosana.Vilppi.koodiarvo.toInt()
     private val eiSuoritusta = YkiArvosana.EiSuoritusta.koodiarvo.toInt()
+    private val eiOppijanumeroa = "Suorituksella ei ole oppijanumeroa"
 
     @WithSpan
     fun ykiSuoritusToKoskiRequest(ykiSuoritus: YkiSuoritusEntity): Either<KoskiYkiMappingError, KoskiRequest> =
         either {
             val estonSyyt = koskiSiirronEstonSyyt(ykiSuoritus)
             ensure(estonSyyt.isEmpty()) { KoskiYkiMappingError.EstoSyyt(estonSyyt) }
+            val oppijanumero =
+                ensureNotNull(ykiSuoritus.suorittajanOID) {
+                    KoskiYkiMappingError.EstoSyyt(listOf(eiOppijanumeroa))
+                }
 
             val osasuoritukset = convertYkiSuoritusToKoskiOsasuoritukset(ykiSuoritus).bind()
             ensure(osasuoritukset.isNotEmpty()) {
@@ -61,7 +67,7 @@ class KoskiYkiRequestMapper {
                     .bind()
 
             KoskiRequest(
-                henkilö = Henkilo(oid = ykiSuoritus.suorittajanOID),
+                henkilö = Henkilo(oid = oppijanumero),
                 opiskeluoikeudet =
                     listOf(
                         Opiskeluoikeus(
@@ -142,6 +148,11 @@ class KoskiYkiRequestMapper {
 
     private fun koskiSiirronEstonSyyt(suoritusEntity: YkiSuoritusEntity): List<String> =
         listOfNotNull(
+            if (suoritusEntity.suorittajanOID == null) {
+                eiOppijanumeroa
+            } else {
+                null
+            },
             if (!suoritusEntity.arviointitila.arvioitu()) {
                 "Suoritus ei ole arvioitu"
             } else {

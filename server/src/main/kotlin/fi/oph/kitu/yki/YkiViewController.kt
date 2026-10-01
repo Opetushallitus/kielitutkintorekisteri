@@ -69,7 +69,8 @@ class YkiViewController(
                 } else {
                     Pair(null, null)
                 }
-            val henkilo = oppijanumeroService.getHenkiloByHenkiloOid(suoritus.suorittajanOID)
+            val henkilo =
+                suoritus.suorittajanOID?.let { oppijanumeroService.getHenkiloByHenkiloOid(it) }
             val t = localizationService.translationBuilder().koodistot("maatjavaltiot1", "maatjavaltiot2").build()
             ResponseEntity.ok(
                 YkiSuoritusPage.render(

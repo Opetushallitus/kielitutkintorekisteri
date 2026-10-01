@@ -19,11 +19,15 @@ import kotlin.test.assertTrue
 class YkiSuoritusPageTest {
     private fun renderHenkilonTiedot(
         suoritus: YkiSuoritusEntity,
-        henkilo: OppijanumerorekisteriHenkilo,
+        henkilo: OppijanumerorekisteriHenkilo?,
     ) = with(YkiSuoritusPage) {
         createHTML()
             .div {
-                henkilonTiedot(Either.Right(henkilo), suoritus, Translations(Language.FI, emptyMap()))
+                henkilonTiedot(
+                    henkilo?.let { Either.Right(it) },
+                    suoritus,
+                    Translations(Language.FI, emptyMap()),
+                )
             }.replace(Regex(">\\s+<"), "><")
     }
 
@@ -179,5 +183,45 @@ class YkiSuoritusPageTest {
             html.contains("""<tr class="diff"><th>Sukunimi</th><td>Meikäläinen</td><td>Möykäläinen</td></tr>"""),
             "differing sukunimi should keep the diff highlight:\n$html",
         )
+    }
+
+    @Test
+    fun `oppijanumeroton historiarivi nakyy eika tarjoa yksilointilinkkia`() {
+        val suoritus = generateRandomYkiSuoritusEntity().copy(suorittajanOID = null)
+
+        val html = renderHenkilonTiedot(suoritus, null)
+
+        assertTrue(html.contains(UiText.Yki.eiOppijanumeroa.toString()), html)
+        assertFalse(html.contains(UiText.Yki.teeYksilointi.toString()), "yksilointilinkki nakyi")
+        assertFalse(html.contains("/henkilo-ui/oppija/"), "ONR-linkki nakyi")
+    }
+
+    @Test
+    fun `yksiloimaton henkilo tarjoaa yhä yksilointilinkin`() {
+        val suoritus = generateRandomYkiSuoritusEntity()
+
+        val html = renderHenkilonTiedot(suoritus, onrHenkilo())
+
+        assertTrue(html.contains(UiText.Yki.teeYksilointi.toString()), html)
+        assertFalse(html.contains(UiText.Yki.eiOppijanumeroa.toString()), html)
+    }
+
+    @Test
+    fun `koko tietosivu renderoityy ilman oppijanumeroa ja ilman ONR-vastausta`() {
+        val suoritus = generateRandomYkiSuoritusEntity().copy(id = 1, suorittajanOID = null)
+
+        val html =
+            YkiSuoritusPage.render(
+                henkilo = null,
+                suoritus = suoritus,
+                viimeisinSuoritus = suoritus,
+                koskiError = null,
+                koskiSiirronEstonSyyt = listOf("Suorituksella ei ole oppijanumeroa"),
+                opiskeluoikeusOid = null,
+                t = Translations(Language.FI, emptyMap()),
+            )
+
+        assertTrue(html.contains(UiText.Yki.eiOppijanumeroa.toString()), "oppijanumeron puute ei nakynyt")
+        assertTrue(html.contains("Suorituksella ei ole oppijanumeroa"), "KOSKI-eston syy ei nakynyt")
     }
 }

@@ -115,7 +115,7 @@ class IlmoittautumisjarjestelmaServiceTests(
                 virheet =
                     listOf(
                         IlmoittautumisjarjestelmaResponseError(
-                            suoritus = YkiSuorituksenTunniste.of(entity),
+                            suoritus = YkiSuorituksenTunniste.of(entity)!!,
                             tila = entity.arviointitila,
                             virhe = "SUORITUSTA_EI_LOYDY",
                         ),
@@ -253,7 +253,7 @@ class IlmoittautumisjarjestelmaServiceTests(
 
     @Test
     fun `YkiSuorituksenTunniste equality`() {
-        val tunniste1 = YkiSuorituksenTunniste.of(entity)
+        val tunniste1 = YkiSuorituksenTunniste.of(entity)!!
         val tunniste2 = tunniste1.copy(osakokeet = tunniste1.osakokeet.reversed())
 
         // Perus samanarvoisuuden testaus

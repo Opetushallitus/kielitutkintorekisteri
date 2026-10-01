@@ -39,10 +39,9 @@ data class YkiArvioinninTila(
             if (entity.isVilppi()) {
                 null
             } else {
-                YkiArvioinninTila(
-                    suoritus = YkiSuorituksenTunniste.of(entity),
-                    tila = entity.arviointitila,
-                )
+                YkiSuorituksenTunniste.of(entity)?.let {
+                    YkiArvioinninTila(suoritus = it, tila = entity.arviointitila)
+                }
             }
     }
 }
@@ -68,19 +67,21 @@ data class YkiSuorituksenTunniste(
 
     companion object {
         fun of(entity: YkiSuoritusEntity) =
-            YkiSuorituksenTunniste(
-                oppijanumero = entity.suorittajanOID,
-                tutkintopaiva = entity.tutkintopaiva,
-                tutkintokieli = entity.tutkintokieli,
-                tutkintotaso = entity.tutkintotaso,
-                osakokeet =
-                    listOfNotNull(
-                        entity.puhuminen?.let { TutkinnonOsa.PU },
-                        entity.kirjoittaminen?.let { TutkinnonOsa.KI },
-                        entity.tekstinYmmartaminen?.let { TutkinnonOsa.TY },
-                        entity.puheenYmmartaminen?.let { TutkinnonOsa.PY },
-                    ),
-            )
+            entity.suorittajanOID?.let { oppijanumero ->
+                YkiSuorituksenTunniste(
+                    oppijanumero = oppijanumero,
+                    tutkintopaiva = entity.tutkintopaiva,
+                    tutkintokieli = entity.tutkintokieli,
+                    tutkintotaso = entity.tutkintotaso,
+                    osakokeet =
+                        listOfNotNull(
+                            entity.puhuminen?.let { TutkinnonOsa.PU },
+                            entity.kirjoittaminen?.let { TutkinnonOsa.KI },
+                            entity.tekstinYmmartaminen?.let { TutkinnonOsa.TY },
+                            entity.puheenYmmartaminen?.let { TutkinnonOsa.PY },
+                        ),
+                )
+            }
     }
 }
 

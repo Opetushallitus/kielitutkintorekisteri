@@ -1,10 +1,12 @@
 package fi.oph.kitu.yki.suoritukset
 
+import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.i18n.UiText
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 class YkiSuoritusColumnTest {
@@ -58,6 +60,18 @@ class YkiSuoritusColumnTest {
             listViewHeaders,
             UiText.Yki.Sarake.rekisteriintuontiaika
                 .toString(),
+        )
+    }
+
+    @Test
+    fun `oppijanumerosarake on tyhja kun oppijanumeroa ei ole`() {
+        val oppijanumeroton = generateRandomYkiSuoritusEntity().copy(suorittajanOID = null)
+        val oppijanumerollinen = generateRandomYkiSuoritusEntity()
+
+        assertEquals("", YkiSuoritusColumn.SuorittajanOid.getValue(oppijanumeroton))
+        assertEquals(
+            oppijanumerollinen.suorittajanOID.toString(),
+            YkiSuoritusColumn.SuorittajanOid.getValue(oppijanumerollinen),
         )
     }
 }

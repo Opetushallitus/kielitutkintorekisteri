@@ -1,5 +1,6 @@
 package fi.oph.kitu.dev.mockdata
 
+import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonEntity
@@ -27,6 +28,16 @@ private val paikallisetSyyt =
         "virheellinen arvosana tasolle PT: 7",
         "arvosanaMuuttui ei ole tarkistettujen osakokeiden osajoukko",
     )
+
+/**
+ * Lahteessa tarkistusarvioidut osakokeet ja muuttuneet arvosanat ovat bittimaskeja, joiden bitti
+ * on 1 shl TutkinnonOsa-jarjestysluku. RS ja YL ovat jarjestyksessa vasta naiden jalkeen eivatka
+ * voi olla tarkistusarvioituja.
+ */
+private val tarkistusarvioitavatOsakokeet =
+    listOf(TutkinnonOsa.PU, TutkinnonOsa.KI, TutkinnonOsa.TY, TutkinnonOsa.PY)
+
+private fun Collection<TutkinnonOsa>.toSolkiBittimaski(): Int = fold(0) { maski, osa -> maski or (1 shl osa.ordinal) }
 
 /**
  * Yksi siirtymatta jaanyt historiarivi. Syy, syyluokka ja kenttien tyhjyys vastaavat
@@ -87,6 +98,13 @@ fun generateRandomYkiHistoriaSiirtymatonEntity(
         }
     val arvosana = { if (syy == "ei yhtään osakoetta") null else (0..maxArvosana).random().toString() }
     val tarkistusarvioitu = Random.nextInt(100) < 5
+    val tarkistusarvioidutOsakokeet =
+        if (tarkistusarvioitu) {
+            tarkistusarvioitavatOsakokeet.shuffled().take((1..tarkistusarvioitavatOsakokeet.size).random())
+        } else {
+            emptyList()
+        }
+    val arvosanaMuuttuneet = tarkistusarvioidutOsakokeet.filter { Random.nextBoolean() }
 
     return YkiHistoriaSiirtymatonEntity(
         suorittajanOid = if (ilmanOppijanumeroa) null else person.oppijanumero.toString(),
@@ -125,8 +143,8 @@ fun generateRandomYkiHistoriaSiirtymatonEntity(
         asYl = arvosana(),
         tarkSaapumisPvm = if (tarkistusarvioitu) arviointipaiva.plusDays(7).toString() else null,
         tarkAsiatunnus = if (tarkistusarvioitu) "OPH-${(1..9999).random()}-${tutkintopaiva.year}" else null,
-        tarkOsakokeet = if (tarkistusarvioitu) "PU" else null,
-        arvosanaMuuttui = if (tarkistusarvioitu) "PU" else null,
+        tarkOsakokeet = if (tarkistusarvioitu) tarkistusarvioidutOsakokeet.toSolkiBittimaski().toString() else null,
+        arvosanaMuuttui = if (tarkistusarvioitu) arvosanaMuuttuneet.toSolkiBittimaski().toString() else null,
         perustelu = if (tarkistusarvioitu) listOf("Erinomainen", "Hyvä", "Tyydyttävä").random() else null,
         tarkKasittelyPvm = if (tarkistusarvioitu) arviointipaiva.plusDays(30).toString() else null,
         syy = syy,

@@ -70,7 +70,11 @@ class IlmoittautumisjarjestelmaServiceImpl(
             val virheIds =
                 ok.virheet
                     ?.let { virheet ->
-                        val tunnisteToSolkiIdMap = suoritukset.associate { YkiSuorituksenTunniste.of(it) to it.solkiId }
+                        val tunnisteToSolkiIdMap =
+                            suoritukset
+                                .mapNotNull { suoritus ->
+                                    YkiSuorituksenTunniste.of(suoritus)?.let { it to suoritus.solkiId }
+                                }.toMap()
                         virheet
                             .flatMap { virhe ->
                                 tunnisteToSolkiIdMap
