@@ -7,6 +7,7 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
 import fi.oph.kitu.observability.setAttribute
 import fi.oph.kitu.restclient.withLenientStringConverter
+import fi.oph.kitu.util.TimeService
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Value
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
 import java.time.Instant
+import kotlin.time.Duration
 
 @Service
 class KoealustaService(
@@ -26,12 +28,16 @@ class KoealustaService(
     private val mappingService: KoealustaMappingService,
     private val auditLogger: AuditLogger,
     private val kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+    private val timeService: TimeService,
 ) {
     @Value($$"${kitu.kotoutumiskoulutus.koealusta.wstoken}")
     lateinit var koealustaToken: String
 
     @Value($$"${kitu.kotoutumiskoulutus.koealusta.baseurl}")
     lateinit var koealustaBaseUrl: String
+
+    @Value($$"${kitu.kotoutumiskoulutus.koealusta.keskeneraiset.enrolmentWindow}")
+    lateinit var keskeneraisetEnrolmentWindow: String
 
     private val restClient by lazy {
         restClientBuilder
@@ -96,7 +102,10 @@ class KoealustaService(
         val span = Span.current()
 
         val body =
-            makeMoodleRequest("local_completion_export_get_incomplete_course_participants").body ?: return
+            makeMoodleRequest(
+                "local_completion_export_get_incomplete_course_participants",
+                enrolledFromParam(),
+            ).body ?: return
 
         val (suoritukset, validationFailure) = mappingService.responseStringToKeskenerainenSuoritus(body)
 
@@ -126,13 +135,20 @@ class KoealustaService(
         span.setAttribute("db.saved.error.validation", validationErrors.count())
     }
 
+    private fun enrolledFromParam(): Pair<String, Any>? =
+        keskeneraisetEnrolmentWindow
+            .takeIf { it.isNotBlank() }
+            ?.let { window ->
+                "enrolledfrom" to timeService.now().minusSeconds(Duration.parse(window).inWholeSeconds).epochSecond
+            }
+
     private fun makeMoodleRequest(
         remoteFunction: String,
-        vararg params: Pair<String, Any>,
+        vararg params: Pair<String, Any>?,
     ): ResponseEntity<String> {
         val span = Span.current()
         span.setAttribute("function", remoteFunction)
-        params.forEach { (key, value) -> span.setAttribute(key, value.toString()) }
+        params.filterNotNull().forEach { (key, value) -> span.setAttribute(key, value.toString()) }
 
         return restClient
             .get()
@@ -143,7 +159,7 @@ class KoealustaService(
                         queryParam("wstoken", koealustaToken)
                         queryParam("wsfunction", remoteFunction)
                         queryParam("moodlewsrestformat", "json")
-                        params.forEach { (key, value) -> queryParam(key, value) }
+                        params.filterNotNull().forEach { (key, value) -> queryParam(key, value) }
                     }.build()
             }.accept(MediaType.APPLICATION_JSON)
             .retrieve()
