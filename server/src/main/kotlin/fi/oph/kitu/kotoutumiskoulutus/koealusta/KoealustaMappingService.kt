@@ -46,15 +46,11 @@ class KoealustaMappingService(
             suorituksetResponse.users.flatMap { user ->
                 if (!user.isOnrValidateable() || user.mustBeSkipped()) return@flatMap emptyList()
 
-                validator
-                    .toOppija(user)
-                    .onLeft(validationErrors::add)
-
                 user.courses.mapNotNull { course ->
                     validator
                         .courseToEntity(user, course)
-                        ?.onLeft { validationErrors.add(it) }
-                        ?.getOrNull()
+                        .onLeft(validationErrors::add)
+                        .getOrNull()
                 }
             }
 
