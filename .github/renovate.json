@@ -3,7 +3,8 @@
   "lockFileMaintenance": { "enabled": true },
   "postUpdateOptions": ["npmDedupe"],
   "skipInstalls": false,
-  "platformAutomerge": false,
+  "platformAutomerge": true,
+  "rebaseWhen": "conflicted",
   "minimumReleaseAge": "3 days",
   "packageRules": [
     {

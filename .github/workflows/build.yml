@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  merge_group:
 
 env:
   MISE_ENV: ci
@@ -21,13 +22,17 @@ jobs:
     name: List changes
     runs-on: ubuntu-24.04
     outputs:
-      mise: ${{ steps.filter.outputs.mise }}
-      infra: ${{ steps.filter.outputs.infra }}
-      image: ${{ steps.filter.outputs.image }}
+      mise: ${{ github.event_name == 'merge_group' || steps.filter.outputs.mise == 'true' }}
+      infra: ${{ github.event_name == 'merge_group' || steps.filter.outputs.infra == 'true' }}
+      image: ${{ github.event_name == 'merge_group' || steps.filter.outputs.image == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # Merge queue -ajossa ei suodateta: jono varmistaa yhdistetyn tuloksen
+      # kokonaan, ja paths-filter osaa vertailukohdan vain push- ja
+      # pull_request-tapahtumissa.
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
         id: filter
+        if: github.event_name != 'merge_group'
         with:
           filters: |
             mise:
@@ -241,7 +246,9 @@ jobs:
       - list_changes
       - update_tools_cache
       - determine_action
-    if: needs.determine_action.outputs.action == 'deploy' || needs.list_changes.outputs.infra == 'true'
+    # Merge queue -haara on kertakäyttöinen eikä deployn OIDC-rooli luota
+    # siihen, joten jonossa ajetaan vain varmistukset, ei diffiä.
+    if: github.event_name != 'merge_group' && (needs.determine_action.outputs.action == 'deploy' || needs.list_changes.outputs.infra == 'true')
     with:
       environment: Util
       action: ${{ needs.determine_action.outputs.action }}
