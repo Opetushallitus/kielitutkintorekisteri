@@ -53,6 +53,14 @@ Hakee koto-koulutukset ja tallentaa ne Kielitutkintorekisteriin.
 Hakee Koealustalta ne suoritukset, jotka ovat vielä kesken, jotta virkailija näkee ne rekisterissä
 ennen kuin arviointi valmistuu. Ajetaan samalla aikataululla kuin valmiiden suoritusten haku.
 
+Haku rajataan **kurssille ilmoittautumisen ajankohdan** perusteella: mukaan tulevat vain ne, joiden
+ilmoittautuminen on korkeintaan `kitu.kotoutumiskoulutus.koealusta.keskeneraiset.enrolmentWindow`
+(oletus `14d`) vanha. Tyhjä arvo hakee kaikki keskeneräiset ilman aikarajaa.
+
+Ajo **korvaa keskeneräiset kokonaan** (valmiisiin ei kosketa), joten ikkuna on samalla
+keskeneräisten säilytysaika: ikkunan ulkopuolelle valunut keskeneräinen katoaa näkymästä
+seuraavassa ajossa. Käsin käynnistetty ajo laskee ikkunan käynnistyshetkestä.
+
 ### Kotoutumiskoulutuksen kielitaidon tehtäväpankin lataus
 
 Lataa tehtäväpankin varmuuskopion ja tallentaa S3-bucketiin.

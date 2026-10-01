@@ -57,6 +57,9 @@ OPH:n keskitetty koodistopalvelu, mm. kielikoodien ja luokitusten validointiin.
 
 Moodle-pohjainen kielitestialusta, josta haetaan suoritustietoja ja Moodle-XML-tehtäväpaketteja.
 
+- Valmiit suoritukset haetaan inkrementaalisesti (`from`-vesileima db-schedulerin tilassa),
+  keskeneräiset korvataan joka ajolla kokonaan ja rajataan ilmoittautumisajan perusteella
+  (`enrolledfrom`, ks. [Eräajot](../db-scheduler)).
 - `KoealustaSuoritusValidator` validoi suoritusten datan →
   `Either<KoealustaMappingError.*Failure, …>`.
 - `tehtavapankki/TehtavapankkiIngestService` lataa XML:t S3:sta, parsii ne ja tallentaa yleiseen
