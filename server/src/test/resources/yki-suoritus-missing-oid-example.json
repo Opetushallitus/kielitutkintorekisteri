@@ -1,0 +1,62 @@
+{
+  "henkilo": {
+    "sukunimi": "Öhman-Testi",
+    "etunimet": "Ranja Testi",
+    "hetu": "010180-9026",
+    "sukupuoli": "N",
+    "kansalaisuus": "EST",
+    "katuosoite": "Testikuja 5",
+    "postinumero": "41000",
+    "postitoimipaikka": "Testilä",
+    "email": "testi@test.fi"
+  },
+  "suoritus": {
+    "tyyppi": "yleinenkielitutkinto",
+    "tutkintotaso": "YT",
+    "kieli": "fin",
+    "jarjestaja": {
+      "oid": "1.2.246.562.10.14893989377",
+      "nimi": "Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus"
+    },
+    "tutkintopaiva": "2024-09-01",
+    "arviointipaiva": "2024-12-13",
+    "osat": [
+      {
+        "tyyppi": "TY",
+        "arvosana": 5
+      },
+      {
+        "tyyppi": "KI",
+        "arvosana": 5
+      },
+      {
+        "tyyppi": "PY",
+        "arvosana": 5
+      },
+      {
+        "tyyppi": "PU",
+        "arvosana": 5
+      },
+      {
+        "tyyppi": "RS",
+        "arvosana": 5
+      },
+      {
+        "tyyppi": "YL",
+        "arvosana": 5
+      }
+    ],
+    "tarkistusarviointi": {
+      "saapumispaiva": "2024-12-14",
+      "kasittelypaiva": "2024-12-14",
+      "asiatunnus": "OPH-5000-1234",
+      "tarkistusarvioidutOsakokeet": 1,
+      "arvosanaMuuttui": 1,
+      "perustelu": "Suorituksesta jäänyt viimeinen tehtävä arvioimatta. Arvioinnin jälkeen puhumisen taitotasoa 6."
+    },
+    "lahdejarjestelmanId": {
+      "id": "183424",
+      "lahde": "Solki"
+    }
+  }
+}

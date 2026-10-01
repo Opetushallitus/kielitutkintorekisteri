@@ -372,6 +372,7 @@
   "yki.hakusana": "Oppijanumero, henkilötunnus, Solki-ID tai hakusana",
   "yki.hakusanaArvioija": "Nimi, oppijanumero, sähköposti tai ASHA-numero",
   "yki.henkiloOid": "Henkilö-oid",
+  "yki.eiOppijanumeroa": "Ei oppijanumeroa (historiatieto)",
   "yki.henkilotiedot": "Henkilötiedot",
   "yki.historia.eiRiveja": "Ei siirtymättä jääneitä rivejä",
   "yki.historia.hakusana": "Solki-ID, nimi, henkilötunnus tai järjestäjä",

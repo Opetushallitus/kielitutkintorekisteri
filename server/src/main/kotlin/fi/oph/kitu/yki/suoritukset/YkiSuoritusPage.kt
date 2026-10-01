@@ -34,7 +34,7 @@ import kotlinx.html.strong
 
 object YkiSuoritusPage {
     fun render(
-        henkilo: Either<OppijanumeroException, OppijanumerorekisteriHenkilo>,
+        henkilo: Either<OppijanumeroException, OppijanumerorekisteriHenkilo>?,
         suoritus: YkiSuoritusEntity,
         viimeisinSuoritus: YkiSuoritusEntity,
         koskiError: KoskiErrorEntity?,
@@ -68,12 +68,12 @@ object YkiSuoritusPage {
     }
 
     fun FlowContent.henkilonTiedot(
-        henkilo: Either<OppijanumeroException, OppijanumerorekisteriHenkilo>,
+        henkilo: Either<OppijanumeroException, OppijanumerorekisteriHenkilo>?,
         suoritus: YkiSuoritusEntity,
         t: Translations,
     ) {
         h3 { +UiText.Yki.henkilotiedot }
-        henkilo.onLeft { onrException ->
+        henkilo?.onLeft { onrException ->
             errorMessage(
                 if (onrException is OppijanumeroException.OppijaNotFoundException) {
                     UiText.Error.oppijaEiLoydyOnr
@@ -83,23 +83,11 @@ object YkiSuoritusPage {
             )
         }
         card(compact = true) {
-            val hlo = henkilo.getOrNull()
+            val hlo = henkilo?.getOrNull()
             comparisonTable(
                 UiText.Yki.ilmoittautumisenTiedot,
                 UiText.Yki.oppijanumerorekisteri,
-                hlo?.oppijanumero?.let {
-                    Comparison(UiText.Yki.Sarake.oppijanumero, { +it }, { +hlo.oppijanumero })
-                } ?: Comparison(UiText.Yki.henkiloOid, {
-                    +suoritus.suorittajanOID.toString()
-                }, {
-                    a(
-                        href = Links.Opintopolku.onr(suoritus.suorittajanOID),
-                        classes = "tight secondary",
-                    ) {
-                        attributes["role"] = "button"
-                        +UiText.Yki.teeYksilointi
-                    }
-                }),
+                oppijanumeroVertailu(suoritus.suorittajanOID, hlo),
                 Comparison.of(
                     UiText.Yki.Sarake.sukunimi,
                     suoritus.sukunimi,
@@ -277,4 +265,40 @@ object YkiSuoritusPage {
             },
         )
     }
+
+    private fun oppijanumeroVertailu(
+        suorittajanOID: Oid?,
+        hlo: OppijanumerorekisteriHenkilo?,
+    ): Comparison =
+        when {
+            suorittajanOID == null -> {
+                Comparison(
+                    UiText.Yki.Sarake.oppijanumero,
+                    { +UiText.Yki.eiOppijanumeroa },
+                    ignoreDiff = true,
+                )
+            }
+
+            hlo?.oppijanumero != null -> {
+                Comparison(
+                    UiText.Yki.Sarake.oppijanumero,
+                    { +hlo.oppijanumero },
+                    { +hlo.oppijanumero },
+                )
+            }
+
+            else -> {
+                Comparison(UiText.Yki.henkiloOid, {
+                    +suorittajanOID.toString()
+                }, {
+                    a(
+                        href = Links.Opintopolku.onr(suorittajanOID),
+                        classes = "tight secondary",
+                    ) {
+                        attributes["role"] = "button"
+                        +UiText.Yki.teeYksilointi
+                    }
+                })
+            }
+        }
 }

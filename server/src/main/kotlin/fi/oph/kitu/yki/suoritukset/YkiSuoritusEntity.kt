@@ -7,6 +7,7 @@ import fi.oph.kitu.jdbc.getInstant
 import fi.oph.kitu.jdbc.getTypedArrayOrNull
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oid.getOidOrNull
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
@@ -31,7 +32,7 @@ data class YkiSuoritusEntity(
     @Id
     @IgnoreForEquality("DB")
     val id: Int?,
-    val suorittajanOID: Oid,
+    val suorittajanOID: Oid?,
     // Hetuja ei ole enää tallennettu Kielitutkintorekisteriin 1.1.2026 alkaen
     val hetu: String?,
     val sukupuoli: Sukupuoli,
@@ -236,7 +237,7 @@ data class YkiSuoritusEntity(
         ): YkiSuoritusEntity =
             YkiSuoritusEntity(
                 id = rs.getInt("id"),
-                suorittajanOID = Oid.parse(rs.getString("suorittajan_oid")).getOrThrow(),
+                suorittajanOID = rs.getOidOrNull("suorittajan_oid"),
                 hetu = rs.getString("hetu"),
                 sukupuoli = rs.getEnum<Sukupuoli>("sukupuoli"),
                 sukunimi = rs.getString("sukunimi"),

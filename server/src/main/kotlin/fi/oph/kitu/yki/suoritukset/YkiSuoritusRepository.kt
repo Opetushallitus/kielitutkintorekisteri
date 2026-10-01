@@ -127,7 +127,10 @@ class YkiSuoritusRepository(
     @WithSpan
     fun findKoskeenLahettamattomatSuoritukset(): Iterable<YkiSuoritusEntity> =
         jdbcNamedParameterTemplate.query(
-            selectSuorituksetFull(viimeisin = true, "WHERE NOT koski_siirto_kasitelty"),
+            selectSuorituksetFull(
+                viimeisin = true,
+                "WHERE NOT koski_siirto_kasitelty AND suorittajan_oid IS NOT NULL",
+            ),
             YkiSuoritusEntity.fromRow,
         )
 
@@ -154,7 +157,8 @@ class YkiSuoritusRepository(
 
             suoritukset.forEach { suoritus ->
                 val suorituksenNimi =
-                    "'${suoritus.suorittajanOID} ${suoritus.sukunimi} ${suoritus.etunimet}, " +
+                    "'${suoritus.suorittajanOID?.let { "$it " }.orEmpty()}" +
+                        "${suoritus.sukunimi} ${suoritus.etunimet}, " +
                         "${suoritus.tutkintotaso} ${suoritus.tutkintokieli}'"
 
                 ensure(suoritus.arviointitila.tarkistusarvioitu()) {
@@ -401,6 +405,7 @@ class YkiSuoritusRepository(
                     """
                     WHERE (arviointitila_lahetetty IS NULL OR arviointitila_lahetetty < last_modified)
                       AND arviointitila <> ${Arviointitila.ilmoittautumistilat.sqlAll()}
+                      AND suorittajan_oid IS NOT NULL
                     """,
                 ),
                 YkiSuoritusEntity.fromRow,
@@ -457,7 +462,7 @@ class YkiSuoritusRepository(
     ): Int? {
         val values =
             mapOf(
-                "suorittajan_oid" to suoritus.suorittajanOID.toString(),
+                "suorittajan_oid" to suoritus.suorittajanOID?.toString(),
                 "sukunimi" to suoritus.sukunimi,
                 "etunimet" to suoritus.etunimet,
                 "tutkintopaiva" to suoritus.tutkintopaiva,

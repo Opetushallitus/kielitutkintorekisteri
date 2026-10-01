@@ -335,6 +335,29 @@ class YkiApiControllerTest(
         }
     }
 
+    /**
+     * Oppijanumeroton suoritus saa olla kannassa 2011-2016 historiadatan vuoksi, mutta sita ei saa
+     * voida syottaa rajapinnasta. Esto on tyyppitasolla: Henkilo.oid on ei-nullable ilman
+     * default-arvoa. Tama testi kiinnittaa sen, jottei takuu katoa vahingossa.
+     */
+    @Test
+    fun `YKI-suoritus ilman oppijanumeroa palauttaa virheen`() {
+        val data =
+            defaultObjectMapper
+                .readValue(
+                    ClassPathResource("./yki-suoritus-missing-oid-example.json").file,
+                    JsonNode::class.java,
+                ).toString()
+
+        post("/yki/api/suoritus", data) {
+            isBadRequest(
+                "JSON parse error: Instantiation of [simple type, class fi.oph.kitu.tiedontuontischema.Henkilo] " +
+                    "value failed for JSON property oid due to missing (therefore NULL) value for creator " +
+                    "parameter oid which is a non-nullable type",
+            )
+        }
+    }
+
     @Test
     fun `YKI-suoritus puuttuvilla etunimillä palauttaa virheen`() {
         val data =

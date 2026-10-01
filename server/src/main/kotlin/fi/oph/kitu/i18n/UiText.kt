@@ -206,6 +206,7 @@ object UiText {
         val naytaJson: LocalizedString get() = tr("yki.naytaJson")
 
         val henkiloOid: LocalizedString get() = tr("yki.henkiloOid")
+        val eiOppijanumeroa: LocalizedString get() = tr("yki.eiOppijanumeroa")
         val katuosoite: LocalizedString get() = tr("yki.katuosoite")
         val postinumero: LocalizedString get() = tr("yki.postinumero")
         val postitoimipaikka: LocalizedString get() = tr("yki.postitoimipaikka")

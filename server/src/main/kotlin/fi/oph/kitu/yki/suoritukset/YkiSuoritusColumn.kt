@@ -44,7 +44,7 @@ enum class YkiSuoritusColumn(
         entityName = "suorittajan_oid",
         uiHeaderValue = UiText.Yki.Sarake.oppijanumero,
         urlParam = "suorittajanoid",
-        getValue = { it.suorittajanOID.toString() },
+        getValue = { it.suorittajanOID?.toString().orEmpty() },
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
