@@ -1,6 +1,7 @@
 package fi.oph.kitu.kotoutumiskoulutus
 
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.TestTimeService
 import fi.oph.kitu.kotoutumiskoulutus.koealusta.KoealustaService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.CustomKielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
@@ -1350,27 +1351,109 @@ class KoealustaServiceTests(
         }
         """.trimIndent()
 
+    private val keskeneraisetNow = Instant.parse("2026-02-01T12:00:00Z")
+
+    // 1768737600 = 2026-01-18T12:00:00Z, eli 14 vrk ennen keskeneraisetNow'ta
+    private fun keskeneraisetUrl(enrolledFrom: Long = 1768737600L) =
+        "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token" +
+            "&wsfunction=local_completion_export_get_incomplete_course_participants" +
+            "&moodlewsrestformat=json&enrolledfrom=$enrolledFrom"
+
+    private fun MockRestServiceServer.expectKeskeneraiset(body: String) {
+        expect(requestTo(keskeneraisetUrl()))
+            .andRespond(withSuccess(body, MediaType.APPLICATION_JSON))
+    }
+
     private fun expectKeskeneraisetRequest(
         koealustaService: KoealustaService,
         body: String,
     ): MockRestServiceServer {
         val mockServer = MockRestServiceServer.bindTo(koealustaService.restClientBuilder).build()
-        mockServer
-            .expect(
-                requestTo(
-                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token&wsfunction=local_completion_export_get_incomplete_course_participants&moodlewsrestformat=json",
-                ),
-            ).andRespond(withSuccess(body, MediaType.APPLICATION_JSON))
+        mockServer.expectKeskeneraiset(body)
 
         koealustaService.koealustaToken = "token"
         koealustaService.koealustaBaseUrl = "https://localhost:8080/dev/koto"
         return mockServer
     }
 
+    private fun importKeskeneraiset(
+        koealustaService: KoealustaService,
+        timeService: TestTimeService,
+    ) = timeService.runWithFixedClock(keskeneraisetNow) { koealustaService.importKeskeneraisetSuoritukset() }
+
+    @Test
+    fun `keskeneräinen import rajaa haun ilmoittautumisajan perusteella`(
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        val mockServer = MockRestServiceServer.bindTo(koealustaService.restClientBuilder).build()
+        mockServer
+            .expect(
+                requestTo(
+                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token" +
+                        "&wsfunction=local_completion_export_get_incomplete_course_participants" +
+                        "&moodlewsrestformat=json&enrolledfrom=1768737600",
+                ),
+            ).andRespond(withSuccess("""{ "users": [] }""", MediaType.APPLICATION_JSON))
+
+        koealustaService.koealustaToken = "token"
+        koealustaService.koealustaBaseUrl = "https://localhost:8080/dev/koto"
+
+        importKeskeneraiset(koealustaService, timeService)
+
+        mockServer.verify()
+    }
+
+    @Test
+    fun `keskeneräisten aikaikkuna on konfiguroitavissa`(
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        koealustaService.keskeneraisetEnrolmentWindow = "1d"
+
+        val mockServer = MockRestServiceServer.bindTo(koealustaService.restClientBuilder).build()
+        mockServer
+            .expect(requestTo(keskeneraisetUrl(1769860800L))) // 2026-01-31T12:00:00Z
+            .andRespond(withSuccess("""{ "users": [] }""", MediaType.APPLICATION_JSON))
+
+        koealustaService.koealustaToken = "token"
+        koealustaService.koealustaBaseUrl = "https://localhost:8080/dev/koto"
+
+        importKeskeneraiset(koealustaService, timeService)
+
+        mockServer.verify()
+    }
+
+    @Test
+    fun `tyhjä aikaikkuna hakee keskeneräiset ilman aikarajaa`(
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        koealustaService.keskeneraisetEnrolmentWindow = ""
+
+        val mockServer = MockRestServiceServer.bindTo(koealustaService.restClientBuilder).build()
+        mockServer
+            .expect(
+                requestTo(
+                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token" +
+                        "&wsfunction=local_completion_export_get_incomplete_course_participants" +
+                        "&moodlewsrestformat=json",
+                ),
+            ).andRespond(withSuccess("""{ "users": [] }""", MediaType.APPLICATION_JSON))
+
+        koealustaService.koealustaToken = "token"
+        koealustaService.koealustaBaseUrl = "https://localhost:8080/dev/koto"
+
+        importKeskeneraiset(koealustaService, timeService)
+
+        mockServer.verify()
+    }
+
     @Test
     fun `keskeneräinen import saves suoritukset with null result fields and completed false`(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
     ) {
         val mockServer =
             expectKeskeneraisetRequest(
@@ -1382,7 +1465,7 @@ class KoealustaServiceTests(
                 """.trimIndent(),
             )
 
-        koealustaService.importKeskeneraisetSuoritukset()
+        importKeskeneraiset(koealustaService, timeService)
 
         mockServer.verify()
 
@@ -1411,6 +1494,7 @@ class KoealustaServiceTests(
     fun `subsequent keskeneräinen import replaces the previous incomplete set`(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
     ) {
         val mockServer =
             expectKeskeneraisetRequest(
@@ -1425,28 +1509,20 @@ class KoealustaServiceTests(
                 """.trimIndent(),
             )
 
-        koealustaService.importKeskeneraisetSuoritukset()
+        importKeskeneraiset(koealustaService, timeService)
         mockServer.verify()
         assertEquals(2, customKielitestiSuoritusRepository.findAll().count())
 
         mockServer.reset()
-        mockServer
-            .expect(
-                requestTo(
-                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token&wsfunction=local_completion_export_get_incomplete_course_participants&moodlewsrestformat=json",
-                ),
-            ).andRespond(
-                withSuccess(
-                    """
-                    {
-                      "users": [${keskenerainenUser(10, 50, "Kurssi A")}]
-                    }
-                    """.trimIndent(),
-                    MediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expectKeskeneraiset(
+            """
+            {
+              "users": [${keskenerainenUser(10, 50, "Kurssi A")}]
+            }
+            """.trimIndent(),
+        )
 
-        koealustaService.importKeskeneraisetSuoritukset()
+        importKeskeneraiset(koealustaService, timeService)
         mockServer.verify()
 
         val suoritukset = customKielitestiSuoritusRepository.findAll().toList()
@@ -1460,6 +1536,7 @@ class KoealustaServiceTests(
     fun `keskeneräinen import does not remove valmis suoritukset`(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
     ) {
         val mockServer = MockRestServiceServer.bindTo(koealustaService.restClientBuilder).build()
         mockServer
@@ -1477,27 +1554,19 @@ class KoealustaServiceTests(
                     MediaType.APPLICATION_JSON,
                 ),
             )
-        mockServer
-            .expect(
-                requestTo(
-                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token&wsfunction=local_completion_export_get_incomplete_course_participants&moodlewsrestformat=json",
-                ),
-            ).andRespond(
-                withSuccess(
-                    """
-                    {
-                      "users": [${keskenerainenUser(10, 50, "Kurssi A")}]
-                    }
-                    """.trimIndent(),
-                    MediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expectKeskeneraiset(
+            """
+            {
+              "users": [${keskenerainenUser(10, 50, "Kurssi A")}]
+            }
+            """.trimIndent(),
+        )
 
         koealustaService.koealustaToken = "token"
         koealustaService.koealustaBaseUrl = "https://localhost:8080/dev/koto"
 
         koealustaService.importValmiitSuoritukset(Instant.EPOCH)
-        koealustaService.importKeskeneraisetSuoritukset()
+        importKeskeneraiset(koealustaService, timeService)
 
         mockServer.verify()
 
@@ -1517,6 +1586,7 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
     ) {
         val nonVerifiableKeskenerainen =
             """
@@ -1554,27 +1624,19 @@ class KoealustaServiceTests(
                     MediaType.APPLICATION_JSON,
                 ),
             )
-        mockServer
-            .expect(
-                requestTo(
-                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token&wsfunction=local_completion_export_get_incomplete_course_participants&moodlewsrestformat=json",
-                ),
-            ).andRespond(
-                withSuccess(
-                    """
-                    {
-                      "users": [$nonVerifiableKeskenerainen]
-                    }
-                    """.trimIndent(),
-                    MediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expectKeskeneraiset(
+            """
+            {
+              "users": [$nonVerifiableKeskenerainen]
+            }
+            """.trimIndent(),
+        )
 
         koealustaService.koealustaToken = "token"
         koealustaService.koealustaBaseUrl = "https://localhost:8080/dev/koto"
 
         koealustaService.importValmiitSuoritukset(Instant.EPOCH)
-        koealustaService.importKeskeneraisetSuoritukset()
+        importKeskeneraiset(koealustaService, timeService)
 
         mockServer.verify()
 
@@ -1667,6 +1729,7 @@ class KoealustaServiceTests(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
     ) {
         val userWithoutCourses =
             """
@@ -1710,7 +1773,7 @@ class KoealustaServiceTests(
                 """.trimIndent(),
             )
 
-        koealustaService.importKeskeneraisetSuoritukset()
+        importKeskeneraiset(koealustaService, timeService)
 
         mockServer.verify()
 

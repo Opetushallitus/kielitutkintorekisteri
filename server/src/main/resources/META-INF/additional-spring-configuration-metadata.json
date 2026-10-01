@@ -6,6 +6,11 @@
       "description": "Enable koealusta import scheduling."
     },
     {
+      "name": "kitu.kotoutumiskoulutus.koealusta.keskeneraiset.enrolmentWindow",
+      "type": "java.lang.String",
+      "description": "How far back incomplete suoritukset are fetched from Koealusta, compared against course enrolment time (kotlin.time.Duration, e.g. 14d). Blank sends no limit. Doubles as the retention time of incomplete rows, because each run replaces the whole set."
+    },
+    {
       "name": "kitu.koski.username",
       "type": "java.lang.String",
       "description": "Username of service user used to send data to KOSKI."
