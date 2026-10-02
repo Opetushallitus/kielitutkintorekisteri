@@ -863,6 +863,37 @@ object UiText {
         val nainen: LocalizedString get() = tr("sukupuoli.nainen")
         val eiTiedossa: LocalizedString get() = tr("sukupuoli.eiTiedossa")
     }
+
+    object Ohje {
+        val painike: LocalizedString get() = tr("ohje.painike")
+        val oletus: LocalizedString get() = tr("ohje.oletus")
+        val etusivu: LocalizedString get() = tr("ohje.etusivu")
+
+        object Yki {
+            val suoritukset: LocalizedString get() = tr("ohje.yki.suoritukset")
+            val suoritus: LocalizedString get() = tr("ohje.yki.suoritus")
+            val tarkistusarvioinnit: LocalizedString get() = tr("ohje.yki.tarkistusarvioinnit")
+            val historiaSiirtymattomat: LocalizedString get() = tr("ohje.yki.historiaSiirtymattomat")
+            val arvioijat: LocalizedString get() = tr("ohje.yki.arvioijat")
+            val arvioija: LocalizedString get() = tr("ohje.yki.arvioija")
+            val arvioijaLomake: LocalizedString get() = tr("ohje.yki.arvioijaLomake")
+            val kausiLomake: LocalizedString get() = tr("ohje.yki.kausiLomake")
+        }
+
+        object Vkt {
+            val suoritukset: LocalizedString get() = tr("ohje.vkt.suoritukset")
+            val erinomainen: LocalizedString get() = tr("ohje.vkt.erinomainen")
+            val hyvaJaTyydyttava: LocalizedString get() = tr("ohje.vkt.hyvaJaTyydyttava")
+        }
+
+        object Koto {
+            val suoritukset: LocalizedString get() = tr("ohje.koto.suoritukset")
+            val suoritus: LocalizedString get() = tr("ohje.koto.suoritus")
+            val virheet: LocalizedString get() = tr("ohje.koto.virheet")
+            val tehtavapankki: LocalizedString get() = tr("ohje.koto.tehtavapankki")
+            val tehtavapaketti: LocalizedString get() = tr("ohje.koto.tehtavapaketti")
+        }
+    }
 }
 
 private fun tr(key: String): LocalizedString {

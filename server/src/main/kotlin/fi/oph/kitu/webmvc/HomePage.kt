@@ -33,7 +33,7 @@ object HomePage {
     private const val SKELETON_ROW_COUNT = 5
 
     fun render(message: ViewMessageData? = null): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.etusivu) {
             h1 { +UiText.appTitle }
             viewMessage(message)
             tolgeeSyncWarning()

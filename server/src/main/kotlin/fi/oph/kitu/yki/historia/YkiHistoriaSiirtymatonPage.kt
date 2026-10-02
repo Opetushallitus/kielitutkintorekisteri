@@ -39,6 +39,7 @@ object YkiHistoriaSiirtymatonPage {
     ): String =
         Page.renderHtml(
             wideContent = true,
+            ohje = UiText.Ohje.Yki.historiaSiirtymattomat,
         ) {
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Nav.historiaSiirtymattomat }

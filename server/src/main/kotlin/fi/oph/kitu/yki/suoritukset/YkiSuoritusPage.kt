@@ -41,7 +41,7 @@ object YkiSuoritusPage {
         koskiSiirronEstonSyyt: List<String>?,
         opiskeluoikeusOid: Oid?,
         t: Translations,
-    ) = Page.renderHtml {
+    ) = Page.renderHtml(ohje = UiText.Ohje.Yki.suoritus) {
         h1 { +suoritus.kokoNimi() }
         h2 { +UiText.Nav.yki }
 

@@ -60,9 +60,10 @@ fun koskiErrorsPage(
     errors: List<KoskiErrorEntity>,
     hiddenCount: Int?,
     wideContent: Boolean = false,
+    ohje: LocalizedString? = null,
     columns: List<DisplayTableColumn<KoskiErrorEntity>>,
 ): String =
-    Page.renderHtml(wideContent = wideContent) {
+    Page.renderHtml(wideContent = wideContent, ohje = ohje) {
         h1 { +title }
         h2 { +subtitle }
 

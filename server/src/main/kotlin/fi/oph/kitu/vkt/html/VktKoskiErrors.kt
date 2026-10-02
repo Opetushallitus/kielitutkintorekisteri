@@ -24,6 +24,7 @@ object VktKoskiErrors {
             subtitle = UiText.Vkt.koskiTiedonsiirtovirheet,
             errors = errors,
             hiddenCount = hiddenCount,
+            ohje = UiText.Ohje.Vkt.suoritukset,
             columns =
                 listOf(
                     Column.Tutkintoryhma.withHtml { ryhma ->

@@ -121,6 +121,19 @@ class TolgeeClientTest {
     }
 
     @Test
+    fun `createKeys luo tyhjan lahdetekstin avaimen ilman suomenkielista kaannosta`() {
+        mockServer
+            .expect(requestTo("$BASE_URL/v2/projects/keys/import-resolvable"))
+            .andExpect(jsonPath("$.keys[0].name").value("ohje.etusivu"))
+            .andExpect(jsonPath("$.keys[0].translations").isEmpty())
+            .andRespond(withSuccess())
+
+        client.createKeys(mapOf("ohje.etusivu" to ""))
+
+        mockServer.verify()
+    }
+
+    @Test
     fun `createKeys palastelee yli sadan avaimen erat`() {
         repeat(2) {
             mockServer

@@ -53,6 +53,7 @@ object YkiSuorituksetPage {
     ): String =
         Page.renderHtml(
             wideContent = true,
+            ohje = UiText.Ohje.Yki.suoritukset,
         ) {
             val latestVersions = if (filterParams.versionHistory) suoritukset.latestVersions().map { it.id } else null
 

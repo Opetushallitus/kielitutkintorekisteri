@@ -43,7 +43,7 @@ object YkiArvioijaLomakePage {
         form: ArvioijaHakuFormData,
         errors: FormErrors,
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Yki.arvioijaLomake) {
             h1 { +UiText.Yki.Arvioija.uusiArvioija }
 
             formErrorSummary(errors)
@@ -68,7 +68,7 @@ object YkiArvioijaLomakePage {
         tallennaTeksti: LocalizedString = UiText.Yki.Arvioija.tallenna,
         peruutusLinkki: String? = null,
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Yki.arvioijaLomake) {
             h1 { +otsikko }
 
             if (form.onOlemassa) {
