@@ -45,6 +45,7 @@ object KielitestiSuorituksetPage {
     ): String =
         Page.renderHtml(
             wideContent = true,
+            ohje = UiText.Ohje.Koto.suoritukset,
         ) {
             h1 { +UiText.Nav.kotoutumiskoulutuksenPaattotesti }
             h2 { +UiText.Nav.suoritukset }

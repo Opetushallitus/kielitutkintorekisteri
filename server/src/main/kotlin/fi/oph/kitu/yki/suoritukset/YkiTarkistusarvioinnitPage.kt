@@ -28,7 +28,7 @@ object YkiTarkistusarvioinnitPage {
         suoritukset: List<YkiSuoritusEntity>,
         message: ViewMessageData?,
     ): String =
-        Page.renderHtml(wideContent = true) {
+        Page.renderHtml(wideContent = true, ohje = UiText.Ohje.Yki.tarkistusarvioinnit) {
             h1 { +UiText.Yki.tarkistusarvioinnit }
 
             viewMessage(message)
@@ -52,7 +52,7 @@ object YkiTarkistusarvioinnitPage {
         suoritukset: List<YkiSuoritusEntity>,
         message: ViewMessageData?,
     ): String =
-        Page.renderHtml(wideContent = true) {
+        Page.renderHtml(wideContent = true, ohje = UiText.Ohje.Yki.tarkistusarvioinnit) {
             h1 { +UiText.Yki.tarkistusarvioinnit }
 
             viewMessage(message)

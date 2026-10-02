@@ -53,7 +53,7 @@ object TehtavapankkiPage {
         pakettiIdsByS3Avain: Map<String, Int> = emptyMap(),
         latestPakettiByGroup: Map<String, TehtavapakettiEntity?> = emptyMap(),
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Koto.tehtavapankki) {
             h1 { +UiText.Koto.tehtavapankki }
 
             if (tehtavapaketit.isEmpty()) {

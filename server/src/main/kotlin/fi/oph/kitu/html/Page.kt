@@ -7,6 +7,7 @@ import fi.oph.kitu.config.isDeployedToOpintopolku
 import fi.oph.kitu.html.Navigation.flatten
 import fi.oph.kitu.html.Navigation.mainNavigation
 import fi.oph.kitu.i18n.CurrentLanguage
+import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.webmvc.Links
@@ -26,6 +27,7 @@ object Page {
 
     fun renderHtml(
         wideContent: Boolean = false,
+        ohje: LocalizedString? = null,
         renderBody: SECTION.() -> Unit,
     ): String =
         createHTML().html {
@@ -63,6 +65,16 @@ object Page {
                                 "☰",
                                 mainNavigation.flatten(),
                             )
+                        }
+                        ul(classes = "nav-help") {
+                            li {
+                                a(href = ohjeUrl(ohje), target = ATarget.blank, classes = "outline secondary") {
+                                    testId("ohje-linkki")
+                                    role = "button"
+                                    rel = "noopener noreferrer"
+                                    +UiText.Ohje.painike
+                                }
+                            }
                         }
                     }
 

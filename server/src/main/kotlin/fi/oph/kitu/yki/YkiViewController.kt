@@ -151,6 +151,7 @@ class YkiViewController(
                 sortColumn = sortColumn,
                 sortDirection = sortDirection,
                 rows = suoritusErrorService.getErrors(sortColumn, sortDirection),
+                ohje = UiText.Ohje.Yki.suoritukset,
             ),
         )
 

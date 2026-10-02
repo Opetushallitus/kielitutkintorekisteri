@@ -57,7 +57,7 @@ object TehtavapakettiPage {
         vastauksetByTehtava: Map<Int, List<TehtavaVastausEntity>>,
         tiedostotByTehtava: Map<Int, List<TehtavaTiedostoEntity>>,
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Koto.tehtavapaketti) {
             renderHeader(paketti)
             if (ryhmat.isEmpty()) {
                 p { +UiText.Koto.paketissaEiRyhmia }

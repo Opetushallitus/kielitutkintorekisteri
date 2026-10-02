@@ -61,7 +61,12 @@ class TolgeeClientImpl(
                             TolgeeImportRequest.Key(
                                 name = key,
                                 namespace = namespace,
-                                translations = mapOf("fi" to TolgeeImportRequest.Translation(text = fi)),
+                                translations =
+                                    if (fi.isEmpty()) {
+                                        emptyMap()
+                                    } else {
+                                        mapOf("fi" to TolgeeImportRequest.Translation(text = fi))
+                                    },
                             )
                         },
                 )

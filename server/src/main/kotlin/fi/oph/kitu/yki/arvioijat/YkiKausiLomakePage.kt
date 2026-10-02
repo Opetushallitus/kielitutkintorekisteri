@@ -33,7 +33,7 @@ object YkiKausiLomakePage {
         action: String,
         otsikko: LocalizedString,
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Yki.kausiLomake) {
             h1 { +otsikko }
             p { +"${arvioija.etunimet} ${arvioija.sukunimi}" }
 

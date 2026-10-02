@@ -42,6 +42,36 @@ describe("Etusivun kojelautanäkymä", () => {
     await expect(page).toHaveTitle("Kielitutkintorekisteri")
   })
 
+  test("Ohje-painike avaa yleisen käyttöohjeen uuteen välilehteen", async ({
+    indexPage,
+    page,
+  }) => {
+    await indexPage.open()
+
+    const ohje = page.getByTestId("ohje-linkki")
+    await expect(ohje).toHaveText("Ohje")
+    await expect(ohje).toHaveAttribute("target", "_blank")
+    await expect(ohje).toHaveAttribute(
+      "href",
+      "https://wiki.eduuni.fi/spaces/ophPPK/pages/628994016/Kielitutkintorekisterin+k%C3%A4ytt%C3%B6ohjeet",
+    )
+  })
+
+  test("Ohje-painike osoittaa sivukohtaiseen ohjeeseen", async ({
+    indexPage,
+    ykiSuorituksetPage,
+    page,
+  }) => {
+    await indexPage.open()
+    await indexPage.getYkiSuorituksetLink().click()
+    await ykiSuorituksetPage.expectContentToBeVisible()
+
+    await expect(page.getByTestId("ohje-linkki")).toHaveAttribute(
+      "href",
+      "https://wiki.eduuni.fi/spaces/ophPPK/pages/659163740/YKI+-+suoritusrekisteri+ohjeet",
+    )
+  })
+
   test("YKI-kortin Suoritukset-linkki vie YKI:n suoritussivulle", async ({
     indexPage,
     ykiSuorituksetPage,

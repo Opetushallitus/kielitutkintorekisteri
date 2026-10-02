@@ -28,7 +28,7 @@ object VktHyvaJaTyydyttavaTarkasteluPage {
         messages: List<ViewMessageData>,
         koskiTransferState: Pair<KoskiTransferState, List<String>>,
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Vkt.hyvaJaTyydyttava) {
             h1 { +data.henkilo.kokoNimi() }
             h2 { +UiText.Nav.vkt }
 

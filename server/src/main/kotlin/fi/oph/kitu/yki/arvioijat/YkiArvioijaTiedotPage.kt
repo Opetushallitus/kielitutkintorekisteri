@@ -50,7 +50,7 @@ object YkiArvioijaTiedotPage {
         integraatioKaytossa: Boolean,
         tanaan: LocalDate,
     ): String =
-        Page.renderHtml {
+        Page.renderHtml(ohje = UiText.Ohje.Yki.arvioija) {
             h1 { +"${arvioija.etunimet} ${arvioija.sukunimi}" }
 
             viewMessage(flash)

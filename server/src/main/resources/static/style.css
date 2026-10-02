@@ -81,6 +81,15 @@ nav.main .nav-menu {
   order: -1;
 }
 
+nav.main .nav-help {
+  margin-left: auto;
+}
+
+nav.main .nav-help a[role="button"] {
+  padding: calc(var(--pico-form-element-spacing-vertical) / 2)
+    var(--pico-form-element-spacing-horizontal);
+}
+
 nav.main a {
   color: var(--oph-grey800);
 }

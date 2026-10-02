@@ -34,6 +34,7 @@ object YkiKoskiErrors {
             subtitle = UiText.Yki.koskiTiedonsiirtovirheet,
             errors = errors,
             hiddenCount = hiddenCount,
+            ohje = UiText.Ohje.Yki.suoritukset,
             wideContent = true,
             columns =
                 listOf(

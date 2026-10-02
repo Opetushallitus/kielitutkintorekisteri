@@ -16,7 +16,7 @@ object KielitestiSuoritusPage {
     fun render(
         suoritus: KielitestiSuoritus,
         orgs: Organisaatiot,
-    ) = Page.renderHtml {
+    ) = Page.renderHtml(ohje = UiText.Ohje.Koto.suoritus) {
         h1 { +"${suoritus.sukunimi} ${suoritus.etunimet}" }
         h2 { +UiText.Nav.kotoutumiskoulutuksenPaattotesti }
         henkilonTiedot(suoritus)

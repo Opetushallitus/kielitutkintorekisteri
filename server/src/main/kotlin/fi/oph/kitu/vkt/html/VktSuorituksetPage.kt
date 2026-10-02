@@ -41,6 +41,7 @@ object VktSuorituksetPage {
     ): String =
         Page.renderHtml(
             wideContent = true,
+            ohje = UiText.Ohje.Vkt.suoritukset,
         ) {
             h1 { +UiText.Nav.vkt }
             h2 { +UiText.Nav.kaikkiSuoritukset }

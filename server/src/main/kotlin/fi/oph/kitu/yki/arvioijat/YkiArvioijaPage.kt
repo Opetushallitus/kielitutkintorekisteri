@@ -44,6 +44,7 @@ object YkiArvioijaPage {
     ): String =
         Page.renderHtml(
             wideContent = true,
+            ohje = UiText.Ohje.Yki.arvioijat,
         ) {
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Nav.arvioijat }

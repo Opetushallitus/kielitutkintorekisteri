@@ -27,6 +27,7 @@ object KielitestiSuoritusErrorPage {
     ): String =
         Page.renderHtml(
             wideContent = true,
+            ohje = UiText.Ohje.Koto.virheet,
         ) {
             h1 { +UiText.Nav.kotoutumiskoulutuksenPaattotesti }
             h2 { +UiText.Koto.suoritustenTuonninVirheet }
