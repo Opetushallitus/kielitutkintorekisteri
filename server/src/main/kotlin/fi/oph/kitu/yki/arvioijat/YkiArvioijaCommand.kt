@@ -16,6 +16,12 @@ data class TallennaArvioija(
     val kaudenAlkupaiva: LocalDate,
     val ashaNumero: String?,
     val arviointioikeudet: List<Arviointioikeus>,
+    /**
+     * Automaattisesti luotu jatkokausi, joka alkaa heti olemassa olevan kauden jalkeen. Silloin
+     * alkupaiva voi olla yli vuoden paassa, joten vuoden rajaa ei sovelleta — validointi vaatii
+     * sen sijaan, etta jokin olemassa oleva kausi paattyy alkupaivaa edeltavana paivana.
+     */
+    val automaattinenJatkokausi: Boolean = false,
 ) {
     val kaudenPaattymispaiva: LocalDate get() = Arviointikausi.paattymispaiva(kaudenAlkupaiva)
 

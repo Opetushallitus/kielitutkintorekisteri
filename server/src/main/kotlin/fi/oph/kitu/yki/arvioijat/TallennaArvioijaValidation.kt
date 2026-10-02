@@ -1,9 +1,12 @@
 package fi.oph.kitu.yki.arvioijat
 
+import arrow.core.nonEmptyListOf
 import arrow.core.raise.accumulate
+import arrow.core.raise.ensure
 import fi.oph.kitu.oppijanumero.OppijanumeroValidation
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.Validation
+import fi.oph.kitu.util.validation.Validation.ValidationError
 import fi.oph.kitu.util.validation.ValidationRaise
 import org.springframework.stereotype.Service
 
@@ -26,19 +29,33 @@ class TallennaArvioijaValidation(
             )
             accumulating { validatePostinumero(value.postinumero) }
             accumulating { validateSahkopostiosoite(value.sahkopostiosoite) }
-            accumulating { validateKaudenAlkupaiva(value.kaudenAlkupaiva, timeService.today(), "kaudenAlkupaiva") }
+            if (!value.automaattinenJatkokausi) {
+                accumulating { validateKaudenAlkupaiva(value.kaudenAlkupaiva, timeService.today(), "kaudenAlkupaiva") }
+            }
             validateArviointioikeudet(value.arviointioikeudet.map { it.kieli to it.tasot })
         }
     }
 
     /** Lisayslomake toimii myos jatkokauden kirjaamisena, joten paallekkaisyys on estettava tassakin. */
     override fun ValidationRaise.validateAfterEnrichment(value: TallennaArvioija) {
-        val arvioijaId = arvioijaRepository.findByArvioijaOid(value.arvioijaOid)?.id?.toInt() ?: return
+        val arvioijaId = arvioijaRepository.findByArvioijaOid(value.arvioijaOid)?.id?.toInt()
+        if (arvioijaId == null) {
+            ensure(!value.automaattinenJatkokausi) { nonEmptyListOf(jatkokausiIlmanEdellista()) }
+            return
+        }
+        val kaudet = kausiRepository.findKaudet(arvioijaId)
 
         accumulate {
+            if (value.automaattinenJatkokausi) {
+                accumulating {
+                    ensure(kaudet.any { it.paattymispaiva == value.kaudenAlkupaiva.minusDays(1) }) {
+                        jatkokausiIlmanEdellista()
+                    }
+                }
+            }
             accumulating {
                 validateEiPaallekkaisiaKausia(
-                    kaudet = kausiRepository.findKaudet(arvioijaId),
+                    kaudet = kaudet,
                     alkupaiva = value.kaudenAlkupaiva,
                     paattymispaiva = value.kaudenPaattymispaiva,
                     kentta = "kaudenAlkupaiva",
@@ -47,3 +64,9 @@ class TallennaArvioijaValidation(
         }
     }
 }
+
+private fun jatkokausiIlmanEdellista() =
+    ValidationError(
+        listOf("kaudenAlkupaiva"),
+        "Jatkokaudelle ei löydy edellistä kautta, joka päättyy alkupäivää edeltävänä päivänä",
+    )
