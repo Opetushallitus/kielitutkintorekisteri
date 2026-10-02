@@ -68,6 +68,14 @@ object YkiArvioijaPage {
                                 +UiText.Yki.lisaaArvioija
                             }
                         }
+                        li {
+                            buttonLink(
+                                href = Links.Yki.arvioijahakemukset(),
+                                testId = "arvioijahakemukset",
+                            ) {
+                                +UiText.Yki.Arvioijahakemus.linkki
+                            }
+                        }
                     }
                 },
             ) { arvioijaFilterButton(params) }

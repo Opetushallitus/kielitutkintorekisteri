@@ -554,6 +554,24 @@ object UiText {
             val piilotus: LocalizedString get() = tr("yki.sarake.piilotus")
         }
 
+        object Arvioijahakemus {
+            val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.otsikko")
+            val kuvaus: LocalizedString get() = tr("yki.arvioijahakemus.kuvaus")
+            val eiRiveja: LocalizedString get() = tr("yki.arvioijahakemus.eiRiveja")
+            val linkki: LocalizedString get() = tr("yki.arvioijahakemus.linkki")
+            val hakemus: LocalizedString get() = tr("yki.arvioijahakemus.hakemus")
+            val henkilo: LocalizedString get() = tr("yki.arvioijahakemus.henkilo")
+            val tila: LocalizedString get() = tr("yki.arvioijahakemus.tila")
+            val syy: LocalizedString get() = tr("yki.arvioijahakemus.syy")
+            val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.kasitelty")
+
+            object Tila {
+                val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasitelty")
+                val hylatty: LocalizedString get() = tr("yki.arvioijahakemus.tila.hylatty")
+                val eiTaytaEhtoja: LocalizedString get() = tr("yki.arvioijahakemus.tila.eiTaytaEhtoja")
+            }
+        }
+
         object Historia {
             val kuvaus: LocalizedString
                 get() =
@@ -878,6 +896,7 @@ object UiText {
             val arvioija: LocalizedString get() = tr("ohje.yki.arvioija")
             val arvioijaLomake: LocalizedString get() = tr("ohje.yki.arvioijaLomake")
             val kausiLomake: LocalizedString get() = tr("ohje.yki.kausiLomake")
+            val arvioijahakemukset: LocalizedString get() = tr("ohje.yki.arvioijahakemukset")
         }
 
         object Vkt {
