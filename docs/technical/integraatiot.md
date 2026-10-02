@@ -140,6 +140,43 @@ Ohjaa molempia suuntia sekä yöllistä `paivitaArvioijaProjektiot`-ajoa (`DAILY
   `SolkiArvioijaClientImpl` ja `SolkiArvioijaServiceImpl` ovat ehdottomia beaneja ja kytkin luetaan
   vasta palvelun sisällä. Painike itsessään on **muokkauskytkimen** takana.
 
+## Ataru — YKI-arvioijahakemukset
+
+**Paketit:** `ataru/` (asiakas), `yki/arvioijat/hakemus/` (tuonti) · **Suunta:** haku
+
+Arvioijahakemuslomakkeen hakemuksista luodaan YKI-arvioijamerkinnät (uusi arvioija tai
+jatkokausi, joka alkaa voimassa olevan kauden päättymistä seuraavana päivänä). Lomakkeen
+vuoden raja alkupäivälle ei koske tällaista jatkokautta (`TallennaArvioija.automaattinenJatkokausi`).
+
+- Lomakkeen avain ja kenttien id:t ovat `ArvioijahakemusLomake`ssa ja hyväksymisehdot
+  `ArvioijahakemusKriteeri`ssä — kovakoodattuina, ei asetuksina.
+- `AtaruClient.haeHakemusavaimet(...)` → `POST /lomake-editori/api/applications/list`
+  (`form-key`, `option-answers`, sivukursori `sort.offset`). Tämä on atarun virkailija-UI:n reitti,
+  ei sovittu ulkoinen rajapinta.
+- `AtaruClient.haeHakemukset(...)` → `POST /lomake-editori/api/external/siirto?salliYksiloimattomat=true`
+  (runkona hakemusavaimet, 200 kerrallaan). Ilman parametria yksikin yksilöimätön hakija kaataa
+  koko kutsun 409:llä.
+- Virhetyypit: `BadRequest`, `UnexpectedError`, `MalformedResponse`, `NullResponse`, `Unauthorized`.
+- **Autentikointi on CAS, ei OAuth2**: ataru ei hyväksy Bearer-tokenia. `security/cas/client/`
+  kirjautuu palvelukäyttäjänä (`/cas/v1/tickets` → ST palvelulle `/lomake-editori/auth/cas` →
+  eväste `ring-session`) ja kirjautuu uudelleen 401:n jälkeen.
+- `kitu.ataru.service.url` tyhjä = integraatio pois päältä (ei asiakasta, palvelua eikä eräajoa).
+
+### Vaaditut käyttöoikeudet
+
+| Oikeus                                                                                    | Missä                                    | Huom                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ATARU_HAKEMUS` READ (`APP_ATARU_HAKEMUS_READ_<org>`) palvelukäyttäjälle `koto-rekisteri` | lomakkeen omistava OPH:n alaorganisaatio | Ilman oikeutta ataru **pudottaa hakemukset hiljaa** — tyhjä vastaus, ei virhettä. Oikeutta ei myönnetä OPH:n juuriorganisaatioon, koska se tekisi käyttäjästä ataru-superuserin. |
+| CAS-kirjautuminen palvelukäyttäjälle `koto-rekisteri`                                     | Otuva CAS REST (`/cas/v1/tickets`)       | Käyttää `kitu.palvelukayttaja.username/password`-arvoja (`palvelukayttaja-password`); uutta tunnusta tai salaisuutta ei tarvita.                                                 |
+| ONR                                                                                       | —                                        | Nykyiset oikeudet riittävät (samat kutsut kuin arvioijalomakkeella).                                                                                                             |
+| Kitussa `YKI_ARVIOIJAREKISTERI`                                                           | `/yki/arvioijat/hakemukset`              | Hylättyjen hakemusten tarkistusnäkymä.                                                                                                                                           |
+
+`yki_arvioijahakemus` on pelkkä kirjanpito käsitellyistä hakemuksista, eikä sillä ole
+säilytysaikaa: rivin poistaminen saisi seuraavan ajon luomaan arvioijan uudelleen samasta hakemuksesta.
+
+`ATARU_EDITORI`-, `VALINTA_*`- tai CRUD-oikeuksia ei tarvita, koska kitu vain lukee. Siirto
+palauttaa hetun, mutta kitu ei tallenna sitä, eikä tauluun `yki_arvioijahakemus` kirjoiteta vastauksia.
+
 ## CAS + OAuth2 — virkailija-autentikointi
 
 **Paketti:** `security/` (`security/cas/`, `security/oauth2/`) · **Suunta:** haku

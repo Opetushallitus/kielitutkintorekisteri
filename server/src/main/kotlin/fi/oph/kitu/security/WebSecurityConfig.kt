@@ -162,6 +162,7 @@ class WebSecurityConfig {
                     } else {
                         denyAll
                     }
+                authorize(GET, "/yki/arvioijat/hakemukset", hasAuthority(Authority.YKI_ARVIOIJAREKISTERI.role()))
                 authorize(GET, "/yki/arvioijat/uusi", arvioijarekisterinMuokkaus)
                 authorize(GET, "/yki/arvioijat/*/muokkaa", arvioijarekisterinMuokkaus)
                 // Yksitasoinen * ei kata kausilomakkeiden polkuja, ja GET /yki/arvioijat/{id} on
