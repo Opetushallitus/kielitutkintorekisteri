@@ -3,7 +3,7 @@
 scripts_dir=$( dirname "${BASH_SOURCE[0]}" )
 source "$scripts_dir/common-functions.sh"
 
-SESS_NAME=kotorekisteri
+SESS_NAME=kielitutkintorekisteri
 
 cd "$REPO_ROOT" || exit 1
 
