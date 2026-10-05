@@ -8,8 +8,6 @@ import fi.oph.kitu.util.cache.InMemoryCache
 import fi.oph.kitu.util.scheduling.SchedulerStatsRepository
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonParams
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorService
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -24,7 +22,6 @@ class DashboardService(
     private val ykiSuoritusRepository: YkiSuoritusRepository,
     private val ykiArvioijaRepository: YkiArvioijaRepository,
     private val ykiSuoritusErrorService: YkiSuoritusErrorService,
-    private val ykiHistoriaSiirtymatonRepository: YkiHistoriaSiirtymatonRepository,
     private val customVktSuoritusRepository: CustomVktSuoritusRepository,
     private val customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
     private val kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
@@ -70,8 +67,6 @@ class DashboardService(
             latestReceivedAt = ykiSuoritusRepository.findLatestReceivedAt(),
             suoritusImportErrorCount = ykiSuoritusErrorService.countErrors(),
             koskiErrorCount = koskiErrorService.countByEntity("yki", hidden = false).toLong(),
-            historiaSiirtymattomatCount =
-                ykiHistoriaSiirtymatonRepository.laske(YkiHistoriaSiirtymatonParams()).toLong(),
         )
 
     private fun computeVkt(): VktStats {
@@ -109,7 +104,6 @@ data class YkiStats(
     val latestReceivedAt: Instant?,
     val suoritusImportErrorCount: Long,
     val koskiErrorCount: Long,
-    val historiaSiirtymattomatCount: Long,
 )
 
 data class VktStats(

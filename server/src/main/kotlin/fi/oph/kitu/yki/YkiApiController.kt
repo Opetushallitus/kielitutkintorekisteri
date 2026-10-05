@@ -16,9 +16,6 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaColumn
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaService
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonColumn
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonParams
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -53,7 +50,6 @@ class YkiApiController(
     private val ilmoittautumisjarjestelma: IlmoittautumisjarjestelmaService,
     private val arvioijaService: YkiArvioijaService,
     private val asetukset: ArvioijarekisteriAsetukset,
-    private val historiaSiirtymatonRepository: YkiHistoriaSiirtymatonRepository,
 ) {
     @GetMapping("/suoritukset", "/suoritus", produces = ["text/csv"])
     fun getSuorituksetAsCsv(
@@ -79,16 +75,6 @@ class YkiApiController(
         csvAttachmentResponse<YkiArvioijaColumn, _>(
             filename = params.csvFileName(),
             data = arvioijaService.haeKaikki(params),
-            excludeTags = params.excludeTags(),
-        )
-
-    @GetMapping("/historia-siirtymattomat", produces = ["text/csv"])
-    fun getHistoriaSiirtymattomatCsv(
-        @ModelAttribute params: YkiHistoriaSiirtymatonParams = YkiHistoriaSiirtymatonParams(),
-    ): ResponseEntity<StreamingResponseBody> =
-        csvAttachmentResponse<YkiHistoriaSiirtymatonColumn, _>(
-            filename = params.csvFileName(),
-            data = historiaSiirtymatonRepository.haeKaikki(params),
             excludeTags = params.excludeTags(),
         )
 

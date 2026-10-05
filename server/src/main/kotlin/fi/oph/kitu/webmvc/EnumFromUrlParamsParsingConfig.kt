@@ -4,7 +4,6 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusColumn
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorColumn
 import fi.oph.kitu.vkt.VktSuoritusColumn
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaColumn
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorColumn
 import org.springframework.context.annotation.Configuration
@@ -18,7 +17,6 @@ class EnumFromUrlParamsParsingConfig : WebMvcConfigurer {
             addEnumFromUrlParamParser<YkiSuoritusColumn>(YkiSuoritusColumn::urlParam)
             addEnumFromUrlParamParser<YkiSuoritusErrorColumn>(YkiSuoritusErrorColumn::urlParam)
             addEnumFromUrlParamParser<YkiArvioijaColumn>(YkiArvioijaColumn::urlParam)
-            addEnumFromUrlParamParser<YkiHistoriaSiirtymatonColumn>(YkiHistoriaSiirtymatonColumn::urlParam)
             addEnumFromUrlParamParser<KielitestiSuoritusColumn>(KielitestiSuoritusColumn::urlParam)
             addEnumFromUrlParamParser<KielitestiSuoritusErrorColumn>(KielitestiSuoritusErrorColumn::urlParam)
             addEnumFromUrlParamParser<VktSuoritusColumn>(VktSuoritusColumn::urlParam)
