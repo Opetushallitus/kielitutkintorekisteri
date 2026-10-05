@@ -26,13 +26,20 @@ data class Tuontiyhteenveto(
     val kasitelty: Int = 0,
     val hylatty: Int = 0,
     val eiTaytaEhtoja: Int = 0,
+    val odottaaYksilointia: Int = 0,
     val yritetaanUudelleen: Int = 0,
+    val epaonnistui: Int = 0,
 )
 
 /**
  * Atarun arvioijahakemuksista YKI-arvioijamerkinnat. Kasittelytila elaa taulussa
- * `yki_arvioijahakemus`: jo kirjattua hakemusta ei haeta uudelleen. Ohimenevat virheet (ONR ei
- * vastaa, samanaikainen muokkaus) jatetaan kirjaamatta, jolloin hakemus yritetaan seuraavalla ajolla.
+ * `yki_arvioijahakemus`: jo kirjattua hakemusta ei haeta uudelleen, paitsi tilassa
+ * [ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA]. Ohimenevat virheet (ONR ei vastaa, samanaikainen
+ * muokkaus) jatetaan kirjaamatta, jolloin hakemus yritetaan seuraavalla ajolla.
+ *
+ * Rivi kirjataan tilaan [ArvioijahakemuksenTila.KASITTELYSSA] ennen arvioijan tallennusta: jos ajo
+ * kaatuu tallennuksen ja kirjanpidon valissa, rivi jaa nakyviin tarkistettavaksi eika seuraava ajo
+ * luo samasta hakemuksesta toista kautta.
  */
 @Service
 @ConditionalOnNonEmptyProperty("kitu.ataru.service.url")
@@ -57,11 +64,20 @@ class ArvioijahakemusTuontiService(
         val uudet = avaimet.filterNot(kasitellyt::contains)
         if (uudet.isEmpty()) return Tuontiyhteenveto()
 
+        var epaonnistui = 0
         val rivit =
             ataru
                 .haeHakemukset(uudet)
                 .getOrElse { throw it }
-                .mapNotNull { hakemus -> kasittele(hakemus)?.also(repository::tallenna) }
+                .mapNotNull { hakemus ->
+                    try {
+                        kasittele(hakemus)
+                    } catch (e: Exception) {
+                        epaonnistui++
+                        logger.error("Arvioijahakemuksen ${hakemus.hakemusOid} käsittely epäonnistui", e)
+                        null
+                    }
+                }
 
         auditLogger.logAllInternalOnly(
             "Yki arvioija tallennettu ataru-hakemuksesta",
@@ -69,24 +85,39 @@ class ArvioijahakemusTuontiService(
         ) { arrayOf("arvioija.oid" to it.henkiloOid, "hakemus.oid" to it.hakemusOid) }
 
         val tilat = rivit.groupingBy { it.tila }.eachCount()
-        return Tuontiyhteenveto(
-            kasitelty = tilat[ArvioijahakemuksenTila.KASITELTY] ?: 0,
-            hylatty = tilat[ArvioijahakemuksenTila.HYLATTY] ?: 0,
-            eiTaytaEhtoja = tilat[ArvioijahakemuksenTila.EI_TAYTA_EHTOJA] ?: 0,
-            yritetaanUudelleen = uudet.size - rivit.size,
-        ).also { yhteenveto ->
-            Span.current().apply {
-                setAttribute("arvioijahakemus.kasitelty", yhteenveto.kasitelty.toLong())
-                setAttribute("arvioijahakemus.hylatty", yhteenveto.hylatty.toLong())
-                setAttribute("arvioijahakemus.eiTaytaEhtoja", yhteenveto.eiTaytaEhtoja.toLong())
-                setAttribute("arvioijahakemus.yritetaanUudelleen", yhteenveto.yritetaanUudelleen.toLong())
-            }
+        val yhteenveto =
+            Tuontiyhteenveto(
+                kasitelty = tilat[ArvioijahakemuksenTila.KASITELTY] ?: 0,
+                hylatty = tilat[ArvioijahakemuksenTila.HYLATTY] ?: 0,
+                eiTaytaEhtoja = tilat[ArvioijahakemuksenTila.EI_TAYTA_EHTOJA] ?: 0,
+                odottaaYksilointia = tilat[ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA] ?: 0,
+                yritetaanUudelleen = uudet.size - rivit.size - epaonnistui,
+                epaonnistui = epaonnistui,
+            )
+        Span.current().apply {
+            setAttribute("arvioijahakemus.kasitelty", yhteenveto.kasitelty.toLong())
+            setAttribute("arvioijahakemus.hylatty", yhteenveto.hylatty.toLong())
+            setAttribute("arvioijahakemus.eiTaytaEhtoja", yhteenveto.eiTaytaEhtoja.toLong())
+            setAttribute("arvioijahakemus.odottaaYksilointia", yhteenveto.odottaaYksilointia.toLong())
+            setAttribute("arvioijahakemus.yritetaanUudelleen", yhteenveto.yritetaanUudelleen.toLong())
+            setAttribute("arvioijahakemus.epaonnistui", yhteenveto.epaonnistui.toLong())
         }
+        check(epaonnistui == 0) { "$epaonnistui arvioijahakemuksen käsittely epäonnistui, ks. lokit" }
+        return yhteenveto
     }
 
     private fun kasittele(hakemus: SiirtoHakemus): ArvioijahakemusEntity? {
         if (!ArvioijahakemusKriteeri.tayttyy(hakemus)) {
-            return rivi(hakemus, ArvioijahakemuksenTila.EI_TAYTA_EHTOJA)
+            return kirjaa(rivi(hakemus, ArvioijahakemuksenTila.EI_TAYTA_EHTOJA))
+        }
+        if (hakemus.personOid.isNullOrBlank()) {
+            return kirjaa(
+                rivi(
+                    hakemus,
+                    ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA,
+                    syy = "Hakemukselle ei ole vielä luotu henkilöä",
+                ),
+            )
         }
 
         return either {
@@ -94,7 +125,21 @@ class ArvioijahakemusTuontiService(
             val esitaytto = arvioijaService.haeHenkilotiedot(kartoitettu.henkiloOid).mapLeft(::hylkays).bind()
             val alku = kaudenAlkupaiva(esitaytto)
             val komento = komento(kartoitettu, esitaytto, alku).bind()
-            val arvioija = arvioijaService.luoArvioija(komento, tekija = null).mapLeft(::hylkays).bind()
+
+            kirjaa(
+                rivi(
+                    hakemus,
+                    ArvioijahakemuksenTila.KASITTELYSSA,
+                    henkiloOid = esitaytto.arvioijaOid.toString(),
+                    kaudenAlkupaiva = alku.paiva,
+                ),
+            )
+            val arvioija =
+                arvioijaService
+                    .luoArvioija(komento, tekija = null)
+                    .mapLeft(::hylkays)
+                    .onLeft { if (it.tila == null) repository.poista(hakemus.hakemusOid) }
+                    .bind()
             rivi(
                 hakemus,
                 ArvioijahakemuksenTila.KASITELTY,
@@ -102,15 +147,18 @@ class ArvioijahakemusTuontiService(
                 arvioijaId = arvioija.id?.toInt(),
                 kaudenAlkupaiva = alku.paiva,
             )
-        }.getOrElse { hylkays ->
-            if (hylkays.ohimeneva) {
-                logger.warn("Arvioijahakemus ${hakemus.hakemusOid} yritetään uudelleen: ${hylkays.syy}")
-                null
-            } else {
-                rivi(hakemus, ArvioijahakemuksenTila.HYLATTY, syy = hylkays.syy)
-            }
-        }
+        }.fold(
+            ifLeft = { hylkays ->
+                hylkays.tila?.let { rivi(hakemus, it, syy = hylkays.syy) } ?: run {
+                    logger.warn("Arvioijahakemus ${hakemus.hakemusOid} yritetään uudelleen: ${hylkays.syy}")
+                    null
+                }
+            },
+            ifRight = { it },
+        )?.let(::kirjaa)
     }
+
+    private fun kirjaa(rivi: ArvioijahakemusEntity): ArvioijahakemusEntity = rivi.also(repository::tallenna)
 
     /** Jatkokausi alkaa voimassa olevan tai tulevan kauden jalkeen, muuten kausi alkaa tanaan. */
     private fun kaudenAlkupaiva(esitaytto: ArvioijanEsitaytto): KaudenAlku {
@@ -174,9 +222,10 @@ class ArvioijahakemusTuontiService(
         kasitelty = timeService.now().atOffset(ZoneOffset.UTC),
     )
 
+    /** [tila] null = ohimenevä virhe: rivia ei kirjata, jolloin hakemus yritetaan seuraavalla ajolla. */
     private data class Hylkays(
         val syy: String,
-        val ohimeneva: Boolean = false,
+        val tila: ArvioijahakemuksenTila? = ArvioijahakemuksenTila.HYLATTY,
     )
 
     private fun hylkays(virhe: YkiArvioijaError): Hylkays =
@@ -186,18 +235,24 @@ class ArvioijahakemusTuontiService(
             }
 
             is YkiArvioijaError.OppijaaEiYksiloity -> {
-                Hylkays("Henkilöä ei ole yksilöity oppijanumerorekisterissä")
+                Hylkays(
+                    "Henkilöä ei ole vielä yksilöity oppijanumerorekisterissä",
+                    tila = ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA,
+                )
             }
 
             is YkiArvioijaError.OppijanumeroaEiSaatu -> {
                 Hylkays(
                     "Oppijanumerorekisterin kysely epäonnistui: ${virhe.syy.message}",
-                    ohimeneva = virhe.syy !is OppijanumeroException.OppijaNotFoundException,
+                    tila =
+                        ArvioijahakemuksenTila.HYLATTY.takeIf {
+                            virhe.syy is OppijanumeroException.OppijaNotFoundException
+                        },
                 )
             }
 
             YkiArvioijaError.MuokattuSamanaikaisesti -> {
-                Hylkays("Arvioijaa muokattiin samanaikaisesti", ohimeneva = true)
+                Hylkays("Arvioijaa muokattiin samanaikaisesti", tila = null)
             }
 
             else -> {

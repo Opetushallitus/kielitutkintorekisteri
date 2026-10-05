@@ -160,6 +160,9 @@ vuoden raja alkupäivälle ei koske tällaista jatkokautta (`TallennaArvioija.au
 - **Autentikointi on CAS, ei OAuth2**: ataru ei hyväksy Bearer-tokenia. `security/cas/client/`
   kirjautuu palvelukäyttäjänä (`/cas/v1/tickets` → ST palvelulle `/lomake-editori/auth/cas` →
   eväste `ring-session`) ja kirjautuu uudelleen 401:n jälkeen.
+- Käsittelytilat (`yki_arvioijahakemus.tila`): `KASITELTY`, `HYLATTY`, `EI_TAYTA_EHTOJA`,
+  `ODOTTAA_YKSILOINTIA` (haetaan joka ajolla uudelleen) ja `KASITTELYSSA` (ajo keskeytyi arvioijan
+  tallennuksen jälkeen; tarkistettava käsin, ei käsitellä uudelleen).
 - `kitu.ataru.service.url` tyhjä = integraatio pois päältä (ei asiakasta, palvelua eikä eräajoa).
 
 ### Vaaditut käyttöoikeudet
