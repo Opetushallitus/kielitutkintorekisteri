@@ -24,6 +24,8 @@ enum class ArvioijahakemuksenTila {
     KASITELTY,
     HYLATTY,
     EI_TAYTA_EHTOJA,
+    ODOTTAA_YKSILOINTIA,
+    KASITTELYSSA,
     ;
 
     val nimi: LocalizedString
@@ -32,6 +34,8 @@ enum class ArvioijahakemuksenTila {
                 KASITELTY -> UiText.Yki.Arvioijahakemus.Tila.kasitelty
                 HYLATTY -> UiText.Yki.Arvioijahakemus.Tila.hylatty
                 EI_TAYTA_EHTOJA -> UiText.Yki.Arvioijahakemus.Tila.eiTaytaEhtoja
+                ODOTTAA_YKSILOINTIA -> UiText.Yki.Arvioijahakemus.Tila.odottaaYksilointia
+                KASITTELYSSA -> UiText.Yki.Arvioijahakemus.Tila.kasittelyssa
             }
 }
 

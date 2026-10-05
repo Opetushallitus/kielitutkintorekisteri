@@ -569,6 +569,8 @@ object UiText {
                 val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasitelty")
                 val hylatty: LocalizedString get() = tr("yki.arvioijahakemus.tila.hylatty")
                 val eiTaytaEhtoja: LocalizedString get() = tr("yki.arvioijahakemus.tila.eiTaytaEhtoja")
+                val odottaaYksilointia: LocalizedString get() = tr("yki.arvioijahakemus.tila.odottaaYksilointia")
+                val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
             }
         }
 

@@ -16,7 +16,10 @@ class ArvioijahakemusRepository(
         } else {
             jdbc
                 .queryForList(
-                    "SELECT hakemus_oid FROM yki_arvioijahakemus WHERE hakemus_oid IN (:oidit)",
+                    """
+                    SELECT hakemus_oid FROM yki_arvioijahakemus
+                    WHERE hakemus_oid IN (:oidit) AND tila <> 'ODOTTAA_YKSILOINTIA'
+                    """.trimIndent(),
                     MapSqlParameterSource("oidit", hakemusOidit),
                     String::class.java,
                 ).filterNotNull()
@@ -30,7 +33,13 @@ class ArvioijahakemusRepository(
             INSERT INTO yki_arvioijahakemus
                 (hakemus_oid, henkilo_oid, tila, syy, arvioija_id, kauden_alkupaiva, kasitelty)
             VALUES (:hakemusOid, :henkiloOid, :tila, :syy, :arvioijaId, :kaudenAlkupaiva, :kasitelty)
-            ON CONFLICT (hakemus_oid) DO NOTHING
+            ON CONFLICT (hakemus_oid) DO UPDATE SET
+                henkilo_oid = EXCLUDED.henkilo_oid,
+                tila = EXCLUDED.tila,
+                syy = EXCLUDED.syy,
+                arvioija_id = EXCLUDED.arvioija_id,
+                kauden_alkupaiva = EXCLUDED.kauden_alkupaiva,
+                kasitelty = EXCLUDED.kasitelty
             """.trimIndent(),
             MapSqlParameterSource()
                 .addValue("hakemusOid", hakemus.hakemusOid)
@@ -56,6 +65,14 @@ class ArvioijahakemusRepository(
             "SELECT * FROM yki_arvioijahakemus ORDER BY kasitelty DESC, hakemus_oid",
             ArvioijahakemusEntity.fromRow,
         )
+
+    @WithSpan
+    fun poista(hakemusOid: String) {
+        jdbc.update(
+            "DELETE FROM yki_arvioijahakemus WHERE hakemus_oid = :oid",
+            MapSqlParameterSource("oid", hakemusOid),
+        )
+    }
 
     fun deleteAll() {
         jdbc.update("DELETE FROM yki_arvioijahakemus", MapSqlParameterSource())

@@ -24,11 +24,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 @SpringBootTest
@@ -59,11 +61,14 @@ class ArvioijahakemusTuontiServiceTest(
         ataru.siirtokutsut.clear()
     }
 
-    private fun tuo(timeService: TestTimeService): Tuontiyhteenveto =
+    private fun tuo(
+        timeService: TestTimeService,
+        kirjanpito: ArvioijahakemusRepository = repository,
+    ): Tuontiyhteenveto =
         timeService.runWithFixedClock(hetki) {
             ArvioijahakemusTuontiService(
                 ataru,
-                repository,
+                kirjanpito,
                 arvioijaService,
                 kausiRepository,
                 timeService,
@@ -226,22 +231,64 @@ class ArvioijahakemusTuontiServiceTest(
     }
 
     @Test
-    fun `yksiloimaton hakija ja ehtoja tayttamaton hakemus kirjataan tarkistettaviksi`(
+    fun `ehtoja tayttamaton hakemus kirjataan tarkistettavaksi`(
         @Autowired timeService: TestTimeService,
     ) {
-        ataru.hakemukset =
-            listOf(
-                hakemus("h1", yksiloimatonOid),
-                hakemus("h2", petronOid, state = "inactivated"),
-            )
+        ataru.hakemukset = listOf(hakemus("h1", petronOid, state = "inactivated"))
 
-        assertEquals(Tuontiyhteenveto(hylatty = 1, eiTaytaEhtoja = 1), tuo(timeService))
+        assertEquals(Tuontiyhteenveto(eiTaytaEhtoja = 1), tuo(timeService))
 
-        val rivit = repository.haeKasittelemattomat().associateBy { it.hakemusOid }
-        assertEquals(ArvioijahakemuksenTila.HYLATTY, rivit["h1"]?.tila)
-        assertContains(rivit["h1"]?.syy.orEmpty(), "yksilöity")
-        assertEquals(ArvioijahakemuksenTila.EI_TAYTA_EHTOJA, rivit["h2"]?.tila)
+        assertEquals(ArvioijahakemuksenTila.EI_TAYTA_EHTOJA, repository.haeKasittelemattomat().single().tila)
         assertEquals(null, arvioijaRepository.findByArvioijaOid(oid(petronOid)))
+    }
+
+    @Test
+    fun `yksiloimaton tai henkiloton hakemus odottaa ja haetaan uudelleen jokaisella ajolla`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        ataru.hakemukset = listOf(hakemus("h1", yksiloimatonOid), hakemus("h2", personOid = null))
+
+        assertEquals(Tuontiyhteenveto(odottaaYksilointia = 2), tuo(timeService))
+        val rivit = repository.haeKasittelemattomat().associateBy { it.hakemusOid }
+        assertEquals(ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA, rivit["h1"]?.tila)
+        assertContains(rivit["h1"]?.syy.orEmpty(), "yksilöity")
+        assertEquals(ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA, rivit["h2"]?.tila)
+
+        ataru.hakemukset = listOf(hakemus("h1", yksiloimatonOid), hakemus("h2", petronOid))
+        assertEquals(Tuontiyhteenveto(kasitelty = 1, odottaaYksilointia = 1), tuo(timeService))
+
+        assertEquals(listOf("h1", "h2"), ataru.siirtokutsut.last(), "odottavat haetaan uudelleen")
+        assertEquals(ArvioijahakemuksenTila.KASITELTY, repository.haeKaikki().single { it.hakemusOid == "h2" }.tila)
+        assertNotNull(arvioijaRepository.findByArvioijaOid(oid(petronOid)))
+    }
+
+    @Test
+    fun `kaatuminen arvioijan tallennuksen jalkeen ei esta muita eika luo toista kautta`(
+        @Autowired timeService: TestTimeService,
+        @Autowired jdbc: NamedParameterJdbcTemplate,
+    ) {
+        val kaatuvaKirjanpito =
+            object : ArvioijahakemusRepository(jdbc) {
+                override fun tallenna(hakemus: ArvioijahakemusEntity) {
+                    if (hakemus.hakemusOid == "h1" && hakemus.tila == ArvioijahakemuksenTila.KASITELTY) {
+                        throw IllegalStateException("kaatui kesken")
+                    }
+                    super.tallenna(hakemus)
+                }
+            }
+        ataru.hakemukset = listOf(hakemus("h1", petronOid), hakemus("h2", "1.2.246.562.24.20281155246"))
+
+        assertFailsWith<IllegalStateException> { tuo(timeService, kaatuvaKirjanpito) }
+
+        val rivit = repository.haeKaikki().associateBy { it.hakemusOid }
+        assertEquals(ArvioijahakemuksenTila.KASITTELYSSA, rivit["h1"]?.tila, "keskeytynyt jaa nakyviin")
+        assertNotNull(rivit["h2"], "kaatuminen ei esta seuraavaa hakemusta")
+
+        tuo(timeService)
+
+        val arvioija = assertNotNull(arvioijaRepository.findByArvioijaOid(oid(petronOid)))
+        assertEquals(1, kausiRepository.findKaudet(arvioija.id!!.toInt()).size, "keskeytynytta ei kasitella uudelleen")
+        assertEquals(ArvioijahakemuksenTila.KASITTELYSSA, repository.haeKaikki().single { it.hakemusOid == "h1" }.tila)
     }
 
     private fun oid(s: String): Oid = Oid.parse(s).getOrThrow()
