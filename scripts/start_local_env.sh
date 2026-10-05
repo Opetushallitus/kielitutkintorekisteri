@@ -44,4 +44,4 @@ fi
 
 require_command tmux
 
-"$scripts_dir"/ensure_aws_secrets.sh "$scripts_dir"/start_tmux.sh
+"$scripts_dir"/start_tmux.sh --mode online

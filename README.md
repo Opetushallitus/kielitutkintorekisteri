@@ -55,6 +55,16 @@ skriptille voi antaa `--setup-only` parametrin. Tällöin suoritetaan kehitysymp
 ./scripts/start_local_env.sh --setup-only
 ```
 
+`tmux`-sessio on valinnainen. Sen ikkunoissa käynnistyvät tietokanta, Jaeger, IDEA ja palvelin.
+Session voi käynnistää myös ilman perustusvaiheita:
+
+```shell
+./scripts/start_tmux.sh --mode online    # AWS-salaisuudet, Untuva- ja dev-palvelut
+./scripts/start_tmux.sh --mode offline   # ks. Offline-kehitys
+```
+
+Lisätiedot `--help`-parametrilla.
+
 `tmux`-session saa ajettua alas [stop_tmux.sh](./scripts/stop_tmux.sh)-skriptillä. Se lähettää
 jokaiseen ikkunaan ja paneeliin `C-c`:n, odottaa hetken ja sulkee session. Skripti on ajettava
 session sisältä.
@@ -100,6 +110,9 @@ docker compose up -d db
 
 # Tai käynnistä palvelin suoraan
 ./scripts/start_offline_dev.sh ./scripts/start_local_server.sh
+
+# Tai kaikki kerralla tmux-sessioon
+./scripts/start_tmux.sh --mode offline
 
 # Tarvittaessa offline-tilassa myös Mavenin osalta
 ./scripts/start_offline_dev.sh ./mvnw -o spring-boot:run
