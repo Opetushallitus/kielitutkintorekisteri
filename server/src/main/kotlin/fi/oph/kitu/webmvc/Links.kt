@@ -18,8 +18,6 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiViewController
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaViewController
 import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemusViewController
-import fi.oph.kitu.yki.historia.YkiHistoriaSiirtymatonParams
-import fi.oph.kitu.yki.historia.YkiHistoriaViewController
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn
 
@@ -188,18 +186,6 @@ object Links {
 
         fun arvioijahakemukset(): String =
             linkTo(methodOn(ArvioijahakemusViewController::class.java).hakemuksetView()).toString()
-
-        fun historiaSiirtymattomat(): String =
-            linkTo(
-                methodOn(YkiHistoriaViewController::class.java)
-                    .siirtymattomatView(YkiHistoriaSiirtymatonParams()),
-            ).toString()
-
-        fun historiaSiirtymattomatCsv(): String =
-            linkTo(
-                methodOn(YkiApiController::class.java)
-                    .getHistoriaSiirtymattomatCsv(YkiHistoriaSiirtymatonParams()),
-            ).toString()
     }
 
     object Kielitesti {

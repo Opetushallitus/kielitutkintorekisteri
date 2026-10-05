@@ -22,8 +22,6 @@ object UiText {
         val hyvanJaTyydyttavanSuoritukset: LocalizedString
             get() = tr("nav.hyvanJaTyydyttavanSuoritukset")
         val erajojenHallinta: LocalizedString get() = tr("nav.erajojenHallinta")
-        val historiaSiirtymattomat: LocalizedString
-            get() = tr("nav.historiaSiirtymattomat")
     }
 
     object Etusivu {
@@ -574,43 +572,6 @@ object UiText {
             }
         }
 
-        object Historia {
-            val kuvaus: LocalizedString
-                get() =
-                    tr("yki.historia.kuvaus")
-            val rivejaYhteensa: LocalizedString get() = tr("yki.historia.rivejaYhteensa")
-            val eiRiveja: LocalizedString
-                get() = tr("yki.historia.eiRiveja")
-            val hakusana: LocalizedString
-                get() = tr("yki.historia.hakusana")
-            val syy: LocalizedString get() = tr("yki.historia.syy")
-            val syyluokka: LocalizedString get() = tr("yki.historia.syyluokka")
-            val oidHaunSyy: LocalizedString
-                get() = tr("yki.historia.oidHaunSyy")
-            val oidHakuaEiYritetty: LocalizedString
-                get() = tr("yki.historia.oidHakuaEiYritetty")
-            val rikkinainenRivi: LocalizedString
-                get() = tr("yki.historia.rikkinainenRivi")
-            val lahdetiedosto: LocalizedString get() = tr("yki.historia.lahdetiedosto")
-            val ladattu: LocalizedString get() = tr("yki.historia.ladattu")
-            val muutosaikaleima: LocalizedString
-                get() = tr("yki.historia.muutosaikaleima")
-            val postinumero: LocalizedString get() = tr("yki.historia.postinumero")
-            val postitoimipaikka: LocalizedString
-                get() = tr("yki.historia.postitoimipaikka")
-            val syyEiOppijanumeroa: LocalizedString
-                get() = tr("yki.historia.syyEiOppijanumeroa")
-            val syyPaikallinenValidointi: LocalizedString
-                get() = tr("yki.historia.syyPaikallinenValidointi")
-            val syyApiHylkasi: LocalizedString
-                get() = tr("yki.historia.syyApiHylkasi")
-            val syyRikkinainenRivi: LocalizedString
-                get() = tr("yki.historia.syyRikkinainenRivi")
-            val syyLastModifiedEiJasenny: LocalizedString
-                get() = tr("yki.historia.syyLastModifiedEiJasenny")
-            val syyMuu: LocalizedString get() = tr("yki.historia.syyMuu")
-        }
-
         object Virhesarake {
             val oppijanumero: LocalizedString get() = tr("yki.virhesarake.oppijanumero")
             val hetu: LocalizedString get() = tr("yki.virhesarake.hetu")
@@ -893,7 +854,6 @@ object UiText {
             val suoritukset: LocalizedString get() = tr("ohje.yki.suoritukset")
             val suoritus: LocalizedString get() = tr("ohje.yki.suoritus")
             val tarkistusarvioinnit: LocalizedString get() = tr("ohje.yki.tarkistusarvioinnit")
-            val historiaSiirtymattomat: LocalizedString get() = tr("ohje.yki.historiaSiirtymattomat")
             val arvioijat: LocalizedString get() = tr("ohje.yki.arvioijat")
             val arvioija: LocalizedString get() = tr("ohje.yki.arvioija")
             val arvioijaLomake: LocalizedString get() = tr("ohje.yki.arvioijaLomake")
