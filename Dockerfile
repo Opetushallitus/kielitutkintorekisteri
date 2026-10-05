@@ -1,4 +1,4 @@
-FROM maven:3.9.16-amazoncorretto-25-al2023 AS backend-builder
+FROM maven:3.10.0-amazoncorretto-25-al2023 AS backend-builder
 
 WORKDIR /kitu
 
