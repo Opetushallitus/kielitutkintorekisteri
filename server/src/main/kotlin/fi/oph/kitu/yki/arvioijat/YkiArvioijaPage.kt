@@ -41,6 +41,7 @@ object YkiArvioijaPage {
         params: YkiArvioijaParams,
         pagination: Pagination,
         muokkausKaytossa: Boolean,
+        hakemustenTuontiKaytossa: Boolean,
     ): String =
         Page.renderHtml(
             wideContent = true,
@@ -68,12 +69,14 @@ object YkiArvioijaPage {
                                 +UiText.Yki.lisaaArvioija
                             }
                         }
-                        li {
-                            buttonLink(
-                                href = Links.Yki.arvioijahakemukset(),
-                                testId = "arvioijahakemukset",
-                            ) {
-                                +UiText.Yki.Arvioijahakemus.linkki
+                        if (hakemustenTuontiKaytossa) {
+                            li {
+                                buttonLink(
+                                    href = Links.Yki.arvioijahakemukset(),
+                                    testId = "arvioijahakemukset",
+                                ) {
+                                    +UiText.Yki.Arvioijahakemus.linkki
+                                }
                             }
                         }
                     }

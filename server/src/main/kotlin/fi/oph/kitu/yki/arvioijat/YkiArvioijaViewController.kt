@@ -53,6 +53,7 @@ class YkiArvioijaViewController(
                         },
                     ),
                 muokkausKaytossa = asetukset.muokkausKaytossa,
+                hakemustenTuontiKaytossa = asetukset.hakemustenTuontiKaytossa,
             ),
         )
     }

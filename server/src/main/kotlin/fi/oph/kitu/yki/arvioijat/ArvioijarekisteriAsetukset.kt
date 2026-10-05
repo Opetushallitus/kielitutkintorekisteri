@@ -15,4 +15,8 @@ class ArvioijarekisteriAsetukset(
     /** Kitu on rekisterin master: sisaantulo kavennetaan, lahetys on paalla, projektio paivitetaan. */
     @param:Value($$"${kitu.yki.arvioijarekisteri.integraatio.enabled:false}")
     val integraatioKaytossa: Boolean,
-)
+    @param:Value($$"${kitu.ataru.service.url:}")
+    private val ataruServiceUrl: String = "",
+) {
+    val hakemustenTuontiKaytossa: Boolean get() = ataruServiceUrl.isNotBlank()
+}

@@ -21,7 +21,7 @@ interface AtaruClient {
     fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>>
 }
 
-class AtaruClientImpl(
+open class AtaruClientImpl(
     private val restClient: RestClient,
     private val serviceUrl: String,
 ) : AtaruClient {

@@ -21,16 +21,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
-import java.time.OffsetDateTime
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertFalse
 
-@SpringBootTest(properties = ["kitu.ataru.service.url=http://localhost/mock-ataru"])
+@SpringBootTest
 @Import(DBContainerConfiguration::class)
-class ArvioijahakemusViewControllerTest(
+class ArvioijahakemusPoisKaytostaTest(
     @param:Autowired private val context: WebApplicationContext,
-    @param:Autowired private val repository: ArvioijahakemusRepository,
 ) {
     private lateinit var mockMvc: MockMvc
 
@@ -41,43 +38,29 @@ class ArvioijahakemusViewControllerTest(
                 .webAppContextSetup(context)
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
-        repository.deleteAll()
     }
 
-    private fun rivi(
-        oid: String,
-        tila: ArvioijahakemuksenTila,
-        syy: String? = null,
-    ) = ArvioijahakemusEntity(oid, "1.2.246.562.24.59267607404", tila, syy, null, null, OffsetDateTime.now())
+    @Test
+    fun `hakemusnakyma on 404 kun tuonti ei ole kaytossa`() {
+        mockMvc
+            .perform(get("/yki/arvioijat/hakemukset").session(session()))
+            .andExpect(status().isNotFound)
+    }
 
     @Test
-    fun `nakyma listaa vain kasittelemattomat hakemukset`() {
-        repository.tallenna(rivi("hylatty-hakemus", ArvioijahakemuksenTila.HYLATTY, "Henkilöä ei ole yksilöity"))
-        repository.tallenna(rivi("kasitelty-hakemus", ArvioijahakemuksenTila.KASITELTY))
-
+    fun `arvioijalistalla ei ole hakemuslinkkia kun tuonti ei ole kaytossa`() {
         val html =
             mockMvc
-                .perform(
-                    get(
-                        "/yki/arvioijat/hakemukset",
-                    ).session(session(Authority.VIRKAILIJA, Authority.YKI_ARVIOIJAREKISTERI)),
-                ).andExpect(status().isOk)
+                .perform(get("/yki/arvioijat").session(session()))
+                .andExpect(status().isOk)
                 .andReturn()
                 .response.contentAsString
 
-        assertContains(html, "hylatty-hakemus")
-        assertContains(html, "Henkilöä ei ole yksilöity")
-        assertFalse(html.contains("kasitelty-hakemus"))
+        assertFalse(html.contains("arvioijahakemukset"))
     }
 
-    @Test
-    fun `nakyma vaatii arvioijarekisterin oikeuden`() {
-        mockMvc
-            .perform(get("/yki/arvioijat/hakemukset").session(session(Authority.VIRKAILIJA)))
-            .andExpect(status().isForbidden)
-    }
-
-    private fun session(vararg authorities: Authority): MockHttpSession {
+    private fun session(): MockHttpSession {
+        val authorities = listOf(Authority.VIRKAILIJA, Authority.YKI_ARVIOIJAREKISTERI)
         val principal =
             CasUserDetails(
                 name = "test-virkailija",
