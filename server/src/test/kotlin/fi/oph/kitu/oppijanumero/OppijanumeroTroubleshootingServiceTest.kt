@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -48,9 +49,10 @@ class OppijanumeroTroubleshootingServiceTest(
         val result = service.troubleshootOppijanumero(oppija, ResponseEntity.notFound().build())
 
         assertEquals(
-            "Oppijanumerorekisterissä on tällä henkilötunnuksella henkilö eri nimillä. " +
-                "Nimet tulee kirjoittaa täsmälleen näin: " +
-                "etunimet: \"Magdalena Testi\", kutsumanimi: \"Magdalena\", sukunimi: \"Sallinen-Testi\"",
+            OppijanumeroRatkaisuehdotus(
+                HETULLA_LOYTYI,
+                Oppija("Magdalena Testi", "010866-9260", "Magdalena", "Sallinen-Testi"),
+            ),
             result,
         )
     }
@@ -61,6 +63,7 @@ class OppijanumeroTroubleshootingServiceTest(
 
         val result = service.troubleshootOppijanumero(oppija, ResponseEntity.notFound().build())
 
-        assertTrue(result.startsWith("Oppijanumerorekisteristä ei löytynyt oppijanumeroa"))
+        assertTrue(result.viesti.startsWith("Oppijanumerorekisteristä ei löytynyt oppijanumeroa"))
+        assertNull(result.korjatutNimet)
     }
 }

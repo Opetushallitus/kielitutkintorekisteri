@@ -5,6 +5,7 @@ import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
+import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.organisaatiot.Organisaatiot
 import fi.oph.kitu.util.toJsonNode
 import kotlinx.html.FlowContent
@@ -31,6 +32,7 @@ enum class KielitestiSuoritusErrorColumn(
         uiHeaderValue = UiText.Koto.Sarake.nimi,
         urlParam = "nimi",
         getValue = { { it.nimi } },
+        renderHtml = { { nimitiedot(it.etunimet, it.kutsumanimi, it.sukunimi) } },
     ),
     SchoolOid(
         entityName = "schoolOid",
@@ -95,6 +97,16 @@ enum class KielitestiSuoritusErrorColumn(
         uiHeaderValue = UiText.Koto.Sarake.ratkaisuehdotus,
         urlParam = "onrLisatietoja",
         getValue = { { it.onrLisatietoja.orEmpty() } },
+        renderHtml = {
+            {
+                it.onrLisatietoja?.let { viesti -> div { +viesti } }
+                if (it.onrEtunimet != null || it.onrKutsumanimi != null || it.onrSukunimi != null) {
+                    div(classes = "ratkaisuehdotus-nimet") {
+                        nimitiedot(it.onrEtunimet, it.onrKutsumanimi, it.onrSukunimi)
+                    }
+                }
+            }
+        },
     ),
     VirheellinenKentta(
         entityName = "virheellinenKentta",
@@ -108,4 +120,23 @@ enum class KielitestiSuoritusErrorColumn(
         urlParam = "virheellinenarvo",
         getValue = { { it.virheellinenArvo.orEmpty() } },
     ),
+}
+
+private fun FlowContent.nimitiedot(
+    etunimet: String?,
+    kutsumanimi: String?,
+    sukunimi: String?,
+) {
+    div {
+        +UiText.Koto.Sarake.etunimet
+        +": ${etunimet.orEmpty()}"
+    }
+    div {
+        +UiText.Koto.Sarake.kutsumanimi
+        +": ${kutsumanimi.orEmpty()}"
+    }
+    div {
+        +UiText.Koto.Sarake.sukunimi
+        +": ${sukunimi.orEmpty()}"
+    }
 }

@@ -9,6 +9,7 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Testikieli
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.NIMIYHDISTELMA_LOYTYI
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
@@ -364,8 +365,17 @@ class KoealustaServiceTests(
                 ),
             fun() =
                 assertEquals(
-                    "etunimet: Ranja Testi, kutsumanimi: Ranja, sukunimi: Öhman-Testi",
+                    NIMIYHDISTELMA_LOYTYI,
                     oppijaValidationFailure.onrLisatietoja,
+                ),
+            fun() =
+                assertEquals(
+                    listOf("Ranja Testi", "Ranja", "Öhman-Testi"),
+                    listOf(
+                        oppijaValidationFailure.onrEtunimet,
+                        oppijaValidationFailure.onrKutsumanimi,
+                        oppijaValidationFailure.onrSukunimi,
+                    ),
                 ),
             fun() =
                 assertEquals(

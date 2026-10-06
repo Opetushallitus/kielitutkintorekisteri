@@ -547,3 +547,8 @@ a[role="button"][aria-disabled="true"] {
 nav li a[role="button"] {
   margin-top: 0;
 }
+
+.ratkaisuehdotus-nimet {
+  margin-top: 0.5em;
+  font-weight: bold;
+}

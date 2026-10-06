@@ -17,6 +17,9 @@ export interface KotoError {
   virheellinenArvo: string
   lisatietoja: string | null
   onrLisatietoja: string | null
+  onrEtunimet: string | null
+  onrKutsumanimi: string | null
+  onrSukunimi: string | null
 }
 
 type CreateErrorArgs = Partial<
@@ -34,6 +37,9 @@ const createError = (
     virheellinenArvo,
     lisatietoja = null,
     onrLisatietoja = null,
+    onrEtunimet = null,
+    onrKutsumanimi = null,
+    onrSukunimi = null,
   }: CreateErrorArgs,
 ) => {
   const p = peopleFixture[person]
@@ -52,6 +58,9 @@ const createError = (
     virheellinenArvo,
     lisatietoja,
     onrLisatietoja,
+    onrEtunimet,
+    onrKutsumanimi,
+    onrSukunimi,
   }
 }
 
@@ -88,7 +97,10 @@ export const fixtureData = {
     viesti: "Kirjoitusvirhe henkilötunnuksessa tai nimessä",
     virheenLuontiaika: "2042-12-22T22:42:42Z",
     onrLisatietoja:
-      "etunimet: Eino Test, kutsumanimi: Eino, sukunimi: Välimaa-Testi",
+      "Oppijanumero löytyi, kun nimet kirjoitettiin toisin. Korjaa nimet lähdejärjestelmään näin:",
+    onrEtunimet: "Eino Test",
+    onrKutsumanimi: "Eino",
+    onrSukunimi: "Välimaa-Testi",
   }),
   withNullValues: {
     suorittajanOid: null,
@@ -105,6 +117,9 @@ export const fixtureData = {
     virheenLuontiaika: "2024-11-22T10:49:49Z",
     lisatietoja: null,
     onrLisatietoja: null,
+    onrEtunimet: null,
+    onrKutsumanimi: null,
+    onrSukunimi: null,
   },
 } as const
 
@@ -123,7 +138,10 @@ const insertQuery = (virhe: KotoError) => SQL`
       school_oid,
       teacher_email,
       lisatietoja,
-      onr_lisatietoja)
+      onr_lisatietoja,
+      onr_etunimet,
+      onr_kutsumanimi,
+      onr_sukunimi)
   VALUES (
              ${virhe.suorittajanOid},
              ${virhe.hetu},
@@ -138,7 +156,10 @@ const insertQuery = (virhe: KotoError) => SQL`
              ${virhe.schoolOid},
              ${virhe.teacherEmail},
              ${virhe.lisatietoja},
-             ${virhe.onrLisatietoja})
+             ${virhe.onrLisatietoja},
+             ${virhe.onrEtunimet},
+             ${virhe.onrKutsumanimi},
+             ${virhe.onrSukunimi})
 `
 
 export type KotoErrorName = keyof typeof fixtureData
