@@ -169,10 +169,15 @@ class YkiApiController(
                     }
             }
 
-        Span.current().setAttribute(
-            "arvioitu",
-            entity.arviointitila == ARVIOITU || entity.arviointitila == Arviointitila.TARKISTUSARVIOITU,
-        )
+        Span
+            .current()
+            .setAttribute(
+                "arvioitu",
+                entity.arviointitila == ARVIOITU || entity.arviointitila == Arviointitila.TARKISTUSARVIOITU,
+            ).setAttribute("tutkintopaiva", entity.tutkintopaiva.toString())
+            .setAttribute("tutkintokieli", entity.tutkintokieli.name)
+            .setAttribute("tutkintotaso", entity.tutkintotaso.name)
+            .setAttribute("arviointitila", entity.arviointitila.name)
 
         ykiSuoritusRepository.save(entity, false)
         ilmoittautumisjarjestelma.sendArvioinninTila(entity)

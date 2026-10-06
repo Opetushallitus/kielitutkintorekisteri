@@ -77,7 +77,9 @@ order (because of dependencies):
 4. **`LogGroups`** — `KituService` and `KituServiceAudit` log groups, the
    `KituServiceDataProtectionAudit` group (with a Finnish-SSN data-protection
    policy applied to the service log group), `LogErrors`/`LogWarnings` metric
-   filters and alarms, and CloudWatch Transaction Search wiring for X-Ray spans.
+   filters and alarms, CloudWatch Transaction Search wiring for X-Ray spans,
+   and the YKI-suoritus Slack notifications (`YkiSuoritusAlarm` + an EventBridge
+   rule + the `YkiSuoritusNotifications` Lambda).
 5. **`Network`** — VPC with the per-env CIDR (Dev `10.15.0.0/18`, Test
    `10.15.64.0/18`, Prod `10.15.128.0/18`) and 2 AZs in dev / 3 AZs in test+prod.
 6. **`Connections`** — three empty SGs (`serviceSG`, `loadBalancerSG`,
@@ -286,12 +288,32 @@ Per env (`Dev` / `Test` / `Prod`):
 - **`<Env>/LogGroups`** — Service log groups + metric filters that turn
   structured log lines into CloudWatch metrics, and the `LogErrors` /
   `LogWarnings` alarms wired to those topics + investigation actions. It also
-  enables Transaction Search and owns `YkiSuoritusAlarm`, the informational
-  "YKI-suorituksia arvioitu" notification on the **info** topic, driven by the
-  `PostYkiSuoritus` metric filter over the `aws/spans` log group.
+  enables Transaction Search and owns the informational YKI-suoritus
+  notifications on the **info** topic. `YkiSuoritusAlarm`, driven by the
+  `PostYkiSuoritus` metric filter over the `aws/spans` log group, only marks
+  when a batch of arvioitu suoritukset starts (ALARM) and ends (OK); it has
+  **no alarm actions**, because Chatbot's stock alarm card is too technical for
+  the channel's audience. Instead the EventBridge rule
+  `YkiSuoritusAlarmStateChange` invokes the `YkiSuoritusNotifications` Lambda
+  (`lib/yki-suoritus-notifications/`), which publishes Chatbot **custom
+  notifications** (`{"version":"1.0","source":"custom",…}`) to the info topic:
+  a short "saapuu…" notice on ALARM, and on ALARM→OK a summary with the count
+  grouped by tutkintopäivä, kieli, taso and arviointitila. The breakdown comes
+  from a Logs Insights query over `aws/spans` for the batch window — the window
+  starts at the alarm's previous OK transition (from `DescribeAlarmHistory`) or
+  five minutes before the ALARM, whichever is later, so a batch split by a quiet
+  minute is not counted twice. Insights is used rather than metric dimensions
+  because metric filters allow at most three dimensions and every
+  `tutkintopaiva` value would become a new billed custom metric. If the query
+  returns nothing it is retried once after a minute, because freshly ingested
+  spans can be missing from Insights for a while even after their
+  `@ingestionTime` (seen in untuva on 6.10.2026); if it still fails, a summary
+  without the breakdown is sent.
 
-  That filter reads a span attribute (`arvioitu`) that the application sets via
-  `Span.current()` in `YkiApiController`. Two traps live here, both of which
+  The filter reads a span attribute (`arvioitu`) that the application sets via
+  `Span.current()` in `YkiApiController`, next to `tutkintopaiva`,
+  `tutkintokieli`, `tutkintotaso` and `arviointitila` that the Lambda's query
+  groups by. Two traps live here, both of which
   have already silently broken this alarm once:
 
   1. Metric filter patterns cannot reference JSON keys containing periods, so

@@ -18,8 +18,13 @@ import {
 } from "aws-cdk-lib/aws-logs"
 import { CfnTransactionSearchConfig } from "aws-cdk-lib/aws-xray"
 import { Construct } from "constructs"
-import { SnsTopic } from "aws-cdk-lib/aws-events-targets"
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets"
 import { ITopic } from "aws-cdk-lib/aws-sns"
+import { Rule } from "aws-cdk-lib/aws-events"
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs"
+import { Runtime } from "aws-cdk-lib/aws-lambda"
+import { PolicyStatement } from "aws-cdk-lib/aws-iam"
+import path = require("node:path")
 
 export interface LogGroupsStackProps extends StackProps {
   alarmsSnsTopic: aws_sns.ITopic
@@ -227,7 +232,48 @@ export class LogGroupsStack extends Stack {
         treatMissingData: TreatMissingData.NOT_BREACHING,
       })
 
-    postYkiSuoritusAlarm.addAlarmAction(new SnsAction(infoSnsTopic))
-    postYkiSuoritusAlarm.addOkAction(new SnsAction(infoSnsTopic))
+    // The alarm has no actions of its own: Chatbot's stock alarm card is too
+    // technical for the #kielitutkintorekisteri audience. Instead its state
+    // changes drive a Lambda that posts a short "arriving" notice on ALARM and,
+    // on the return to OK, a summary of the batch grouped by tutkintopäivä,
+    // kieli, taso and arviointitila (read from the spans with Logs Insights).
+    const ykiSuoritusNotifications = new NodejsFunction(
+      this,
+      "YkiSuoritusNotifications",
+      {
+        runtime: Runtime.NODEJS_LATEST,
+        entry: path.join(__dirname, "yki-suoritus-notifications/handler.ts"),
+        timeout: Duration.minutes(5),
+        environment: {
+          TOPIC_ARN: infoSnsTopic.topicArn,
+          LOG_GROUP: transactionSearchSpans.logGroupName,
+        },
+        initialPolicy: [
+          new PolicyStatement({
+            actions: ["logs:StartQuery"],
+            resources: [transactionSearchSpans.logGroupArn],
+          }),
+          new PolicyStatement({
+            actions: ["logs:GetQueryResults"],
+            resources: ["*"],
+          }),
+          new PolicyStatement({
+            actions: ["cloudwatch:DescribeAlarmHistory"],
+            resources: [postYkiSuoritusAlarm.alarmArn],
+          }),
+        ],
+      },
+    )
+    infoSnsTopic.grantPublish(ykiSuoritusNotifications)
+
+    new Rule(this, "YkiSuoritusAlarmStateChange", {
+      description: "YKI-suoritusten vastaanottoilmoitukset Slackiin",
+      eventPattern: {
+        source: ["aws.cloudwatch"],
+        detailType: ["CloudWatch Alarm State Change"],
+        resources: [postYkiSuoritusAlarm.alarmArn],
+      },
+      targets: [new LambdaFunction(ykiSuoritusNotifications)],
+    })
   }
 }
