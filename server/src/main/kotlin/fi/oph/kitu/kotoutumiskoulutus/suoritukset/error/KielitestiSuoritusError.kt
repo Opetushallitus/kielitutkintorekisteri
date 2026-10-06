@@ -22,6 +22,9 @@ import java.time.Instant
     "viesti",
     "lisatietoja",
     "onrLisatietoja",
+    "onrEtunimet",
+    "onrKutsumanimi",
+    "onrSukunimi",
     "virheellinenKentta",
     "virheellinenArvo",
 )
@@ -46,6 +49,9 @@ data class KielitestiSuoritusError(
     val virheellinenArvo: String?,
     val lisatietoja: String?,
     val onrLisatietoja: String? = null,
+    val onrEtunimet: String? = null,
+    val onrKutsumanimi: String? = null,
+    val onrSukunimi: String? = null,
     @JsonIgnore
     val completed: Boolean = true,
 )

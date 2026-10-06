@@ -2,7 +2,9 @@ package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
 import fi.oph.kitu.kotoutumiskoulutus.koealusta.KoealustaSuorituksetResponse.User
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.Oppija
 import fi.oph.kitu.oppijanumero.OppijanumeroException
+import fi.oph.kitu.oppijanumero.OppijanumeroRatkaisuehdotus
 
 sealed class KoealustaMappingError(
     message: String,
@@ -16,7 +18,8 @@ sealed class KoealustaMappingError(
         moodleId: String?,
         teacherEmail: String?,
         val debugInfo: String?,
-        val onrInfo: String? = null,
+        val oppija: Oppija,
+        val ratkaisuehdotus: OppijanumeroRatkaisuehdotus,
     ) : KoealustaMappingError(message, schoolOid, teacherEmail)
 
     abstract class ValidationFailure(

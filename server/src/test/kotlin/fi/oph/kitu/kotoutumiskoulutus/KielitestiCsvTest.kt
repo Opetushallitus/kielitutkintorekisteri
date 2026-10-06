@@ -58,7 +58,10 @@ class KielitestiCsvTest(
                         """
                         {"request": {"etunimet": "Ranja", "hetu": "010180-9026", "kutsumanimi": "Ranja", "sukunimi": "Testi Öhman-Testi"}}
                         """.trimIndent(),
-                    onrLisatietoja = "etunimet: Ranja Testi, kutsumanimi: Ranja, sukunimi: Öhman-Testi",
+                    onrLisatietoja = "Korjaa nimet lähdejärjestelmään näin:",
+                    onrEtunimet = "Ranja Testi",
+                    onrKutsumanimi = "Ranja",
+                    onrSukunimi = "Öhman-Testi",
                 ),
                 KielitestiSuoritusError(
                     id = null,
@@ -84,9 +87,9 @@ class KielitestiCsvTest(
         val actualCsv = kielitestiErrorService.generateErrorsCsvStream()
         val expectedCsv =
             """
-            virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;virheellinenKentta;virheellinenArvo
-            "2024-11-22T10:49:49Z";;"010180-9026";"Ranja Testi Öhman-Testi";Ranja;"Testi Öhman-Testi";Ranja;"1.2.246.562.10.14893989377";"testi@example.com";"Kirjoitusvirhe nimessä tai henkilötunnuksessa";"{""request"": {""etunimet"": ""Ranja"", ""hetu"": ""010180-9026"", ""kutsumanimi"": ""Ranja"", ""sukunimi"": ""Testi Öhman-Testi""}}";"etunimet: Ranja Testi, kutsumanimi: Ranja, sukunimi: Öhman-Testi";;
-            "2024-11-22T10:49:49Z";"1.2.246.562.24.67409348034";"010180-9026";"Eino Testi Välimaa-Testi";"Eino Test";"Välimaa-Testi";Eino;"1.2.246.562.10.14893989377";"testi@example.com";"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";;;puhuminen;"virheellinen arvosana"
+            virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;onrEtunimet;onrKutsumanimi;onrSukunimi;virheellinenKentta;virheellinenArvo
+            "2024-11-22T10:49:49Z";;"010180-9026";"Ranja Testi Öhman-Testi";Ranja;"Testi Öhman-Testi";Ranja;"1.2.246.562.10.14893989377";"testi@example.com";"Kirjoitusvirhe nimessä tai henkilötunnuksessa";"{""request"": {""etunimet"": ""Ranja"", ""hetu"": ""010180-9026"", ""kutsumanimi"": ""Ranja"", ""sukunimi"": ""Testi Öhman-Testi""}}";"Korjaa nimet lähdejärjestelmään näin:";"Ranja Testi";Ranja;"Öhman-Testi";;
+            "2024-11-22T10:49:49Z";"1.2.246.562.24.67409348034";"010180-9026";"Eino Testi Välimaa-Testi";"Eino Test";"Välimaa-Testi";Eino;"1.2.246.562.10.14893989377";"testi@example.com";"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";;;;;;puhuminen;"virheellinen arvosana"
 
             """.trimIndent()
 

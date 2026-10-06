@@ -57,7 +57,7 @@ describe('"Koto Suoritukset" -page', () => {
 
     const virheFixture = fixtureData.suoritusVirhe
     const hetuCell = errors.getByRole("cell", { name: virheFixture.hetu })
-    const nimiCell = errors.getByText(virheFixture.nimi)
+    const nimiCell = errors.getByTestId("nimi")
     const schoolOidCell = errors.getByText(virheFixture.schoolOid!)
     const teacherEmailCell = errors.getByText(virheFixture.teacherEmail)
     const virheenLuontiaikaCell = errors.getByText(
@@ -73,7 +73,9 @@ describe('"Koto Suoritukset" -page', () => {
     )
 
     await expect(hetuCell).toHaveAttribute("data-testid", "hetu")
-    await expect(nimiCell).toHaveAttribute("data-testid", "nimi")
+    await expect(nimiCell).toHaveText(
+      /Etunimet: Ranja Testi\s*Kutsumanimi: Ranja\s*Sukunimi: Öhman-Testi/,
+    )
     await expect(schoolOidCell).toHaveAttribute("data-testid", "schoolOid")
     await expect(teacherEmailCell).toHaveAttribute(
       "data-testid",
@@ -103,12 +105,11 @@ describe('"Koto Suoritukset" -page', () => {
     await kielitestiErrorPage.open()
 
     const errors = await kielitestiErrorPage.getErrorTableBody()
-    const ratkaisuehdotusCell = errors.getByText(
-      fixtureData.virheEino.onrLisatietoja!,
-    )
-    await expect(ratkaisuehdotusCell).toHaveAttribute(
-      "data-testid",
-      "onrLisatietoja",
+    const ratkaisuehdotusCell = errors
+      .getByTestId("onrLisatietoja")
+      .filter({ hasText: fixtureData.virheEino.onrLisatietoja! })
+    await expect(ratkaisuehdotusCell).toHaveText(
+      /Korjaa nimet lähdejärjestelmään näin:\s*Etunimet: Eino Test\s*Kutsumanimi: Eino\s*Sukunimi: Välimaa-Testi/,
     )
   })
 
@@ -138,9 +139,9 @@ describe('"Koto Suoritukset" -page', () => {
         column: "Nimi",
         tableColumnIndex: 1,
         order: [
-          "Ranja Testi Öhman-Testi",
-          "Petro Testi Kivinen-Testi",
-          "Magdalena Testi Sallinen-Testi",
+          "Etunimet: Ranja Testi Kutsumanimi: Ranja Sukunimi: Öhman-Testi",
+          "Etunimet: Petro Testi Kutsumanimi: Petro Sukunimi: Kivinen-Testi",
+          "Etunimet: Magdalena Testi Kutsumanimi: Magdalena Sukunimi: Sallinen-Testi",
         ],
       },
       {
@@ -245,9 +246,9 @@ describe('"Koto Suoritukset" -page', () => {
 
     const csvContent = await fs.readFile(path!, "utf8")
     let headers =
-      "virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;virheellinenKentta;virheellinenArvo"
+      "virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;onrEtunimet;onrKutsumanimi;onrSukunimi;virheellinenKentta;virheellinenArvo"
     let ranjaError =
-      '"2024-11-22T10:49:49Z";"1.2.246.562.24.20281155246";"010180-9026";"Ranja Testi Öhman-Testi";"Ranja Testi";"Öhman-Testi";Ranja;"1.2.246.562.10.14893989377";"opettaja@testi.oph.fi";"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";;;puhuminen;"virheellinen arvosana"'
+      '"2024-11-22T10:49:49Z";"1.2.246.562.24.20281155246";"010180-9026";"Ranja Testi Öhman-Testi";"Ranja Testi";"Öhman-Testi";Ranja;"1.2.246.562.10.14893989377";"opettaja@testi.oph.fi";"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";;;;;;puhuminen;"virheellinen arvosana"'
     expect(csvContent).toContain(headers)
     expect(csvContent).toContain(ranjaError)
   })

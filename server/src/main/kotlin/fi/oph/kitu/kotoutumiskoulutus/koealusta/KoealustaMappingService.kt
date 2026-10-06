@@ -7,7 +7,6 @@ import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.oppijanumero.OppijanumeroTroubleshootingService
 import fi.oph.kitu.oppijanumero.OppijanumerorekisteriDebugInfo
-import fi.oph.kitu.oppijanumero.YleistunnisteHaeRequest
 import fi.oph.kitu.oppijanumero.troubleshootOppijanumero
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
@@ -94,7 +93,8 @@ class KoealustaMappingService(
                         ?.mapLeft {
                             val response = if (it is OppijanumeroException.HasResponse) it.response else null
                             val debugInfo = OppijanumerorekisteriDebugInfo.from(it.request, response)
-                            val onrInfo = oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response)
+                            val ratkaisuehdotus =
+                                oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response)
 
                             KoealustaMappingError.OppijanumeroFailure(
                                 it,
@@ -103,7 +103,8 @@ class KoealustaMappingService(
                                 moodleId = user.userid.toString(),
                                 user.completions.first().teacheremail,
                                 debugInfo.toString(),
-                                onrInfo,
+                                oppija,
+                                ratkaisuehdotus,
                             )
                         }?.onLeft { oppijanumeroExceptions.add(it) }
                         ?.getOrNull()
@@ -165,12 +166,11 @@ class KoealustaMappingService(
                     KielitestiSuoritusError(
                         id = null,
                         suorittajanOid = null,
-                        hetu = (error.oppijanumeroException.request as YleistunnisteHaeRequest).hetu,
-                        nimi =
-                            "${error.oppijanumeroException.request.sukunimi} ${error.oppijanumeroException.request.etunimet}",
-                        etunimet = error.oppijanumeroException.request.etunimet,
-                        sukunimi = error.oppijanumeroException.request.sukunimi,
-                        kutsumanimi = error.oppijanumeroException.request.kutsumanimi,
+                        hetu = error.oppija.hetu,
+                        nimi = "${error.oppija.sukunimi} ${error.oppija.etunimet}",
+                        etunimet = error.oppija.etunimet,
+                        sukunimi = error.oppija.sukunimi,
+                        kutsumanimi = error.oppija.kutsumanimi,
                         schoolOid = error.schoolOid,
                         teacherEmail = error.teacherEmail,
                         virheenLuontiaika = now,
@@ -178,7 +178,10 @@ class KoealustaMappingService(
                         virheellinenKentta = null,
                         virheellinenArvo = null,
                         lisatietoja = error.debugInfo,
-                        onrLisatietoja = error.onrInfo,
+                        onrLisatietoja = error.ratkaisuehdotus.viesti,
+                        onrEtunimet = error.ratkaisuehdotus.korjatutNimet?.etunimet,
+                        onrKutsumanimi = error.ratkaisuehdotus.korjatutNimet?.kutsumanimi,
+                        onrSukunimi = error.ratkaisuehdotus.korjatutNimet?.sukunimi,
                     ),
                 )
             }
