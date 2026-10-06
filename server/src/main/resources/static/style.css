@@ -528,7 +528,8 @@ ul.flat li {
   opacity: 0.4;
 }
 
-a[role="button"].tight {
+a[role="button"].tight,
+button.tight {
   padding: 0.25rem 0.75rem;
 }
 

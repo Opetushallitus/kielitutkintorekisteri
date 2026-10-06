@@ -113,6 +113,32 @@ describe('"Koto Suoritukset" -page', () => {
     )
   })
 
+  test("virheen lisätiedot avautuvat modaaliin ja sulkeutuvat", async ({
+    db,
+    page,
+    kielitestiErrorPage,
+    kotoSuoritusError,
+  }) => {
+    await kotoSuoritusError.insert(db, "virheLisatiedoilla")
+    await kielitestiErrorPage.open()
+
+    const errors = await kielitestiErrorPage.getErrorTableBody()
+    const viestiCell = errors
+      .getByTestId("viesti")
+      .filter({ hasText: fixtureData.virheLisatiedoilla.viesti })
+    const modal = page.getByRole("dialog")
+
+    await expect(modal).toBeHidden()
+    await viestiCell.getByRole("button", { name: "Näytä lisätiedot" }).click()
+
+    await expect(modal).toBeVisible()
+    await expect(modal).toContainText("Virheen lisätiedot")
+    await expect(modal).toContainText("source: oppijanumerorekisteri")
+
+    await modal.getByRole("button", { name: "Sulje" }).click()
+    await expect(modal).toBeHidden()
+  })
+
   test("koto suoritukset error page handles null values in error properly", async ({
     page,
     kielitestiErrorPage,

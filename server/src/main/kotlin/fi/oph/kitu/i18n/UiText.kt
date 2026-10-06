@@ -601,6 +601,8 @@ object UiText {
         val lataaCsv: LocalizedString get() = tr("koto.lataaCsv")
         val suorituksiaYhteensa: LocalizedString get() = tr("koto.suorituksiaYhteensa")
         val virheitaYhteensa: LocalizedString get() = tr("koto.virheitaYhteensa")
+        val virheenLisatiedot: LocalizedString get() = tr("koto.virheenLisatiedot")
+        val naytaLisatiedot: LocalizedString get() = tr("koto.naytaLisatiedot")
         val kesken: LocalizedString get() = tr("koto.kesken")
         val kurssi: LocalizedString get() = tr("koto.kurssi")
         val jarjestaja: LocalizedString get() = tr("koto.jarjestaja")
@@ -837,6 +839,7 @@ object UiText {
         val nayta: LocalizedString get() = tr("toiminto.nayta")
         val palauta: LocalizedString get() = tr("toiminto.palauta")
         val piilota: LocalizedString get() = tr("toiminto.piilota")
+        val sulje: LocalizedString get() = tr("toiminto.sulje")
     }
 
     object Sukupuoli {
