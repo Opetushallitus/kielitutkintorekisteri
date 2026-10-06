@@ -10,6 +10,12 @@ on:
 env:
   MISE_ENV: ci
 
+# PR:n uusi push peruu edellisen ajon. Mainilla ja jonossa ryhmä on ajokohtainen,
+# koska jaettu ryhmä korvaisi jonossa odottavan ajon ja ohittaisi sen deployn.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('build-pr-{0}', github.event.pull_request.number) || format('build-{0}', github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   determine_action:
     runs-on: ubuntu-24.04
@@ -22,17 +28,19 @@ jobs:
     name: List changes
     runs-on: ubuntu-24.04
     outputs:
+      # Jonossa image ja infra pakotetaan päälle: jono on ainoa paikka, jossa
+      # image rakennetaan ennen mergeä.
       mise: ${{ github.event_name == 'merge_group' || steps.filter.outputs.mise == 'true' }}
       infra: ${{ github.event_name == 'merge_group' || steps.filter.outputs.infra == 'true' }}
       image: ${{ github.event_name == 'merge_group' || steps.filter.outputs.image == 'true' }}
+      server: ${{ steps.filter.outputs.server == 'true' }}
+      e2e: ${{ steps.filter.outputs.e2e == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      # Merge queue -ajossa ei suodateta: jono varmistaa yhdistetyn tuloksen
-      # kokonaan, ja paths-filter osaa vertailukohdan vain push- ja
-      # pull_request-tapahtumissa.
+      # Jonossa paths-filter vertaa merge_group.base_sha..head_sha, eli kaikkea
+      # mitä jonon entry ja sitä edeltävät entryt tuovat mainin päälle.
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
         id: filter
-        if: github.event_name != 'merge_group'
         with:
           filters: |
             mise:
@@ -43,6 +51,40 @@ jobs:
             image:
               - 'Dockerfile'
               - '.dockerignore'
+            server: &server
+              - 'server/**'
+              - '.mise.toml'
+              - '.mise.*.toml'
+              - '.github/workflows/build.yml'
+            e2e:
+              - *server
+              - 'e2e/**'
+              - 'docker-compose.yml'
+
+  # Merge queue fast-forwardaa mainin täsmälleen siihen committiin, jonka se
+  # testasi, joten mainin push-ajo ohittaa testit jos jono on jo hyväksynyt
+  # saman SHA:n. Suora push mainiin ei ole jonon varmistama ja ajaa kaiken.
+  verified_in_queue:
+    name: Verified in merge queue
+    runs-on: ubuntu-24.04
+    permissions:
+      checks: read
+    outputs:
+      verified: ${{ steps.check.outputs.verified == 'true' }}
+    steps:
+      - id: check
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUIRED: '["Server tests", "Frontend tests", "Check code formatting", "Infra lockfile in sync"]'
+        run: |
+          verified=$(
+            gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" \
+              --jq '.check_runs[] | select(.app.slug == "github-actions" and (.conclusion == "success" or .conclusion == "skipped")) | .name' |
+              jq -R -s --argjson required "$REQUIRED" '($required - split("\n")) == []'
+          ) || verified=false
+          echo "verified=$verified" >> "$GITHUB_OUTPUT"
+          echo "::notice::Merge queue on jo varmistanut tämän SHA:n: $verified"
 
   update_tools_cache:
     name: Update tools cache if changed
@@ -113,7 +155,11 @@ jobs:
   server_tests:
     name: Server tests
     runs-on: ubuntu-24.04
-    needs: update_tools_cache
+    needs:
+      - update_tools_cache
+      - list_changes
+      - verified_in_queue
+    if: needs.list_changes.outputs.server == 'true' && needs.verified_in_queue.outputs.verified != 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install tools
@@ -122,6 +168,12 @@ jobs:
           experimental: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cache Maven repository
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('server/pom.xml') }}
+          restore-keys: maven-${{ runner.os }}-
       - name: Build with Maven
         run: mvn -B package --file pom.xml
         working-directory: server
@@ -130,7 +182,11 @@ jobs:
     name: Frontend tests
     timeout-minutes: 60
     runs-on: ubuntu-24.04
-    needs: update_tools_cache
+    needs:
+      - update_tools_cache
+      - list_changes
+      - verified_in_queue
+    if: needs.list_changes.outputs.e2e == 'true' && needs.verified_in_queue.outputs.verified != 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install tools
@@ -139,6 +195,12 @@ jobs:
           experimental: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cache Maven repository
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('server/pom.xml') }}
+          restore-keys: maven-${{ runner.os }}-
       - name: Start DB
         run: docker compose up -d db
         working-directory: server
@@ -164,7 +226,10 @@ jobs:
   infra_lockfile:
     name: Infra lockfile in sync
     runs-on: ubuntu-24.04
-    needs: update_tools_cache
+    needs:
+      - update_tools_cache
+      - verified_in_queue
+    if: needs.verified_in_queue.outputs.verified != 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install tools
@@ -180,7 +245,10 @@ jobs:
   lint:
     name: Check code formatting
     runs-on: ubuntu-24.04
-    needs: update_tools_cache
+    needs:
+      - update_tools_cache
+      - verified_in_queue
+    if: needs.verified_in_queue.outputs.verified != 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install tools
@@ -197,11 +265,11 @@ jobs:
   build_image:
     name: Build image
     runs-on: ubuntu-24.04
+    # Ei odota testejä: image on SHA-tagattu, ja deploy_dev odottaa testit
+    # ennen kuin sitä käytetään.
     needs:
       - list_changes
-      - server_tests
-      - frontend_tests
-      - lint
+      - update_tools_cache
     # Always build on main (the deploy needs the image pushed to ECR).
     # On PRs, only run when Dockerfile/.dockerignore changed — the app code is
     # already verified by server_tests/frontend_tests, so a green check from
@@ -259,8 +327,14 @@ jobs:
       - build_image
       - determine_action
       - deploy_util
+      - server_tests
+      - frontend_tests
+      - lint
+      - infra_lockfile
     uses: ./.github/workflows/_deploy-env.yml
-    if: needs.determine_action.outputs.action == 'deploy' || needs.list_changes.outputs.infra == 'true'
+    # Testit voivat olla ohitettuja (jonon varmistama SHA tai polkusuodatin),
+    # ja ohitettu riippuvuus ohittaisi muuten koko deploy-ketjun.
+    if: ${{ !failure() && !cancelled() && needs.build_image.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
     with:
       environment: Dev
       action: ${{ needs.determine_action.outputs.action }}
@@ -271,7 +345,7 @@ jobs:
       - determine_action
       - deploy_dev
     uses: ./.github/workflows/_deploy-env.yml
-    if: needs.determine_action.outputs.action == 'deploy' || needs.list_changes.outputs.infra == 'true'
+    if: ${{ !cancelled() && needs.deploy_dev.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
     with:
       environment: Test
       action: ${{ needs.determine_action.outputs.action }}
@@ -282,7 +356,7 @@ jobs:
       - determine_action
       - deploy_test
     uses: ./.github/workflows/_deploy-env.yml
-    if: needs.determine_action.outputs.action == 'deploy' || needs.list_changes.outputs.infra == 'true'
+    if: ${{ !cancelled() && needs.deploy_test.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
     with:
       environment: Prod
       action: ${{ needs.determine_action.outputs.action }}
@@ -293,6 +367,7 @@ jobs:
     needs:
       - update_tools_cache
       - deploy_prod
+    if: ${{ !cancelled() && needs.deploy_prod.result == 'success' }}
     permissions:
       id-token: write
       pages: write
