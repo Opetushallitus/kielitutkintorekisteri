@@ -9,6 +9,7 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Testikieli
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.EI_LOYTYNYT
 import fi.oph.kitu.oppijanumero.NIMIYHDISTELMA_LOYTYI
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.BeforeEach
@@ -480,10 +481,7 @@ class KoealustaServiceTests(
                 ),
             fun() =
                 assertEquals(
-                    """
-                    Oppijanumerorekisteristä ei löytynyt oppijanumeroa, kun kaikkia etunimiä testattiin kutsumanimenä ja etu- ja sukunimi vaihdettiin päittäin.
-                    Mahdollisesti henkilötunnuksessa tai jossain nimistä on kirjoitusvirhe, joku nimi puuttuu, tai nimet ovat väärässä järjestyksessä.
-                    """.trimIndent(),
+                    EI_LOYTYNYT,
                     oppijaValidationFailure.onrLisatietoja,
                 ),
             fun() =
@@ -699,10 +697,7 @@ class KoealustaServiceTests(
                 ),
             fun() =
                 assertEquals(
-                    """
-                    Oppijanumerorekisteristä ei löytynyt oppijanumeroa, kun kaikkia etunimiä testattiin kutsumanimenä ja etu- ja sukunimi vaihdettiin päittäin.
-                    Mahdollisesti henkilötunnuksessa tai jossain nimistä on kirjoitusvirhe, joku nimi puuttuu, tai nimet ovat väärässä järjestyksessä.
-                    """.trimIndent(),
+                    EI_LOYTYNYT,
                     onrBadRequestFailure.onrLisatietoja,
                 ),
             fun() = assertEquals("Testi-Moikka Antero", onrBadRequestFailure.nimi),
