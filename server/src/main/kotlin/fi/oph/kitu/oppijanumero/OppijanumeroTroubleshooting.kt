@@ -22,7 +22,17 @@ fun OppijanumeroTroubleshootingService.troubleshootOppijanumero(
             ?.let { success ->
                 "etunimet: ${success.etunimet}, kutsumanimi: ${success.kutsumanimi}, sukunimi: ${success.sukunimi}"
             }
+            ?: onrNimetHetulla(oppija.hetu)
             ?: notFound
     } else {
         "Oppijanumerorekisterin virhe ei viittaa virheellisiin oppijan nimitietoihin. Tarkista virheviesti."
+    }
+
+private fun OppijanumeroTroubleshootingService.onrNimetHetulla(hetu: String): String? =
+    henkiloByHetu(hetu)?.let { henkilo ->
+        "Oppijanumerorekisterissä on tällä henkilötunnuksella henkilö eri nimillä. " +
+            "Nimet tulee kirjoittaa täsmälleen näin: " +
+            "etunimet: \"${henkilo.etunimet.orEmpty()}\", " +
+            "kutsumanimi: \"${henkilo.kutsumanimi.orEmpty()}\", " +
+            "sukunimi: \"${henkilo.sukunimi.orEmpty()}\""
     }

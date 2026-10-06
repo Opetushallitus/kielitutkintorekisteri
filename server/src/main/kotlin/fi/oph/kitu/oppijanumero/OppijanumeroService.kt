@@ -27,6 +27,8 @@ interface OppijanumeroService {
 
     fun getLinkedOids(henkiloOid: Oid): Either<OppijanumeroException, Set<Oid>>
 
+    fun getHenkiloByHetu(hetu: String): Either<OppijanumeroException, OppijanumerorekisteriHenkilo>
+
     fun getHenkiloByHenkiloOid(henkiloOid: Oid): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> =
         either {
             val masterOid = getMasterOid(henkiloOid).bind()
@@ -120,6 +122,11 @@ class OppijanumeroServiceImpl(
                     ?: raise(OppijanumeroException.OppijaNotIdentifiedException(EmptyRequest()))
             parseOid(oppijanumero).bind()
         }
+
+    @WithSpan
+    @RetryOutboundIntegration
+    override fun getHenkiloByHetu(hetu: String): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> =
+        client.onrGet("henkilo/hetu=$hetu", OppijanumerorekisteriHenkilo::class.java)
 
     private fun getYleistunniste(oid: Oid): Either<OppijanumeroException, YleistunnisteOidResponse> =
         client.onrGet("yleistunniste/hae/$oid", YleistunnisteOidResponse::class.java)

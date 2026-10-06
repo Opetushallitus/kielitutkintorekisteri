@@ -94,6 +94,26 @@ class OppijanumeroServiceTests {
         )
     }
 
+    @Test
+    fun `getHenkiloByHetu hakee henkilon henkilotunnuksella`() {
+        val restClientBuilder = RestClient.builder().baseUrl(BASE_URL)
+        MockRestServiceServer
+            .bindTo(restClientBuilder)
+            .build()
+            .expect(requestTo("$BASE_URL/henkilo/hetu=010866-9260"))
+            .andRespond(
+                withSuccess(
+                    """{"oidHenkilo":"$YKSILOITY","etunimet":"Magdalena Testi","kutsumanimi":"Magdalena","sukunimi":"Sallinen-Testi"}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+        val service = OppijanumeroServiceImpl(OppijanumerorekisteriClient(restClientBuilder.build(), BASE_URL))
+
+        val henkilo = service.getHenkiloByHetu("010866-9260").getOrThrow()
+
+        assertEquals("Sallinen-Testi", henkilo.sukunimi)
+    }
+
     private fun yleistunnisteVastaa(json: String): OppijanumeroServiceImpl {
         val restClientBuilder = RestClient.builder().baseUrl(BASE_URL)
         MockRestServiceServer

@@ -79,6 +79,11 @@ class MockOppijanumeroService(
             .orEmpty()
             .right()
 
+    override fun getHenkiloByHetu(hetu: String): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> =
+        (henkiloFixtures.firstOrNull { hetu in it.hetut() } ?: henkiloHetulla(hetu))
+            ?.right()
+            ?: OppijanumeroException.OppijaNotFoundException(EmptyRequest(), ResponseEntity.notFound().build()).left()
+
     private fun fixtureHenkilo(oid: Oid): OppijanumerorekisteriHenkilo? =
         try {
             val source =
@@ -102,14 +107,18 @@ class MockOppijanumeroService(
         private const val HENKILO_FIXTURES =
             "classpath*:opintopolku-mocks/oppijanumerorekisteri-service/henkilo/*.json"
 
-        val linkedOids: List<Set<Oid>> =
+        private val henkiloFixtures: List<OppijanumerorekisteriHenkilo> =
             PathMatchingResourcePatternResolver()
                 .getResources(HENKILO_FIXTURES)
                 .map { resource ->
                     resource.inputStream.use {
                         defaultObjectMapper.readValue(it, OppijanumerorekisteriHenkilo::class.java)
                     }
-                }.mapNotNull { henkilo ->
+                }
+
+        val linkedOids: List<Set<Oid>> =
+            henkiloFixtures
+                .mapNotNull { henkilo ->
                     val oid = Oid.parse(henkilo.oidHenkilo).getOrNull() ?: return@mapNotNull null
                     val master =
                         Oid.parse(henkilo.oppijanumero ?: henkilo.oidHenkilo).getOrNull()
