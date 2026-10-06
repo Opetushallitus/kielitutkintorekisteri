@@ -91,6 +91,15 @@ export const fixtureData = {
     virheellinenArvo: "en kerro, arvaa!",
     virheenLuontiaika: "2042-12-22T22:42:42Z",
   }),
+  virheLisatiedoilla: createError("petro", {
+    schoolOid: "1.2.246.562.10.14893989377",
+    viesti:
+      "Oppijanumeron haku epäonnistui: Henkilöä ei löydy Oppijanumerorekisteristä",
+    lisatietoja: JSON.stringify({
+      source: "oppijanumerorekisteri",
+      detectedTypicalErrors: ["Henkilöä ei löydy Oppijanumerorekisteristä"],
+    }),
+  }),
   virheEino: createError("eino", {
     schoolOid: "1.2.246.562.10.59904379811",
     teacherEmail: "yksi-opettajista@testi.oph.fi",

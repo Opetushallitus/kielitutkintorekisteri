@@ -1,5 +1,8 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset.error
+import fi.oph.kitu.html.ModalCommand
 import fi.oph.kitu.html.json
+import fi.oph.kitu.html.modal
+import fi.oph.kitu.html.modalCommandButton
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.LocalizedString
@@ -9,10 +12,9 @@ import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.organisaatiot.Organisaatiot
 import fi.oph.kitu.util.toJsonNode
 import kotlinx.html.FlowContent
-import kotlinx.html.details
 import kotlinx.html.div
+import kotlinx.html.footer
 import kotlinx.html.small
-import kotlinx.html.summary
 
 enum class KielitestiSuoritusErrorColumn(
     override val entityName: String,
@@ -80,15 +82,8 @@ enum class KielitestiSuoritusErrorColumn(
         getValue = { { it.viesti } },
         renderHtml = {
             {
-                testId("viesti")
-                if (it.lisatietoja != null) {
-                    details {
-                        summary { +it.viesti }
-                        json(it.lisatietoja.toJsonNode())
-                    }
-                } else {
-                    +it.viesti
-                }
+                +it.viesti
+                it.lisatietoja?.let { lisatiedot -> lisatietoModaali("virhe-lisatiedot-${it.id}", lisatiedot) }
             }
         },
     ),
@@ -138,5 +133,24 @@ private fun FlowContent.nimitiedot(
     div {
         +UiText.Koto.Sarake.sukunimi
         +": ${sukunimi.orEmpty()}"
+    }
+}
+
+private fun FlowContent.lisatietoModaali(
+    modalId: String,
+    lisatiedot: String,
+) {
+    div {
+        modalCommandButton(modalId, ModalCommand.OPEN, classes = "outline secondary tight") {
+            +UiText.Koto.naytaLisatiedot
+        }
+    }
+    modal(modalId, UiText.Koto.virheenLisatiedot.toString()) {
+        json(lisatiedot.toJsonNode())
+        footer {
+            modalCommandButton(modalId, ModalCommand.CLOSE, classes = "secondary") {
+                +UiText.Toiminto.sulje
+            }
+        }
     }
 }
