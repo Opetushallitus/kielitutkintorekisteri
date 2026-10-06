@@ -21,17 +21,18 @@ fun OppijanumeroTroubleshootingService.troubleshootOppijanumero(
         troubleshootOppijaNameCombinations(oppija)
             ?.let { OppijanumeroRatkaisuehdotus(NIMIYHDISTELMA_LOYTYI, it) }
             ?: onrNimetHetulla(oppija)
-            ?: OppijanumeroRatkaisuehdotus(
-                """
-                Oppijanumerorekisteristä ei löytynyt oppijanumeroa, kun kaikkia etunimiä testattiin kutsumanimenä ja etu- ja sukunimi vaihdettiin päittäin.
-                Mahdollisesti henkilötunnuksessa tai jossain nimistä on kirjoitusvirhe, joku nimi puuttuu, tai nimet ovat väärässä järjestyksessä.
-                """.trimIndent(),
-            )
+            ?: tryAllNameCombinations(oppija)?.let { OppijanumeroRatkaisuehdotus(NIMIYHDISTELMA_LOYTYI, it) }
+            ?: OppijanumeroRatkaisuehdotus(EI_LOYTYNYT)
     } else {
         OppijanumeroRatkaisuehdotus(
             "Oppijanumerorekisterin virhe ei viittaa virheellisiin oppijan nimitietoihin. Tarkista virheviesti.",
         )
     }
+
+const val EI_LOYTYNYT =
+    "Oppijanumerorekisteristä ei löytynyt oppijanumeroa henkilötunnuksella eikä kokeilemalla nimiä " +
+        "eri järjestyksissä ja eri kutsumanimillä. Mahdollisesti henkilötunnuksessa tai jossain nimistä " +
+        "on kirjoitusvirhe, tai joku nimi puuttuu."
 
 const val NIMIYHDISTELMA_LOYTYI =
     "Oppijanumero löytyi, kun nimet kirjoitettiin toisin. Korjaa nimet lähdejärjestelmään näin:"

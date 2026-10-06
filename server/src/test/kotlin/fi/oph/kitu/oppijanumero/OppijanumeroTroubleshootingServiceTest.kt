@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -63,7 +62,62 @@ class OppijanumeroTroubleshootingServiceTest(
 
         val result = service.troubleshootOppijanumero(oppija, ResponseEntity.notFound().build())
 
-        assertTrue(result.viesti.startsWith("Oppijanumerorekisteristä ei löytynyt oppijanumeroa"))
-        assertNull(result.korjatutNimet)
+        assertEquals(OppijanumeroRatkaisuehdotus(EI_LOYTYNYT), result)
+    }
+
+    @Test
+    fun `laaja haku loytaa etunimet eri jarjestyksessa`() {
+        val oppija = Oppija("Aniitta Minerva Alli", "040265-9985", "Minerva", "Marttila")
+
+        val result = service.troubleshootOppijanumero(oppija, ResponseEntity.notFound().build())
+
+        assertEquals(
+            OppijanumeroRatkaisuehdotus(
+                NIMIYHDISTELMA_LOYTYI,
+                Oppija("Minerva Alli Aniitta", "040265-9985", "Aniitta", "Marttila"),
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `laaja haku siirtaa nimen sukunimista etunimiin`() {
+        val oppija = Oppija("Ranja", "010180-9026", "Ranja", "Testi Öhman-Testi")
+
+        val result = service.troubleshootOppijanumero(oppija, ResponseEntity.notFound().build())
+
+        assertEquals(
+            OppijanumeroRatkaisuehdotus(
+                NIMIYHDISTELMA_LOYTYI,
+                Oppija("Ranja Testi", "010180-9026", "Ranja", "Öhman-Testi"),
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `kaikki nimiyhdistelmat alkavat alkuperaisesta jarjestyksesta`() {
+        val yhdistelmat =
+            OppijanumeroTroubleshootingService.kaikkiNimiyhdistelmat(
+                Oppija("Martti Vieno", "010101-123N", "Vieno", "Esimerkkinen"),
+            )
+
+        assertEquals(18, yhdistelmat.size)
+        assertEquals(
+            listOf(
+                Oppija("Martti Vieno", "010101-123N", "Martti", "Esimerkkinen"),
+                Oppija("Martti Vieno", "010101-123N", "Vieno", "Esimerkkinen"),
+                Oppija("Vieno Martti", "010101-123N", "Vieno", "Esimerkkinen"),
+                Oppija("Vieno Martti", "010101-123N", "Martti", "Esimerkkinen"),
+            ),
+            yhdistelmat.take(4),
+        )
+    }
+
+    @Test
+    fun `laajaa hakua ei tehda liian monelle nimelle`() {
+        val oppija = Oppija("Yksi Kaksi Kolme Nelja Viisi", "010101-123N", "Yksi", "Kuusi Seitseman")
+
+        assertTrue(OppijanumeroTroubleshootingService.kaikkiNimiyhdistelmat(oppija).isEmpty())
     }
 }
