@@ -15,6 +15,9 @@ class OppijanumeroTroubleshootingService(
             .map { etunimet -> oppija.copy(kutsumanimi = etunimet) }
             .firstOrNull { oppija -> oppijanumeroService.getMasterOid(oppija).isRight() }
 
+    fun henkiloByHetu(hetu: String): OppijanumerorekisteriHenkilo? =
+        runCatching { oppijanumeroService.getHenkiloByHetu(hetu).getOrNull() }.getOrNull()
+
     fun switchEtunimetAndSukunimi(oppija: Oppija): Oppija? =
         tryEachEtunimiAsKutsumanimi(oppija.copy(etunimet = oppija.sukunimi, sukunimi = oppija.etunimet))
 }
