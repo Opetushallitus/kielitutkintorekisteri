@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="860" viewBox="0 0 1600 860">
+  <title>YKI – arvioijarekisteri: tietovirrat</title>
+  <defs>
+    <style>
+    text { font-family: Helvetica, Arial, sans-serif; fill: #1f2937; }
+    .tausta { fill: #ffffff; }
+    .otsikko { font-size: 24px; font-weight: bold; }
+    .alaotsikko { font-size: 13px; fill: #4b5563; }
+    .kaista { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1; }
+    .kaistan-nimi { font-size: 12px; font-weight: bold; fill: #64748b; letter-spacing: 0.5px; }
+    .laatikko rect { stroke-width: 1.5; }
+    .nimi { font-size: 14px; font-weight: bold; }
+    .lisatieto { font-size: 11px; fill: #4b5563; }
+    .kitu rect { fill: #dbeafe; stroke: #1e40af; stroke-width: 3; }
+    .kios rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 2.5; }
+    .oph rect { fill: #eff6ff; stroke: #60a5fa; }
+    .ulkoinen rect { fill: #fff7ed; stroke: #ea580c; }
+    .infra rect { fill: #f0fdf4; stroke: #16a34a; }
+    .toimija rect { fill: #f3f4f6; stroke: #6b7280; }
+    .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+    .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
+    .pull path { stroke-dasharray: 7 4; }
+    .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
+    .nuolen-teksti text { font-size: 11.5px; }
+    .ei-kaytossa { opacity: 0.5; }
+    .huom { font-size: 13px; font-style: italic; fill: #92400e; }
+    .huom-tausta { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1; }
+    .selite { font-size: 11.5px; }
+    </style>
+    <marker id="karki" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+  <rect class="tausta" x="0" y="0" width="1600" height="860"/>
+  <g id="otsikko">
+    <text class="otsikko" x="24" y="34">YKI – arvioijarekisteri: tietovirrat</text>
+    <text class="alaotsikko" x="24" y="54">Kielitutkintorekisteri (kitu) on YKI-arvioijarekisterin master · tilanne 7.10.2026</text>
+  </g>
+  <g id="selite">
+    <g class="laatikko kitu">
+      <rect x="700" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="728" y="25">Kielitutkintorekisteri</text>
+    <g class="laatikko oph">
+      <rect x="882.825" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="910.825" y="25">Muu OPH-palvelu</text>
+    <g class="laatikko ulkoinen">
+      <rect x="1023.3875" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="1051.3875" y="25">Ulkoinen palvelu</text>
+    <g class="laatikko toimija">
+      <rect x="1169.9875000000002" y="14" width="22" height="14" rx="7"/>
+    </g>
+    <text class="selite" x="1197.9875000000002" y="25">Käyttäjä</text>
+    <g class="nuoli push">
+      <path d="M 700,44 L 740,44" marker-end="url(#karki)"/>
+    </g>
+    <text class="selite" x="748" y="48">lähettäjä työntää (push)</text>
+    <g class="nuoli pull">
+      <path d="M 922.9,44 L 962.9,44" marker-end="url(#karki)"/>
+    </g>
+    <text class="selite" x="970.9" y="48">vastaanottaja hakee (pull)</text>
+    <text class="selite" x="1157.875" y="48">nuoli osoittaa tiedon kulkusuunnan</text>
+  </g>
+  <g id="kaista-toimijat">
+    <rect class="kaista" x="20" y="70" width="230" height="570" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="90">KÄYTTÄJÄT</text>
+  </g>
+  <g id="kaista-hakemus">
+    <rect class="kaista" x="270" y="70" width="650" height="570" rx="10"/>
+    <text class="kaistan-nimi" x="284" y="90">HAKEMUS JA ARVIOINTI</text>
+  </g>
+  <g id="kaista-rekisteri">
+    <rect class="kaista" x="940" y="70" width="640" height="570" rx="10"/>
+    <text class="kaistan-nimi" x="954" y="90">REKISTERI</text>
+  </g>
+  <g id="arvioija" class="laatikko toimija">
+    <rect x="50" y="130" width="170" height="56" rx="28"/>
+    <text class="nimi" x="135" y="154.5" text-anchor="middle">Arvioija</text>
+    <text class="lisatieto" x="135" y="171.5" text-anchor="middle">hakija</text>
+  </g>
+  <g id="virkailija" class="laatikko toimija">
+    <rect x="50" y="400" width="170" height="56" rx="28"/>
+    <text class="nimi" x="135" y="424.5" text-anchor="middle">OPH-virkailija</text>
+    <text class="lisatieto" x="135" y="441.5" text-anchor="middle">virkailija-CAS</text>
+  </g>
+  <g id="ataru" class="laatikko oph ei-kaytossa">
+    <rect x="430" y="120" width="280" height="76" rx="8"/>
+    <text class="nimi" x="570" y="147" text-anchor="middle">Ataru</text>
+    <text class="lisatieto" x="570" y="164" text-anchor="middle">arvioijahakemuslomake</text>
+    <text class="lisatieto" x="570" y="179" text-anchor="middle">integraatio ei vielä käytössä</text>
+  </g>
+  <g id="solki" class="laatikko ulkoinen">
+    <rect x="430" y="330" width="280" height="130" rx="8"/>
+    <text class="nimi" x="570" y="384" text-anchor="middle">Solki</text>
+    <text class="lisatieto" x="570" y="401" text-anchor="middle">Jyväskylän yliopisto</text>
+    <text class="lisatieto" x="570" y="416" text-anchor="middle">arvioijat arviointityössä</text>
+  </g>
+  <g id="kitu" class="laatikko kitu">
+    <rect x="1040" y="320" width="300" height="150" rx="8"/>
+    <text class="nimi" x="1190" y="376.5" text-anchor="middle">Kielitutkintorekisteri</text>
+    <text class="lisatieto" x="1190" y="393.5" text-anchor="middle">kitu</text>
+    <text class="lisatieto" x="1190" y="408.5" text-anchor="middle">arvioijat, arviointikaudet</text>
+    <text class="lisatieto" x="1190" y="423.5" text-anchor="middle">ja arviointioikeudet</text>
+  </g>
+  <g id="arvioija-ataru" class="nuoli push">
+    <path d="M 220,158 L 430,158" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="275" y="136" width="101" height="20" rx="3"/>
+      <text x="325" y="150" text-anchor="middle">
+        <tspan x="325" y="150">arvioijahakemus</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-hakee-atarusta" class="nuoli pull ei-kaytossa">
+    <path d="M 710,170 L 1100,320" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="752" y="218" width="306" height="34" rx="3"/>
+      <text x="905" y="232" text-anchor="middle">
+        <tspan x="905" y="232">arvioijahakemukset → uusi arvioija tai jatkokausi</tspan>
+        <tspan x="905" y="246">kitu hakee · CAS · öisin · ei vielä käytössä</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="solki-kitu-yhteystiedot" class="nuoli push">
+    <path d="M 710,360 L 1040,360" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="776" y="321" width="197" height="34" rx="3"/>
+      <text x="875" y="335" text-anchor="middle">
+        <tspan x="875" y="335">arvioijien yhteystiedot</tspan>
+        <tspan x="875" y="349">POST /yki/api/arvioija · OAuth2</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-solki-arvioijarekisteri" class="nuoli push">
+    <path d="M 1040,430 L 710,430" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="764" y="377" width="221" height="48" rx="3"/>
+      <text x="875" y="391" text-anchor="middle">
+        <tspan x="875" y="391">arvioijarekisteri: kaudet ja kielet</tspan>
+        <tspan x="875" y="405">POST /oph/arvioija · Basic</tspan>
+        <tspan x="875" y="419">vastauksena Solkin arvioijatunnus</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="virkailija-kitu" class="nuoli push">
+    <path d="M 135,456 L 135,560 L 1190,560 L 1190,470" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="438" y="540" width="445" height="20" rx="3"/>
+      <text x="660" y="554" text-anchor="middle">
+        <tspan x="660" y="554">arvioijat, kaudet, passivointi ja käsin lähetys Solkiin · virkailija-CAS</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kaista-yhteiset">
+    <rect class="kaista" x="20" y="660" width="1560" height="124" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="680">YHTEISET OPH-PALVELUT</text>
+  </g>
+  <g id="onr" class="laatikko oph">
+    <rect x="34.0" y="694" width="758" height="76" rx="8"/>
+    <text class="nimi" x="48.0" y="718">Oppijanumerorekisteri</text>
+    <text class="lisatieto" x="48.0" y="740">kitu: arvioijan nimet ja yksilöinti,</text>
+    <text class="lisatieto" x="48.0" y="756">syntymäaika Solki-lähetykseen (ei tallenneta)</text>
+  </g>
+  <g id="otuva" class="laatikko oph">
+    <rect x="808.0" y="694" width="758" height="76" rx="8"/>
+    <text class="nimi" x="822.0" y="718">Otuva</text>
+    <text class="lisatieto" x="822.0" y="740">virkailijoiden CAS-kirjautuminen</text>
+    <text class="lisatieto" x="822.0" y="756">OAuth2-token Solkille, CAS-tunnus Ataruun</text>
+  </g>
+  <g id="huom">
+    <rect class="huom-tausta" x="20" y="810" width="1088" height="30" rx="6"/>
+    <text class="huom" x="34" y="830">Huom: automaattinen lähetys Solkiin on kytketty pois (integraatio.enabled=false) kaikissa ympäristöissä; vain virkailijan käsin käynnistämä lähetys toimii.</text>
+  </g>
+</svg>
