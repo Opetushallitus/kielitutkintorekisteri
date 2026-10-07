@@ -100,6 +100,16 @@ export const fixtureData = {
       detectedTypicalErrors: ["Henkilöä ei löydy Oppijanumerorekisteristä"],
     }),
   }),
+  virheVieraallaNimella: createError("petro", {
+    schoolOid: "1.2.246.562.10.14893989377",
+    viesti:
+      "Oppijanumeron haku epäonnistui: Henkilöä ei löydy Oppijanumerorekisteristä",
+    onrLisatietoja:
+      "Nimi oppijanumerorekisterissä ei vastaa suorituksella olevaa nimeä. Tarkista henkilötunnus. Oppijanumerorekisterissä tällä henkilötunnuksella on:",
+    onrEtunimet: "Martti",
+    onrKutsumanimi: "Martti",
+    onrSukunimi: "Ahtisaari",
+  }),
   virheEino: createError("eino", {
     schoolOid: "1.2.246.562.10.59904379811",
     teacherEmail: "yksi-opettajista@testi.oph.fi",

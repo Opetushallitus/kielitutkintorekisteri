@@ -139,6 +139,32 @@ describe('"Koto Suoritukset" -page', () => {
     await expect(modal).toBeHidden()
   })
 
+  test("eri henkilön nimiä ei näytetä lihavoituna korjausohjeena", async ({
+    db,
+    kielitestiErrorPage,
+    kotoSuoritusError,
+  }) => {
+    await kotoSuoritusError.insert(db, "virheEino")
+    await kotoSuoritusError.insert(db, "virheVieraallaNimella")
+    await kielitestiErrorPage.open()
+
+    const errors = await kielitestiErrorPage.getErrorTableBody()
+    const vierasNimi = errors
+      .getByTestId("onrLisatietoja")
+      .filter({ hasText: fixtureData.virheVieraallaNimella.onrLisatietoja! })
+    const vierasNimiosio = vierasNimi.locator(".ratkaisuehdotus-nimet")
+    await expect(vierasNimiosio).toHaveClass(/ei-vastaa/)
+    await expect(vierasNimiosio).toHaveCSS("font-weight", "400")
+    await expect(vierasNimiosio).toContainText("Sukunimi: Ahtisaari")
+
+    const korjausehdotus = errors
+      .getByTestId("onrLisatietoja")
+      .filter({ hasText: fixtureData.virheEino.onrLisatietoja! })
+      .locator(".ratkaisuehdotus-nimet")
+    await expect(korjausehdotus).not.toHaveClass(/ei-vastaa/)
+    await expect(korjausehdotus).toHaveCSS("font-weight", "700")
+  })
+
   test("koto suoritukset error page handles null values in error properly", async ({
     page,
     kielitestiErrorPage,
