@@ -7,9 +7,9 @@ viedään KOSKI-palveluun ja siten niitä voidaan näyttää Oma Opintopolun asi
 - [Ulkoiset rajapintakuvaukset](https://virkailija.testiopintopolku.fi/kielitutkinnot/api-docs)
 - [Tietokantaskeeman dokumentaatio](https://opetushallitus.github.io/kielitutkintorekisteri/db)
 - Beans-komponenttikompositio: [Untuva](https://opetushallitus.github.io/kielitutkintorekisteri/uml/untuva) / [QA](https://opetushallitus.github.io/kielitutkintorekisteri/uml/qa) / [Tuotanto](https://opetushallitus.github.io/kielitutkintorekisteri/uml/prod)
-- [Eräajot](./docs/db-scheduler)
-- [Tekninen dokumentaatio](./docs/technical)
-- [Tietovirtakaaviot](./docs/technical/integraatiot.md#kaaviot): järjestelmien väliset tietovirrat tutkinnoittain (YKI, VKT, kotoutumiskoulutus)
+- [Eräajot](https://opetushallitus.github.io/kielitutkintorekisteri/docs/db-scheduler/)
+- [Tekninen dokumentaatio](https://opetushallitus.github.io/kielitutkintorekisteri/docs/technical/)
+- [Tietovirtakaaviot](https://opetushallitus.github.io/kielitutkintorekisteri/docs/technical/integraatiot.html#kaaviot): järjestelmien väliset tietovirrat tutkinnoittain (YKI, VKT, kotoutumiskoulutus)
 
 ## Riippuvuudet
 
