@@ -12,22 +12,22 @@ ovat muokattavia SVG-tiedostoja hakemistossa `kaaviot/`.
 
 ### YKI — suoritukset
 
-![YKI-suoritukset — tietovirrat](./kaaviot/yki-suoritukset.svg)
+[![YKI-suoritukset — tietovirrat](./kaaviot/yki-suoritukset.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/yki-suoritukset.svg)
 
 Solki ei lähetä tuloksia KIOSiin. KIOS saa kitulta vain suorituksen arviointitilan, jonka se
 näyttää kansalaiselle tämän omalla sivulla.
 
 ### YKI — arvioijarekisteri
 
-![YKI-arvioijarekisteri — tietovirrat](./kaaviot/yki-arvioijat.svg)
+[![YKI-arvioijarekisteri — tietovirrat](./kaaviot/yki-arvioijat.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/yki-arvioijat.svg)
 
 ### VKT — erinomainen taitotaso
 
-![VKT erinomainen — tietovirrat](./kaaviot/vkt-erinomainen.svg)
+[![VKT erinomainen — tietovirrat](./kaaviot/vkt-erinomainen.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/vkt-erinomainen.svg)
 
 ### VKT — hyvä ja tyydyttävä taitotaso
 
-![VKT hyvä ja tyydyttävä — tietovirrat](./kaaviot/vkt-hyva-ja-tyydyttava.svg)
+[![VKT hyvä ja tyydyttävä — tietovirrat](./kaaviot/vkt-hyva-ja-tyydyttava.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/vkt-hyva-ja-tyydyttava.svg)
 
 **Avoin kysymys:** KIOS lähettää ajanvarauksen uudelleen vain, jos sen muokkausaika on myöhäisempi
 kuin edellinen lähetys. Arvosanan korjaaminen ei päivitä ajanvarauksen muokkausaikaa, joten
@@ -36,14 +36,14 @@ ensimmäisen siirron jälkeen korjattu arvosana ei todennäköisesti koskaan pä
 
 ### Kotoutumiskoulutus — suoritukset
 
-![Kotoutumiskoulutuksen suoritukset — tietovirrat](./kaaviot/kotoutumiskoulutus-suoritukset.svg)
+[![Kotoutumiskoulutuksen suoritukset — tietovirrat](./kaaviot/kotoutumiskoulutus-suoritukset.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/kotoutumiskoulutus-suoritukset.svg)
 
 Kotoutumiskoulutuksen tiedot eivät mene kitusta KOSKI-järjestelmään eivätkä KIOSiin, eivätkä KIOS
 ja Solki liity kotoutumiskoulutukseen lainkaan.
 
 ### Kotoutumiskoulutus — tehtäväpankki
 
-![Kotoutumiskoulutuksen tehtäväpankki — tietovirrat](./kaaviot/kotoutumiskoulutus-tehtavapankki.svg)
+[![Kotoutumiskoulutuksen tehtäväpankki — tietovirrat](./kaaviot/kotoutumiskoulutus-tehtavapankki.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/kotoutumiskoulutus-tehtavapankki.svg)
 
 ## KOSKI — suoritusten siirto
 
