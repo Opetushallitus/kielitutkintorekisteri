@@ -553,3 +553,7 @@ nav li a[role="button"] {
   margin-top: 0.5em;
   font-weight: bold;
 }
+
+.ratkaisuehdotus-nimet.ei-vastaa {
+  font-weight: normal;
+}

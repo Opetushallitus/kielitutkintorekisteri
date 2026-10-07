@@ -1,12 +1,14 @@
 package fi.oph.kitu.oppijanumero
 
 import fi.oph.kitu.DBContainerConfiguration
+import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -53,6 +55,35 @@ class OppijanumeroTroubleshootingServiceTest(
                 Oppija("Magdalena Testi", "010866-9260", "Magdalena", "Sallinen-Testi"),
             ),
             result,
+        )
+    }
+
+    @Test
+    fun `varoittaa kun henkilotunnuksella loytyy eri henkilo`() {
+        val oppija = Oppija("Urho Kaleva", "010866-9260", "Urho", "Kekkonen")
+
+        val result = service.troubleshootOppijanumero(oppija, ResponseEntity.notFound().build())
+
+        assertEquals(
+            OppijanumeroRatkaisuehdotus(
+                HETULLA_LOYTYI_ERI_HENKILO,
+                Oppija("Magdalena Testi", "010866-9260", "Magdalena", "Sallinen-Testi"),
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `nimet vastaavat kun yksikin nimi on sama tai lahes sama`() {
+        assertAll(
+            { assertFalse(nimetVastaavat("Urho Kaleva", "Kekkonen", "Martti", "Ahtisaari")) },
+            { assertTrue(nimetVastaavat("Mati", "Korhonen", "Matti", "Virtanen")) },
+            { assertTrue(nimetVastaavat("Anna", "Virtanen", "Anna", "Korhonen")) },
+            { assertTrue(nimetVastaavat("Ranja", "Öhman", "Liisa", "Öhman-Testi")) },
+            { assertTrue(nimetVastaavat("ANNA", "Virtanen", "anna", "Korhonen")) },
+            { assertTrue(nimetVastaavat("Magdaleena", "Salinen", "Magdalena", "Sallinen")) },
+            { assertFalse(nimetVastaavat("Li", "Korhonen", "Le", "Virtanen")) },
+            { assertFalse(nimetVastaavat("Urho", "Kekkonen", null, null)) },
         )
     }
 

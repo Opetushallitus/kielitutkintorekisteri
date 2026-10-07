@@ -9,6 +9,7 @@ import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
 import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.oppijanumero.nimetVastaavat
 import fi.oph.kitu.organisaatiot.Organisaatiot
 import fi.oph.kitu.util.toJsonNode
 import kotlinx.html.FlowContent
@@ -96,7 +97,8 @@ enum class KielitestiSuoritusErrorColumn(
             {
                 it.onrLisatietoja?.let { viesti -> div { +viesti } }
                 if (it.onrEtunimet != null || it.onrKutsumanimi != null || it.onrSukunimi != null) {
-                    div(classes = "ratkaisuehdotus-nimet") {
+                    val vastaa = nimetVastaavat(it.etunimet, it.sukunimi, it.onrEtunimet, it.onrSukunimi)
+                    div(classes = if (vastaa) "ratkaisuehdotus-nimet" else "ratkaisuehdotus-nimet ei-vastaa") {
                         nimitiedot(it.onrEtunimet, it.onrKutsumanimi, it.onrSukunimi)
                     }
                 }
