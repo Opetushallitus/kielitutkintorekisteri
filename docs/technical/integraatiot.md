@@ -14,6 +14,9 @@ ovat muokattavia SVG-tiedostoja hakemistossa `kaaviot/`.
 
 ![YKI-suoritukset — tietovirrat](./kaaviot/yki-suoritukset.svg)
 
+Solki ei lähetä tuloksia KIOSiin. KIOS saa kitulta vain suorituksen arviointitilan, jonka se
+näyttää kansalaiselle tämän omalla sivulla.
+
 ### YKI — arvioijarekisteri
 
 ![YKI-arvioijarekisteri — tietovirrat](./kaaviot/yki-arvioijat.svg)
@@ -26,9 +29,17 @@ ovat muokattavia SVG-tiedostoja hakemistossa `kaaviot/`.
 
 ![VKT hyvä ja tyydyttävä — tietovirrat](./kaaviot/vkt-hyva-ja-tyydyttava.svg)
 
+**Avoin kysymys:** KIOS lähettää ajanvarauksen uudelleen vain, jos sen muokkausaika on myöhäisempi
+kuin edellinen lähetys. Arvosanan korjaaminen ei päivitä ajanvarauksen muokkausaikaa, joten
+ensimmäisen siirron jälkeen korjattu arvosana ei todennäköisesti koskaan päädy kituun
+(`SyncRegisterEnrollments` repossa kieli-ja-kaantajatutkinnot).
+
 ### Kotoutumiskoulutus
 
 ![Kotoutumiskoulutus — tietovirrat](./kaaviot/kotoutumiskoulutus.svg)
+
+Kotoutumiskoulutuksen tiedot eivät mene kitusta KOSKI-järjestelmään eivätkä KIOSiin, eivätkä KIOS
+ja Solki liity kotoutumiskoulutukseen lainkaan.
 
 ## KOSKI — suoritusten siirto
 
