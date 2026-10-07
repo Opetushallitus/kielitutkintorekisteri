@@ -9,6 +9,7 @@ viedään KOSKI-palveluun ja siten niitä voidaan näyttää Oma Opintopolun asi
 - Beans-komponenttikompositio: [Untuva](https://opetushallitus.github.io/kielitutkintorekisteri/uml/untuva) / [QA](https://opetushallitus.github.io/kielitutkintorekisteri/uml/qa) / [Tuotanto](https://opetushallitus.github.io/kielitutkintorekisteri/uml/prod)
 - [Eräajot](./docs/db-scheduler)
 - [Tekninen dokumentaatio](./docs/technical)
+- [Tietovirtakaaviot](./docs/technical/integraatiot.md#kaaviot): järjestelmien väliset tietovirrat tutkinnoittain (YKI, VKT, kotoutumiskoulutus)
 
 ## Riippuvuudet
 

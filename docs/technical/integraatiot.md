@@ -3,6 +3,33 @@
 Kielitutkintorekisteri integroituu OPH:n ja kolmansien osapuolten järjestelmiin. Tämä sivu kuvaa
 kullekin integraatiolle paketin, suunnan, asiakaskerroksen ja virhemallin.
 
+## Kaaviot
+
+Tietovirrat tutkinnoittain, mukaan lukien KIOS-ilmoittautumisjärjestelmän
+([kieli-ja-kaantajatutkinnot](https://github.com/Opetushallitus/kieli-ja-kaantajatutkinnot) ja
+vanha YKI-taustapalvelu [yki](https://github.com/Opetushallitus/yki)) omat integraatiot. Kaaviot
+ovat muokattavia SVG-tiedostoja hakemistossa `kaaviot/`.
+
+### YKI — suoritukset
+
+![YKI-suoritukset — tietovirrat](./kaaviot/yki-suoritukset.svg)
+
+### YKI — arvioijarekisteri
+
+![YKI-arvioijarekisteri — tietovirrat](./kaaviot/yki-arvioijat.svg)
+
+### VKT — erinomainen taitotaso
+
+![VKT erinomainen — tietovirrat](./kaaviot/vkt-erinomainen.svg)
+
+### VKT — hyvä ja tyydyttävä taitotaso
+
+![VKT hyvä ja tyydyttävä — tietovirrat](./kaaviot/vkt-hyva-ja-tyydyttava.svg)
+
+### Kotoutumiskoulutus
+
+![Kotoutumiskoulutus — tietovirrat](./kaaviot/kotoutumiskoulutus.svg)
+
 ## KOSKI — suoritusten siirto
 
 **Paketti:** `koski/` · **Suunta:** lähetys
@@ -16,13 +43,39 @@ Opintopolussa.
 - `KoskiException`-hierarkiassa `KoskiTechnicalException` on uudelleenyritettävä.
 - Eräajot `Lähetä YKI-suoritukset KOSKI-palveluun` ja VKT-vastine, ks. [Eräajot](../db-scheduler).
 
+### YKI-todistukset ja tiedotteet KOSKI-järjestelmässä
+
+KOSKI-järjestelmä tekee YKI-suorituksista todistukset ja tiedottaa niistä kansalaiselle. Tämä ei
+kuulu kituun, mutta siihen kuuluu kitun yhteystietorajapinnan ainoa kutsuja (lähde: repo
+[koski](https://github.com/Opetushallitus/koski), `src/main/scala/fi/oph/koski/todistus/`).
+
+- **Todistuspalvelu** (osa KOSKI-sovellusta) luo vahvistetusta suorituksesta PDF-todistuksen ja
+  allekirjoittaa sen sähköisesti Swisscom AIS -palvelulla. Kansalainen lataa allekirjoitetun
+  todistuksen Oma Opintopolusta.
+- **Tiedotteiden lähetys** (osa KOSKI-sovellusta, tunneittain, kun vahvistuksesta on kulunut 24 h)
+  hakee kitusta suorittajan yhteystiedot ja todistuskielen (`GET /yhteystiedot/api/opiskeluoikeus/…`,
+  OAuth2). Se tekee tulostettavan PDF:n ja lähettää tiedotteen **Tiedotuspalveluun**
+  (ONR-tiimin erillinen palvelu, repo
+  [tiedotuspalvelu](https://github.com/Opetushallitus/tiedotuspalvelu)). Tiedotuspalvelu lähettää
+  sen Suomi.fi-viestien kautta joko sähköisenä viestinä tai Postin paperikirjeenä, jossa on kitun
+  postiosoite.
+
 ## KIOS — ilmoittautumisjärjestelmä
 
-**Paketti:** `ilmoittautumisjarjestelma/` · **Suunta:** lähetys (arviointitilat), haku (VKT)
+**Paketit:** `ilmoittautumisjarjestelma/` (YKI), `vkt/` (VKT) · **Suunta:** lähetys (YKI-arviointitilat),
+vastaanotto (VKT)
 
-YKI-suoritusten arviointitilat ilmoitetaan KIOS:lle heti suoritustiedon päivittyessä; eräajo
-`Lähetä YKI-arviointitilat KIOS-palveluun` varmistaa perille menon katkosten jälkeen.
-VKT-ilmoittautumiset ja -suoritukset haetaan KIOS:sta.
+YKI-suoritusten arviointitilat ilmoitetaan KIOS:lle heti suoritustiedon päivittyessä
+(`POST /yki/v2/api/oauth2/registration/evaluation`, OAuth2); eräajo
+`Lähetä YKI-arviointitilat KIOS-palveluun` varmistaa perille menon katkosten jälkeen. KIOS näyttää
+tilan kansalaiselle tämän omalla sivulla.
+
+VKT-tiedot KIOS **lähettää** kitulle (`PUT /api/vkt/kios`) tunnin välein ajettavalla eräajolla
+(`SyncRegisterEnrollments` KIOSissa). Erinomaisesta taitotasosta tulee ilmoittautuminen ilman
+arvosanoja tutkintopäivän jälkeen, ja arvosanat kirjataan kitussa; hyvästä ja tyydyttävästä tulee
+valmis suoritus, jonka arvosanat tutkinnon vastaanottaja on kirjannut KIOSiin. KIOS autentikoituu
+**CAS-palvelutiketillä**, ei OAuth2-tokenilla — tästä syystä reitti
+`/api/vkt/kios/j_spring_cas_security_check` on olemassa. Kitu ei lähetä VKT-tietoja takaisin KIOSiin.
 
 - `IlmoittautumisjarjestelmaClientImpl.post(...)` → `Either<IlmoittautumisjarjestelmaException, T>`.
 - Virhetyypit: `BadRequest`, `UnexpectedError`, `MalformedResponse`, `NullResponse`.

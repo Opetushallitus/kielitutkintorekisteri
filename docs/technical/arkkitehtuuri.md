@@ -29,7 +29,7 @@ Paketit hakemistossa `server/src/main/kotlin/fi/oph/kitu/` on jaoteltu **toimint
 - **`koski/`** — Lähtevä KOSKI-integraatio (YKI- ja VKT-suoritukset)
 - **`ilmoittautumisjarjestelma/`** — KIOS-integraatio (arviointitilat, VKT-tiedot)
 - **`oppijanumero/`**, **`organisaatiot/`**, **`koodisto/`** — OPH:n perusrekisteri-integraatiot
-- **`yhteystiedot/`** — Suorittajan yhteystietojen haku (KOSKI käyttää digitodistusten postitukseen)
+- **`yhteystiedot/`** — Suorittajan yhteystietojen haku (KOSKI-järjestelmän tiedotteet: todistuskieli ja paperipostin osoite)
 - **`security/`** — CAS- ja OAuth2-autentikointi (`security/cas/`, `security/oauth2/`)
 
 Integraatioiden yksityiskohdat: [Integraatiot](./integraatiot.md).

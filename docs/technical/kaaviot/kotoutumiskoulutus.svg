@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="840" viewBox="0 0 1600 840">
+  <title>Kotoutumiskoulutus: tietovirrat</title>
+  <defs>
+    <style>
+    text { font-family: Helvetica, Arial, sans-serif; fill: #1f2937; }
+    .tausta { fill: #ffffff; }
+    .otsikko { font-size: 24px; font-weight: bold; }
+    .alaotsikko { font-size: 13px; fill: #4b5563; }
+    .kaista { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1; }
+    .kaistan-nimi { font-size: 12px; font-weight: bold; fill: #64748b; letter-spacing: 0.5px; }
+    .laatikko rect { stroke-width: 1.5; }
+    .nimi { font-size: 14px; font-weight: bold; }
+    .lisatieto { font-size: 11px; fill: #4b5563; }
+    .kitu rect { fill: #dbeafe; stroke: #1e40af; stroke-width: 3; }
+    .kios rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 2.5; }
+    .oph rect { fill: #eff6ff; stroke: #60a5fa; }
+    .ulkoinen rect { fill: #fff7ed; stroke: #ea580c; }
+    .infra rect { fill: #f0fdf4; stroke: #16a34a; }
+    .toimija rect { fill: #f3f4f6; stroke: #6b7280; }
+    .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+    .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
+    .pull path { stroke-dasharray: 7 4; }
+    .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
+    .nuolen-teksti text { font-size: 11.5px; }
+    .ei-kaytossa { opacity: 0.5; }
+    .huom { font-size: 13px; font-style: italic; fill: #92400e; }
+    .huom-tausta { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1; }
+    .selite { font-size: 11.5px; }
+    </style>
+    <marker id="karki" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+  <rect class="tausta" x="0" y="0" width="1600" height="840"/>
+  <g id="otsikko">
+    <text class="otsikko" x="24" y="34">Kotoutumiskoulutus: tietovirrat</text>
+    <text class="alaotsikko" x="24" y="54">Kielitutkintorekisterin (kitu) integraatiot kielitaidon päättötestissä · tilanne 7.10.2026</text>
+  </g>
+  <g id="selite">
+    <g class="laatikko kitu">
+      <rect x="700" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="728" y="25">Kielitutkintorekisteri</text>
+    <g class="laatikko oph">
+      <rect x="882.825" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="910.825" y="25">Muu OPH-palvelu</text>
+    <g class="laatikko ulkoinen">
+      <rect x="1023.3875" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="1051.3875" y="25">Ulkoinen palvelu</text>
+    <g class="laatikko infra">
+      <rect x="1169.9875000000002" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="1197.9875000000002" y="25">AWS-infra</text>
+    <g class="laatikko toimija">
+      <rect x="1274.3250000000003" y="14" width="22" height="14" rx="7"/>
+    </g>
+    <text class="selite" x="1302.3250000000003" y="25">Käyttäjä</text>
+    <g class="nuoli push">
+      <path d="M 700,44 L 740,44" marker-end="url(#karki)"/>
+    </g>
+    <text class="selite" x="748" y="48">lähettäjä työntää (push)</text>
+    <g class="nuoli pull">
+      <path d="M 922.9,44 L 962.9,44" marker-end="url(#karki)"/>
+    </g>
+    <text class="selite" x="970.9" y="48">vastaanottaja hakee (pull)</text>
+    <text class="selite" x="1157.875" y="48">nuoli osoittaa tiedon kulkusuunnan</text>
+  </g>
+  <g id="kaista-toimijat">
+    <rect class="kaista" x="20" y="70" width="230" height="560" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="90">KÄYTTÄJÄT</text>
+  </g>
+  <g id="kaista-kielitestialusta">
+    <rect class="kaista" x="270" y="70" width="650" height="560" rx="10"/>
+    <text class="kaistan-nimi" x="284" y="90">KIELITESTIALUSTA</text>
+  </g>
+  <g id="kaista-rekisteri">
+    <rect class="kaista" x="940" y="70" width="640" height="560" rx="10"/>
+    <text class="kaistan-nimi" x="954" y="90">REKISTERI</text>
+  </g>
+  <g id="opiskelija" class="laatikko toimija">
+    <rect x="50" y="280" width="170" height="56" rx="28"/>
+    <text class="nimi" x="135" y="304.5" text-anchor="middle">Opiskelija</text>
+    <text class="lisatieto" x="135" y="321.5" text-anchor="middle">kotoutumiskoulutus</text>
+  </g>
+  <g id="virkailija" class="laatikko toimija">
+    <rect x="50" y="480" width="170" height="56" rx="28"/>
+    <text class="nimi" x="135" y="504.5" text-anchor="middle">OPH-virkailija</text>
+    <text class="lisatieto" x="135" y="521.5" text-anchor="middle">virkailija-CAS</text>
+  </g>
+  <g id="koealusta" class="laatikko ulkoinen">
+    <rect x="430" y="240" width="280" height="150" rx="8"/>
+    <text class="nimi" x="570" y="304" text-anchor="middle">Koealusta</text>
+    <text class="lisatieto" x="570" y="321" text-anchor="middle">Moodle · Mediamaisteri</text>
+    <text class="lisatieto" x="570" y="336" text-anchor="middle">kielitesti.opintopolku.fi</text>
+  </g>
+  <g id="kitu" class="laatikko kitu">
+    <rect x="1040" y="240" width="300" height="150" rx="8"/>
+    <text class="nimi" x="1190" y="304" text-anchor="middle">Kielitutkintorekisteri</text>
+    <text class="lisatieto" x="1190" y="321" text-anchor="middle">kitu</text>
+    <text class="lisatieto" x="1190" y="336" text-anchor="middle">suoritukset · tehtäväpankki</text>
+  </g>
+  <g id="s3" class="laatikko infra">
+    <rect x="1080" y="470" width="220" height="56" rx="8"/>
+    <text class="nimi" x="1190" y="494.5" text-anchor="middle">S3</text>
+    <text class="lisatieto" x="1190" y="511.5" text-anchor="middle">tehtäväpankin tiedostot</text>
+  </g>
+  <g id="opiskelija-koealusta" class="nuoli push">
+    <path d="M 220,308 L 430,308" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="287" y="286" width="76" height="20" rx="3"/>
+      <text x="325" y="300" text-anchor="middle">
+        <tspan x="325" y="300">päättötesti</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-hakee-valmiit" class="nuoli pull">
+    <path d="M 710,285 L 1040,285" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="755" y="246" width="239" height="34" rx="3"/>
+      <text x="875" y="260" text-anchor="middle">
+        <tspan x="875" y="260">valmiit suoritukset (inkrementaalinen)</tspan>
+        <tspan x="875" y="274">kitu hakee · wstoken · öisin</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-hakee-keskeneraiset" class="nuoli pull">
+    <path d="M 710,330 L 1040,330" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="749" y="291" width="252" height="34" rx="3"/>
+      <text x="875" y="305" text-anchor="middle">
+        <tspan x="875" y="305">keskeneräiset (korvataan, 14 vrk ikkuna)</tspan>
+        <tspan x="875" y="319">kitu hakee · wstoken · öisin</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-hakee-tehtavapankin" class="nuoli pull">
+    <path d="M 710,375 L 1040,375" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="764" y="336" width="221" height="34" rx="3"/>
+      <text x="875" y="350" text-anchor="middle">
+        <tspan x="875" y="350">tehtäväpankki (Moodle-XML ja media)</tspan>
+        <tspan x="875" y="364">kitu hakee · wstoken · öisin</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-s3" class="nuoli push">
+    <path d="M 1190,390 L 1190,470" marker-end="url(#karki)" marker-start="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="1195" y="420" width="113" height="20" rx="3"/>
+      <text x="1200" y="434" text-anchor="start">
+        <tspan x="1200" y="434">tallennus ja luku</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kitu-virkailija" class="nuoli push">
+    <path d="M 1100,390 L 1100,440 L 600,440 L 600,508 L 220,508" marker-end="url(#karki)"/>
+    <g class="nuolen-teksti">
+      <rect x="235" y="488" width="415" height="20" rx="3"/>
+      <text x="240" y="502" text-anchor="start">
+        <tspan x="240" y="502">suoritukset, virheet, tehtäväpankki, CSV-lataukset · virkailija-CAS</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="kaista-yhteiset">
+    <rect class="kaista" x="20" y="650" width="1560" height="124" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="670">YHTEISET OPH-PALVELUT</text>
+  </g>
+  <g id="onr" class="laatikko oph">
+    <rect x="34.0" y="684" width="500" height="76" rx="8"/>
+    <text class="nimi" x="48.0" y="708">Oppijanumerorekisteri</text>
+    <text class="lisatieto" x="48.0" y="730">kitu: master-OID (haku)</text>
+  </g>
+  <g id="organisaatiopalvelu" class="laatikko oph">
+    <rect x="550.0" y="684" width="500" height="76" rx="8"/>
+    <text class="nimi" x="564.0" y="708">Organisaatiopalvelu</text>
+    <text class="lisatieto" x="564.0" y="730">kitu: organisaatioiden nimet</text>
+  </g>
+  <g id="otuva" class="laatikko oph">
+    <rect x="1066.0" y="684" width="500" height="76" rx="8"/>
+    <text class="nimi" x="1080.0" y="708">Otuva</text>
+    <text class="lisatieto" x="1080.0" y="730">virkailijoiden CAS-kirjautuminen</text>
+    <text class="lisatieto" x="1080.0" y="746">OAuth2-tokenit integraatioille</text>
+  </g>
+  <g id="huom">
+    <rect class="huom-tausta" x="20" y="790" width="931" height="30" rx="6"/>
+    <text class="huom" x="34" y="810">Huom: kotoutumiskoulutuksen tiedot eivät mene KOSKI-järjestelmään eivätkä KIOSiin. KIOS ja Solki eivät liity kotoutumiskoulutukseen.</text>
+  </g>
+</svg>
