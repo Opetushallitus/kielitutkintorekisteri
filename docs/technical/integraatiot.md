@@ -34,12 +34,16 @@ kuin edellinen lähetys. Arvosanan korjaaminen ei päivitä ajanvarauksen muokka
 ensimmäisen siirron jälkeen korjattu arvosana ei todennäköisesti koskaan päädy kituun
 (`SyncRegisterEnrollments` repossa kieli-ja-kaantajatutkinnot).
 
-### Kotoutumiskoulutus
+### Kotoutumiskoulutus — suoritukset
 
-![Kotoutumiskoulutus — tietovirrat](./kaaviot/kotoutumiskoulutus.svg)
+![Kotoutumiskoulutuksen suoritukset — tietovirrat](./kaaviot/kotoutumiskoulutus-suoritukset.svg)
 
 Kotoutumiskoulutuksen tiedot eivät mene kitusta KOSKI-järjestelmään eivätkä KIOSiin, eivätkä KIOS
 ja Solki liity kotoutumiskoulutukseen lainkaan.
+
+### Kotoutumiskoulutus — tehtäväpankki
+
+![Kotoutumiskoulutuksen tehtäväpankki — tietovirrat](./kaaviot/kotoutumiskoulutus-tehtavapankki.svg)
 
 ## KOSKI — suoritusten siirto
 
