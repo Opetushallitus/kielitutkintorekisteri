@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="840" viewBox="0 0 1600 840">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="794" viewBox="0 0 1600 794">
   <title>Kotoutumiskoulutus: tietovirrat</title>
   <defs>
     <style>
@@ -28,8 +28,6 @@
     .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
     .nuolen-teksti text { font-size: 11.5px; }
     .ei-kaytossa { opacity: 0.5; }
-    .huom { font-size: 13px; font-style: italic; fill: #92400e; }
-    .huom-tausta { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1; }
     .selite { font-size: 11.5px; }
     </style>
     <marker id="karki-heti" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -48,7 +46,7 @@
       <path d="M 0,0 L 10,5 L 0,10 z" fill="#9ca3af"/>
     </marker>
   </defs>
-  <rect class="tausta" x="0" y="0" width="1600" height="840"/>
+  <rect class="tausta" x="0" y="0" width="1600" height="794"/>
   <g id="otsikko">
     <text class="otsikko" x="24" y="34">Kotoutumiskoulutus: tietovirrat</text>
     <text class="alaotsikko" x="24" y="54">Kielitutkintorekisterin (kitu) integraatiot kielitaidon päättötestissä · tilanne 7.10.2026</text>
@@ -212,9 +210,5 @@
     <text class="nimi" x="1080.0" y="708">Otuva</text>
     <text class="lisatieto" x="1080.0" y="730">virkailijoiden CAS-kirjautuminen</text>
     <text class="lisatieto" x="1080.0" y="746">OAuth2-tokenit integraatioille</text>
-  </g>
-  <g id="huom">
-    <rect class="huom-tausta" x="20" y="790" width="931" height="30" rx="6"/>
-    <text class="huom" x="34" y="810">Huom: kotoutumiskoulutuksen tiedot eivät mene KOSKI-järjestelmään eivätkä KIOSiin. KIOS ja Solki eivät liity kotoutumiskoulutukseen.</text>
   </g>
 </svg>
