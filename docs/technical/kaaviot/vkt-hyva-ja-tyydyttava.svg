@@ -21,7 +21,10 @@
     .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
     .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
     .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
+    .heti path { stroke: #0e7490; stroke-width: 2.2; }
+    .ajastettu path { stroke: #a16207; stroke-width: 2.2; }
     .pull path { stroke-dasharray: 7 4; }
+    .kayttaja path { stroke: #9ca3af; stroke-width: 1.4; }
     .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
     .nuolen-teksti text { font-size: 11.5px; }
     .ei-kaytossa { opacity: 0.5; }
@@ -29,8 +32,20 @@
     .huom-tausta { fill: #fffbeb; stroke: #f59e0b; stroke-width: 1; }
     .selite { font-size: 11.5px; }
     </style>
-    <marker id="karki" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <marker id="karki-heti" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#0e7490"/>
+    </marker>
+    <marker id="karki-ajastettu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#a16207"/>
+    </marker>
+    <marker id="karki-push" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="karki-pull" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="karki-kayttaja" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#9ca3af"/>
     </marker>
   </defs>
   <rect class="tausta" x="0" y="0" width="1600" height="964"/>
@@ -40,38 +55,50 @@
   </g>
   <g id="selite">
     <g class="laatikko kitu">
-      <rect x="700" y="14" width="22" height="14" rx="3"/>
+      <rect x="660" y="14" width="22" height="14" rx="3"/>
     </g>
-    <text class="selite" x="728" y="25">Kielitutkintorekisteri</text>
+    <text class="selite" x="688" y="25">Kielitutkintorekisteri</text>
     <g class="laatikko kios">
-      <rect x="882.825" y="14" width="22" height="14" rx="3"/>
+      <rect x="842.825" y="14" width="22" height="14" rx="3"/>
     </g>
-    <text class="selite" x="910.825" y="25">KIOS</text>
+    <text class="selite" x="870.825" y="25">KIOS</text>
     <g class="laatikko oph">
-      <rect x="956.975" y="14" width="22" height="14" rx="3"/>
+      <rect x="916.975" y="14" width="22" height="14" rx="3"/>
     </g>
-    <text class="selite" x="984.975" y="25">Muu OPH-palvelu</text>
+    <text class="selite" x="944.975" y="25">Muu OPH-palvelu</text>
     <g class="laatikko ulkoinen">
-      <rect x="1097.5375" y="14" width="22" height="14" rx="3"/>
+      <rect x="1057.5375" y="14" width="22" height="14" rx="3"/>
     </g>
-    <text class="selite" x="1125.5375" y="25">Ulkoinen palvelu</text>
+    <text class="selite" x="1085.5375" y="25">Ulkoinen palvelu</text>
     <g class="laatikko toimija">
-      <rect x="1244.1374999999998" y="14" width="22" height="14" rx="7"/>
+      <rect x="1204.1374999999998" y="14" width="22" height="14" rx="7"/>
     </g>
-    <text class="selite" x="1272.1374999999998" y="25">Käyttäjä</text>
+    <text class="selite" x="1232.1374999999998" y="25">Käyttäjä</text>
     <g class="laatikko infra">
-      <rect x="1342.4374999999998" y="14" width="22" height="14" rx="3"/>
+      <rect x="1302.4374999999998" y="14" width="22" height="14" rx="3"/>
     </g>
-    <text class="selite" x="1370.4374999999998" y="25">AWS-infra</text>
+    <text class="selite" x="1330.4374999999998" y="25">AWS-infra</text>
+    <g class="nuoli heti">
+      <path d="M 660,44 L 690,44" marker-end="url(#karki-heti)"/>
+    </g>
+    <text class="selite" x="696" y="48">push heti</text>
+    <g class="nuoli ajastettu">
+      <path d="M 768.3375,44 L 798.3375,44" marker-end="url(#karki-ajastettu)"/>
+    </g>
+    <text class="selite" x="804.3375" y="48">push ajastetusti</text>
     <g class="nuoli push">
-      <path d="M 700,44 L 740,44" marker-end="url(#karki)"/>
+      <path d="M 918.9375,44 L 948.9375,44" marker-end="url(#karki-push)"/>
     </g>
-    <text class="selite" x="748" y="48">lähettäjä työntää (push)</text>
+    <text class="selite" x="954.9375" y="48">push, ajoitus ei tiedossa</text>
     <g class="nuoli pull">
-      <path d="M 922.9,44 L 962.9,44" marker-end="url(#karki)"/>
+      <path d="M 1123.875,44 L 1153.875,44" marker-end="url(#karki-pull)"/>
     </g>
-    <text class="selite" x="970.9" y="48">vastaanottaja hakee (pull)</text>
-    <text class="selite" x="1157.875" y="48">nuoli osoittaa tiedon kulkusuunnan</text>
+    <text class="selite" x="1159.875" y="48">haku (pull)</text>
+    <g class="nuoli kayttaja">
+      <path d="M 1244.2875,44 L 1274.2875,44" marker-end="url(#karki-kayttaja)"/>
+    </g>
+    <text class="selite" x="1280.2875" y="48">käyttäjän toiminto</text>
+    <text class="selite" x="1406.9624999999999" y="48">nuoli = tiedon kulkusuunta</text>
   </g>
   <g id="kaista-toimijat">
     <rect class="kaista" x="20" y="70" width="230" height="680" rx="10"/>
@@ -142,8 +169,8 @@
     <text class="nimi" x="1455" y="166.5" text-anchor="middle">Oma Opintopolku</text>
     <text class="lisatieto" x="1455" y="183.5" text-anchor="middle">kansalainen näkee suorituksen</text>
   </g>
-  <g id="kansalainen-kios" class="nuoli push">
-    <path d="M 220,160 L 430,322" marker-end="url(#karki)"/>
+  <g id="kansalainen-kios" class="nuoli kayttaja">
+    <path d="M 220,160 L 430,322" marker-end="url(#karki-kayttaja)"/>
     <g class="nuolen-teksti">
       <rect x="194" y="192" width="149" height="34" rx="3"/>
       <text x="268" y="206" text-anchor="middle">
@@ -152,8 +179,8 @@
       </text>
     </g>
   </g>
-  <g id="suomifi-kios" class="nuoli push">
-    <path d="M 380,156 L 470,300" marker-end="url(#karki)"/>
+  <g id="suomifi-kios" class="nuoli heti">
+    <path d="M 380,156 L 470,300" marker-end="url(#karki-heti)"/>
     <g class="nuolen-teksti">
       <rect x="375" y="214" width="107" height="20" rx="3"/>
       <text x="428" y="228" text-anchor="middle">
@@ -161,8 +188,8 @@
       </text>
     </g>
   </g>
-  <g id="kios-paytrail" class="nuoli push">
-    <path d="M 590,300 L 590,156" marker-end="url(#karki)" marker-start="url(#karki)"/>
+  <g id="kios-paytrail" class="nuoli heti">
+    <path d="M 590,300 L 590,156" marker-end="url(#karki-heti)" marker-start="url(#karki-heti)"/>
     <g class="nuolen-teksti">
       <rect x="567" y="218" width="46" height="20" rx="3"/>
       <text x="590" y="232" text-anchor="middle">
@@ -170,17 +197,17 @@
       </text>
     </g>
   </g>
-  <g id="kios-viestinvalitys" class="nuoli push">
-    <path d="M 680,300 L 790,156" marker-end="url(#karki)"/>
+  <g id="kios-viestinvalitys" class="nuoli ajastettu">
+    <path d="M 680,300 L 790,156" marker-end="url(#karki-ajastettu)"/>
     <g class="nuolen-teksti">
-      <rect x="697" y="218" width="76" height="20" rx="3"/>
-      <text x="735" y="232" text-anchor="middle">
-        <tspan x="735" y="232">sähköpostit</tspan>
+      <rect x="648" y="218" width="149" height="20" rx="3"/>
+      <text x="722" y="232" text-anchor="middle">
+        <tspan x="722" y="232">sähköpostit · jono 10 s</tspan>
       </text>
     </g>
   </g>
-  <g id="vastaanottaja-kios" class="nuoli push">
-    <path d="M 220,323 L 430,345" marker-end="url(#karki)"/>
+  <g id="vastaanottaja-kios" class="nuoli kayttaja">
+    <path d="M 220,323 L 430,345" marker-end="url(#karki-kayttaja)"/>
     <g class="nuolen-teksti">
       <rect x="224" y="352" width="191" height="34" rx="3"/>
       <text x="320" y="366" text-anchor="middle">
@@ -189,8 +216,8 @@
       </text>
     </g>
   </g>
-  <g id="virkailija-kios" class="nuoli push">
-    <path d="M 220,490 L 450,390" marker-end="url(#karki)"/>
+  <g id="virkailija-kios" class="nuoli kayttaja">
+    <path d="M 220,490 L 450,390" marker-end="url(#karki-kayttaja)"/>
     <g class="nuolen-teksti">
       <rect x="250" y="432" width="161" height="34" rx="3"/>
       <text x="330" y="446" text-anchor="middle">
@@ -199,8 +226,8 @@
       </text>
     </g>
   </g>
-  <g id="kios-s3" class="nuoli push">
-    <path d="M 570,390 L 570,560" marker-end="url(#karki)" marker-start="url(#karki)"/>
+  <g id="kios-s3" class="nuoli heti">
+    <path d="M 570,390 L 570,560" marker-end="url(#karki-heti)" marker-start="url(#karki-heti)"/>
     <g class="nuolen-teksti">
       <rect x="575" y="448" width="179" height="48" rx="3"/>
       <text x="580" y="462" text-anchor="start">
@@ -210,8 +237,8 @@
       </text>
     </g>
   </g>
-  <g id="kios-kitu" class="nuoli push">
-    <path d="M 710,360 L 1040,360" marker-end="url(#karki)"/>
+  <g id="kios-kitu" class="nuoli ajastettu">
+    <path d="M 710,360 L 1040,360" marker-end="url(#karki-ajastettu)"/>
     <g class="nuolen-teksti">
       <rect x="758" y="308" width="233" height="48" rx="3"/>
       <text x="875" y="322" text-anchor="middle">
@@ -221,8 +248,8 @@
       </text>
     </g>
   </g>
-  <g id="kitu-virkailija" class="nuoli push">
-    <path d="M 1190,440 L 1190,700 L 135,700 L 135,526" marker-end="url(#karki)"/>
+  <g id="kitu-virkailija" class="nuoli kayttaja">
+    <path d="M 1190,440 L 1190,700 L 135,700 L 135,526" marker-end="url(#karki-kayttaja)"/>
     <g class="nuolen-teksti">
       <rect x="501" y="680" width="318" height="20" rx="3"/>
       <text x="660" y="694" text-anchor="middle">
@@ -230,8 +257,8 @@
       </text>
     </g>
   </g>
-  <g id="kitu-koski" class="nuoli push">
-    <path d="M 1140,320 L 1140,200" marker-end="url(#karki)"/>
+  <g id="kitu-koski" class="nuoli ajastettu">
+    <path d="M 1140,320 L 1140,200" marker-end="url(#karki-ajastettu)"/>
     <g class="nuolen-teksti">
       <rect x="1145" y="242" width="233" height="34" rx="3"/>
       <text x="1150" y="256" text-anchor="start">
@@ -240,12 +267,12 @@
       </text>
     </g>
   </g>
-  <g id="koski-oma-opintopolku" class="nuoli push">
-    <path d="M 1240,170 L 1360,170" marker-end="url(#karki)"/>
+  <g id="koski-oma-opintopolku" class="nuoli pull">
+    <path d="M 1240,170 L 1360,170" marker-end="url(#karki-pull)"/>
     <g class="nuolen-teksti">
-      <rect x="1271" y="136" width="58" height="20" rx="3"/>
+      <rect x="1262" y="136" width="76" height="20" rx="3"/>
       <text x="1300" y="150" text-anchor="middle">
-        <tspan x="1300" y="150">julkaisu</tspan>
+        <tspan x="1300" y="150">suoritukset</tspan>
       </text>
     </g>
   </g>
