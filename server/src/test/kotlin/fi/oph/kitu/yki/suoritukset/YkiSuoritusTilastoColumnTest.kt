@@ -67,4 +67,27 @@ class YkiSuoritusTilastoColumnTest {
                 .first(),
         )
     }
+
+    @Test
+    fun `ryhmittelemättömät tyhjät sarakkeet eivät kaada järjestämistä`() {
+        val ruotsi = YkiSuoritusTilastoRivi(null, Tutkintokieli.SWE, null, null, 4)
+        val suomi = YkiSuoritusTilastoRivi(null, Tutkintokieli.FIN, null, null, 7)
+
+        assertEquals(
+            listOf(ruotsi, suomi),
+            YkiSuoritusTilastoColumn.jarjesta(
+                listOf(suomi, ruotsi),
+                YkiSuoritusTilastoColumn.Tutkintopaiva,
+                SortDirection.DESC,
+            ),
+        )
+        assertEquals(
+            listOf(suomi, ruotsi),
+            YkiSuoritusTilastoColumn.jarjesta(
+                listOf(ruotsi, suomi),
+                YkiSuoritusTilastoColumn.Lukumaara,
+                SortDirection.DESC,
+            ),
+        )
+    }
 }

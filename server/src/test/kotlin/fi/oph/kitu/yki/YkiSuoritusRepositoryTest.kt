@@ -9,6 +9,7 @@ import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -724,6 +725,22 @@ class YkiSuoritusRepositoryTest(
             {
                 assertTrue(
                     ykiSuoritusRepository.countSuorituksetRyhmittain().all { it.tutkintopaiva == paiva },
+                )
+            },
+            {
+                val vainKielittain =
+                    ykiSuoritusRepository.countSuorituksetRyhmittain(
+                        ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintokieli),
+                    )
+                assertEquals(
+                    mapOf<Tutkintokieli?, Long>(Tutkintokieli.FIN to 3L, Tutkintokieli.SWE to 1L),
+                    vainKielittain.associate { it.tutkintokieli to it.lukumaara },
+                    "ryhmittelemättömät arviointitilat lasketaan yhteen",
+                )
+                assertTrue(
+                    vainKielittain.all {
+                        it.tutkintopaiva == null && it.tutkintotaso == null && it.arviointitila == null
+                    },
                 )
             },
         )

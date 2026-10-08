@@ -14,38 +14,53 @@ enum class YkiSuoritusTilastoColumn(
     override val urlParam: String,
     override val getValue: (value: YkiSuoritusTilastoRivi) -> String,
     val comparator: Comparator<YkiSuoritusTilastoRivi>,
+    val ryhmittelynSqlTyyppi: String? = null,
     override val renderHtml: (FlowContent.(YkiSuoritusTilastoRivi) -> Unit)? = null,
 ) : RenderableDisplayTableEnum<YkiSuoritusTilastoRivi> {
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Tutkintopaiva(
         entityName = "tutkintopaiva",
         urlParam = "tutkintopaiva",
-        getValue = { it.tutkintopaiva.finnishDate() },
+        getValue = { it.tutkintopaiva?.finnishDate().orEmpty() },
         comparator = compareBy { it.tutkintopaiva },
+        ryhmittelynSqlTyyppi = "date",
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Tutkintokieli(
         entityName = "tutkintokieli",
         urlParam = "tutkintokieli",
-        getValue = { it.tutkintokieli.nimi.toString() },
-        comparator = compareBy { it.tutkintokieli.nimi.toString() },
+        getValue = {
+            it.tutkintokieli
+                ?.nimi
+                ?.toString()
+                .orEmpty()
+        },
+        comparator = compareBy { it.tutkintokieli?.nimi?.toString() },
+        ryhmittelynSqlTyyppi = "text",
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Tutkintotaso(
         entityName = "tutkintotaso",
         urlParam = "tutkintotaso",
-        getValue = { it.tutkintotaso.nimi.toString() },
+        getValue = {
+            it.tutkintotaso
+                ?.nimi
+                ?.toString()
+                .orEmpty()
+        },
         comparator = compareBy { it.tutkintotaso },
+        ryhmittelynSqlTyyppi = "text",
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Arviointitila(
         entityName = "arviointitila",
         urlParam = "arviointitila",
-        getValue = { it.arviointitila.viewText },
+        getValue = { it.arviointitila?.viewText.orEmpty() },
         comparator = compareBy { it.arviointitila },
+        ryhmittelynSqlTyyppi = "text",
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
@@ -67,7 +82,14 @@ enum class YkiSuoritusTilastoColumn(
                 Lukumaara -> UiText.Yki.Tilastot.lukumaara
             }
 
+    val ryhmiteltava: Boolean get() = ryhmittelynSqlTyyppi != null
+
     companion object {
+        val ryhmittelyt: List<YkiSuoritusTilastoColumn> get() = entries.filter { it.ryhmiteltava }
+
+        fun sarakkeet(ryhmittely: List<YkiSuoritusTilastoColumn>): List<YkiSuoritusTilastoColumn> =
+            ryhmittely + Lukumaara
+
         private val oletusjarjestys: Comparator<YkiSuoritusTilastoRivi> =
             Tutkintopaiva.comparator
                 .reversed()

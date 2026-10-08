@@ -272,6 +272,8 @@ object UiText {
             val otsikko: LocalizedString get() = tr("yki.tilastot.otsikko")
             val lukumaara: LocalizedString get() = tr("yki.tilastot.lukumaara")
             val takaisinSuorituksiin: LocalizedString get() = tr("yki.tilastot.takaisinSuorituksiin")
+            val ryhmittely: LocalizedString get() = tr("yki.tilastot.ryhmittely")
+            val paivita: LocalizedString get() = tr("yki.tilastot.paivita")
             val eiSuorituksia: LocalizedString get() = tr("yki.tilastot.eiSuorituksia")
         }
 

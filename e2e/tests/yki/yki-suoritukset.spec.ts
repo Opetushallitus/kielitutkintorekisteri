@@ -109,6 +109,35 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(ensimmainenSolu(4)).toHaveText("1")
   })
 
+  test("tilastot grouping can be configured and is kept across filtering and navigation", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+    let tilastot = await ykiSuorituksetPage.openTilastot()
+
+    await tilastot.setRyhmittely(["tutkintokieli"])
+    await expect(tilastot.getColumnHeaders()).toHaveText([
+      /^Tutkintokieli/,
+      /^Lukumäärä/,
+    ])
+    await expect(tilastot.getSuoritusRow()).toHaveCount(2)
+    await expect(tilastot.getSuoritusColumn(0, 0)).toHaveText("ruotsi")
+    await expect(tilastot.getSuoritusColumn(0, 1)).toHaveText("1")
+    await expect(tilastot.getSuoritusColumn(1, 0)).toHaveText("suomi")
+    await expect(tilastot.getSuoritusColumn(1, 1)).toHaveText("2")
+
+    const dialog = await tilastot.openFilterDialog()
+    await dialog.setTutkintokieli("SWE")
+    await dialog.submit()
+    await expect(tilastot.getColumnHeaders()).toHaveCount(2)
+    await expect(tilastot.getSuoritusRow()).toHaveCount(1)
+
+    await tilastot.backToSuoritukset()
+    tilastot = await ykiSuorituksetPage.openTilastot()
+    await expect(tilastot.getColumnHeaders()).toHaveCount(2)
+    await expect(tilastot.getSuoritusRow()).toHaveCount(1)
+  })
+
   test("tilastot can be downloaded as CSV", async ({ ykiSuorituksetPage }) => {
     await ykiSuorituksetPage.open()
     const tilastot = await ykiSuorituksetPage.openTilastot()

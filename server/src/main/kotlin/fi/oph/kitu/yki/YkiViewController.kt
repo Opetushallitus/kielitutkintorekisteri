@@ -166,13 +166,18 @@ class YkiViewController(
         csrfToken: CsrfToken?,
     ): ResponseEntity<String> {
         val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        val (sarake, suunta) = params.tilastoJarjestys()
         return ResponseEntity.ok(
             YkiSuoritusTilastotPage.render(
                 tilastot =
                     YkiSuoritusTilastoColumn.jarjesta(
-                        ykiService.countSuorituksetRyhmittain(extended.filter, params.versionHistory),
-                        params.tilastoSortColumn,
-                        params.tilastoSortDirection,
+                        ykiService.countSuorituksetRyhmittain(
+                            extended.filter,
+                            params.versionHistory,
+                            params.valittuRyhmittely(),
+                        ),
+                        sarake,
+                        suunta,
                     ),
                 filterParams = params,
                 csrfToken = csrfToken,

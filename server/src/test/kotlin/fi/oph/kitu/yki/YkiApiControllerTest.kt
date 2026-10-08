@@ -30,6 +30,7 @@ import fi.oph.kitu.yki.suoritukset.Todistuskieli
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -854,6 +855,40 @@ class YkiApiControllerTest(
         val tiedostonimi = response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION).orEmpty()
         assertContains(tiedostonimi, "yki_suoritustilastot_FIN")
         assertFalse(tiedostonimi.contains("henkilotiedot"))
+    }
+
+    @Test
+    fun `tilastojen CSV-vienti sisältää vain valitut ryhmittelysarakkeet`() {
+        suoritusRepository.deleteAll()
+        suoritusRepository.saveAllNewEntities(
+            listOf(
+                generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.FIN),
+                generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.FIN),
+                generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.SWE),
+            ),
+        )
+
+        val response =
+            ykiApiController.getSuoritustilastotAsCsv(
+                YkiSuorituksetParams(
+                    ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintokieli),
+                    tilastoSortColumn = YkiSuoritusTilastoColumn.Lukumaara,
+                ),
+                MockHttpSession(),
+            )
+        val rivit =
+            ByteArrayOutputStream()
+                .also { response.body!!.writeTo(it) }
+                .toString(Charsets.UTF_8)
+                .removePrefix("\uFEFF")
+                .lines()
+                .filter { it.isNotBlank() }
+
+        assertEquals(listOf("Tutkintokieli;Lukumäärä", "suomi;2", "ruotsi;1"), rivit)
+        assertContains(
+            response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION).orEmpty(),
+            "ryhmittely_tutkintokieli",
+        )
     }
 
     @Test
