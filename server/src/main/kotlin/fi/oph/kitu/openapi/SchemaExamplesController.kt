@@ -50,9 +50,9 @@ class SchemaExamplesController {
             Henkilosuoritus(
                 henkilo =
                     Henkilo(
-                        oid = Oid.parse("1.2.246.562.240.98167097342").getOrThrow(),
-                        etunimet = "Eeli Heikki",
-                        sukunimi = "Aalto",
+                        oid = Oid.parse("1.2.246.562.24.67409348034").getOrThrow(),
+                        etunimet = "Eino Testi",
+                        sukunimi = "Välimaa-Testi",
                     ),
                 suoritus =
                     VktSuoritus(
@@ -79,7 +79,7 @@ class SchemaExamplesController {
         )
 
     @GetMapping("/vkt-hyvajatyydyttava-suoritus.json", produces = ["application/json;charset=UTF-8"])
-    fun vktHyvaJaTyydyttavaResponse(): ResponseEntity<String> {
+    fun vktHyvaJaTyydyttavaResponse(): ResponseEntity<ByteArray> {
         val tutkintopaiva = LocalDate.now().minusDays(60)
         val arviointipaiva = LocalDate.now()
 
@@ -87,14 +87,16 @@ class SchemaExamplesController {
             Henkilosuoritus(
                 henkilo =
                     Henkilo(
-                        oid = Oid.parse("1.2.246.562.240.98167097342").getOrThrow(),
-                        etunimet = "Eeli Heikki",
-                        sukunimi = "Aalto",
+                        oid = Oid.parse("1.2.246.562.24.67409348034").getOrThrow(),
+                        etunimet = "Eino Testi",
+                        sukunimi = "Välimaa-Testi",
                     ),
                 suoritus =
                     VktSuoritus(
                         taitotaso = Koodisto.VktTaitotaso.HyväJaTyydyttävä,
                         kieli = Koodisto.Tutkintokieli.FIN,
+                        suorituksenVastaanottaja = Oid.parse("1.2.246.562.24.10691606777").getOrThrow(),
+                        suorituspaikkakunta = "091",
                         osat =
                             listOf(
                                 VktKirjoittamisenKoe(
@@ -141,7 +143,6 @@ class SchemaExamplesController {
         exampleJson(
             YkiArvioija(
                 arvioijaOid = Oid.parse("1.2.246.562.24.59267607404").getOrThrow(),
-                henkilotunnus = "",
                 sukunimi = "Kivinen-Testi",
                 etunimet = "Petro Testi",
                 sahkopostiosoite = "devnull-2@oph.fi",
@@ -238,7 +239,7 @@ class SchemaExamplesController {
                             ),
                         tutkintopaiva = LocalDate.of(2026, 2, 2),
                         arviointipaiva = LocalDate.of(2026, 2, 3),
-                        arviointitila = Arviointitila.ARVIOITU,
+                        arviointitila = Arviointitila.TARKISTUSARVIOITU,
                         osat =
                             listOf(
                                 YkiOsa(
@@ -273,8 +274,8 @@ class SchemaExamplesController {
             ),
         )
 
-    private fun exampleJson(data: Any): ResponseEntity<String> =
-        ResponseEntity(objectMapper.writeValueAsString(data), HttpStatus.OK)
+    private fun exampleJson(data: Any): ResponseEntity<ByteArray> =
+        ResponseEntity(objectMapper.writeValueAsBytes(data), HttpStatus.OK)
 
     private val objectMapper: ObjectMapper =
         defaultObjectMapper
