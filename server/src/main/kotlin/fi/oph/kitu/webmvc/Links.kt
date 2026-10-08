@@ -91,6 +91,8 @@ object Links {
     object Yki {
         fun suoritukset(): String = linkTo(methodOn(YkiViewController::class.java).suorituksetGetView()).toString()
 
+        fun suorituksetTilastot(): String = linkTo(methodOn(YkiViewController::class.java).tilastotGetView()).toString()
+
         fun suoritus(id: Int): String = "${ApplicationProperties.kitu.appUrl}/yki/suoritukset/$id"
 
         fun arvioijat(): String =
@@ -183,6 +185,9 @@ object Links {
         ): String = linkTo(methodOn(YkiViewController::class.java).hideKoskiVirheet(suoritusId, hidden)).toString()
 
         fun suorituksetCsv(): String = linkTo(methodOn(YkiApiController::class.java).getSuorituksetAsCsv()).toString()
+
+        fun suorituksetTilastotCsv(): String =
+            linkTo(methodOn(YkiApiController::class.java).getSuoritustilastotAsCsv()).toString()
 
         fun arvioijahakemukset(): String =
             linkTo(methodOn(ArvioijahakemusViewController::class.java).hakemuksetView()).toString()

@@ -240,6 +240,32 @@ class YkiSuoritusRepository(
             ?: 0
     }
 
+    @WithSpan
+    fun countSuorituksetRyhmittain(
+        filter: YkiSuoritusFilter = YkiSuoritusFilter(),
+        distinct: Boolean = true,
+    ): List<YkiSuoritusTilastoRivi> {
+        val ryhmittely = "GROUP BY tutkintopaiva, tutkintokieli, tutkintotaso, arviointitila"
+        val sarakkeet = "SELECT tutkintopaiva, tutkintokieli, tutkintotaso, arviointitila, COUNT(*) AS lukumaara"
+        val sql =
+            if (filter.requiresSubTables()) {
+                buildSql(
+                    withCtes("viimeisin_suoritus" to selectSuorituksetFull(viimeisin = distinct, filter.whereSql())),
+                    "$sarakkeet FROM viimeisin_suoritus",
+                    ryhmittely,
+                )
+            } else {
+                buildSql(
+                    withCtes("suoritus" to selectSuorituksetRoot(distinct)),
+                    "$sarakkeet FROM suoritus AS yki_suoritus",
+                    filter.whereSql(),
+                    ryhmittely,
+                )
+            }
+
+        return jdbcNamedParameterTemplate.query(sql, filter.params(), YkiSuoritusTilastoRivi.fromRow)
+    }
+
     // received_at asetetaan vain ulkoisesta importista (YkiSuoritusEntity.from) ja
     // säilyy ennallaan sisäisten versiokirjoitusten yli (data class .copy() preservoi sen
     // hyvaksyTarkistusarvioinnit-kutsussa). Siksi tämä kysely vastaa "Viimeisin saapunut suoritus"

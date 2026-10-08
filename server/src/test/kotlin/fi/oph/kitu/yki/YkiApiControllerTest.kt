@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.ClassPathResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockHttpSession
@@ -767,6 +768,92 @@ class YkiApiControllerTest(
 
         assertContains(csv, "Zebrakalastaja")
         assertFalse(csv.contains("Muukalainen"), "CSV ei saa sisältää hakusanaan täsmäämättömiä suorituksia")
+    }
+
+    @Test
+    fun `CSV-vienti suodattaa rekisteriintuontiajalla`() {
+        suoritusRepository.deleteAll()
+
+        val rajauksessa =
+            generateRandomYkiSuoritusEntity().copy(
+                sukunimi = "Tuontirajauksessa",
+                receivedAt = Instant.parse("2026-03-15T10:00:00Z"),
+            )
+        val rajauksenUlkopuolella =
+            generateRandomYkiSuoritusEntity().copy(
+                sukunimi = "Tuontirajauksenulkopuolella",
+                receivedAt = Instant.parse("2026-04-15T10:00:00Z"),
+            )
+        suoritusRepository.saveAllNewEntities(listOf(rajauksessa, rajauksenUlkopuolella))
+
+        val response =
+            ykiApiController.getSuorituksetAsCsv(
+                YkiSuorituksetParams(
+                    tuontialku = LocalDate.of(2026, 3, 1),
+                    tuontiloppu = LocalDate.of(2026, 3, 31),
+                ),
+                MockHttpSession(),
+            )
+        val csv =
+            ByteArrayOutputStream()
+                .also { response.body!!.writeTo(it) }
+                .toString(Charsets.UTF_8)
+
+        assertContains(csv, "Tuontirajauksessa")
+        assertFalse(csv.contains("Tuontirajauksenulkopuolella"))
+    }
+
+    @Test
+    fun `tilastojen CSV-vienti ryhmittelee rajatut suoritukset ilman henkilötietoja`() {
+        suoritusRepository.deleteAll()
+
+        val paiva = LocalDate.of(2026, 3, 14)
+        val tuonti = Instant.parse("2026-03-20T10:00:00Z")
+
+        fun suoritus(kieli: Tutkintokieli) =
+            generateRandomYkiSuoritusEntity().copy(
+                tutkintopaiva = paiva,
+                tutkintokieli = kieli,
+                tutkintotaso = Tutkintotaso.KT,
+                arviointitila = Arviointitila.ARVIOITU,
+                receivedAt = tuonti,
+            )
+        suoritusRepository.saveAllNewEntities(
+            listOf(
+                suoritus(Tutkintokieli.FIN),
+                suoritus(Tutkintokieli.FIN),
+                suoritus(Tutkintokieli.SWE),
+                suoritus(Tutkintokieli.FIN).copy(receivedAt = Instant.parse("2026-05-01T10:00:00Z")),
+            ),
+        )
+
+        val response =
+            ykiApiController.getSuoritustilastotAsCsv(
+                YkiSuorituksetParams(
+                    tutkintokieli = Tutkintokieli.FIN,
+                    tuontialku = LocalDate.of(2026, 3, 1),
+                    tuontiloppu = LocalDate.of(2026, 3, 31),
+                ),
+                MockHttpSession(),
+            )
+        val rivit =
+            ByteArrayOutputStream()
+                .also { response.body!!.writeTo(it) }
+                .toString(Charsets.UTF_8)
+                .removePrefix("\uFEFF")
+                .lines()
+                .filter { it.isNotBlank() }
+
+        assertEquals(
+            listOf(
+                "Tutkintopäivä;Tutkintokieli;Tutkintotaso;Arviointitila;Lukumäärä",
+                "14.3.2026;suomi;Keskitaso;${Arviointitila.ARVIOITU.viewText};2",
+            ),
+            rivit,
+        )
+        val tiedostonimi = response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION).orEmpty()
+        assertContains(tiedostonimi, "yki_suoritustilastot_FIN")
+        assertFalse(tiedostonimi.contains("henkilotiedot"))
     }
 
     @Test

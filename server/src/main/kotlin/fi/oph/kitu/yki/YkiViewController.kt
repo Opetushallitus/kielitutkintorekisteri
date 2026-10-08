@@ -19,6 +19,8 @@ import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.suoritukset.YkiSuorituksetPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusPage
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastotPage
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitPage
 import fi.oph.kitu.yki.suoritukset.error.YkiKoskiErrors
 import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorColumn
@@ -123,7 +125,7 @@ class YkiViewController(
                         offset = params.limit * (params.page - 1),
                     ),
                 totalSuoritukset = totalSuoritukset,
-                params,
+                filterParams = params,
                 pagination =
                     Pagination.valueOf(
                         currentPageNumber = params.page,
@@ -133,6 +135,46 @@ class YkiViewController(
                     ),
                 errorsCount = suoritusErrorService.countErrors(),
                 koskiErrorsCount = koskiErrorService.countByEntity("yki", false).toLong(),
+                csrfToken = csrfToken,
+                warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
+            ),
+        )
+    }
+
+    @GetMapping("/suoritukset/tilastot", produces = ["text/html"])
+    fun tilastotGetView(
+        @ModelAttribute params: YkiSuorituksetParams = YkiSuorituksetParams(),
+        session: HttpSession? = null,
+    ): ResponseEntity<String> =
+        handleTilastotView(
+            params.withRecalledSearch(session),
+            KituRequest.currentCsrfToken(),
+        )
+
+    @PostMapping("/suoritukset/tilastot", produces = ["text/html"])
+    fun tilastotPostView(
+        @ModelAttribute params: YkiSuorituksetParams,
+        csrfToken: CsrfToken? = KituRequest.currentCsrfToken(),
+        session: HttpSession,
+    ): ResponseEntity<String> {
+        session.setAttribute(YKI_SEARCH_KEY, params.search)
+        return handleTilastotView(params, csrfToken)
+    }
+
+    private fun handleTilastotView(
+        params: YkiSuorituksetParams,
+        csrfToken: CsrfToken?,
+    ): ResponseEntity<String> {
+        val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        return ResponseEntity.ok(
+            YkiSuoritusTilastotPage.render(
+                tilastot =
+                    YkiSuoritusTilastoColumn.jarjesta(
+                        ykiService.countSuorituksetRyhmittain(extended.filter, params.versionHistory),
+                        params.tilastoSortColumn,
+                        params.tilastoSortDirection,
+                    ),
+                filterParams = params,
                 csrfToken = csrfToken,
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),

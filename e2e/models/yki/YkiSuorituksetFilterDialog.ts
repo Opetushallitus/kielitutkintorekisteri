@@ -19,6 +19,15 @@ export class YkiSuorituksetFilterDialog {
       .setChecked(state)
   }
 
+  async setTuontiaika(alku: string, loppu: string) {
+    await this.modal.getByLabel("Rekisteriintuontiaika alkaen").fill(alku)
+    await this.modal.getByLabel("Rekisteriintuontiaika päättyen").fill(loppu)
+  }
+
+  async setTutkintokieli(value: string) {
+    await this.modal.locator(`select[name="tutkintokieli"]`).selectOption(value)
+  }
+
   async submit() {
     await this.modal.getByRole("button", { name: "Rajaa" }).click()
   }

@@ -19,6 +19,7 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaService
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
 import io.swagger.v3.oas.annotations.Operation
@@ -65,6 +66,26 @@ class YkiApiController(
                         service.extendFilterWithLinkedOidsOrThrow(withSearch.toFilter()),
                     ),
                 excludeTags = withSearch.excludeTags(),
+            )
+        }
+
+    @GetMapping("/suoritukset/tilastot", produces = ["text/csv"])
+    fun getSuoritustilastotAsCsv(
+        @ModelAttribute params: YkiSuorituksetParams = YkiSuorituksetParams(),
+        session: HttpSession? = null,
+    ): ResponseEntity<StreamingResponseBody> =
+        params.withRecalledSearch(session).let { withSearch ->
+            csvAttachmentResponse<YkiSuoritusTilastoColumn, _>(
+                filename = withSearch.tilastoCsvFileName(),
+                data =
+                    YkiSuoritusTilastoColumn.jarjesta(
+                        service.countSuorituksetRyhmittain(
+                            service.extendFilterWithLinkedOidsOrThrow(withSearch.toFilter()),
+                            withSearch.versionHistory,
+                        ),
+                        withSearch.tilastoSortColumn,
+                        withSearch.tilastoSortDirection,
+                    ),
             )
         }
 

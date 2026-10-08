@@ -8,6 +8,7 @@ import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 
@@ -28,6 +29,12 @@ data class YkiSuorituksetParams(
     var piilotaHenkilotiedot: Boolean = false,
     val piilotaVanhentuneetTiedot: Boolean = false,
     val arviointitila: Arviointitila? = null,
+    @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    var tuontialku: LocalDate? = null,
+    @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    var tuontiloppu: LocalDate? = null,
+    var tilastoSortColumn: YkiSuoritusTilastoColumn = YkiSuoritusTilastoColumn.Tutkintopaiva,
+    var tilastoSortDirection: SortDirection = SortDirection.DESC,
 ) {
     fun toMap(): Map<String, String?> =
         mapOf(
@@ -43,6 +50,11 @@ data class YkiSuorituksetParams(
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
             "piilotaVanhentuneetTiedot" to piilotaVanhentuneetTiedot.toTrueOrNull(),
             "arviointitila" to arviointitila?.toString(),
+            "tuontialku" to tuontialku?.toString(),
+            "tuontiloppu" to tuontiloppu?.toString(),
+            "tilastoSortColumn" to
+                tilastoSortColumn.takeIf { it != YkiSuoritusTilastoColumn.Tutkintopaiva }?.urlParam,
+            "tilastoSortDirection" to tilastoSortDirection.takeIf { it != SortDirection.DESC }?.name,
         )
 
     fun toFilter() =
@@ -53,6 +65,8 @@ data class YkiSuorituksetParams(
             tutkintokieli = tutkintokieli,
             tutkintotaso = tutkintotaso,
             arviointitila = arviointitila,
+            tuontialku = tuontialku,
+            tuontiloppu = tuontiloppu,
         )
 
     fun toOrder() =
@@ -76,11 +90,26 @@ data class YkiSuorituksetParams(
             tutkintotaso?.toString(),
             tutkintoalku?.toString(),
             tutkintoloppu?.toString(),
+            tuontialku?.let { "tuonti_$it" },
+            tuontiloppu?.let { "tuonti_$it" },
+        )
+
+    fun tilastoCsvFileName() =
+        buildCsvFilename(
+            "yki_suoritustilastot",
+            true,
+            tutkintokieli?.toString(),
+            tutkintotaso?.toString(),
+            tutkintoalku?.toString(),
+            tutkintoloppu?.toString(),
+            tuontialku?.let { "tuonti_$it" },
+            tuontiloppu?.let { "tuonti_$it" },
         )
 
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             aikarajausDescription(tutkintoalku, tutkintoloppu),
+            aikarajausDescription(tuontialku, tuontiloppu, prefix = UiText.Filter.rekisteriintuontiaikaPrefix),
             tutkintokieli?.let { "${UiText.Yki.Sarake.tutkintokieli}: $it" },
             tutkintotaso?.let { "${UiText.Yki.Sarake.tutkintotaso}: $it" },
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,

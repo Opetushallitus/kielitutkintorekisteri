@@ -9,6 +9,7 @@ import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
@@ -625,6 +626,104 @@ class YkiSuoritusRepositoryTest(
                     ykiSuoritusRepository.find(hyvaksyttyFilter).count().toLong(),
                     ykiSuoritusRepository.countSuoritukset(hyvaksyttyFilter),
                     "count ja find poikkesivat TARKISTUSARVIOINTI_HYVAKSYTTY-suodatuksella",
+                )
+            },
+        )
+    }
+
+    @Test
+    fun `rekisteriintuontiajan rajaus käyttää Suomen aikavyöhykkeen päivärajoja`() {
+        val ennenAlkua = generateRandomYkiSuoritusEntity().copy(receivedAt = Instant.parse("2026-02-28T21:59:59Z"))
+        val alkupaivanAlussa =
+            generateRandomYkiSuoritusEntity().copy(
+                receivedAt = Instant.parse("2026-02-28T22:00:00Z"),
+            )
+        val loppupaivanIltana =
+            generateRandomYkiSuoritusEntity().copy(
+                receivedAt = Instant.parse("2026-03-31T20:30:00Z"),
+            )
+        val loppupaivanJalkeen =
+            generateRandomYkiSuoritusEntity().copy(
+                receivedAt = Instant.parse("2026-03-31T21:00:00Z"),
+            )
+        ykiSuoritusRepository.saveAllNewEntities(
+            listOf(ennenAlkua, alkupaivanAlussa, loppupaivanIltana, loppupaivanJalkeen),
+        )
+
+        val filter =
+            YkiSuoritusFilter(
+                tuontialku = LocalDate.of(2026, 3, 1),
+                tuontiloppu = LocalDate.of(2026, 3, 31),
+            )
+
+        assertEquals(
+            setOf(alkupaivanAlussa.solkiId, loppupaivanIltana.solkiId),
+            ykiSuoritusRepository.findForListView(filter).map { it.solkiId }.toSet(),
+        )
+        assertEquals(2L, ykiSuoritusRepository.countSuoritukset(filter))
+    }
+
+    @Test
+    fun `suoritukset ryhmitellään tutkintopäivän, kielen, tason ja arviointitilan mukaan`() {
+        val paiva = LocalDate.of(2026, 5, 9)
+
+        fun suoritus(
+            kieli: Tutkintokieli,
+            tila: Arviointitila = Arviointitila.ARVIOITU,
+        ) = generateRandomYkiSuoritusEntity().copy(
+            tutkintopaiva = paiva,
+            tutkintokieli = kieli,
+            tutkintotaso = Tutkintotaso.KT,
+            arviointitila = tila,
+        )
+        val fin1 = suoritus(Tutkintokieli.FIN)
+        val fin2 = suoritus(Tutkintokieli.FIN)
+        val finUusiVersio = fin2.copy(lastModified = fin2.lastModified.plusSeconds(60), etunimet = "Uusi Versio")
+        val finArvioitava = suoritus(Tutkintokieli.FIN, Arviointitila.ARVIOITAVA)
+        val swe = suoritus(Tutkintokieli.SWE)
+        ykiSuoritusRepository.saveAllNewEntities(listOf(fin1, fin2, finArvioitava, swe))
+        ykiSuoritusRepository.saveAllNewEntities(listOf(finUusiVersio))
+
+        fun YkiSuoritusTilastoRivi.avain() = Triple(tutkintokieli, arviointitila, lukumaara)
+
+        assertAll(
+            {
+                assertEquals(
+                    setOf(
+                        Triple(Tutkintokieli.FIN, Arviointitila.ARVIOITU, 2L),
+                        Triple(Tutkintokieli.FIN, Arviointitila.ARVIOITAVA, 1L),
+                        Triple(Tutkintokieli.SWE, Arviointitila.ARVIOITU, 1L),
+                    ),
+                    ykiSuoritusRepository.countSuorituksetRyhmittain().map { it.avain() }.toSet(),
+                )
+            },
+            {
+                assertEquals(
+                    setOf(Triple(Tutkintokieli.FIN, Arviointitila.ARVIOITU, 3L)),
+                    ykiSuoritusRepository
+                        .countSuorituksetRyhmittain(
+                            YkiSuoritusFilter(
+                                arviointitila = Arviointitila.ARVIOITU,
+                                tutkintokieli = Tutkintokieli.FIN,
+                            ),
+                            distinct = false,
+                        ).map { it.avain() }
+                        .toSet(),
+                    "versiohistoria laskee kaikki versiot",
+                )
+            },
+            {
+                assertEquals(
+                    setOf(Triple(Tutkintokieli.FIN, Arviointitila.ARVIOITAVA, 1L)),
+                    ykiSuoritusRepository
+                        .countSuorituksetRyhmittain(YkiSuoritusFilter(arviointitila = Arviointitila.ARVIOITAVA))
+                        .map { it.avain() }
+                        .toSet(),
+                )
+            },
+            {
+                assertTrue(
+                    ykiSuoritusRepository.countSuorituksetRyhmittain().all { it.tutkintopaiva == paiva },
                 )
             },
         )

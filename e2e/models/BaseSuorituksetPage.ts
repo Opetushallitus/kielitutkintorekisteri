@@ -1,6 +1,8 @@
 import { Locator, Page } from "@playwright/test"
 import BasePage from "./BasePage"
 import { Config } from "../config"
+import { expect } from "../fixtures/baseFixture"
+import * as node_fs from "node:fs"
 
 export default abstract class BaseSuorituksetPage extends BasePage {
   constructor(page: Page, config: Config) {
@@ -30,6 +32,16 @@ export default abstract class BaseSuorituksetPage extends BasePage {
     return this.getPageContent().getByRole("link", {
       name: "Lataa tiedot CSV:nä",
     })
+  }
+
+  async downloadCSV(): Promise<string> {
+    const [download] = await Promise.all([
+      this.page.waitForEvent("download"),
+      this.getCSVDownloadLink().click(),
+    ])
+    const path = await download.path()
+    expect(path).not.toBeNull()
+    return await node_fs.promises.readFile(path!, "utf8")
   }
 
   protected async openFilterDialogLocator(): Promise<Locator> {
