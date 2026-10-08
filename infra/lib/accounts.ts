@@ -58,7 +58,7 @@ export const deploymentAccounts: {
       name: "kielitutkintorekisteri-alerts-dev-test",
       id: "C08E14CRZ3J",
     },
-    ykiSuoritusEmailRecipients: [],
+    ykiSuoritusEmailRecipients: ["ilkka.hanninen@reaktor.com"],
     koski: {
       region: "eu-west-1",
       account: "500150530292",
