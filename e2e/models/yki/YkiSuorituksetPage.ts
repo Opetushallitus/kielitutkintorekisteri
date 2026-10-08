@@ -2,10 +2,8 @@ import BaseSuorituksetPage from "../BaseSuorituksetPage"
 import { Locator, Page } from "@playwright/test"
 import { expect } from "../../fixtures/baseFixture"
 import { Config } from "../../config"
-import * as node_fs from "node:fs"
 import { YkiSuorituksetFilterDialog } from "./YkiSuorituksetFilterDialog"
-
-const fs = node_fs.promises
+import YkiSuoritusTilastotPage from "./YkiSuoritusTilastotPage"
 
 export default class YkiSuorituksetPage extends BaseSuorituksetPage {
   constructor(page: Page, config: Config) {
@@ -43,6 +41,13 @@ export default class YkiSuorituksetPage extends BaseSuorituksetPage {
       .fill(search)
   }
 
+  async openTilastot(): Promise<YkiSuoritusTilastotPage> {
+    await this.getPageContent().getByTestId("tilastot-linkki").click()
+    const tilastot = new YkiSuoritusTilastotPage(this.page, this.config)
+    await tilastot.expectContentToBeVisible()
+    return tilastot
+  }
+
   async filterSuoritukset() {
     await this.getPageContent().getByRole("button", { name: "Suodata" }).click()
   }
@@ -52,18 +57,5 @@ export default class YkiSuorituksetPage extends BaseSuorituksetPage {
       .nth(rowIndex)
       .getByRole("link", { name: "Näytä" })
       .click()
-  }
-
-  async downloadCSV(): Promise<string> {
-    const [download] = await Promise.all([
-      this.page.waitForEvent("download"),
-      this.getCSVDownloadLink().click(),
-    ])
-
-    // Save the file to a temporary location
-    const path = await download.path()
-    expect(path).not.toBeNull()
-
-    return await fs.readFile(path!, "utf8")
   }
 }

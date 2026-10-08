@@ -230,6 +230,8 @@ object UiText {
         val tutkintopaivaAlkaen: LocalizedString get() = tr("yki.tutkintopaivaAlkaen")
         val tutkintopaivaPaattyen: LocalizedString
             get() = tr("yki.tutkintopaivaPaattyen")
+        val tuontiaikaAlkaen: LocalizedString get() = tr("yki.tuontiaikaAlkaen")
+        val tuontiaikaPaattyen: LocalizedString get() = tr("yki.tuontiaikaPaattyen")
         val naytaVersiohistoria: LocalizedString get() = tr("yki.naytaVersiohistoria")
 
         val hakusana: LocalizedString
@@ -265,6 +267,13 @@ object UiText {
         val ilmoittautumisenTiedot: LocalizedString get() =
             tr("yki.ilmoittautumisenTiedot")
         val oppijanumerorekisteri: LocalizedString get() = tr("yki.oppijanumerorekisteri")
+
+        object Tilastot {
+            val otsikko: LocalizedString get() = tr("yki.tilastot.otsikko")
+            val lukumaara: LocalizedString get() = tr("yki.tilastot.lukumaara")
+            val takaisinSuorituksiin: LocalizedString get() = tr("yki.tilastot.takaisinSuorituksiin")
+            val eiSuorituksia: LocalizedString get() = tr("yki.tilastot.eiSuorituksia")
+        }
 
         object Arviointitila {
             val ilmoittautunut: LocalizedString get() = tr("yki.arviointitila.ilmoittautunut")
@@ -814,6 +823,7 @@ object UiText {
 
     object Filter {
         val aikarajausPrefix: LocalizedString get() = tr("filter.aikarajausPrefix")
+        val rekisteriintuontiaikaPrefix: LocalizedString get() = tr("filter.rekisteriintuontiaikaPrefix")
         val rajaaNaytettavat: LocalizedString get() = tr("filter.rajaaNaytettavat")
         val tiedonRajaus: LocalizedString get() = tr("filter.tiedonRajaus")
         val rajaa: LocalizedString get() = tr("filter.rajaa")

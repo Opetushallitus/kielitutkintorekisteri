@@ -61,6 +61,92 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(suoritukset).toHaveCount(4)
   })
 
+  test("tilastot page keeps the active filters of the list view", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await dialog.setTutkintokieli("FIN")
+    await dialog.submit()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(2)
+
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+    await expect(tilastot.getPageContent()).toContainText("Tutkintokieli: FIN")
+    await expect(tilastot.getSuoritusRow()).toHaveCount(2)
+    await expect(tilastot.getYhteensa()).toHaveText("2")
+
+    await tilastot.backToSuoritukset()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(2)
+  })
+
+  test("tilastot table is sortable by every column", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+    await expect(tilastot.getSuoritusRow()).toHaveCount(3)
+
+    const ensimmainenSolu = (sarake: number) =>
+      tilastot.getSuoritusColumn(0, sarake)
+
+    await expect(ensimmainenSolu(0)).toHaveText("12.1.2025")
+
+    await tilastot.sortBy("Tutkintopäivä")
+    await expect(ensimmainenSolu(0)).toHaveText("25.8.2024")
+
+    await tilastot.sortBy("Tutkintokieli")
+    await expect(ensimmainenSolu(1)).toHaveText("ruotsi")
+    await tilastot.sortBy("Tutkintokieli")
+    await expect(ensimmainenSolu(1)).toHaveText("suomi")
+
+    await tilastot.sortBy("Tutkintotaso")
+    await expect(ensimmainenSolu(2)).toHaveText("Ylin taso")
+
+    await tilastot.sortBy("Arviointitila")
+    await expect(ensimmainenSolu(3)).toHaveText("Tarkistusarviointi tehty")
+
+    await tilastot.sortBy("Lukumäärä")
+    await expect(ensimmainenSolu(4)).toHaveText("1")
+  })
+
+  test("tilastot can be downloaded as CSV", async ({ ykiSuorituksetPage }) => {
+    await ykiSuorituksetPage.open()
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+
+    const csv = await tilastot.downloadCSV()
+    const rivit = csv
+      .replace(/^\uFEFF/, "")
+      .split("\n")
+      .filter((rivi) => rivi.trim() !== "")
+
+    expect(rivit[0]).toBe(
+      "Tutkintopäivä;Tutkintokieli;Tutkintotaso;Arviointitila;Lukumäärä",
+    )
+    expect(rivit).toHaveLength(4)
+  })
+
+  test("rekisteriintuontiaika filter excludes suoritukset received outside the range", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await dialog.setTuontiaika("2020-01-01", "2020-12-31")
+    await dialog.submit()
+
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(0)
+    await expect(ykiSuorituksetPage.getPageContent()).toContainText(
+      "Rekisteriintuontiaika: 1.1.2020-31.12.2020",
+    )
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+    await expect(tilastot.getPageContent()).toContainText(
+      "Rekisteriintuontiaika: 1.1.2020-31.12.2020",
+    )
+    await expect(tilastot.getPageContent()).toContainText(
+      "Ei suorituksia valituilla rajauksilla",
+    )
+  })
+
   test("filter dialog can be cancelled without applying the filter", async ({
     indexPage,
     ykiSuorituksetPage,

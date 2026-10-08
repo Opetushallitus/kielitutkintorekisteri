@@ -23,10 +23,11 @@ fun aikarajausDescription(
     alku: LocalDate?,
     loppu: LocalDate?,
     lang: Language = CurrentLanguage.get(),
+    prefix: LocalizedString = UiText.Filter.aikarajausPrefix,
 ): String? =
     if (alku != null || loppu != null) {
         listOf(alku?.finnishDate().orEmpty(), loppu?.finnishDate().orEmpty())
-            .joinToString("-", prefix = UiText.Filter.aikarajausPrefix.get(lang) + ": ")
+            .joinToString("-", prefix = prefix.get(lang) + ": ")
     } else {
         null
     }

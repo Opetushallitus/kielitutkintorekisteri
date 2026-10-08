@@ -18,6 +18,7 @@ import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
+import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
@@ -29,6 +30,7 @@ import fi.oph.kitu.yki.YkiSuorituksetParams
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
 import kotlinx.html.InputType
+import kotlinx.html.a
 import kotlinx.html.article
 import kotlinx.html.button
 import kotlinx.html.fieldSet
@@ -36,6 +38,7 @@ import kotlinx.html.footer
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.header
+import kotlinx.html.li
 import kotlinx.html.section
 import kotlinx.html.table
 import org.springframework.security.web.csrf.CsrfToken
@@ -63,24 +66,7 @@ object YkiSuorituksetPage {
             koskiErrorsArticle(koskiErrorsCount, Links.Yki.koskiVirheet())
             viewMessage(warning)
 
-            section(classes = "grid center-vertically") {
-                formPost(action = "", csrfToken = csrfToken) {
-                    fieldSet {
-                        attributes["role"] = "search"
-                        input(
-                            id = "search",
-                            type = InputType.text,
-                            name = "search",
-                            value = filterParams.search,
-                            placeholder = UiText.Yki.hakusana.toString(),
-                        ) {
-                            button(type = ButtonType.submit) {
-                                +UiText.Yki.suodata
-                            }
-                        }
-                    }
-                }
-            }
+            ykiSuoritusHakulomake(filterParams, csrfToken)
 
             article(classes = "overflow-auto") {
                 header {
@@ -88,6 +74,14 @@ object YkiSuorituksetPage {
                         countLabel = UiText.Yki.suorituksiaYhteensa,
                         numberOfItems = totalSuoritukset,
                         csvHref = Links.Yki.suorituksetCsv() + httpParams(filterParams.toMap()),
+                        extraActions = {
+                            li {
+                                a(href = Links.Yki.suorituksetTilastot() + httpParams(filterParams.toMap())) {
+                                    testId("tilastot-linkki")
+                                    +UiText.Yki.Tilastot.otsikko
+                                }
+                            }
+                        },
                     ) { ykiSuoritusFilterButton(filterParams) }
                     filterDescriptionList(filterParams.filterDescriptions())
                 }
@@ -124,12 +118,46 @@ object YkiSuorituksetPage {
         }
 }
 
-fun FlowContent.ykiSuoritusFilterButton(params: YkiSuorituksetParams) {
-    tableFilterDialog("suoritukset") {
+fun FlowContent.ykiSuoritusHakulomake(
+    filterParams: YkiSuorituksetParams,
+    csrfToken: CsrfToken?,
+) {
+    section(classes = "grid center-vertically") {
+        formPost(action = "", csrfToken = csrfToken) {
+            fieldSet {
+                attributes["role"] = "search"
+                input(
+                    id = "search",
+                    type = InputType.text,
+                    name = "search",
+                    value = filterParams.search,
+                    placeholder = UiText.Yki.hakusana.toString(),
+                ) {
+                    button(type = ButtonType.submit) {
+                        +UiText.Yki.suodata
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun FlowContent.ykiSuoritusFilterButton(
+    params: YkiSuorituksetParams,
+    sailytettavatParametrit: Map<String, String?> = emptyMap(),
+) {
+    tableFilterDialog("") {
         input(type = InputType.hidden, name = "recallSearch", value = "true")
+        sailytettavatParametrit.forEach { (name, value) ->
+            value?.let { input(type = InputType.hidden, name = name, value = it) }
+        }
         fieldSet(classes = "grid") {
             dateFilter("tutkintoalku", UiText.Yki.tutkintopaivaAlkaen.toString(), params.tutkintoalku)
             dateFilter("tutkintoloppu", UiText.Yki.tutkintopaivaPaattyen.toString(), params.tutkintoloppu)
+        }
+        fieldSet(classes = "grid") {
+            dateFilter("tuontialku", UiText.Yki.tuontiaikaAlkaen.toString(), params.tuontialku)
+            dateFilter("tuontiloppu", UiText.Yki.tuontiaikaPaattyen.toString(), params.tuontiloppu)
         }
         fieldSet {
             enumFilter<Tutkintokieli>(

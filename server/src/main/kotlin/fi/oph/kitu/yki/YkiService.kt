@@ -12,6 +12,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -93,6 +94,13 @@ class YkiService(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         versionHistory: Boolean = false,
     ): Long = suoritusRepository.countSuoritukset(filter = filter, distinct = !versionHistory)
+
+    @WithSpan
+    fun countSuorituksetRyhmittain(
+        filter: YkiSuoritusFilter = YkiSuoritusFilter(),
+        versionHistory: Boolean = false,
+    ): List<YkiSuoritusTilastoRivi> =
+        suoritusRepository.countSuorituksetRyhmittain(filter = filter, distinct = !versionHistory)
 
     @WithSpan
     fun findSuorituksetPaged(

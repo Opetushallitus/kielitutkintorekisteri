@@ -9,6 +9,7 @@ import fi.oph.kitu.jdbc.SqlFilterBuilder
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.SearchTerms
+import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
@@ -21,6 +22,8 @@ data class YkiSuoritusFilter(
     val tutkintokieli: Tutkintokieli? = null,
     val tutkintotaso: Tutkintotaso? = null,
     val arviointitila: Arviointitila? = null,
+    val tuontialku: LocalDate? = null,
+    val tuontiloppu: LocalDate? = null,
 ) {
     fun whereSql(): String? = sqlSpec.whereClauseOrNull()
 
@@ -74,6 +77,13 @@ data class YkiSuoritusFilter(
             add(
                 arviointitila?.let { "arviointitila = :filter_arviointitila" },
                 "filter_arviointitila" to arviointitila?.name,
+            )
+            val tuontiAlkuhetki = tuontialku?.atStartOfDay(TimeService.zoneId)?.toOffsetDateTime()
+            add(tuontiAlkuhetki?.let { "received_at >= :filter_tuonti_alku" }, "filter_tuonti_alku" to tuontiAlkuhetki)
+            val tuontiLoppuhetki = tuontiloppu?.plusDays(1)?.atStartOfDay(TimeService.zoneId)?.toOffsetDateTime()
+            add(
+                tuontiLoppuhetki?.let { "received_at < :filter_tuonti_loppu" },
+                "filter_tuonti_loppu" to tuontiLoppuhetki,
             )
         }
     }

@@ -58,6 +58,8 @@ fun <T> TABLE.displayTableHeader(
     preserveSortDirection: Boolean,
     selectableRows: Boolean,
     tableId: String,
+    sortColumnParam: String = "sortColumn",
+    sortDirectionParam: String = "sortDirection",
 ) {
     val sortedByKey = sortedBy?.urlParam
     thead {
@@ -81,8 +83,8 @@ fun <T> TABLE.displayTableHeader(
                                 httpParams(
                                     urlParams +
                                         mapOf(
-                                            "sortColumn" to it.sortKey,
-                                            "sortDirection" to
+                                            sortColumnParam to it.sortKey,
+                                            sortDirectionParam to
                                                 if (isSortedColumn) {
                                                     sortDirection.reverse().name
                                                 } else if (preserveSortDirection) {

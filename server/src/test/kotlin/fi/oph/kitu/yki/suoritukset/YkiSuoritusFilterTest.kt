@@ -12,6 +12,9 @@ import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.Test
 import org.springframework.http.ResponseEntity
+import java.time.Instant
+import java.time.LocalDate
+import java.time.OffsetDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -20,6 +23,27 @@ import kotlin.test.assertTrue
 class YkiSuoritusFilterTest {
     private val oppijaOid = "1.2.246.562.24.12345678901"
     private val orgOid = "1.2.246.562.100.12345678901"
+
+    @Test
+    fun `rekisteriintuontiajan rajaus kattaa päivät Suomen aikaa ja loppupäivä on inklusiivinen`() {
+        val filter =
+            YkiSuoritusFilter(
+                tuontialku = LocalDate.of(2026, 3, 1),
+                tuontiloppu = LocalDate.of(2026, 3, 31),
+            )
+        val where = filter.whereSql()!!
+
+        assertTrue(where.contains("received_at >= :filter_tuonti_alku"), "Got: $where")
+        assertTrue(where.contains("received_at < :filter_tuonti_loppu"), "Got: $where")
+        assertEquals(
+            Instant.parse("2026-02-28T22:00:00Z"),
+            (filter.params()["filter_tuonti_alku"] as OffsetDateTime).toInstant(),
+        )
+        assertEquals(
+            Instant.parse("2026-03-31T21:00:00Z"),
+            (filter.params()["filter_tuonti_loppu"] as OffsetDateTime).toInstant(),
+        )
+    }
 
     @Test
     fun `vapaasanahaku tuottaa ILIKE-ehdon parametrilla`() {
