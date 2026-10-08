@@ -19,7 +19,8 @@ import {
 import { CfnTransactionSearchConfig } from "aws-cdk-lib/aws-xray"
 import { Construct } from "constructs"
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets"
-import { ITopic } from "aws-cdk-lib/aws-sns"
+import { ITopic, Topic } from "aws-cdk-lib/aws-sns"
+import { EmailSubscription } from "aws-cdk-lib/aws-sns-subscriptions"
 import { Rule } from "aws-cdk-lib/aws-events"
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs"
 import { Runtime } from "aws-cdk-lib/aws-lambda"
@@ -30,6 +31,7 @@ export interface LogGroupsStackProps extends StackProps {
   alarmsSnsTopic: aws_sns.ITopic
   infoSnsTopic: aws_sns.ITopic
   investigationActions: IAlarmAction[]
+  ykiSuoritusEmailRecipients: string[]
 }
 
 export class LogGroupsStack extends Stack {
@@ -64,7 +66,10 @@ export class LogGroupsStack extends Stack {
       logGroupName: "KituServiceAudit",
     })
 
-    this.enableTransactionSearch(props.infoSnsTopic)
+    this.enableTransactionSearch(
+      props.infoSnsTopic,
+      props.ykiSuoritusEmailRecipients,
+    )
 
     const errorsAlarm = this.serviceLogGroup
       .addMetricFilter("Errors", {
@@ -118,7 +123,10 @@ export class LogGroupsStack extends Stack {
    * @see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Transaction-Search.html
    * @see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Transaction-Search-Cloudformation.html
    */
-  private enableTransactionSearch(infoSnsTopic: ITopic) {
+  private enableTransactionSearch(
+    infoSnsTopic: ITopic,
+    ykiSuoritusEmailRecipients: string[],
+  ) {
     // This enables Transaction Search. CDK doesn't have a L2 construct for TS yet.
     const transactionSearchConfig = new CfnTransactionSearchConfig(
       this,
@@ -266,8 +274,25 @@ export class LogGroupsStack extends Stack {
     )
     infoSnsTopic.grantPublish(ykiSuoritusNotifications)
 
+    // Email gets only the batch summary, as plain text, on a topic of its own:
+    // the info topic carries Chatbot JSON and other notices too.
+    if (ykiSuoritusEmailRecipients.length > 0) {
+      const emailTopic = new Topic(this, "YkiSuoritusEmailTopic", {
+        displayName: "Kielitutkintorekisteri",
+      })
+      for (const osoite of ykiSuoritusEmailRecipients) {
+        emailTopic.addSubscription(new EmailSubscription(osoite))
+      }
+      emailTopic.grantPublish(ykiSuoritusNotifications)
+      ykiSuoritusNotifications.addEnvironment(
+        "EMAIL_TOPIC_ARN",
+        emailTopic.topicArn,
+      )
+    }
+
     new Rule(this, "YkiSuoritusAlarmStateChange", {
-      description: "YKI-suoritusten vastaanottoilmoitukset Slackiin",
+      description:
+        "YKI-suoritusten vastaanottoilmoitukset Slackiin ja sähköpostiin",
       eventPattern: {
         source: ["aws.cloudwatch"],
         detailType: ["CloudWatch Alarm State Change"],

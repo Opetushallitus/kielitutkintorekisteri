@@ -79,7 +79,8 @@ order (because of dependencies):
    policy applied to the service log group), `LogErrors`/`LogWarnings` metric
    filters and alarms, CloudWatch Transaction Search wiring for X-Ray spans,
    and the YKI-suoritus Slack notifications (`YkiSuoritusAlarm` + an EventBridge
-   rule + the `YkiSuoritusNotifications` Lambda).
+   rule + the `YkiSuoritusNotifications` Lambda, plus the optional
+   `YkiSuoritusEmailTopic` for emailed summaries).
 5. **`Network`** — VPC with the per-env CIDR (Dev `10.15.0.0/18`, Test
    `10.15.64.0/18`, Prod `10.15.128.0/18`) and 2 AZs in dev / 3 AZs in test+prod.
 6. **`Connections`** — three empty SGs (`serviceSG`, `loadBalancerSG`,
@@ -309,6 +310,17 @@ Per env (`Dev` / `Test` / `Prod`):
   spans can be missing from Insights for a while even after their
   `@ingestionTime` (seen in untuva on 6.10.2026); if it still fails, a summary
   without the breakdown is sent.
+
+  The summary (not the "saapuu…" notice) can also go out by email: when the
+  env's `ykiSuoritusEmailRecipients` in `lib/accounts.ts` is non-empty, the
+  stack creates `YkiSuoritusEmailTopic` with one `email` subscription per
+  address, and the Lambda publishes a plain-text version of the summary there
+  (`EMAIL_TOPIC_ARN`). It is a separate topic because the info topic carries
+  Chatbot JSON and other notices. **Each address must confirm the SNS
+  subscription** from the AWS email it receives after the deploy, otherwise
+  nothing is delivered. Mail comes from `no-reply@sns.amazonaws.com`. A failed
+  email publish is only logged, so that the Lambda's async retry does not
+  repost the Slack summary.
 
   The filter reads a span attribute (`arvioitu`) that the application sets via
   `Span.current()` in `YkiApiController`, next to `tutkintopaiva`,

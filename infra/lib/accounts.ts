@@ -16,6 +16,10 @@ export interface EnvironmentConfig {
   slackWorkspaceId: string
   slackAlarmsChannel: SlackChannel
   slackInfoChannel?: SlackChannel
+  // Vastaanotettujen YKI-suoritusten yhteenveto lähetetään myös näihin
+  // osoitteisiin. Jokaisen osoitteen on vahvistettava SNS-tilaus ennen kuin
+  // viestejä tulee perille.
+  ykiSuoritusEmailRecipients: string[]
   koski: {
     region: string
     account: string
@@ -54,6 +58,7 @@ export const deploymentAccounts: {
       name: "kielitutkintorekisteri-alerts-dev-test",
       id: "C08E14CRZ3J",
     },
+    ykiSuoritusEmailRecipients: [],
     koski: {
       region: "eu-west-1",
       account: "500150530292",
@@ -76,6 +81,7 @@ export const deploymentAccounts: {
       name: "kielitutkintorekisteri-alerts-dev-test",
       id: "C08E14CRZ3J",
     },
+    ykiSuoritusEmailRecipients: [],
     koski: {
       region: "eu-west-1",
       account: "692437769085",
@@ -102,6 +108,7 @@ export const deploymentAccounts: {
       name: "kielitutkintorekisteri",
       id: "C07KFEA4DEH",
     },
+    ykiSuoritusEmailRecipients: [],
     koski: {
       region: "eu-west-1",
       account: "508832528142",

@@ -151,3 +151,27 @@ export const yhteenvetoIlmanErittelya = (
     description: "Erittelyä ei saatu haettua.",
   },
 })
+
+export interface Sahkoposti {
+  otsikko: string
+  teksti: string
+}
+
+const SNS_OTSIKON_MAKSIMIPITUUS = 99
+
+export const sahkopostiksi = (viesti: ChatbotNotification): Sahkoposti => {
+  const otsikko = viesti.content.title.replace(
+    /^\p{Extended_Pictographic}\s*/u,
+    "",
+  )
+  const rivit = (viesti.content.description ?? "")
+    .split("\n")
+    .map((rivi) => rivi.replace(/^\*(.*)\*$/, "$1"))
+  return {
+    otsikko:
+      otsikko.length > SNS_OTSIKON_MAKSIMIPITUUS
+        ? otsikko.slice(0, SNS_OTSIKON_MAKSIMIPITUUS - 1) + "…"
+        : otsikko,
+    teksti: [otsikko, "", ...rivit].join("\n").trimEnd() + "\n",
+  }
+}

@@ -1,8 +1,10 @@
 import {
   MAX_RIVEJA,
   muotoileAikavali,
+  sahkopostiksi,
   SuoritusRyhma,
   yhteenveto,
+  yhteenvetoIlmanErittelya,
 } from "../lib/yki-suoritus-notifications/summary"
 
 const ryhma = (
@@ -88,5 +90,46 @@ describe("muotoileAikavali", () => {
         new Date("2026-10-06T21:10:00Z"),
       ),
     ).toBe("ti 6.10. klo 23.50 – ke 7.10. klo 00.10")
+  })
+})
+
+describe("sahkopostiksi", () => {
+  test("muuntaa yhteenvedon pelkäksi tekstiksi", () => {
+    const viesti = sahkopostiksi(
+      yhteenveto([
+        ryhma({ lkm: 20 }),
+        ryhma({ tutkintopaiva: "2026-09-19", tutkintokieli: "ENG", lkm: 10 }),
+      ]),
+    )
+
+    expect(viesti.otsikko).toBe(
+      "Vastaanotettu 30 arvioitua YKI-suoritusta (ti 6.10. klo 10.02–10.15)",
+    )
+    expect(viesti.teksti).toBe(
+      [
+        "Vastaanotettu 30 arvioitua YKI-suoritusta (ti 6.10. klo 10.02–10.15)",
+        "",
+        "Tutkintopäivä 12.9.2026",
+        "• suomi, keskitaso, arvioitu: 20",
+        "Tutkintopäivä 19.9.2026",
+        "• englanti, keskitaso, arvioitu: 10",
+        "",
+      ].join("\n"),
+    )
+  })
+
+  test("toimii ilman erittelyä", () => {
+    const viesti = sahkopostiksi(
+      yhteenvetoIlmanErittelya(
+        new Date("2026-10-06T07:02:00Z"),
+        new Date("2026-10-06T07:15:00Z"),
+      ),
+    )
+    expect(viesti.otsikko).toBe(
+      "Arvioituja YKI-suorituksia vastaanotettu (ti 6.10. klo 10.02–10.15)",
+    )
+    expect(viesti.teksti).toBe(
+      "Arvioituja YKI-suorituksia vastaanotettu (ti 6.10. klo 10.02–10.15)\n\nErittelyä ei saatu haettua.\n",
+    )
   })
 })

@@ -12,6 +12,7 @@ import { PublishCommand, SNSClient } from "@aws-sdk/client-sns"
 import {
   ChatbotNotification,
   saapumisilmoitus,
+  sahkopostiksi,
   SuoritusRyhma,
   yhteenveto,
   yhteenvetoIlmanErittelya,
@@ -125,6 +126,18 @@ const julkaise = (viesti: ChatbotNotification) =>
     }),
   )
 
+const julkaiseSahkopostina = async (viesti: ChatbotNotification) => {
+  if (!process.env.EMAIL_TOPIC_ARN) return
+  const { otsikko, teksti } = sahkopostiksi(viesti)
+  await sns.send(
+    new PublishCommand({
+      TopicArn: process.env.EMAIL_TOPIC_ARN,
+      Subject: otsikko,
+      Message: teksti,
+    }),
+  )
+}
+
 export const handler = async (event: AlarmStateChangeEvent) => {
   const { alarmName, state, previousState } = event.detail
 
@@ -147,10 +160,15 @@ export const handler = async (event: AlarmStateChangeEvent) => {
       await odota(UUSINNAN_VIIVE_MS)
       ryhmat = await hae()
     }
-    await julkaise(
+    const viesti =
       ryhmat.length > 0
         ? yhteenveto(ryhmat)
-        : yhteenvetoIlmanErittelya(halytysAlkoi, loppu),
-    )
+        : yhteenvetoIlmanErittelya(halytysAlkoi, loppu)
+    await Promise.all([
+      julkaise(viesti),
+      julkaiseSahkopostina(viesti).catch((e) =>
+        console.error("Yhteenvedon lähetys sähköpostiin epäonnistui", e),
+      ),
+    ])
   }
 }
