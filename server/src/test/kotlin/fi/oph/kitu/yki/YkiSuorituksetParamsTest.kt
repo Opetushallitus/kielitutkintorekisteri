@@ -1,8 +1,10 @@
 package fi.oph.kitu.yki
 
+import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import org.junit.jupiter.api.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -55,5 +57,17 @@ class YkiSuorituksetParamsTest {
             YkiSuoritusTilastoColumn.Lukumaara to SortDirection.DESC,
             params.copy(tilastoSortColumn = YkiSuoritusTilastoColumn.Lukumaara).tilastoJarjestys(),
         )
+    }
+
+    @Test
+    fun `rajauskuvaus ja CSV-tiedostonimi sisältävät arviointitilan`() {
+        val params = YkiSuorituksetParams(arviointitila = Arviointitila.TARKISTUSARVIOITU)
+
+        assertContains(
+            params.filterDescriptions(),
+            "${UiText.Yki.Sarake.arviointitila}: ${Arviointitila.TARKISTUSARVIOITU.viewText}",
+        )
+        assertContains(params.csvFileName(), "TARKISTUSARVIOITU")
+        assertContains(params.tilastoCsvFileName(), "TARKISTUSARVIOITU")
     }
 }
