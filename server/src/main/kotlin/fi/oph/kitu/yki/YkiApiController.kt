@@ -103,6 +103,14 @@ class YkiApiController(
                                 externalValue = "/kielitutkinnot/schema-examples/yki-suoritus-arvioitu.json",
                             ),
                             ExampleObject(
+                                name = "Ei suoritusta",
+                                externalValue = "/kielitutkinnot/schema-examples/yki-suoritus-ei-suoritusta.json",
+                            ),
+                            ExampleObject(
+                                name = "Tarkistusarvioitava",
+                                externalValue = "/kielitutkinnot/schema-examples/yki-suoritus-tarkistusarvioitava.json",
+                            ),
+                            ExampleObject(
                                 name = "Tarkistusarvioitu",
                                 externalValue = "/kielitutkinnot/schema-examples/yki-suoritus.json",
                             ),
