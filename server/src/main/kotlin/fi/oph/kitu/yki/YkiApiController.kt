@@ -91,7 +91,19 @@ class YkiApiController(
                         schema = Schema(YkiSuoritus::class),
                         examples = [
                             ExampleObject(
-                                name = "Yleisen kielitutkinnon suoritus",
+                                name = "Ilmoittautunut",
+                                externalValue = "/kielitutkinnot/schema-examples/yki-suoritus-ilmoittautunut.json",
+                            ),
+                            ExampleObject(
+                                name = "Arvioitava",
+                                externalValue = "/kielitutkinnot/schema-examples/yki-suoritus-arvioitava.json",
+                            ),
+                            ExampleObject(
+                                name = "Arvioitu",
+                                externalValue = "/kielitutkinnot/schema-examples/yki-suoritus-arvioitu.json",
+                            ),
+                            ExampleObject(
+                                name = "Tarkistusarvioitu",
                                 externalValue = "/kielitutkinnot/schema-examples/yki-suoritus.json",
                             ),
                         ],

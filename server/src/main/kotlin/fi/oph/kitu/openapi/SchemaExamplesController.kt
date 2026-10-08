@@ -210,69 +210,99 @@ class SchemaExamplesController {
             TiedonsiirtoFailure.forbidden("Vain YKI-kielitutkinnon siirto sallittu"),
         )
 
-    @GetMapping("/yki-suoritus.json", produces = ["application/json;charset=UTF-8"])
-    fun ykiSuoritus() =
+    @GetMapping("/yki-suoritus-ilmoittautunut.json", produces = ["application/json;charset=UTF-8"])
+    fun ykiSuoritusIlmoittautunut() =
         exampleJson(
-            Henkilosuoritus(
-                henkilo =
-                    Henkilo(
-                        oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
-                        etunimet = "Ranja Testi",
-                        sukunimi = "Öhman-Testi",
-                        sukupuoli = Sukupuoli.N,
-                        kansalaisuus = "EST",
-                        katuosoite = "Testikuja 5",
-                        postinumero = "40100",
-                        postitoimipaikka = "Testilä",
-                        maa = "FIN",
-                        email = "testi@testi.fi",
-                    ),
-                suoritus =
-                    YkiSuoritus(
-                        tutkintotaso = Tutkintotaso.YT,
-                        kieli = Tutkintokieli.FIN,
-                        todistuskieli = Todistuskieli.FIN,
-                        jarjestaja =
-                            YkiJarjestaja(
-                                oid = Oid.parse("1.2.246.562.10.14893989377").getOrThrow(),
-                                nimi = "Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus",
-                            ),
-                        tutkintopaiva = LocalDate.of(2026, 2, 2),
-                        arviointipaiva = LocalDate.of(2026, 2, 3),
-                        arviointitila = Arviointitila.TARKISTUSARVIOITU,
-                        osat =
-                            listOf(
-                                YkiOsa(
-                                    tyyppi = TutkinnonOsa.puhuminen,
-                                    arvosana = 5,
-                                ),
-                                YkiOsa(
-                                    tyyppi = TutkinnonOsa.puheenYmmartaminen,
-                                    arvosana = 5,
-                                ),
-                                YkiOsa(
-                                    tyyppi = TutkinnonOsa.kirjoittaminen,
-                                    arvosana = 5,
-                                ),
-                                YkiOsa(
-                                    tyyppi = TutkinnonOsa.tekstinYmmartaminen,
-                                    arvosana = 5,
-                                ),
-                            ),
-                        tarkistusarviointi =
-                            YkiTarkastusarviointi(
-                                saapumispaiva = LocalDate.of(2026, 2, 13),
-                                kasittelypaiva = LocalDate.of(2026, 2, 13),
-                                asiatunnus = "OPH-5000-1234",
-                                tarkistusarvioidutOsakokeet = listOf(TutkinnonOsa.puhuminen),
-                                arvosanaMuuttui = listOf(TutkinnonOsa.puhuminen),
-                                perustelu =
-                                    "Suorituksesta jäänyt viimeinen tehtävä arvioimatta. Arvioinnin jälkeen puhumisen taitotasoa 6.",
-                            ),
-                        lahdejarjestelmanId = LahdejarjestelmanTunniste.randomFrom(Lahdejarjestelma.OPHTesti),
+            ykiSuoritus(
+                arviointitila = Arviointitila.ILMOITTAUTUNUT,
+                arviointipaiva = null,
+                arvosanat = listOf(null, null, null, null),
+            ),
+        )
+
+    @GetMapping("/yki-suoritus-arvioitava.json", produces = ["application/json;charset=UTF-8"])
+    fun ykiSuoritusArvioitava() =
+        exampleJson(
+            ykiSuoritus(
+                arviointitila = Arviointitila.ARVIOITAVA,
+                arviointipaiva = null,
+                arvosanat = listOf(4, 5, null, null),
+            ),
+        )
+
+    @GetMapping("/yki-suoritus-arvioitu.json", produces = ["application/json;charset=UTF-8"])
+    fun ykiSuoritusArvioitu() =
+        exampleJson(
+            ykiSuoritus(
+                arviointitila = Arviointitila.ARVIOITU,
+                arviointipaiva = LocalDate.of(2026, 2, 3),
+                arvosanat = listOf(4, 5, 4, 5),
+            ),
+        )
+
+    @GetMapping("/yki-suoritus.json", produces = ["application/json;charset=UTF-8"])
+    fun ykiSuoritusTarkistusarvioitu() =
+        exampleJson(
+            ykiSuoritus(
+                arviointitila = Arviointitila.TARKISTUSARVIOITU,
+                arviointipaiva = LocalDate.of(2026, 2, 3),
+                arvosanat = listOf(5, 5, 5, 5),
+                tarkistusarviointi =
+                    YkiTarkastusarviointi(
+                        saapumispaiva = LocalDate.of(2026, 2, 13),
+                        kasittelypaiva = LocalDate.of(2026, 2, 13),
+                        asiatunnus = "OPH-5000-1234",
+                        tarkistusarvioidutOsakokeet = listOf(TutkinnonOsa.puhuminen),
+                        arvosanaMuuttui = listOf(TutkinnonOsa.puhuminen),
+                        perustelu =
+                            "Suorituksesta jäänyt viimeinen tehtävä arvioimatta. Arvioinnin jälkeen puhumisen taitotasoa 6.",
                     ),
             ),
         )
+
+    private fun ykiSuoritus(
+        arviointitila: Arviointitila,
+        arviointipaiva: LocalDate?,
+        arvosanat: List<Int?>,
+        tarkistusarviointi: YkiTarkastusarviointi? = null,
+    ) = Henkilosuoritus(
+        henkilo =
+            Henkilo(
+                oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
+                etunimet = "Ranja Testi",
+                sukunimi = "Öhman-Testi",
+                sukupuoli = Sukupuoli.N,
+                kansalaisuus = "EST",
+                katuosoite = "Testikuja 5",
+                postinumero = "40100",
+                postitoimipaikka = "Testilä",
+                maa = "FIN",
+                email = "testi@testi.fi",
+            ),
+        suoritus =
+            YkiSuoritus(
+                tutkintotaso = Tutkintotaso.YT,
+                kieli = Tutkintokieli.FIN,
+                todistuskieli = Todistuskieli.FIN,
+                jarjestaja =
+                    YkiJarjestaja(
+                        oid = Oid.parse("1.2.246.562.10.14893989377").getOrThrow(),
+                        nimi = "Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus",
+                    ),
+                tutkintopaiva = LocalDate.of(2026, 2, 2),
+                arviointipaiva = arviointipaiva,
+                arviointitila = arviointitila,
+                osat =
+                    listOf(
+                        TutkinnonOsa.puhuminen,
+                        TutkinnonOsa.puheenYmmartaminen,
+                        TutkinnonOsa.kirjoittaminen,
+                        TutkinnonOsa.tekstinYmmartaminen,
+                    ).zip(arvosanat) { tyyppi, arvosana -> YkiOsa(tyyppi = tyyppi, arvosana = arvosana) },
+                tarkistusarviointi = tarkistusarviointi,
+                lahdejarjestelmanId = LahdejarjestelmanTunniste.randomFrom(Lahdejarjestelma.OPHTesti),
+            ),
+    )
 
     private fun exampleJson(data: Any): ResponseEntity<ByteArray> =
         ResponseEntity(objectMapper.writeValueAsBytes(data), HttpStatus.OK)
