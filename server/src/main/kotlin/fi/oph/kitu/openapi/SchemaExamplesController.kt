@@ -240,6 +240,35 @@ class SchemaExamplesController {
             ),
         )
 
+    @GetMapping("/yki-suoritus-ei-suoritusta.json", produces = ["application/json;charset=UTF-8"])
+    fun ykiSuoritusEiSuoritusta() =
+        exampleJson(
+            ykiSuoritus(
+                arviointitila = Arviointitila.EI_SUORITUSTA,
+                arviointipaiva = null,
+                arvosanat = listOf(9, 9, 10, 10),
+            ),
+        )
+
+    @GetMapping("/yki-suoritus-tarkistusarvioitava.json", produces = ["application/json;charset=UTF-8"])
+    fun ykiSuoritusTarkistusarvioitava() =
+        exampleJson(
+            ykiSuoritus(
+                arviointitila = Arviointitila.TARKISTUSARVIOITAVA,
+                arviointipaiva = LocalDate.of(2026, 2, 3),
+                arvosanat = listOf(4, 5, 4, 5),
+                tarkistusarviointi =
+                    YkiTarkastusarviointi(
+                        saapumispaiva = LocalDate.of(2026, 2, 13),
+                        kasittelypaiva = null,
+                        asiatunnus = "OPH-5000-1234",
+                        tarkistusarvioidutOsakokeet = listOf(TutkinnonOsa.puhuminen),
+                        arvosanaMuuttui = null,
+                        perustelu = "",
+                    ),
+            ),
+        )
+
     @GetMapping("/yki-suoritus.json", produces = ["application/json;charset=UTF-8"])
     fun ykiSuoritusTarkistusarvioitu() =
         exampleJson(
