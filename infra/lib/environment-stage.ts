@@ -58,6 +58,7 @@ export class EnvironmentStage extends Stage {
       alarmsSnsTopic: alarmsStack.alarmSnsTopic,
       infoSnsTopic: alarmsStack.infoSnsTopic,
       investigationActions: alarmsStack.investigationActions,
+      ykiSuoritusEmailRecipients: environmentConfig.ykiSuoritusEmailRecipients,
     })
 
     const networkStack = new NetworkStack(this, "Network", {
