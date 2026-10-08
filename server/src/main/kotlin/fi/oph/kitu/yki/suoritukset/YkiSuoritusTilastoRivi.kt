@@ -1,6 +1,6 @@
 package fi.oph.kitu.yki.suoritukset
 
-import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getEnumOrNull
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
@@ -8,10 +8,10 @@ import org.springframework.jdbc.core.RowMapper
 import java.time.LocalDate
 
 data class YkiSuoritusTilastoRivi(
-    val tutkintopaiva: LocalDate,
-    val tutkintokieli: Tutkintokieli,
-    val tutkintotaso: Tutkintotaso,
-    val arviointitila: Arviointitila,
+    val tutkintopaiva: LocalDate?,
+    val tutkintokieli: Tutkintokieli?,
+    val tutkintotaso: Tutkintotaso?,
+    val arviointitila: Arviointitila?,
     val lukumaara: Long,
 ) {
     companion object {
@@ -19,9 +19,9 @@ data class YkiSuoritusTilastoRivi(
             RowMapper { rs, _ ->
                 YkiSuoritusTilastoRivi(
                     tutkintopaiva = rs.getObject("tutkintopaiva", LocalDate::class.java),
-                    tutkintokieli = rs.getEnum<Tutkintokieli>("tutkintokieli"),
-                    tutkintotaso = rs.getEnum<Tutkintotaso>("tutkintotaso"),
-                    arviointitila = rs.getEnum<Arviointitila>("arviointitila"),
+                    tutkintokieli = rs.getEnumOrNull<Tutkintokieli>("tutkintokieli"),
+                    tutkintotaso = rs.getEnumOrNull<Tutkintotaso>("tutkintotaso"),
+                    arviointitila = rs.getEnumOrNull<Arviointitila>("arviointitila"),
                     lukumaara = rs.getLong("lukumaara"),
                 )
             }

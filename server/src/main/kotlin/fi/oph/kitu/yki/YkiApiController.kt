@@ -75,6 +75,9 @@ class YkiApiController(
         session: HttpSession? = null,
     ): ResponseEntity<StreamingResponseBody> =
         params.withRecalledSearch(session).let { withSearch ->
+            val ryhmittely = withSearch.valittuRyhmittely()
+            val (sarake, suunta) = withSearch.tilastoJarjestys()
+            val sarakkeet = YkiSuoritusTilastoColumn.sarakkeet(ryhmittely)
             csvAttachmentResponse<YkiSuoritusTilastoColumn, _>(
                 filename = withSearch.tilastoCsvFileName(),
                 data =
@@ -82,10 +85,12 @@ class YkiApiController(
                         service.countSuorituksetRyhmittain(
                             service.extendFilterWithLinkedOidsOrThrow(withSearch.toFilter()),
                             withSearch.versionHistory,
+                            ryhmittely,
                         ),
-                        withSearch.tilastoSortColumn,
-                        withSearch.tilastoSortDirection,
+                        sarake,
+                        suunta,
                     ),
+                includeColumn = { it in sarakkeet },
             )
         }
 

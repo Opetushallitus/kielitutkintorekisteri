@@ -86,8 +86,12 @@ object DisplayTableCsvRenderer {
         output: OutputStream,
         data: Iterable<T>,
         excludeTags: Set<ColumnTag> = emptySet(),
+        noinline includeColumn: (RenderableDisplayTableEnum<T>) -> Boolean = { true },
     ) {
-        val columns = RenderableDisplayTableEnum.getByTags<E, T>(setOf(ColumnTag.CSV_EXPORT), excludeTags)
+        val columns =
+            RenderableDisplayTableEnum
+                .getByTags<E, T>(setOf(ColumnTag.CSV_EXPORT), excludeTags)
+                .filter(includeColumn)
         require(columns.isNotEmpty()) { "No columns with CSV_EXPORT tag found" }
 
         val header = columns.joinToString(SEPARATOR) { col -> escape(col.uiHeaderValue.toString()) }

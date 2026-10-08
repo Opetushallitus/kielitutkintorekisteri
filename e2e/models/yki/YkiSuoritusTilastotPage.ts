@@ -35,6 +35,25 @@ export default class YkiSuoritusTilastotPage extends BaseSuorituksetPage {
     return new YkiSuorituksetFilterDialog(await this.openFilterDialogLocator())
   }
 
+  async setRyhmittely(sarakkeet: string[]) {
+    const lomake = this.getPageContent().getByTestId("ryhmittely-lomake")
+    for (const sarake of [
+      "tutkintopaiva",
+      "tutkintokieli",
+      "tutkintotaso",
+      "arviointitila",
+    ]) {
+      await lomake
+        .getByTestId(`ryhmittely-${sarake}`)
+        .setChecked(sarakkeet.includes(sarake))
+    }
+    await lomake.getByRole("button", { name: "Päivitä" }).click()
+  }
+
+  getColumnHeaders(): Locator {
+    return this.getSuorituksetTable().locator("thead th")
+  }
+
   async backToSuoritukset() {
     await this.getPageContent().getByTestId("takaisin-suorituksiin").click()
   }

@@ -35,6 +35,7 @@ data class YkiSuorituksetParams(
     var tuontiloppu: LocalDate? = null,
     var tilastoSortColumn: YkiSuoritusTilastoColumn = YkiSuoritusTilastoColumn.Tutkintopaiva,
     var tilastoSortDirection: SortDirection = SortDirection.DESC,
+    var ryhmittely: List<YkiSuoritusTilastoColumn>? = null,
 ) {
     fun toMap(): Map<String, String?> =
         mapOf(
@@ -55,7 +56,27 @@ data class YkiSuorituksetParams(
             "tilastoSortColumn" to
                 tilastoSortColumn.takeIf { it != YkiSuoritusTilastoColumn.Tutkintopaiva }?.urlParam,
             "tilastoSortDirection" to tilastoSortDirection.takeIf { it != SortDirection.DESC }?.name,
+            "ryhmittely" to
+                valittuRyhmittely()
+                    .takeIf { it != YkiSuoritusTilastoColumn.ryhmittelyt }
+                    ?.joinToString(",") { it.urlParam },
         )
+
+    fun valittuRyhmittely(): List<YkiSuoritusTilastoColumn> =
+        YkiSuoritusTilastoColumn.ryhmittelyt
+            .filter { ryhmittely.orEmpty().contains(it) }
+            .ifEmpty { YkiSuoritusTilastoColumn.ryhmittelyt }
+
+    fun tilastoJarjestys(): Pair<YkiSuoritusTilastoColumn, SortDirection> {
+        val ryhmat = valittuRyhmittely()
+        return if (tilastoSortColumn == YkiSuoritusTilastoColumn.Lukumaara || tilastoSortColumn in ryhmat) {
+            tilastoSortColumn to tilastoSortDirection
+        } else {
+            val ensimmainen = ryhmat.first()
+            ensimmainen to
+                if (ensimmainen == YkiSuoritusTilastoColumn.Tutkintopaiva) SortDirection.DESC else SortDirection.ASC
+        }
+    }
 
     fun toFilter() =
         YkiSuoritusFilter(
@@ -98,6 +119,7 @@ data class YkiSuorituksetParams(
         buildCsvFilename(
             "yki_suoritustilastot",
             true,
+            toMap()["ryhmittely"]?.let { "ryhmittely_${it.replace(',', '-')}" },
             tutkintokieli?.toString(),
             tutkintotaso?.toString(),
             tutkintoalku?.toString(),

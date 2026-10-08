@@ -244,22 +244,27 @@ class YkiSuoritusRepository(
     fun countSuorituksetRyhmittain(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         distinct: Boolean = true,
+        ryhmittely: List<YkiSuoritusTilastoColumn> = YkiSuoritusTilastoColumn.ryhmittelyt,
     ): List<YkiSuoritusTilastoRivi> {
-        val ryhmittely = "GROUP BY tutkintopaiva, tutkintokieli, tutkintotaso, arviointitila"
-        val sarakkeet = "SELECT tutkintopaiva, tutkintokieli, tutkintotaso, arviointitila, COUNT(*) AS lukumaara"
+        val ryhmat = YkiSuoritusTilastoColumn.ryhmittelyt.filter { it in ryhmittely }
+        val sarakkeet =
+            YkiSuoritusTilastoColumn.ryhmittelyt.joinToString(", ", postfix = ", COUNT(*) AS lukumaara") {
+                if (it in ryhmat) it.entityName else "NULL::${it.ryhmittelynSqlTyyppi} AS ${it.entityName}"
+            }
+        val ryhmittelySql = ryhmat.takeIf { it.isNotEmpty() }?.joinToString(", ", "GROUP BY ") { it.entityName }
         val sql =
             if (filter.requiresSubTables()) {
                 buildSql(
                     withCtes("viimeisin_suoritus" to selectSuorituksetFull(viimeisin = distinct, filter.whereSql())),
-                    "$sarakkeet FROM viimeisin_suoritus",
-                    ryhmittely,
+                    "SELECT $sarakkeet FROM viimeisin_suoritus",
+                    ryhmittelySql,
                 )
             } else {
                 buildSql(
                     withCtes("suoritus" to selectSuorituksetRoot(distinct)),
-                    "$sarakkeet FROM suoritus AS yki_suoritus",
+                    "SELECT $sarakkeet FROM suoritus AS yki_suoritus",
                     filter.whereSql(),
-                    ryhmittely,
+                    ryhmittelySql,
                 )
             }
 

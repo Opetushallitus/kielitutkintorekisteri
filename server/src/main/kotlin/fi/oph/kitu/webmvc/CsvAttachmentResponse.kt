@@ -3,6 +3,7 @@ package fi.oph.kitu.webmvc
 import fi.oph.kitu.csvparsing.writeExcelCsvPrelude
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableCsvRenderer
+import fi.oph.kitu.html.table.RenderableDisplayTableEnum
 import fi.oph.kitu.i18n.CurrentLanguage
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -22,6 +23,7 @@ inline fun <reified C : Enum<C>, T> csvAttachmentResponse(
     filename: String,
     data: Iterable<T>,
     excludeTags: Set<ColumnTag> = emptySet(),
+    noinline includeColumn: (RenderableDisplayTableEnum<T>) -> Boolean = { true },
 ): ResponseEntity<StreamingResponseBody> {
     val language = CurrentLanguage.get()
     return ResponseEntity
@@ -36,6 +38,7 @@ inline fun <reified C : Enum<C>, T> csvAttachmentResponse(
                         output = output,
                         data = data,
                         excludeTags = excludeTags,
+                        includeColumn = includeColumn,
                     )
                 }
             },
