@@ -747,6 +747,40 @@ class YkiSuoritusRepositoryTest(
     }
 
     @Test
+    fun `suoritukset voi ryhmitellä tutkintovuoden mukaan tai laskea kaikki yhteen`() {
+        fun suoritus(paiva: String) = generateRandomYkiSuoritusEntity().copy(tutkintopaiva = LocalDate.parse(paiva))
+        ykiSuoritusRepository.saveAllNewEntities(
+            listOf(suoritus("2025-03-01"), suoritus("2025-11-15"), suoritus("2025-11-15"), suoritus("2026-01-10")),
+        )
+
+        val vuosittain =
+            ykiSuoritusRepository.countSuorituksetRyhmittain(
+                ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintovuosi),
+            )
+        val yhteensa = ykiSuoritusRepository.countSuorituksetRyhmittain(ryhmittely = emptyList())
+
+        assertAll(
+            {
+                assertEquals(
+                    mapOf<Int?, Long>(2025 to 3L, 2026 to 1L),
+                    vuosittain.associate { it.tutkintovuosi to it.lukumaara },
+                )
+            },
+            { assertTrue(vuosittain.all { it.tutkintopaiva == null && it.tutkintokieli == null }) },
+            { assertEquals(listOf(4L), yhteensa.map { it.lukumaara }) },
+            {
+                assertEquals(
+                    emptyList(),
+                    ykiSuoritusRepository.countSuorituksetRyhmittain(
+                        YkiSuoritusFilter(alkupaiva = LocalDate.parse("2030-01-01")),
+                        ryhmittely = emptyList(),
+                    ),
+                )
+            },
+        )
+    }
+
+    @Test
     fun `hetua ei tallenneta suoritukselle, jonka tutkintopaiva on rajapaivana tai sen jalkeen`() {
         val suoritus =
             generateRandomYkiSuoritusEntity()

@@ -115,7 +115,7 @@ describe('"YKI Suoritukset" -page', () => {
     await ykiSuorituksetPage.open()
     let tilastot = await ykiSuorituksetPage.openTilastot()
 
-    await tilastot.setRyhmittely(["tutkintokieli"])
+    await tilastot.setRyhmittely("Ei", ["tutkintokieli"])
     await expect(tilastot.getColumnHeaders()).toHaveText([
       /^Tutkintokieli/,
       /^Lukumäärä/,
@@ -136,6 +136,22 @@ describe('"YKI Suoritukset" -page', () => {
     tilastot = await ykiSuorituksetPage.openTilastot()
     await expect(tilastot.getColumnHeaders()).toHaveCount(2)
     await expect(tilastot.getSuoritusRow()).toHaveCount(1)
+  })
+
+  test("tilastot can be grouped by tutkintovuosi only", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+
+    await tilastot.setRyhmittely("Tutkintovuosi", [])
+    await expect(tilastot.getColumnHeaders()).toHaveText([
+      /^Tutkintovuosi/,
+      /^Lukumäärä/,
+    ])
+    await expect(tilastot.getSuoritusRow()).toHaveCount(2)
+    await expect(tilastot.getSuoritusColumn(0, 0)).toHaveText("2025")
+    await expect(tilastot.getSuoritusColumn(1, 0)).toHaveText("2024")
   })
 
   test("tilastot can be downloaded as CSV", async ({ ykiSuorituksetPage }) => {

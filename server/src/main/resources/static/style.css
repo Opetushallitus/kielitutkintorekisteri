@@ -557,3 +557,45 @@ nav li a[role="button"] {
 .ratkaisuehdotus-nimet.ei-vastaa {
   font-weight: normal;
 }
+
+.ryhmittely-lomake fieldset {
+  --ryhmittely-kentan-korkeus: calc(
+    1rem * var(--pico-line-height) + var(--pico-form-element-spacing-vertical) *
+      2 + var(--pico-border-width) * 2
+  );
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pico-spacing) calc(var(--pico-spacing) * 2);
+}
+
+.ryhmittely-lomake fieldset > label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--pico-spacing) * 0.5);
+  margin-bottom: 0;
+}
+
+.ryhmittely-lomake fieldset select,
+.ryhmittely-lomake fieldset button {
+  width: auto;
+  margin: 0;
+}
+
+.ryhmittely-lomake fieldset button {
+  height: var(--ryhmittely-kentan-korkeus);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.ryhmittely-valinnat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--pico-spacing) * 1.5);
+  min-height: var(--ryhmittely-kentan-korkeus);
+}
+
+.ryhmittely-valinnat label {
+  margin-bottom: 0;
+}

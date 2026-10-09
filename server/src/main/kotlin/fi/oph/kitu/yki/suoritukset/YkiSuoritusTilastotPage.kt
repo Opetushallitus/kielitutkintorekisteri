@@ -23,6 +23,7 @@ import kotlinx.html.InputType
 import kotlinx.html.a
 import kotlinx.html.article
 import kotlinx.html.button
+import kotlinx.html.div
 import kotlinx.html.fieldSet
 import kotlinx.html.form
 import kotlinx.html.h1
@@ -31,7 +32,9 @@ import kotlinx.html.header
 import kotlinx.html.label
 import kotlinx.html.legend
 import kotlinx.html.li
+import kotlinx.html.option
 import kotlinx.html.p
+import kotlinx.html.select
 import kotlinx.html.table
 import org.springframework.security.web.csrf.CsrfToken
 
@@ -73,6 +76,7 @@ object YkiSuoritusTilastotPage {
                                 mapOf(
                                     "tilastoSortColumn" to filterParams.tilastoSortColumn.urlParam,
                                     "tilastoSortDirection" to filterParams.tilastoSortDirection.name,
+                                    "aikaryhmittely" to filterParams.toMap()["aikaryhmittely"],
                                     "ryhmittely" to filterParams.toMap()["ryhmittely"],
                                 ),
                         )
@@ -119,26 +123,43 @@ object YkiSuoritusTilastotPage {
 
 private fun FlowContent.ryhmittelyLomake(params: YkiSuorituksetParams) {
     val valitut = params.valittuRyhmittely()
-    form(action = "", method = FormMethod.get) {
+    val aikaryhmittely = params.valittuAikaryhmittely()
+    form(action = "", method = FormMethod.get, classes = "ryhmittely-lomake") {
         testId("ryhmittely-lomake")
         input(type = InputType.hidden, name = "recallSearch", value = "true")
         params
             .toMap()
-            .filterKeys { it != "ryhmittely" && it != "page" && it != "recallSearch" }
+            .filterKeys { it !in setOf("aikaryhmittely", "ryhmittely", "page", "recallSearch") }
             .forEach { (name, value) -> value?.let { input(type = InputType.hidden, name = name, value = it) } }
-        fieldSet(classes = "grid") {
+        fieldSet {
             legend { +UiText.Yki.Tilastot.ryhmittely }
-            YkiSuoritusTilastoColumn.ryhmittelyt.forEach { sarake ->
-                label {
-                    input(
-                        type = InputType.checkBox,
-                        name = "ryhmittely",
-                        value = sarake.urlParam,
-                        checked = sarake in valitut,
-                    ) {
-                        testId("ryhmittely-${sarake.urlParam}")
+            label {
+                +UiText.Yki.Tilastot.aikaryhmittely
+                select {
+                    name = "aikaryhmittely"
+                    testId("aikaryhmittely")
+                    YkiSuoritusAikaryhmittely.entries.forEach {
+                        option {
+                            value = it.name
+                            selected = it == aikaryhmittely
+                            +it.nimi
+                        }
                     }
-                    +sarake.uiHeaderValue
+                }
+            }
+            div(classes = "ryhmittely-valinnat") {
+                YkiSuoritusTilastoColumn.muutRyhmittelyt.forEach { sarake ->
+                    label {
+                        input(
+                            type = InputType.checkBox,
+                            name = "ryhmittely",
+                            value = sarake.urlParam,
+                            checked = sarake in valitut,
+                        ) {
+                            testId("ryhmittely-${sarake.urlParam}")
+                        }
+                        +sarake.uiHeaderValue
+                    }
                 }
             }
             button(type = ButtonType.submit) { +UiText.Yki.Tilastot.paivita }

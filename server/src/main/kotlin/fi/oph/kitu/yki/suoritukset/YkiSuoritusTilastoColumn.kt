@@ -15,8 +15,19 @@ enum class YkiSuoritusTilastoColumn(
     override val getValue: (value: YkiSuoritusTilastoRivi) -> String,
     val comparator: Comparator<YkiSuoritusTilastoRivi>,
     val ryhmittelynSqlTyyppi: String? = null,
+    val ryhmittelynSqlLauseke: String? = null,
     override val renderHtml: (FlowContent.(YkiSuoritusTilastoRivi) -> Unit)? = null,
 ) : RenderableDisplayTableEnum<YkiSuoritusTilastoRivi> {
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    Tutkintovuosi(
+        entityName = "tutkintovuosi",
+        urlParam = "tutkintovuosi",
+        getValue = { it.tutkintovuosi?.toString().orEmpty() },
+        comparator = compareBy { it.tutkintovuosi },
+        ryhmittelynSqlTyyppi = "int",
+        ryhmittelynSqlLauseke = "EXTRACT(YEAR FROM tutkintopaiva)::int",
+    ),
+
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Tutkintopaiva(
         entityName = "tutkintopaiva",
@@ -75,6 +86,7 @@ enum class YkiSuoritusTilastoColumn(
     override val uiHeaderValue: LocalizedString
         get() =
             when (this) {
+                Tutkintovuosi -> UiText.Yki.Sarake.tutkintovuosi
                 Tutkintopaiva -> UiText.Yki.Sarake.tutkintopaiva
                 Tutkintokieli -> UiText.Yki.Sarake.tutkintokieli
                 Tutkintotaso -> UiText.Yki.Sarake.tutkintotaso
@@ -84,15 +96,24 @@ enum class YkiSuoritusTilastoColumn(
 
     val ryhmiteltava: Boolean get() = ryhmittelynSqlTyyppi != null
 
+    val sqlLauseke: String get() = ryhmittelynSqlLauseke ?: entityName
+
     companion object {
         val ryhmittelyt: List<YkiSuoritusTilastoColumn> get() = entries.filter { it.ryhmiteltava }
+
+        val aikasarakkeet: List<YkiSuoritusTilastoColumn> get() = listOf(Tutkintovuosi, Tutkintopaiva)
+
+        val muutRyhmittelyt: List<YkiSuoritusTilastoColumn> get() = ryhmittelyt - aikasarakkeet.toSet()
+
+        val oletusryhmittely: List<YkiSuoritusTilastoColumn> get() = listOf(Tutkintopaiva) + muutRyhmittelyt
 
         fun sarakkeet(ryhmittely: List<YkiSuoritusTilastoColumn>): List<YkiSuoritusTilastoColumn> =
             ryhmittely + Lukumaara
 
         private val oletusjarjestys: Comparator<YkiSuoritusTilastoRivi> =
-            Tutkintopaiva.comparator
+            Tutkintovuosi.comparator
                 .reversed()
+                .then(Tutkintopaiva.comparator.reversed())
                 .then(Tutkintokieli.comparator)
                 .then(Tutkintotaso.comparator)
                 .then(Arviointitila.comparator)
