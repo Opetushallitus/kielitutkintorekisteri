@@ -35,14 +35,13 @@ export default class YkiSuoritusTilastotPage extends BaseSuorituksetPage {
     return new YkiSuorituksetFilterDialog(await this.openFilterDialogLocator())
   }
 
-  async setRyhmittely(sarakkeet: string[]) {
+  async setRyhmittely(
+    aikaryhmittely: "Ei" | "Tutkintopaiva" | "Tutkintovuosi",
+    sarakkeet: string[],
+  ) {
     const lomake = this.getPageContent().getByTestId("ryhmittely-lomake")
-    for (const sarake of [
-      "tutkintopaiva",
-      "tutkintokieli",
-      "tutkintotaso",
-      "arviointitila",
-    ]) {
+    await lomake.getByTestId("aikaryhmittely").selectOption(aikaryhmittely)
+    for (const sarake of ["tutkintokieli", "tutkintotaso", "arviointitila"]) {
       await lomake
         .getByTestId(`ryhmittely-${sarake}`)
         .setChecked(sarakkeet.includes(sarake))

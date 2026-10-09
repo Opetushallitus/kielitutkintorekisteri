@@ -244,14 +244,18 @@ class YkiSuoritusRepository(
     fun countSuorituksetRyhmittain(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         distinct: Boolean = true,
-        ryhmittely: List<YkiSuoritusTilastoColumn> = YkiSuoritusTilastoColumn.ryhmittelyt,
+        ryhmittely: List<YkiSuoritusTilastoColumn> = YkiSuoritusTilastoColumn.oletusryhmittely,
     ): List<YkiSuoritusTilastoRivi> {
         val ryhmat = YkiSuoritusTilastoColumn.ryhmittelyt.filter { it in ryhmittely }
         val sarakkeet =
             YkiSuoritusTilastoColumn.ryhmittelyt.joinToString(", ", postfix = ", COUNT(*) AS lukumaara") {
-                if (it in ryhmat) it.entityName else "NULL::${it.ryhmittelynSqlTyyppi} AS ${it.entityName}"
+                if (it in ryhmat) {
+                    "${it.sqlLauseke} AS ${it.entityName}"
+                } else {
+                    "NULL::${it.ryhmittelynSqlTyyppi} AS ${it.entityName}"
+                }
             }
-        val ryhmittelySql = ryhmat.takeIf { it.isNotEmpty() }?.joinToString(", ", "GROUP BY ") { it.entityName }
+        val ryhmittelySql = ryhmat.takeIf { it.isNotEmpty() }?.joinToString(", ", "GROUP BY ") { it.sqlLauseke }
         val sql =
             if (filter.requiresSubTables()) {
                 buildSql(
@@ -268,7 +272,9 @@ class YkiSuoritusRepository(
                 )
             }
 
-        return jdbcNamedParameterTemplate.query(sql, filter.params(), YkiSuoritusTilastoRivi.fromRow)
+        return jdbcNamedParameterTemplate
+            .query(sql, filter.params(), YkiSuoritusTilastoRivi.fromRow)
+            .filter { it.lukumaara > 0 }
     }
 
     // received_at asetetaan vain ulkoisesta importista (YkiSuoritusEntity.from) ja

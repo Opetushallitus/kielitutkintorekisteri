@@ -273,6 +273,8 @@ object UiText {
             val lukumaara: LocalizedString get() = tr("yki.tilastot.lukumaara")
             val takaisinSuorituksiin: LocalizedString get() = tr("yki.tilastot.takaisinSuorituksiin")
             val ryhmittely: LocalizedString get() = tr("yki.tilastot.ryhmittely")
+            val aikaryhmittely: LocalizedString get() = tr("yki.tilastot.aikaryhmittely")
+            val eiAikaryhmittelya: LocalizedString get() = tr("yki.tilastot.eiAikaryhmittelya")
             val paivita: LocalizedString get() = tr("yki.tilastot.paivita")
             val eiSuorituksia: LocalizedString get() = tr("yki.tilastot.eiSuorituksia")
         }
@@ -503,6 +505,7 @@ object UiText {
             val tutkintopaiva: LocalizedString get() = tr("yki.sarake.tutkintopaiva")
             val tutkintokieli: LocalizedString get() = tr("yki.sarake.tutkintokieli")
             val tutkintotaso: LocalizedString get() = tr("yki.sarake.tutkintotaso")
+            val tutkintovuosi: LocalizedString get() = tr("yki.sarake.tutkintovuosi")
             val kieli: LocalizedString get() = tr("yki.sarake.kieli")
             val taso: LocalizedString get() = tr("yki.sarake.taso")
             val jarjestajanOid: LocalizedString get() = tr("yki.sarake.jarjestajanOid")

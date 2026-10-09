@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.RowMapper
 import java.time.LocalDate
 
 data class YkiSuoritusTilastoRivi(
+    val tutkintovuosi: Int?,
     val tutkintopaiva: LocalDate?,
     val tutkintokieli: Tutkintokieli?,
     val tutkintotaso: Tutkintotaso?,
@@ -18,6 +19,7 @@ data class YkiSuoritusTilastoRivi(
         val fromRow =
             RowMapper { rs, _ ->
                 YkiSuoritusTilastoRivi(
+                    tutkintovuosi = rs.getObject("tutkintovuosi", Integer::class.java)?.toInt(),
                     tutkintopaiva = rs.getObject("tutkintopaiva", LocalDate::class.java),
                     tutkintokieli = rs.getEnumOrNull<Tutkintokieli>("tutkintokieli"),
                     tutkintotaso = rs.getEnumOrNull<Tutkintotaso>("tutkintotaso"),

@@ -100,7 +100,7 @@ class YkiService(
     fun countSuorituksetRyhmittain(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         versionHistory: Boolean = false,
-        ryhmittely: List<YkiSuoritusTilastoColumn> = YkiSuoritusTilastoColumn.ryhmittelyt,
+        ryhmittely: List<YkiSuoritusTilastoColumn> = YkiSuoritusTilastoColumn.oletusryhmittely,
     ): List<YkiSuoritusTilastoRivi> =
         suoritusRepository.countSuorituksetRyhmittain(
             filter = filter,

@@ -27,6 +27,7 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeus
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -871,6 +872,7 @@ class YkiApiControllerTest(
         val response =
             ykiApiController.getSuoritustilastotAsCsv(
                 YkiSuorituksetParams(
+                    aikaryhmittely = YkiSuoritusAikaryhmittely.Ei,
                     ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintokieli),
                     tilastoSortColumn = YkiSuoritusTilastoColumn.Lukumaara,
                 ),
@@ -889,6 +891,39 @@ class YkiApiControllerTest(
             response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION).orEmpty(),
             "ryhmittely_tutkintokieli",
         )
+    }
+
+    @Test
+    fun `tilastojen CSV-vienti ryhmittelee tutkintovuoden mukaan`() {
+        suoritusRepository.deleteAll()
+        suoritusRepository.saveAllNewEntities(
+            listOf(
+                generateRandomYkiSuoritusEntity()
+                    .copy(tutkintopaiva = LocalDate.of(2025, 3, 1), tutkintokieli = Tutkintokieli.FIN),
+                generateRandomYkiSuoritusEntity()
+                    .copy(tutkintopaiva = LocalDate.of(2025, 9, 1), tutkintokieli = Tutkintokieli.FIN),
+                generateRandomYkiSuoritusEntity()
+                    .copy(tutkintopaiva = LocalDate.of(2026, 3, 1), tutkintokieli = Tutkintokieli.FIN),
+            ),
+        )
+
+        val response =
+            ykiApiController.getSuoritustilastotAsCsv(
+                YkiSuorituksetParams(
+                    aikaryhmittely = YkiSuoritusAikaryhmittely.Tutkintovuosi,
+                    ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintokieli),
+                ),
+                MockHttpSession(),
+            )
+        val rivit =
+            ByteArrayOutputStream()
+                .also { response.body!!.writeTo(it) }
+                .toString(Charsets.UTF_8)
+                .removePrefix("\uFEFF")
+                .lines()
+                .filter { it.isNotBlank() }
+
+        assertEquals(listOf("Tutkintovuosi;Tutkintokieli;Lukumäärä", "2026;suomi;1", "2025;suomi;2"), rivit)
     }
 
     @Test

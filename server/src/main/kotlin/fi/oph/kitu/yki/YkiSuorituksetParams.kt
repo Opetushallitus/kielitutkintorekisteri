@@ -5,6 +5,7 @@ import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.util.SearchTerms
 import fi.oph.kitu.webmvc.buildCsvFilename
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
@@ -35,6 +36,7 @@ data class YkiSuorituksetParams(
     var tuontiloppu: LocalDate? = null,
     var tilastoSortColumn: YkiSuoritusTilastoColumn = YkiSuoritusTilastoColumn.Tutkintopaiva,
     var tilastoSortDirection: SortDirection = SortDirection.DESC,
+    var aikaryhmittely: YkiSuoritusAikaryhmittely? = null,
     var ryhmittely: List<YkiSuoritusTilastoColumn>? = null,
 ) {
     fun toMap(): Map<String, String?> =
@@ -56,25 +58,46 @@ data class YkiSuorituksetParams(
             "tilastoSortColumn" to
                 tilastoSortColumn.takeIf { it != YkiSuoritusTilastoColumn.Tutkintopaiva }?.urlParam,
             "tilastoSortDirection" to tilastoSortDirection.takeIf { it != SortDirection.DESC }?.name,
+            "aikaryhmittely" to valittuAikaryhmittely().name.takeUnless { onOletusryhmittely() },
             "ryhmittely" to
-                valittuRyhmittely()
-                    .takeIf { it != YkiSuoritusTilastoColumn.ryhmittelyt }
+                valitutMuutRyhmittelyt()
+                    .takeUnless { onOletusryhmittely() || it.isEmpty() }
                     ?.joinToString(",") { it.urlParam },
         )
 
+    fun valittuAikaryhmittely(): YkiSuoritusAikaryhmittely = aikaryhmittely ?: YkiSuoritusAikaryhmittely.Tutkintopaiva
+
+    fun valitutMuutRyhmittelyt(): List<YkiSuoritusTilastoColumn> =
+        if (aikaryhmittely == null && ryhmittely == null) {
+            YkiSuoritusTilastoColumn.muutRyhmittelyt
+        } else {
+            YkiSuoritusTilastoColumn.muutRyhmittelyt.filter { it in ryhmittely.orEmpty() }
+        }
+
     fun valittuRyhmittely(): List<YkiSuoritusTilastoColumn> =
-        YkiSuoritusTilastoColumn.ryhmittelyt
-            .filter { ryhmittely.orEmpty().contains(it) }
-            .ifEmpty { YkiSuoritusTilastoColumn.ryhmittelyt }
+        listOfNotNull(valittuAikaryhmittely().sarake) + valitutMuutRyhmittelyt()
+
+    private fun onOletusryhmittely() = valittuRyhmittely() == YkiSuoritusTilastoColumn.oletusryhmittely
 
     fun tilastoJarjestys(): Pair<YkiSuoritusTilastoColumn, SortDirection> {
         val ryhmat = valittuRyhmittely()
-        return if (tilastoSortColumn == YkiSuoritusTilastoColumn.Lukumaara || tilastoSortColumn in ryhmat) {
-            tilastoSortColumn to tilastoSortDirection
-        } else {
-            val ensimmainen = ryhmat.first()
-            ensimmainen to
-                if (ensimmainen == YkiSuoritusTilastoColumn.Tutkintopaiva) SortDirection.DESC else SortDirection.ASC
+        val ensimmainen = ryhmat.firstOrNull()
+        return when {
+            tilastoSortColumn == YkiSuoritusTilastoColumn.Lukumaara || tilastoSortColumn in ryhmat -> {
+                tilastoSortColumn to tilastoSortDirection
+            }
+
+            ensimmainen == null -> {
+                YkiSuoritusTilastoColumn.Lukumaara to tilastoSortDirection
+            }
+
+            ensimmainen in YkiSuoritusTilastoColumn.aikasarakkeet -> {
+                ensimmainen to SortDirection.DESC
+            }
+
+            else -> {
+                ensimmainen to SortDirection.ASC
+            }
         }
     }
 
@@ -120,7 +143,9 @@ data class YkiSuorituksetParams(
         buildCsvFilename(
             "yki_suoritustilastot",
             true,
-            toMap()["ryhmittely"]?.let { "ryhmittely_${it.replace(',', '-')}" },
+            valittuRyhmittely()
+                .takeUnless { onOletusryhmittely() }
+                ?.let { ryhmat -> "ryhmittely_" + ryhmat.joinToString("-") { it.urlParam }.ifEmpty { "ei" } },
             tutkintokieli?.toString(),
             tutkintotaso?.toString(),
             arviointitila?.toString(),

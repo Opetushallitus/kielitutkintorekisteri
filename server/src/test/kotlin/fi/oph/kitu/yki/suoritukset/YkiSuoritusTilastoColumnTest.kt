@@ -15,7 +15,7 @@ class YkiSuoritusTilastoColumnTest {
         taso: Tutkintotaso = Tutkintotaso.KT,
         tila: Arviointitila = Arviointitila.ARVIOITU,
         lukumaara: Long = 1,
-    ) = YkiSuoritusTilastoRivi(LocalDate.parse(paiva), kieli, taso, tila, lukumaara)
+    ) = YkiSuoritusTilastoRivi(null, LocalDate.parse(paiva), kieli, taso, tila, lukumaara)
 
     private val suomiKevat = rivi("2026-03-01", Tutkintokieli.FIN, lukumaara = 5)
     private val ruotsiKevat = rivi("2026-03-01", Tutkintokieli.SWE, lukumaara = 2)
@@ -70,8 +70,8 @@ class YkiSuoritusTilastoColumnTest {
 
     @Test
     fun `ryhmittelemättömät tyhjät sarakkeet eivät kaada järjestämistä`() {
-        val ruotsi = YkiSuoritusTilastoRivi(null, Tutkintokieli.SWE, null, null, 4)
-        val suomi = YkiSuoritusTilastoRivi(null, Tutkintokieli.FIN, null, null, 7)
+        val ruotsi = YkiSuoritusTilastoRivi(null, null, Tutkintokieli.SWE, null, null, 4)
+        val suomi = YkiSuoritusTilastoRivi(null, null, Tutkintokieli.FIN, null, null, 7)
 
         assertEquals(
             listOf(ruotsi, suomi),
