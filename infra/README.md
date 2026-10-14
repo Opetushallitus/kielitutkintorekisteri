@@ -44,7 +44,9 @@ infra/
 
 `infra/scripts/` holds helpers that belong to the CDK app rather than to the
 server: `audit-deployed-stacks.sh` + `cdk-app-inventory.mjs` (see _Stack
-lifecycle_ below).
+lifecycle_ below), and `presign-yki-historia-upload.mjs`, which
+`scripts/yki_historia_upload_presign.sh` calls to mint presigned PUT URLs for
+the retained YKI-historia bucket (see _Prod-only stacks_ below).
 
 ## Util stage (`bin/infra.ts`, `lib/utility-stage.ts`)
 
@@ -115,8 +117,10 @@ There are none. `Prod/YkiHistoriaUpload` (`lib/yki-historia-upload-stack.ts`)
 used to be wired directly in `bin/infra.ts` as a child of the `Prod` stage,
 providing the S3 bucket `kitu-yki-historia-upload-prod` that an external
 organization uploaded the YKI history export to via presigned PUT URLs. It was
-removed once the 2011–2016 migration had been run, together with the presign
-helper and the migration scripts.
+removed once the 2011–2016 migration had been run. The presign helper and the
+migration scripts were removed with it and restored on 14.10.2026 for the
+Solki–kitu count reconciliation; the stack itself was not restored, since the
+bucket still exists (see `scripts/yki-historia-migration.md`).
 
 **The bucket had `removalPolicy: RETAIN`, so deleting the CloudFormation stack
 leaves it behind — holding the source export, which contains henkilötunnuksia,

@@ -25,13 +25,30 @@ kitun YKI-suoritusmäärien eroa voidaan selvittää. Kaikki alla kuvattu ei en�
   SQL:llä RDS Data API:n kautta (ks. vaihe 3).
 - **V129 ja V132 siirsivät karanteenin oppijanumerottomat rivit rekisteriin**
   (`yki_suoritus.suorittajan_oid IS NULL`), joten karanteeniin jäi vain muuntumattomia rivejä.
-- **`yki-historia-upload-stack` on purettu.** Ämpäri `kitu-yki-historia-upload-prod` jäi
-  `RETAIN`in vuoksi, mutta presign-apuria (`scripts/yki_historia_upload_presign.sh`) ei
-  palautettu: sen npm-riippuvuudet on sittemmin poistettu `infra/package.json`ista.
+- **`yki-historia-upload-stack` on purettu, mutta ämpäri on yhä olemassa.**
+  `kitu-yki-historia-upload-prod` jäi `RETAIN`in vuoksi, joten Solkin uusi vienti ladataan
+  sinne kuten ennenkin (ks. alla).
 - `duckdb_session.sh` on suljetun PR #3461:n versio: `raw` trimmaa kentät ja muuntaa `\N`:n
   NULLiksi samoin kuin migraatioskriptin `to_null()`, ja `raw_verbatim` on data sellaisenaan
   luettuna. Pelkkä `nullstr := '\N'` laski oppijanumerottomia rivejä liian vähän, koska
   `'\N '` (perässä välilyönti) ei täsmää siihen.
+
+### Uuden viennin lataus ämpäriin
+
+Ulkopuolinen lähettäjä saa kertakäyttöisen PUT-osoitteen, jonka OPH:n ylläpitäjä luo omalta
+koneeltaan `oph-ktr-prod`-profiililla (`scripts/ensure_aws_profiles.sh`):
+
+```bash
+./scripts/yki_historia_upload_presign.sh --key yki-historia-2021-2025.csv
+```
+
+Skripti tulostaa osoitteen ja valmiin `curl --upload-file` -rivin lähettäjälle. Osoite on
+oletuksena voimassa 7 vuorokautta (SigV4:n yläraja, `--ttl`), ja yksi tiedosto saa olla
+enintään 5 Gt. `aws s3 presign` ei kelpaa tähän, koska se osaa tehdä vain GET-osoitteita.
+Apuri allekirjoittaa osoitteen ilman tarkistussummaa
+(`requestChecksumCalculation: "WHEN_REQUIRED"`). SDK:n oletus allekirjoittaisi tyhjän rungon
+CRC32:n (`x-amz-checksum-crc32=AAAAAA==`), jolloin S3 hylkäisi oikean tiedoston.
+Ladattu tiedosto luetaan CloudShellissä suoraan `s3://`-polusta (vaihe 1).
 
 ### Täsmäytys Solkiin vuosittain
 
