@@ -32,6 +32,11 @@ import io
 import json
 import os
 import sys
+from datetime import date
+
+# kitu.validaatiot.yki.hetunSiirronRajapaiva: tasta tutkintopaivasta alkaen hetua ei saa
+# tallentaa kantaan, ei myoskaan karanteeniin.
+HETUN_SIIRRON_RAJAPAIVA = date(2026, 1, 1)
 
 # Lahdetiedoston sarakkeet YkiSuoritusCsv-jarjestyksessa. Sama jarjestys kuin
 # migrate_yki_historia.py:n COLUMNS, mutta suoritus_id on nimetty solki_id:ksi
@@ -122,6 +127,13 @@ def raw_line(row, delimiter):
     return buf.getvalue()
 
 
+def hetu_tallennettavissa(tutkintopaiva):
+    try:
+        return date.fromisoformat(tutkintopaiva[:10]) < HETUN_SIIRRON_RAJAPAIVA
+    except (TypeError, ValueError):
+        return False
+
+
 def parse_row(row, lahdetiedosto, oid_map, delimiter):
     """Yksi CSV-rivi -> sarakenimi->arvo-sanakirja. Ei koskaan kaadu rivin muotoon."""
     syy = (row[-1] if row else "") or ""
@@ -138,6 +150,8 @@ def parse_row(row, lahdetiedosto, oid_map, delimiter):
 
     for column, value in zip(COLUMNS, row[: len(COLUMNS)]):
         values[column] = to_null(value)
+    if not hetu_tallennettavissa(values["tutkintopaiva"]):
+        values["hetu"] = None
     values["syyluokka"] = classify(syy)
 
     kartta = oid_map.get(values["solki_id"])

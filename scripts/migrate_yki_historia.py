@@ -84,6 +84,10 @@ VALID_ARVOSANA = {
     "YT": {0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 12},
 }
 
+# kitu.validaatiot.yki.hetunSiirronRajapaiva: from this tutkintopaiva on, the API
+# rejects a suoritus that carries a hetu.
+HETUN_SIIRRON_RAJAPAIVA = date(2026, 1, 1)
+
 # (host, oauth token url). dev/test taken from scripts/upload_yki_suoritus.sh.
 # PROD values are a best guess from the dev/test pattern — VERIFY before a real run
 # (or pass --host/--token-url explicitly).
@@ -151,6 +155,13 @@ def parse_last_modified(value):
     return None
 
 
+def hetu_siirrettavissa(tutkintopaiva):
+    try:
+        return date.fromisoformat(tutkintopaiva[:10]) < HETUN_SIIRRON_RAJAPAIVA
+    except (TypeError, ValueError):
+        return True
+
+
 def build_payload(row):
     d = dict(zip(COLUMNS, row))
 
@@ -191,7 +202,7 @@ def build_payload(row):
         "oid": to_null(d["suorittajan_oid"]),
         "sukunimi": to_null(d["sukunimi"]),
         "etunimet": to_null(d["etunimet"]),
-        "hetu": to_null(d["hetu"]),
+        "hetu": to_null(d["hetu"]) if hetu_siirrettavissa(to_null(d["tutkintopaiva"])) else None,
         "sukupuoli": to_null(d["sukupuoli"]),
         "kansalaisuus": to_null(d["kansalaisuus"]),
         "katuosoite": to_null(d["katuosoite"]),
