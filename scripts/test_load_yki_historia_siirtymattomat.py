@@ -113,6 +113,20 @@ class ParseRowTest(unittest.TestCase):
         values = loader.parse_row(rivi(), "lahde.csv", oid_map, ",")
         self.assertIsNone(values["oid_haun_syy"])
 
+    def test_hetu_ei_tallennu_rajapaivasta_alkaen(self):
+        ennen = loader.parse_row(rivi(hetu="010180-9026", tutkintopaiva="2025-12-31"), "lahde.csv", {}, ",")
+        rajapaivana = loader.parse_row(rivi(hetu="010180-9026", tutkintopaiva="2026-01-01"), "lahde.csv", {}, ",")
+
+        self.assertEqual("010180-9026", ennen["hetu"])
+        self.assertIsNone(rajapaivana["hetu"])
+
+    def test_jasentymaton_tai_puuttuva_tutkintopaiva_pudottaa_hetun(self):
+        jasentymaton = loader.parse_row(rivi(hetu="010180-9026", tutkintopaiva="14.5.2026"), "lahde.csv", {}, ",")
+        puuttuva = loader.parse_row(rivi(hetu="010180-9026", tutkintopaiva="\\N"), "lahde.csv", {}, ",")
+
+        self.assertIsNone(jasentymaton["hetu"])
+        self.assertIsNone(puuttuva["hetu"])
+
 
 class DelimiterTest(unittest.TestCase):
     def test_tunnistaa_pilkun_ja_tabin(self):
