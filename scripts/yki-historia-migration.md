@@ -80,6 +80,30 @@ SELECT left(tutkintopaiva, 4) AS vuosi, count(*) AS rivit,
 FROM raw GROUP BY 1 ORDER BY 1;
 ```
 
+### Puuttuvien siirto 2021–2026 (lokakuu 2026)
+
+Solkin 2021–2026-viennistä puuttuvat suoritukset siirretään skriptillä
+`scripts/yki_puuttuvien_siirto.sh`. Se valitsee puuttuvat `yki_puuttuvat_suoritukset.py`:llä
+(solki_id:n anti-join kantaa vasten, rajaus rivin omalla tutkintopäivällä), lähettää
+oppijanumerolliset rajapintaan ja lataa siirtymättä jääneet karanteeniin
+(`lahdetiedosto = '<avain>.csv#puuttuvat'`). Migraatio **V133** siirtää karanteenista
+oppijanumerottomat rekisteriin, joten sen PR mergetään vasta kun skripti on ajettu eikä
+ohimenevästi epäonnistuneita enää ole. Ota Aurora-snapshot ennen ajoa.
+
+```bash
+REF=<commit>
+mkdir -p ~/yki-puuttuvat && cd ~/yki-puuttuvat
+for f in yki_puuttuvien_siirto.sh yki_puuttuvat_suoritukset.py migrate_yki_historia.py \
+    load_yki_historia_siirtymattomat.py; do
+  curl -fsSLO "https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/${REF}/scripts/${f}"
+done
+bash yki_puuttuvien_siirto.sh s3://kitu-yki-historia-upload-prod/<avain>.csv 2026-04-01
+```
+
+Toinen parametri on tutkintopäivän yläraja (ei mukana): 2026-04-01 rajaa siirron maaliskuun 2026
+loppuun, koska todistuskieli on pakollinen 1.4.2026 alkaen eikä viennissä ole sitä.
+Vuoden 2026 riveiltä hetu pudotetaan sekä rajapintaan lähetettäessä että karanteeniin ladattaessa.
+
 ## Safety boundary (read first)
 
 The CSV is **sensitive personal data**. Keep it inside AWS end to end:
