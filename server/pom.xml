@@ -57,13 +57,10 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-bom</artifactId>
-                <version>1.66.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
+            <!-- OTel-coren versio tulee instrumentation-BOMista, joka tuo täsmälleen sen
+                 opentelemetry-bomin jota vasten se on käännetty. Älä tuo opentelemetry-bomia
+                 erikseen: instrumentation käyttää coren internal-luokkia, ja erikseen nostettu
+                 core kaataa sovelluksen käynnistyksen NoClassDefFoundErroriin. -->
             <dependency>
                 <groupId>io.opentelemetry.instrumentation</groupId>
                 <artifactId>opentelemetry-instrumentation-bom</artifactId>
