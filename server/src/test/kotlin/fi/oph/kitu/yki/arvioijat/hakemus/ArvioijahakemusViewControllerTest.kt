@@ -4,11 +4,13 @@ import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
+import fi.oph.kitu.tyhjennaArvioijahakemukset
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -31,6 +33,7 @@ import kotlin.test.assertFalse
 class ArvioijahakemusViewControllerTest(
     @param:Autowired private val context: WebApplicationContext,
     @param:Autowired private val repository: ArvioijahakemusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
 ) {
     private lateinit var mockMvc: MockMvc
 
@@ -41,7 +44,7 @@ class ArvioijahakemusViewControllerTest(
                 .webAppContextSetup(context)
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
-        repository.deleteAll()
+        jdbcTemplate.tyhjennaArvioijahakemukset()
     }
 
     private fun rivi(

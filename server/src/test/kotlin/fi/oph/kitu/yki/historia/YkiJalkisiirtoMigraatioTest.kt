@@ -1,6 +1,7 @@
 package fi.oph.kitu.yki.historia
 
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import org.junit.jupiter.api.BeforeEach
@@ -23,7 +24,7 @@ class YkiJalkisiirtoMigraatioTest(
     @BeforeEach
     fun tyhjennaTaulut() {
         jdbc.execute("DELETE FROM yki_historia_siirtymaton")
-        suoritusRepository.deleteAll()
+        jdbc.tyhjennaYkiSuoritukset()
         jdbc.execute("TRUNCATE TABLE yki_tarkistusarviointi CASCADE")
     }
 

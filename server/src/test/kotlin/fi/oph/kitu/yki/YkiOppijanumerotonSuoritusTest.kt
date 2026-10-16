@@ -7,6 +7,7 @@ import fi.oph.kitu.ilmoittautumisjarjestelma.YkiArvioinninTila
 import fi.oph.kitu.koski.KoskiYkiMappingError
 import fi.oph.kitu.koski.KoskiYkiRequestMapper
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import java.time.LocalDate
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -31,13 +33,14 @@ import kotlin.test.assertTrue
 @Import(DBContainerConfiguration::class)
 class YkiOppijanumerotonSuoritusTest(
     @param:Autowired private val suoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val koskiYkiRequestMapper: KoskiYkiRequestMapper,
 ) {
     private val oppijanumero = Oid.parse("1.2.246.562.24.12345678910").getOrThrow()
 
     @BeforeEach
     fun tyhjennaTaulut() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
     }
 
     private fun suoritus(

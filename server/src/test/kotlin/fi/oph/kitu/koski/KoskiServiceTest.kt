@@ -7,6 +7,7 @@ import fi.oph.kitu.auditlogs.OpenTelemetryTestConfig
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.web.client.ExpectedCount
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -45,6 +47,7 @@ class KoskiServiceTest(
     @param:Autowired private val koskiYkiRequestMapper: KoskiYkiRequestMapper,
     @param:Autowired private val koskiVktRequestMapper: KoskiVktRequestMapper,
     @param:Autowired private val ykiSuoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val mockRestClientBuilder: RestClient.Builder,
     @param:Autowired private val tracer: Tracer,
     @param:Autowired private val inMemorySpanExporter: InMemorySpanExporter,
@@ -68,7 +71,7 @@ class KoskiServiceTest(
 
     @BeforeEach
     fun nukeDb() {
-        ykiSuoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         inMemorySpanExporter.reset()
         timeService.resetClock()
     }
