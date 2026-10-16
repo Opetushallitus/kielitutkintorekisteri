@@ -52,7 +52,7 @@ object KielitestiSuorituksetPage {
             errorsArticle(errorsCount, Links.Kielitesti.virheet())
 
             form(action = "", method = FormMethod.get, classes = "grid center-vertically") {
-                hiddenValues(filterParams.toMap().filterKeys { it != "search" })
+                hiddenValues(filterParams.toMap() - "search" - "page")
                 fieldSet {
                     attributes["role"] = "search"
                     input {
