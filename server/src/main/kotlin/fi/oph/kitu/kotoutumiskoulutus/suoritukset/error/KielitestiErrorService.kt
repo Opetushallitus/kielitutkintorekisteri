@@ -30,6 +30,8 @@ class KielitestiErrorService(
             }
         }
 
+    fun countErrors(): Long = kielitestiSuoritusErrorRepository.count()
+
     fun generateErrorsCsvStream(
         orderBy: KielitestiSuoritusErrorColumn = KielitestiSuoritusErrorColumn.VirheenLuontiaika,
         orderByDirection: SortDirection = SortDirection.DESC,

@@ -59,11 +59,7 @@ class KielitestiViewController(
                                 }
                             }
                         },
-                errorsCount =
-                    errorService
-                        .getErrors(KielitestiSuoritusErrorColumn.VirheenLuontiaika, params.sortDirection)
-                        .count()
-                        .toLong(),
+                errorsCount = errorService.countErrors(),
                 filterParams = params,
                 numberOfSuoritukset = numberOfSuoritukset,
                 pagination =
