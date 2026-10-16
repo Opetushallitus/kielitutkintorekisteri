@@ -3,7 +3,6 @@ package fi.oph.kitu.kotoutumiskoulutus.koealusta
 import fi.oph.kitu.kotoutumiskoulutus.koealusta.KoealustaSuorituksetResponse.User
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.Oppija
-import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroRatkaisuehdotus
 
 sealed class KoealustaMappingError(
@@ -12,10 +11,8 @@ sealed class KoealustaMappingError(
     val teacherEmail: String?,
 ) : Exception(message) {
     class OppijanumeroFailure(
-        val oppijanumeroException: OppijanumeroException,
         override val message: String,
         schoolOid: Oid?,
-        moodleId: String?,
         teacherEmail: String?,
         val debugInfo: String?,
         val oppija: Oppija,

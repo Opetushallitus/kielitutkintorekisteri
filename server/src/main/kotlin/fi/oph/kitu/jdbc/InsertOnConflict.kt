@@ -4,12 +4,6 @@ interface ConflictHandler {
     val conflictTarget: ConflictTarget
 }
 
-data class OnConflictDoNothing(
-    override val conflictTarget: ConflictTarget,
-) : ConflictHandler {
-    override fun toString() = "ON CONFLICT $conflictTarget DO NOTHING"
-}
-
 data class UpdateOnConflict(
     override val conflictTarget: ConflictTarget,
     val columns: Iterable<String>,

@@ -538,8 +538,6 @@ object UiText {
             val ashaNumero: LocalizedString get() = tr("yki.sarake.ashaNumero")
             val solkiTila: LocalizedString get() = tr("yki.sarake.solkiTila")
             val muokattu: LocalizedString get() = tr("yki.sarake.muokattu")
-            val solkiId: LocalizedString get() = tr("yki.sarake.solkiId")
-            val kentta: LocalizedString get() = tr("yki.sarake.kentta")
             val paivamaara: LocalizedString get() = tr("yki.sarake.paivamaara")
             val asiatunnus: LocalizedString get() = tr("yki.sarake.asiatunnus")
             val tarkistusarviointi: LocalizedString

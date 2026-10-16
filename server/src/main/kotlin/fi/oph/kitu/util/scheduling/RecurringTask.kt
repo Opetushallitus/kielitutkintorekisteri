@@ -14,18 +14,6 @@ fun Tracer.recurringTask(
         .recurring(name, ExtendedSchedules.parse(schedule))
         .execute { _, _ -> traced(name) { block() } }
 
-fun Tracer.recurringStatefulTask(
-    name: String,
-    schedule: String,
-    block: () -> Unit,
-): Task<Void> =
-    Tasks
-        .recurring(name, ExtendedSchedules.parse(schedule))
-        .executeStateful { _, _ ->
-            traced(name) { block() }
-            null
-        }
-
 inline fun <reified T : Any> Tracer.recurringStatefulTask(
     name: String,
     schedule: String,
