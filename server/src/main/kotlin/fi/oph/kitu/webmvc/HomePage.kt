@@ -86,12 +86,6 @@ object HomePage {
             errorIfNonZero = true,
         )
         statRow(
-            label = UiText.Yki.suoritustenTuonninVirheet,
-            value = s.suoritusImportErrorCount,
-            href = Links.Yki.suorituksetVirheet(),
-            errorIfNonZero = true,
-        )
-        statRow(
             label = UiText.Etusivu.koskiSiirronVirheet,
             value = s.koskiErrorCount,
             href = Links.Yki.koskiVirheet(),

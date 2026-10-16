@@ -13,7 +13,6 @@ const viewRoutes = [
 
   // YkiViewController
   "GET /yki/suoritukset",
-  "GET /yki/suoritukset/virheet",
   "GET /yki/arvioijat",
   "GET /yki/arvioijat/uusi",
   "POST /yki/arvioijat/uusi",

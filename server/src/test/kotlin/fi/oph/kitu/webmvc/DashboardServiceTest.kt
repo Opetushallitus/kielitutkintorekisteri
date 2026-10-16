@@ -36,7 +36,6 @@ class DashboardServiceTest(
         jdbc.execute("TRUNCATE TABLE tehtavapaketti CASCADE")
         // Virhetaulut luetaan importErrorCounteihin, ja koto-testit siivoavat vain
         // @BeforeEachissa — ilman naita rivit jaavat elamaan yli ja "tyhja kanta" ei ole tyhja.
-        jdbc.execute("TRUNCATE TABLE yki_suoritus_error CASCADE")
         jdbc.execute("TRUNCATE TABLE koto_suoritus_error CASCADE")
         clearAllCaches()
     }
@@ -48,7 +47,6 @@ class DashboardServiceTest(
         assertEquals(0L, yki.arvioijaCount)
         assertEquals(0L, yki.tarkistusarvioinnitOdottamassaCount)
         assertEquals(null, yki.latestReceivedAt)
-        assertEquals(0L, yki.suoritusImportErrorCount)
         assertEquals(0L, yki.koskiErrorCount)
 
         val vkt = dashboardService.getVktStats()

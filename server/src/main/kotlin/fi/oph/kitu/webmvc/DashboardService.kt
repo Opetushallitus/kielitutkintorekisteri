@@ -9,7 +9,6 @@ import fi.oph.kitu.util.scheduling.SchedulerStatsRepository
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
-import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorService
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
@@ -21,7 +20,6 @@ import kotlin.time.Duration
 class DashboardService(
     private val ykiSuoritusRepository: YkiSuoritusRepository,
     private val ykiArvioijaRepository: YkiArvioijaRepository,
-    private val ykiSuoritusErrorService: YkiSuoritusErrorService,
     private val customVktSuoritusRepository: CustomVktSuoritusRepository,
     private val customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
     private val kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
@@ -65,7 +63,6 @@ class DashboardService(
             tarkistusarvioinnitOdottamassaCount =
                 ykiSuoritusRepository.countTarkistusarvioinnitOdottamassaHyvaksyntaa(),
             latestReceivedAt = ykiSuoritusRepository.findLatestReceivedAt(),
-            suoritusImportErrorCount = ykiSuoritusErrorService.countErrors(),
             koskiErrorCount = koskiErrorService.countByEntity("yki", hidden = false).toLong(),
         )
 
@@ -102,7 +99,6 @@ data class YkiStats(
     val arvioijaSolkiErrorCount: Long,
     val tarkistusarvioinnitOdottamassaCount: Long,
     val latestReceivedAt: Instant?,
-    val suoritusImportErrorCount: Long,
     val koskiErrorCount: Long,
 )
 
