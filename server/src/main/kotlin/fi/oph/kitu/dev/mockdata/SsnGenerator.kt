@@ -5,23 +5,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
-fun generateRandomSsnBirthdayAndSex(
-    min: LocalDate = LocalDate.of(1900, 1, 1),
-    max: LocalDate = LocalDate.now(),
-    sex: Sukupuoli = listOf(Sukupuoli.M, Sukupuoli.N).random(),
-    isTemporary: Boolean = true,
-    random: Random = Random,
-): Triple<String, LocalDate, Sukupuoli> {
-    val birthday = getRandomLocalDate(min, max, random)
-    val bdayString = birthday.format(DateTimeFormatter.ofPattern("ddMMyy"))
-    val separator = birthday.getSeparator()
-    val id = getSsnId(birthday, sex, isTemporary)
-
-    val checksum = getSsnChecksum(bdayString, id)
-
-    return Triple("$bdayString$separator$id$checksum", birthday, sex)
-}
-
 fun generateRandomSsn(
     min: LocalDate = LocalDate.of(1900, 1, 1),
     max: LocalDate = LocalDate.now(),
