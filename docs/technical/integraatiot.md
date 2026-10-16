@@ -146,7 +146,7 @@ Jokainen kitussa tehty tallennus lähetetään Solkille:
 
 ```
 POST {kitu.yki.baseUrl}arvioija
-Authorization:   Basic (kitu.yki.username/password, samat tunnukset kuin suoritushaussa)
+Authorization:   Basic (kitu.yki.username/password)
 Idempotency-Key: {arvioijaOid}:{versio}
 ```
 
@@ -258,5 +258,7 @@ Sovellus käyttää OPH:n keskitettyä Otuva-palvelua.
 
 **Paketti:** `auditlogs/`
 
-OPH:n auditlokitoteutus ECS-formaatissa. Lokien siirto S3:een hoidetaan infrassa
-(`koski-audit-logs-integration-stack`); palvelun ylläpitää KOSKI-tiimi.
+OPH:n auditlokitoteutus ECS-formaatissa. Auditlokiryhmän tilaussuodatin käynnistää
+Lambdan (`koski-audit-logs-integration-stack`), joka välittää tapahtumat KOSKI-tilin
+SQS-jonoon `oma-opintopolku-loki-audit-queue`; jonon ja sen käyttöoikeusroolin omistaa
+KOSKI-tiimi. Ks. `infra/README.md` → "KOSKI audit logs integration".

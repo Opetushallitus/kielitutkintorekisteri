@@ -23,12 +23,15 @@ Paketit hakemistossa `server/src/main/kotlin/fi/oph/kitu/` on jaoteltu **toimint
 ### Toiminta-alueet
 
 - **`vkt/`** — Valtionhallinnon kielitutkinnot
-- **`yki/`** — Yleiset kielitutkinnot (suoritukset ja arvioijat)
+- **`yki/`** — Yleiset kielitutkinnot (suoritukset ja arvioijat; arvioijahakemusten tuonti atarusta
+  paketissa `yki/arvioijat/hakemus/`)
 - **`kotoutumiskoulutus/`** — Kotoutumiskoulutuksen päättötestit; sisältää Koealusta-integraation
   ja Moodle-XML-tehtäväpakettien tuonnin (`koealusta/tehtavapankki/`)
 - **`koski/`** — Lähtevä KOSKI-integraatio (YKI- ja VKT-suoritukset)
-- **`ilmoittautumisjarjestelma/`** — KIOS-integraatio (arviointitilat, VKT-tiedot)
+- **`ilmoittautumisjarjestelma/`** — YKI-arviointitilojen lähetys ilmoittautumisjärjestelmään
+  (KIOS). Suuntaan KIOS → kitu kulkevat VKT-suoritukset ovat paketissa `vkt/`.
 - **`oppijanumero/`**, **`organisaatiot/`**, **`koodisto/`** — OPH:n perusrekisteri-integraatiot
+- **`ataru/`** — Hakemuspalvelu atarun asiakas (CAS-istunto) arvioijahakemusten hakuun
 - **`yhteystiedot/`** — Suorittajan yhteystietojen haku (KOSKI-järjestelmän tiedotteet: todistuskieli ja paperipostin osoite)
 - **`security/`** — CAS- ja OAuth2-autentikointi (`security/cas/`, `security/oauth2/`)
 
@@ -36,7 +39,9 @@ Integraatioiden yksityiskohdat: [Integraatiot](./integraatiot.md).
 
 ### Läpileikkaavat paketit
 
-- **`csvparsing/`** — Jackson CSV -apukerros, vain vientiin (listanäkymien CSV-lataukset)
+- **`csvparsing/`** — Vain vientiin: Excel-yhteensopiva CSV-alkutavu ja koton virhe-CSV:n
+  Jackson-kirjoitin. Listanäkymien CSV:t tuotetaan `html/table/`-paketin sarake-enumeista
+  (`DisplayTableCsvRenderer`, `webmvc/CsvAttachmentResponse.kt`).
 - **`tiedontuontischema/`** — Suoritusten tuontirajapintojen tietomallit ja validoinnit
 - **`html/`** — kotlinx-html-sivupohjat ja komponentit
 - **`i18n/`** — Käännöstuki
@@ -53,16 +58,17 @@ Pakettijaon visualisointi Spring beans -tasolla:
 ## Spring-profiilit ja konfiguraatio
 
 `application.properties` on perusta; ympäristökohtaiset asetukset ovat tiedostoissa
-`application-{local,local-opintopolku,untuva,qa,prod,e2e}.properties`. Propertyt
-`kitu.yki.scheduling.*` ja `kitu.vkt.scheduling.*` ohjaavat ajastettujen tehtävien aktivointia
-ympäristöittäin.
+`application-{local,local-opintopolku,untuva,qa,prod,e2e}.properties`. Ajastettujen tehtävien
+aktivointia ohjaavat ympäristöittäin `kitu.{yki,vkt,koski,cas,lokalisointi}.scheduling.*`,
+`kitu.kotoutumiskoulutus.koealusta.scheduling.*` ja `kitu.ataru.arvioijahakemus.schedule`.
 
 ## Tietokanta ja migraatiot
 
 - **Spring JDBC** PostgreSQL:n päällä — Hibernate/JPA ei ole käytössä.
 - **Flyway**-migraatiot hakemistossa `server/src/main/resources/db/migration` muodossa `V*__*.sql`.
-- V-numeroinnissa on aukkoja (V7, V38, V46–V55, V65, V104, V105); suurin käytössä oleva numero on
-  **V126**. **Älä käytä uudelleen ohitettuja numeroita — jatka aina suurimmasta eteenpäin.**
+- V-numeroinnissa on aukkoja (V7, V38, V46–V55, V65, V104, V105). **Älä käytä uudelleen
+  ohitettuja numeroita — jatka aina suurimmasta eteenpäin**
+  (`ls server/src/main/resources/db/migration | sort -V | tail -1`).
 - Skeeman visuaalinen dokumentaatio:
   [SchemaSpy](https://opetushallitus.github.io/kielitutkintorekisteri/db).
 

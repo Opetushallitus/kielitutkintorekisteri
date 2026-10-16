@@ -80,6 +80,19 @@ SELECT left(tutkintopaiva, 4) AS vuosi, count(*) AS rivit,
 FROM raw GROUP BY 1 ORDER BY 1;
 ```
 
+### Jälkisiirto 2016–2020 (lokakuu 2026, ajettu)
+
+Alkuperäinen siirto rajattiin lähteen `last_modified < 2017-01-01`, ja sen jälkeen muokatut rivit
+oletettiin tulleen kituun Solkin omaa reittiä — vuosilta 2016–2020 puuttui silti ~1 900
+suoritusta. `scripts/yki_jalkisiirto.sh` (parametriton CloudShell-skripti) valitsi lähde-CSV:stä
+rivit, joiden `solki_id`tä ei ole rekisterissä **eikä** karanteenissa, lähetti oppijanumerolliset
+(380) rajapintaan ja latasi pysyvästi siirtymättömät (1 490) karanteeniin
+(`lahdetiedosto = 'yki-historia-2.csv#jalkisiirto'`). ~80 % puuttuvista oli oppijanumerottomia,
+mikä on todennäköinen syy siihen ettei Solkin oma reitti tuonut niitä. Migraatio **V132** siirsi
+karanteenista oppijanumerottomat rekisteriin ja hylkäsi vanhentuneet kielikoodit vuodesta 2017
+alkaen. Karanteeniin jäi kaksi oppijanumerollista vuoden 2017 riviä, jotka rajapinta hylkäsi
+puuttuvan sukunimen vuoksi.
+
 ### Puuttuvien siirto 2021–2026 (lokakuu 2026)
 
 Solkin 2021–2026-viennistä puuttuvat suoritukset siirretään skriptillä
@@ -103,6 +116,10 @@ bash yki_puuttuvien_siirto.sh s3://kitu-yki-historia-upload-prod/<avain>.csv 202
 Toinen parametri on tutkintopäivän yläraja (ei mukana): 2026-04-01 rajaa siirron maaliskuun 2026
 loppuun, koska todistuskieli on pakollinen 1.4.2026 alkaen eikä viennissä ole sitä.
 Vuoden 2026 riveiltä hetu pudotetaan sekä rajapintaan lähetettäessä että karanteeniin ladattaessa.
+
+V133 lisää V132:een kolme rajapinnan sääntöä, joita aiemmassa aineistossa ei tarvittu:
+todistuskieli on pakollinen 1.4.2026 alkaen, tarkistusarvioinnin käsittelypäivä ei saa olla ennen
+saapumispäivää, ja muuttuneiden osakokeiden on oltava tarkistettujen osajoukko.
 
 ## Safety boundary (read first)
 
