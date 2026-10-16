@@ -36,7 +36,9 @@ infra/
     ├── dns-stack.ts                 # Looks up pre-existing Route53 zone
     ├── route53-health-checks-stack.ts  # us-east-1 health check + alarm
     ├── alarms-stack.ts              # SNS topics + Chatbot Slack + AIOps investigation group
-    ├── log-groups-stack.ts          # Log groups + LogErrors/LogWarnings filters + alarms
+    ├── log-groups-stack.ts          # Log groups + LogErrors/LogWarnings filters + alarms,
+    │                                #   Transaction Search, PostYkiSuoritus alarm + notifications
+    ├── yki-suoritus-notifications/  # Lambda source for the YKI suoritus notifications
     ├── backups-stack.ts             # AWS Backup vault for the Aurora cluster
     ├── koski-audit-logs-integration-stack.ts  # Subscription filter + Lambda → KOSKI SQS
     └── koski-audit-logs-integration/  # Lambda source for the above
@@ -55,7 +57,7 @@ Created once, in the shared util account. Three things live here:
 - **`Util/ImageBuilds`** — ECR repo `kitu` with `IMMUTABLE` tags and scan-on-push.
   The repo grants pull to each env account principal and pull+push to the GitHub
   Actions deployment role. CI builds an image, pushes it here, then env deploys
-  resolve the image from ECR by `TAG` env var (`bin/infra.ts:24-27`).
+  resolve the image from ECR by `TAG` env var (`bin/infra.ts:23-26`).
 - **`Util/Alarms`** — its own `AlarmsStack` for image-scan findings + Util-level
   Slack notifications.
 - **`Util/GithubActions`** — the OIDC provider and the deployment role assumed by
@@ -99,7 +101,7 @@ order (because of dependencies):
    `aws rds-data execute-statement` / `batch-execute-statement` reach the
    cluster over the AWS API (IAM + the cluster secret, no VPC route). That is
    how the YKI historia karanteenitaulu was populated during the 2011–2016
-   migration (by a script since removed); it is IAM-gated, audited in
+   migration (`scripts/load_yki_historia_siirtymattomat.py`); it is IAM-gated, audited in
    CloudTrail, and deliberately not used for anything in the register itself.
 8. **`Service`** — the application Fargate service, see below.
 9. **`Route53HealthChecks`** (region: `us-east-1`) — HTTPS check against the
@@ -470,8 +472,9 @@ GitHub Actions deploy role assumes those roles to publish artifacts.
 
 ## Stack lifecycle and runtime currency
 
-**Lambda runtimes are never pinned, and must not be.** The one Lambda this repo
-owns (`koski-audit-logs-integration-stack.ts`) uses `Runtime.NODEJS_LATEST`, and
+**Lambda runtimes are never pinned, and must not be.** The two Lambdas this repo
+owns (`koski-audit-logs-integration-stack.ts` and the YkiSuoritusNotifications
+function in `log-groups-stack.ts`) use `Runtime.NODEJS_LATEST`, and
 CDK's own custom-resource Lambdas (`LogRetention`, `VpcRestrictDefaultSG`,
 `OpenIdConnectProvider`) use `determineLatestNodeRuntimeName()`. Both are
 _variable_ values that move when `aws-cdk-lib` is upgraded. Renovate automerges

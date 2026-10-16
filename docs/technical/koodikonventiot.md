@@ -12,7 +12,7 @@ Apufunktiot ovat paketissa `util/result/EitherExtensions.kt`:
 
 - `getOrThrow()` — vain domain-rajalla (esim. ajastetun tehtävän ylimmällä tasolla).
 - `splitIntoValuesAndErrors()` — pilkkoo `List<Either<E, V>>` pariksi `(List<V>, List<E>)`.
-  Käytössä eräajojen ja joukkolähetysten tuloksissa (`KoskiService`, `YkiViewController`).
+  Käytössä KOSKI-siirron eräajossa (`KoskiService`).
 
 ## Validointi: `Validation<T>` ja Arrow Raise
 
@@ -40,8 +40,10 @@ ja `ensureNotNull` predikaatteihin. Alivalidaattori, joka itse akkumuloi, ottaa
 `RaiseAccumulate<ValidationError>`-vastaanottimen ja sisältää sisäkkäisiä `accumulating { … }`
 -lohkoja.
 
-Kontrollerikerros kutsuu `validation.validateAndEnrich(…).getOrThrow()`; syntyvä poikkeus napataan
-`GlobalControllerExceptionHandler`issa ja muunnetaan 400-vastaukseksi.
+Kontrollerikerros kutsuu `validation.validateAndEnrich(…).orThrowBadRequest()`
+(`util/validation/ValidationService.kt`); syntyvä `ValidationException` napataan
+`GlobalControllerExceptionHandler`issa ja muunnetaan 400-vastaukseksi. Älä käytä tässä
+`util/result`-paketin `getOrThrow()`ia: se heittää Left-arvon sellaisenaan, ja tulos on 500.
 
 ## Jackson 3
 

@@ -13,20 +13,23 @@ liittyvät käytännöt.
 - Spanit luodaan `tracer.spanBuilder(...).use { … }` -patternilla (`observability/`-paketin
   extension-funktiot).
 - Paikallinen Jaeger nousee `docker-compose.yml`:stä, käyttöliittymä portissa `16686`.
-  Tuotannossa tracet lähetetään OTLP:llä OPH:n keskitettyyn telemetriapinoon.
+  AWS-ympäristöissä ECS-tehtävän ADOT-sivuvaunu (collector) vie tracet X-Rayhin ja
+  Transaction Searchiin ja metriikat CloudWatchiin (EMF); ks. `infra/README.md`.
 
 ### Strukturoidut lokit
 
-Lokit tulostetaan ECS-formaatissa (Elastic Common Schema), jotta ne indeksoituvat OPH:n yhteiseen
-Kibana-näkymään; `auditlogs/` tuottaa tämän erikseen autentikointitapahtumille ja
-KOSKI-siirroille. Paikallisesti `humanlog` muuntaa ECS-JSON-rivit luettavaksi —
+Lokit tulostetaan ECS-formaatissa (Elastic Common Schema) CloudWatch Logsin lokiryhmään
+`KituService`, jossa niitä voi kysellä Logs Insightsilla; `auditlogs/` kirjoittaa auditlokin
+omaan lokiryhmäänsä. Paikallisesti `humanlog` muuntaa ECS-JSON-rivit luettavaksi —
 `start_local_server.sh` käärii sen automaattisesti `spring-boot:run`in ympärille.
 
 ### Hälytykset
 
 - Slack-yhteys on AWS Chatbot (`infra/lib/alarms-stack`), ei webhookia.
-- CloudWatch-hälytykset määritellään `alarms-stack`issa ja
-  `koski-audit-logs-integration-stack`issa.
+- CloudWatch-hälytykset määritellään niitä koskevissa pinoissa: `service-stack` (5xx, CPU,
+  muisti), `log-groups-stack` (lokivirheet ja varoitukset, PostYkiSuoritus) ja
+  `route53-health-checks-stack` (health check). `alarms-stack` omistaa SNS-aiheet ja
+  Slack-yhteyden.
 - AWS Health -tapahtumat reititetään samaan Slack-kanavaan `alarms-stack`in
   EventBridge-säännöllä.
 
