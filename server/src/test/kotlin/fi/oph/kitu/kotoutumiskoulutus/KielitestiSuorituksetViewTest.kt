@@ -26,6 +26,7 @@ import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertFalse
 
 @SpringBootTest
 @Import(DBContainerConfiguration::class)
@@ -50,6 +51,14 @@ class KielitestiSuorituksetViewTest(
         errorRepository.saveAll(listOf(virhe("Ranja"), virhe("Eino")))
 
         assertContains(getHtml("/koto-kielitesti/suoritukset"), "Järjestelmässä on 2 virhettä.")
+    }
+
+    @Test
+    fun `hakulomake ei sailyta sivunumeroa`() {
+        val html = getHtml("/koto-kielitesti/suoritukset", "page" to "3", "testikieli" to "FIN")
+
+        assertFalse(html.contains("""name="page""""), "haku sivulta 3 voisi osua tyhjälle sivulle")
+        assertContains(html, """<input type="hidden" name="testikieli" value="FIN">""")
     }
 
     private fun getHtml(
