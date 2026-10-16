@@ -22,6 +22,7 @@ class CsvFormulaSafeStringSerializerTest {
             CsvFormulaSafeStringSerializer.sanitize("matti.meikalainen@example.com"),
         )
         assertEquals("123", CsvFormulaSafeStringSerializer.sanitize("123"))
+        assertEquals("-", CsvFormulaSafeStringSerializer.sanitize("-"))
         assertEquals("", CsvFormulaSafeStringSerializer.sanitize(""))
     }
 }

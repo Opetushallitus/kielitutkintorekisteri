@@ -105,10 +105,17 @@ object DisplayTableCsvRenderer {
         output.flush()
     }
 
-    fun escape(value: String): String {
-        val escapedValue = value.replace("\"", "\"\"")
+    private val FORMULA_TRIGGERS = setOf('=', '+', '-', '@', '\t', '\r')
 
-        return if (escapedValue.contains(SEPARATOR) || escapedValue.contains("\"") || escapedValue.contains("\n")) {
+    // OWASP "CSV injection": taulukko-ohjelma ei tulkitse heittomerkillä alkavaa arvoa kaavaksi.
+    // Pelkkä "-" on listanäkymien tyhjän arvon merkki eikä voi olla kaava.
+    fun neutralizeFormula(value: String): String =
+        if (value != "-" && value.firstOrNull() in FORMULA_TRIGGERS) "'$value" else value
+
+    fun escape(value: String): String {
+        val escapedValue = neutralizeFormula(value).replace("\"", "\"\"")
+
+        return if (escapedValue.any { it == '"' || it == '\n' || it == '\r' } || escapedValue.contains(SEPARATOR)) {
             "\"$escapedValue\""
         } else {
             escapedValue

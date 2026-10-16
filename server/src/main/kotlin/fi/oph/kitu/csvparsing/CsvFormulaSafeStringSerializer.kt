@@ -1,5 +1,6 @@
 package fi.oph.kitu.csvparsing
 
+import fi.oph.kitu.html.table.DisplayTableCsvRenderer
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
@@ -22,9 +23,6 @@ class CsvFormulaSafeStringSerializer : ValueSerializer<String>() {
     }
 
     companion object {
-        private val UNSAFE_LEADING_CHARS = setOf('=', '+', '-', '@', '\t', '\r')
-
-        fun sanitize(value: String): String =
-            if (value.isNotEmpty() && value.first() in UNSAFE_LEADING_CHARS) "'$value" else value
+        fun sanitize(value: String): String = DisplayTableCsvRenderer.neutralizeFormula(value)
     }
 }
