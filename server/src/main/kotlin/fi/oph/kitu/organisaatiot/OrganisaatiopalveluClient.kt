@@ -23,37 +23,27 @@ class OrganisaatiopalveluClient(
         endpoint: String,
         query: Map<String, Any> = emptyMap(),
         responseType: Class<T>,
-    ) = fetch(HttpMethod.GET, endpoint, query, responseType = responseType)
-
-    @WithSpan
-    fun <T> fetch(
-        httpMethod: HttpMethod,
-        endpoint: String,
-        query: Map<String, Any>,
-        body: OrganisaatiopalveluRequest? = null,
-        responseType: Class<T>,
     ): Either<OrganisaatiopalveluException, T> {
         val uriBuilder = UriComponentsBuilder.fromUriString("$serviceUrl/$endpoint")
         query.forEach { (key, value) -> uriBuilder.queryParam(key, value) }
 
         return restClient.fetchOphService(
-            httpMethod = httpMethod,
+            httpMethod = HttpMethod.GET,
             uri = uriBuilder.build().toUri(),
-            body = body,
-            emptyRequest = EmptyRequest(),
+            body = null,
+            emptyRequest = Unit,
             responseType = responseType,
-            nullResponse = { OrganisaatiopalveluException.NullResponse(it) },
-            notFound = { req, _ -> OrganisaatiopalveluException.NotFoundException(req) },
-            badRequest = { req, res -> OrganisaatiopalveluException.BadRequest(req, res) },
-            unexpected = { req, res -> OrganisaatiopalveluException.UnexpectedError(req, res) },
-            decodeFailure = { req, res, cause ->
+            nullResponse = { OrganisaatiopalveluException.NullResponse() },
+            notFound = { _, _ -> OrganisaatiopalveluException.NotFoundException() },
+            badRequest = { _, res -> OrganisaatiopalveluException.BadRequest(res) },
+            unexpected = { _, res -> OrganisaatiopalveluException.UnexpectedError(res) },
+            decodeFailure = { _, res, cause ->
                 decodeFailureFor(
                     serviceErrorType = OrganisaatiopalveluError::class.java,
                     response = res,
                     cause = cause,
                     badResponse = { orgError ->
                         OrganisaatiopalveluException.BadResponse(
-                            request = req,
                             response = res,
                             organisaatiopalveluError = orgError,
                             cause = cause,
@@ -61,7 +51,6 @@ class OrganisaatiopalveluClient(
                     },
                     malformed = {
                         OrganisaatiopalveluException.MalformedResponse(
-                            request = req,
                             response = res,
                             cause = cause,
                         )
