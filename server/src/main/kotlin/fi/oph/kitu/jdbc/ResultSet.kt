@@ -24,13 +24,8 @@ inline fun <reified E : Enum<E>> ResultSet.getEnum(columnLabel: String): E = enu
 inline fun <reified E : Enum<E>> ResultSet.getEnumOrNull(columnLabel: String): E? =
     getString(columnLabel)?.let { enumValueOf<E>(it) }
 
-fun ResultSet.getOffsetDateTime(columnLabel: String): OffsetDateTime =
-    getObject(columnLabel, OffsetDateTime::class.java)
-
 fun ResultSet.getOffsetDateTimeOrNull(columnLabel: String): OffsetDateTime? =
     getObject(columnLabel, OffsetDateTime::class.java)
-
-fun ResultSet.getLocalDate(columnLabel: String): LocalDate = getDate(columnLabel).toLocalDate()
 
 fun ResultSet.getLocalDateOrNull(columnLabel: String): LocalDate? = getDate(columnLabel)?.toLocalDate()
 
