@@ -50,8 +50,6 @@ class IlmoittautumisjarjestelmaServiceTests(
     @param:Autowired val suoritukset: YkiSuoritusRepository,
     @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired val ilmoittautumisjarjestelmaClient: IlmoittautumisjarjestelmaClientMock,
-    @param:Autowired val ykiCsvImport: YkiService,
-    @param:Autowired val ykiDevController: YkiController,
 ) {
     @BeforeEach
     fun setup() {
