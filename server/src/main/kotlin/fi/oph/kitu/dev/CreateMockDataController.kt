@@ -6,7 +6,6 @@ import fi.oph.kitu.dev.mockdata.VktSuoritusMockGenerator
 import fi.oph.kitu.dev.mockdata.generateRandomKielitestiSuoritus
 import fi.oph.kitu.dev.mockdata.generateRandomYkiArvioijaEntity
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
-import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusErrorEntity
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
 import fi.oph.kitu.tiedontuontischema.VktValidation
@@ -16,8 +15,6 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
-import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorEntity
-import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorRepository
 import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -38,7 +35,6 @@ class CreateMockDataController(
     private val environment: Environment,
     private val applicationContext: WebApplicationContext,
     private val suoritusRepository: YkiSuoritusRepository,
-    private val suoritusErrorRepository: YkiSuoritusErrorRepository,
     private val arvioijaRepository: YkiArvioijaRepository,
     private val kielitestiSuoritusRepository: KielitestiSuoritusRepository,
     private val vktSuoritusRepository: VktSuoritusRepository,
@@ -67,21 +63,6 @@ class CreateMockDataController(
                 generateRandomYkiSuoritusEntity()
             },
         )
-
-    // Yki
-    @GetMapping(
-        "/mockdata/yki/suoritus/virheet",
-        "/mockdata/yki/suoritus/virheet/{count}",
-    )
-    fun createYkiSuoritusErrorsMockData(
-        @PathVariable count: Int?,
-    ): Iterable<YkiSuoritusErrorEntity> =
-        suoritusErrorRepository
-            .saveAllNewEntities(
-                List(count ?: 3) {
-                    generateRandomYkiSuoritusErrorEntity()
-                },
-            )
 
     @GetMapping(
         "/mockdata/yki/arvioija/",

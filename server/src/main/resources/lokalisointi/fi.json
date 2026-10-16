@@ -516,7 +516,6 @@
   "yki.suodata": "Suodata",
   "yki.suorituksiaYhteensa": "Suorituksia yhteensä",
   "yki.suoritustaEdeltavaEiLaheteta": "Suoritusta edeltävää tila ei lähetetä",
-  "yki.suoritustenTuonninVirheet": "Suoritusten tuonnin virheet",
   "yki.takaisinOdottaviin": "Takaisin hyväksyntää odottaviin tarkistusarviointeihin",
   "yki.tarkistusarvioidutOsakokeet": "Tarkistusarvioidut osakokeet",
   "yki.tarkistusarvioinninAsiatunnus": "Tarkistusarvioinnin asiatunnus",
@@ -544,14 +543,5 @@
   "yki.tutkintopaivaPaattyen": "Tutkintopäivä päättyen",
   "yki.tutkintotoimikunnanKokous": "Tutkintotoimikunnan kokouksen päivämäärä",
   "yki.vanhentuneetPiilotettu": "Vanhentuneet tietokentät piilotettu",
-  "yki.viimeksiMuokattu": "Viimeksi muokattu",
-  "yki.virhesarake.hetu": "hetu",
-  "yki.virhesarake.lastModified": "last modified",
-  "yki.virhesarake.nimi": "nimi",
-  "yki.virhesarake.oppijanumero": "oppijanumero",
-  "yki.virhesarake.virheellinenArvo": "virheellinen arvo",
-  "yki.virhesarake.virheellinenKentta": "virheellinen kenttä",
-  "yki.virhesarake.virheellinenRivi": "virheellinen rivi",
-  "yki.virhesarake.virheenLuontiaika": "virheen luontiaika",
-  "yki.virhesarake.virheenRivinumero": "virheen rivinumero"
+  "yki.viimeksiMuokattu": "Viimeksi muokattu"
 }

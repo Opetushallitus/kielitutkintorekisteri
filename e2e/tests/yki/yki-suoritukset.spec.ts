@@ -2,13 +2,12 @@ import { beforeEach, describe, expect, test } from "../../fixtures/baseFixture"
 import { enumerate } from "../../util/arrays"
 
 describe('"YKI Suoritukset" -page', () => {
-  beforeEach(async ({ db, oauth, basePage, ykiSuoritus, ykiSuoritusError }) => {
+  beforeEach(async ({ db, oauth, basePage, ykiSuoritus }) => {
     await db.withEmptyDatabase()
     await ykiSuoritus.insert(oauth, "ranja")
     await ykiSuoritus.insert(oauth, "ranjaTarkistus")
     await ykiSuoritus.insert(oauth, "petro")
     await ykiSuoritus.insert(oauth, "magdalena")
-    await ykiSuoritusError.insert(db, "missingOid")
 
     await basePage.login()
   })

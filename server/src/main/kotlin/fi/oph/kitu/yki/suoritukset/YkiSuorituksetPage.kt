@@ -49,7 +49,6 @@ object YkiSuorituksetPage {
         totalSuoritukset: Long,
         filterParams: YkiSuorituksetParams,
         pagination: Pagination,
-        errorsCount: Long,
         koskiErrorsCount: Long,
         csrfToken: CsrfToken?,
         warning: ViewMessageData? = null,
@@ -62,7 +61,6 @@ object YkiSuorituksetPage {
 
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Nav.suoritukset }
-            errorsArticle(errorsCount, Links.Yki.suorituksetVirheet())
             koskiErrorsArticle(koskiErrorsCount, Links.Yki.koskiVirheet())
             viewMessage(warning)
 

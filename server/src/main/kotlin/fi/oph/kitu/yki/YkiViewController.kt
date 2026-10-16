@@ -4,7 +4,6 @@ import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessage
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.ViewMessageType
-import fi.oph.kitu.html.errorTablePage
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.i18n.LocalizationService
 import fi.oph.kitu.i18n.UiText
@@ -24,8 +23,6 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastotPage
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitPage
 import fi.oph.kitu.yki.suoritukset.error.YkiKoskiErrors
-import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorColumn
-import fi.oph.kitu.yki.suoritukset.error.YkiSuoritusErrorService
 import jakarta.servlet.http.HttpSession
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -45,7 +42,6 @@ import java.time.LocalDate
 @RequestMapping("/yki")
 class YkiViewController(
     private val ykiService: YkiService,
-    private val suoritusErrorService: YkiSuoritusErrorService,
     private val koskiErrorService: KoskiErrorService,
     private val koskiYkiRequestMapper: KoskiYkiRequestMapper,
     private val ilmoittautumisjarjestelma: IlmoittautumisjarjestelmaService,
@@ -135,7 +131,6 @@ class YkiViewController(
                         pageSize = params.limit,
                         url = { currentPage -> httpParams(params.toMap().plus("page" to currentPage)) },
                     ),
-                errorsCount = suoritusErrorService.countErrors(),
                 koskiErrorsCount = koskiErrorService.countByEntity("yki", false).toLong(),
                 csrfToken = csrfToken,
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
@@ -187,22 +182,6 @@ class YkiViewController(
             ),
         )
     }
-
-    @GetMapping("/suoritukset/virheet", produces = ["text/html"])
-    fun suorituksetVirheetView(
-        sortColumn: YkiSuoritusErrorColumn = YkiSuoritusErrorColumn.VirheenLuontiaika,
-        sortDirection: SortDirection = SortDirection.ASC,
-    ): ResponseEntity<String> =
-        ResponseEntity.ok(
-            errorTablePage(
-                title = UiText.Nav.yki.toString(),
-                subtitle = UiText.Yki.suoritustenTuonninVirheet.toString(),
-                sortColumn = sortColumn,
-                sortDirection = sortDirection,
-                rows = suoritusErrorService.getErrors(sortColumn, sortDirection),
-                ohje = UiText.Ohje.Yki.suoritukset,
-            ),
-        )
 
     @GetMapping("/koski-virheet", produces = ["text/html"])
     fun koskiVirheetView(hidden: Boolean = false): ResponseEntity<String> {
