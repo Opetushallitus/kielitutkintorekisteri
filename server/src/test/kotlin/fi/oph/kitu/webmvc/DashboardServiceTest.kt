@@ -1,7 +1,9 @@
 package fi.oph.kitu.webmvc
 
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.dev.mockdata.generateRandomKielitestiSuoritus
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
+import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import org.junit.jupiter.api.BeforeEach
@@ -21,6 +23,7 @@ class DashboardServiceTest(
     @param:Autowired private val dashboardService: DashboardService,
     @param:Autowired private val jdbc: JdbcTemplate,
     @param:Autowired private val ykiSuoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val kielitestiSuoritusRepository: KielitestiSuoritusRepository,
 ) {
     @BeforeEach
     fun cleanup() {
@@ -111,6 +114,21 @@ class DashboardServiceTest(
             dashboardService.getYkiStats().latestReceivedAt,
             "received_at ei saa edetä virkailijan tarkistusarvioinnin hyväksymisestä",
         )
+    }
+
+    @Test
+    fun `koton viimeisin saapunut suoritus ei seuraa keskeneraisten uudelleentuontia`() {
+        val valmiinSaapumisaika = Instant.parse("2026-05-01T08:00:00Z")
+        val keskeneraisenTuontiaika = Instant.parse("2026-06-01T12:00:00Z")
+        kielitestiSuoritusRepository.saveAll(
+            listOf(
+                generateRandomKielitestiSuoritus().copy(lastModified = valmiinSaapumisaika, completed = true),
+                generateRandomKielitestiSuoritus().copy(lastModified = keskeneraisenTuontiaika, completed = false),
+            ),
+        )
+        clearAllCaches()
+
+        assertEquals(valmiinSaapumisaika, dashboardService.getKotoStats().latestReceivedAt)
     }
 
     @Test
