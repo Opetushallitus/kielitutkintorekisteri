@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import fi.oph.kitu.tehtavapankki.TehtavapankkiRepository
+import fi.oph.kitu.util.TimeService
 import io.awspring.cloud.s3.ObjectMetadata
 import io.awspring.cloud.s3.S3Template
 import io.opentelemetry.api.trace.Span
@@ -19,7 +20,6 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 
@@ -38,6 +38,7 @@ class TehtavapankkiService(
     private val s3Client: S3Client,
     private val parser: TehtavapankkiXmlParser,
     private val repository: TehtavapankkiRepository,
+    private val timeService: TimeService,
 ) {
     @Value($$"${kitu.kotoutumiskoulutus.tehtavapankki.bucket:#{null}}")
     var bucket: String? = null
@@ -66,7 +67,12 @@ class TehtavapankkiService(
 
     @WithSpan
     fun uploadTehtavapankki(downloads: List<QuestionBankDownload>) {
-        val now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        val now =
+            timeService
+                .now()
+                .atZone(TimeService.zoneId)
+                .toLocalDateTime()
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         downloads.forEachIndexed { index, download ->
             val meta = download.metadata
             val sanitizedCoursename = sanitizeFilename(meta.courseName)

@@ -27,6 +27,7 @@ object YkiTarkistusarvioinnitPage {
     fun render(
         suoritukset: List<YkiSuoritusEntity>,
         message: ViewMessageData?,
+        oletuspaiva: LocalDate,
     ): String =
         Page.renderHtml(wideContent = true, ohje = UiText.Ohje.Yki.tarkistusarvioinnit) {
             h1 { +UiText.Yki.tarkistusarvioinnit }
@@ -44,6 +45,7 @@ object YkiTarkistusarvioinnitPage {
                 title = UiText.Yki.odottavatHyvaksyntaa.toString(),
                 submitButtonText = UiText.Yki.merkitseHyvaksynta.toString(),
                 suoritukset = suoritukset,
+                oletuspaiva = oletuspaiva,
                 testId = "odottaaHyvaksyntaa",
             )
         }
@@ -51,6 +53,7 @@ object YkiTarkistusarvioinnitPage {
     fun renderHyvaksytyt(
         suoritukset: List<YkiSuoritusEntity>,
         message: ViewMessageData?,
+        oletuspaiva: LocalDate,
     ): String =
         Page.renderHtml(wideContent = true, ohje = UiText.Ohje.Yki.tarkistusarvioinnit) {
             h1 { +UiText.Yki.tarkistusarvioinnit }
@@ -68,6 +71,7 @@ object YkiTarkistusarvioinnitPage {
                 title = UiText.Yki.hyvaksytytTarkistusarvioinnit.toString(),
                 submitButtonText = UiText.Yki.korjaaHyvaksymispaiva.toString(),
                 suoritukset = suoritukset,
+                oletuspaiva = oletuspaiva,
                 testId = "hyvaksytty",
             )
         }
@@ -76,6 +80,7 @@ object YkiTarkistusarvioinnitPage {
         title: String,
         submitButtonText: String,
         suoritukset: List<YkiSuoritusEntity>,
+        oletuspaiva: LocalDate,
         testId: String,
     ) {
         if (suoritukset.isNotEmpty()) {
@@ -91,7 +96,7 @@ object YkiTarkistusarvioinnitPage {
                         id = "hyvaksyttyPvm",
                         type = InputType.date,
                         name = "hyvaksyttyPvm",
-                        value = LocalDate.now().format(ISO_LOCAL_DATE),
+                        value = oletuspaiva.format(ISO_LOCAL_DATE),
                     ) {
                         testId(testId + "Date")
                     }

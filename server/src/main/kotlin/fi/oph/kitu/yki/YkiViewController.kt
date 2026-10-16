@@ -15,6 +15,7 @@ import fi.oph.kitu.koski.KoskiYkiMappingError
 import fi.oph.kitu.koski.KoskiYkiRequestMapper
 import fi.oph.kitu.koski.YkiMappingId
 import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.webmvc.ResourceNotFoundException
 import fi.oph.kitu.yki.suoritukset.YkiSuorituksetPage
@@ -50,6 +51,7 @@ class YkiViewController(
     private val ilmoittautumisjarjestelma: IlmoittautumisjarjestelmaService,
     private val oppijanumeroService: OppijanumeroService,
     private val localizationService: LocalizationService,
+    private val timeService: TimeService,
 ) {
     @GetMapping("/suoritukset/{id}", produces = ["text/html"])
     fun suoritusView(
@@ -236,6 +238,7 @@ class YkiViewController(
                 YkiTarkistusarvioinnitPage.render(
                     suoritukset = it.toList(),
                     message = viewMessage?.consume(),
+                    oletuspaiva = timeService.today(),
                 ),
             )
         }
@@ -247,6 +250,7 @@ class YkiViewController(
                 YkiTarkistusarvioinnitPage.renderHyvaksytyt(
                     suoritukset = it.toList(),
                     message = viewMessage?.consume(),
+                    oletuspaiva = timeService.today(),
                 ),
             )
         }
