@@ -49,7 +49,6 @@ class KoskiServiceTest(
     @param:Autowired private val ykiSuoritusRepository: YkiSuoritusRepository,
     @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val mockRestClientBuilder: RestClient.Builder,
-    @param:Autowired private val tracer: Tracer,
     @param:Autowired private val inMemorySpanExporter: InMemorySpanExporter,
     @param:Autowired private val koskiErrorService: KoskiErrorService,
     @param:Autowired private val postgres: PostgreSQLContainer,
@@ -59,9 +58,6 @@ class KoskiServiceTest(
 
     @Autowired
     private lateinit var customVktSuoritusRepository: CustomVktSuoritusRepository
-
-    @Autowired
-    private lateinit var vktSuoritusRepository: VktSuoritusRepository
 
     @Autowired
     private lateinit var ykiService: YkiService

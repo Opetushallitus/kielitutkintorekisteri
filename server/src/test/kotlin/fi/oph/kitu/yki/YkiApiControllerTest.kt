@@ -65,7 +65,6 @@ import kotlin.test.assertNull
 @Import(DBContainerConfiguration::class)
 class YkiApiControllerTest(
     @param:Autowired val timeService: TestTimeService,
-    @param:Autowired val arvioijaRepository: YkiArvioijaRepository,
     @param:Autowired val suoritusRepository: YkiSuoritusRepository,
     @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired val ykiApiController: YkiApiController,

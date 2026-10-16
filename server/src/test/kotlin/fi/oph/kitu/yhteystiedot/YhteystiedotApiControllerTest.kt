@@ -35,8 +35,6 @@ class YhteystiedotApiControllerTest {
     @Autowired private var postgres: PostgreSQLContainer? = null
     private var mockMvc: MockMvc? = null
 
-    @Autowired private lateinit var yhteystiedotService: YhteystiedotService
-
     @Autowired private lateinit var ykiSuoritukset: YkiSuoritusRepository
 
     private val auditLogbackLogger = LoggerFactory.getLogger(AUDIT_LOGGER_NAME) as LogbackLogger
