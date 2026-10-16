@@ -143,7 +143,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -160,12 +159,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // System under test
-
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         assertAll(
@@ -188,7 +183,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -242,10 +236,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         assertEquals(
@@ -276,7 +268,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusService: KielitestiSuoritusService,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -330,10 +321,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         assertEquals(
@@ -391,7 +380,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -445,10 +433,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         assertEquals(
@@ -497,7 +483,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -547,10 +532,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -578,7 +561,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -632,10 +614,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -655,7 +635,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -672,10 +651,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         assertEquals(
@@ -712,7 +689,6 @@ class KoealustaServiceTests(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -729,10 +705,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val errors = kielitestiSuoritusErrorRepository.findAll()
@@ -756,7 +730,6 @@ class KoealustaServiceTests(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 ExpectedCount.manyTimes(),
@@ -774,7 +747,6 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
         val errors = kielitestiSuoritusErrorRepository.findAll()
@@ -808,7 +780,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         val validSuoritus =
             """
             {
@@ -865,12 +836,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // System under test
-
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         assertAll(
@@ -893,7 +860,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         val suoritusJson =
             """
             {
@@ -945,12 +911,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // System under test
-
-        // Test
         koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -989,7 +951,6 @@ class KoealustaServiceTests(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
         mockServer
             .expect(
                 ExpectedCount.times(2),
@@ -1007,13 +968,9 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // System under test
-
-        // Test
         koealustaService.importValmiitSuoritukset(Instant.EPOCH)
         koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val suoritukset = customKielitestiSuoritusRepository.findAll()
@@ -1064,7 +1021,6 @@ class KoealustaServiceTests(
                   ]
             }
             """.trimIndent()
-        // Facade
         mockServer
             .expect(
                 requestTo(
@@ -1081,12 +1037,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // System under test
-
-        // Test
         val importFrom = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         mockServer.reset()
@@ -1117,8 +1069,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
-
         val suoritusJson =
             """
             {
@@ -1174,10 +1124,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -1205,8 +1153,6 @@ class KoealustaServiceTests(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
-        // Facade
-
         val suoritusJson =
             """
             {
@@ -1261,10 +1207,8 @@ class KoealustaServiceTests(
                 ),
             )
 
-        // Test
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
 
-        // Verification
         mockServer.verify()
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()

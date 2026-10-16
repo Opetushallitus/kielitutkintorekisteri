@@ -286,13 +286,11 @@ describe('"Koto Suoritukset" -page', () => {
   }) => {
     await kielitestiErrorPage.open()
 
-    // Intercept the download
     const [download] = await Promise.all([
       page.waitForEvent("download"),
       kielitestiErrorPage.getCSVDownloadLink().click(),
     ])
 
-    // Save the file to a temporary location
     const path = await download.path()
     expect(path).not.toBeNull()
 

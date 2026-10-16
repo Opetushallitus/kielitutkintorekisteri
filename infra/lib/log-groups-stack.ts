@@ -116,9 +116,11 @@ export class LogGroupsStack extends Stack {
     warningsAlarm.addOkAction(new SnsAction(props.alarmsSnsTopic))
   }
 
-  /** Enable Transaction Search.
+  /** Enable Transaction Search and build what reads the `aws/spans` log group.
    *
-   * This enables querying traces older than 30 days.
+   * Transaction Search enables querying traces older than 30 days. On top of the span
+   * log group this also creates the PostYkiSuoritus metric filter and alarm, the
+   * YkiSuoritusNotifications Lambda, its email topic and the alarm state-change rule.
    *
    * @see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Transaction-Search.html
    * @see https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Transaction-Search-Cloudformation.html

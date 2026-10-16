@@ -74,7 +74,6 @@ class KoskiServiceTest(
 
     @Test
     fun `test sending koski request`() {
-        // Arrange
         val suoritus = generateRandomYkiSuoritusEntity()
         val koskiResponse = successfulKoskiResponseFor(suoritus)
         val mockServer = MockRestServiceServer.bindTo(mockRestClientBuilder).build()
@@ -112,7 +111,6 @@ class KoskiServiceTest(
 
     @Test
     fun `test failed koski request`() {
-        // Arrange
         val expectedResponse =
             """
             [{"key": "notFound.oppijaaEiLöydy","message": "Oppijaa 1.2.246.562.24.00000000000 ei löydy."}]

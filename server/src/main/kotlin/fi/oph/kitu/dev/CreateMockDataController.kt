@@ -50,7 +50,6 @@ class CreateMockDataController(
         }
     }
 
-    // Yki
     @GetMapping(
         "/mockdata/yki/suoritus/",
         "/mockdata/yki/suoritus/{count}",
@@ -80,7 +79,6 @@ class CreateMockDataController(
         return arvioijaRepository.findAllById(ids)
     }
 
-    // Koto
     @GetMapping(
         "/mockdata/koto-kielitesti/suoritus/",
         "/mockdata/koto-kielitesti/suoritus/{count}",
@@ -94,7 +92,6 @@ class CreateMockDataController(
             },
         )
 
-    // Vkt
     @GetMapping(
         "/mockdata/vkt/suoritus/",
         "/mockdata/vkt/suoritus/{count}",

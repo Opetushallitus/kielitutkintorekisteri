@@ -7,7 +7,7 @@ import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 
 /** ISO 639-2 Alpha 3
- *  Legacy langugage codes:
+ *  Legacy language codes:
  *  10,Svenska,svenska,Swedish
  *  11,Kaupallinen englanti,företagsengelska,English for business
  *  12,Tekninen englanti,teknisk engelska,English for technology

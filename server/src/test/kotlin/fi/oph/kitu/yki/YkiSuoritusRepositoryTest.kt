@@ -372,7 +372,6 @@ class YkiSuoritusRepositoryTest(
 
         assertIs<Either.Left<*>>(result)
         assertIs<HyvaksyTarkistusarviointiError.EiTarkistusarvioitu>(result.value)
-        // Ei muutosta arviointitilassa
         val storedAfter = ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).first()
         assertEquals(Arviointitila.ARVIOITU, storedAfter.arviointitila)
     }

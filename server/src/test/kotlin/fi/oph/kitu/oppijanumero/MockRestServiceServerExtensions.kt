@@ -87,7 +87,7 @@ fun createRestClientBuilderWithCasFlow(casBaseUrl: String): RestClient.Builder {
 }
 
 /**
- * Setups CAS login flow to the instance of `MockRestServiceServer`.
+ * Sets up CAS login flow to the instance of `MockRestServiceServer`.
  *
  * Note that this configures CAS-flow to the service itself.
  * In order to mock CAS-flow fully, you need to build also flow in the CAS itself, eg. with `createRestClientBuilderWithCasFlow`.
@@ -100,7 +100,7 @@ fun MockRestServiceServer.addCasFlow(
     // It does not have the correct cookie, so CAS returns HTTP 302
     this.isNotLoggedInToCas("$serviceBaseUrl/$serviceEndpoint")
 
-    // Exepectation 4: verifyServiceTicket - service ticket validated in CAS Authenticated service
+    // Expectation 4: verifyServiceTicket - service ticket validated in CAS Authenticated service
     this.setupCasVerifyTicket(serviceBaseUrl, serviceEndpoint)
 
     // Expectation 5: Authenticated request.

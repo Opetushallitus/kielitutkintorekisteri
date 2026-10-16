@@ -25,9 +25,9 @@ class TehtavapankkiImportService(
     @WithSpan
     fun importAndIngest() {
         val downloadFailures = tehtavapankkiService.importTehtavapankki()
-        // Tuoreelle siirrolle ei tule uutta avainta jos sisältö on
-        // ennallaan: poistetaan kunkin kurssin sisällä saman sisältöiset
-        // objektit jotta bucket ei kasva turhaan.
+        // Jokainen siirto saa uuden avaimen, vaikka sisältö olisi ennallaan:
+        // poistetaan kunkin kurssin sisällä saman sisältöiset objektit,
+        // jotta bucket ei kasva turhaan.
         tehtavapankkiService.removeDuplicates()
         // Käydään kunkin kurssin uusimmat XML:t läpi: puretaan upotetut
         // <file>-blobit erillisiksi S3-objekteiksi (mp3-/png-assetit) ja

@@ -46,10 +46,6 @@ class CustomKielitestiSuoritusRepository(
         return jdbcNamedParameterTemplate.query(sql, KielitestiSuoritus.fromRow)
     }
 
-    /**
-     * Organisaatiohaun laajennus tehtiin ennen erikseen molemmissa kyselyissa, ja
-     * withOrgOids kutsuttiin kummassakin kahdesti — eli suodatin rakennettiin nelisti.
-     */
     private fun KielitestiSuoritusFilter.withOrganisaatiohaku(): KielitestiSuoritusFilter =
         withOrgOids(
             search

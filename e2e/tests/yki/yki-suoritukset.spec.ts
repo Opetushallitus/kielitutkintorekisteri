@@ -293,7 +293,7 @@ describe('"YKI Suoritukset" -page', () => {
         "Tila lähetetty",
         "Opiskeluoikeus-OID",
       ].join(";"),
-    ) // Validate headers
+    )
   })
 
   test("should download yki suoritukset without henkilötiedot CSV and verify its content", async ({
@@ -336,7 +336,7 @@ describe('"YKI Suoritukset" -page', () => {
         "Perustelu",
         "Tila lähetetty",
       ].join(";"),
-    ) // Validate headers
+    )
   })
 
   describe("Version history columns", () => {

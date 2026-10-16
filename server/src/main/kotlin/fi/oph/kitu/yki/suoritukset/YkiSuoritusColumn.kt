@@ -15,10 +15,6 @@ import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.span
 
-/**
- * Enum class representing columns in YKI Suoritus.
- * The class also maps the column names between SQL data classes and UI.
- */
 enum class YkiSuoritusColumn(
     override val entityName: String,
     override val uiHeaderValue: LocalizedString,

@@ -8,12 +8,6 @@ import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
-/**
- * Yhteiset arvioijafikstuurit. Ennen jokaisella arvioijatestilla oli oma
- * private fun arvioija(...), jotka toistivat samat literaalit ja erosivat vain
- * siina mitka kentat oli parametroitu.
- */
-
 val OLETUSKAUDEN_ALKU: LocalDate = LocalDate.of(2021, 1, 1)
 val OLETUSKAUDEN_LOPPU: LocalDate = LocalDate.of(2026, 1, 1)
 

@@ -24,8 +24,9 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Oppijanumeroton suoritus on vain 2011-2016 historiadatan erikoistapaus: se saa olla kannassa,
- * mutta se ei saa lahtea KOSKEEN eika ilmoittautumisjarjestelmaan. Esto on kahdessa kerroksessa,
+ * Oppijanumeroton suoritus on vain SQL-migraatioilla (V129, V132, V133) siirretyn historiadatan
+ * erikoistapaus: se saa olla kannassa, mutta se ei saa lahtea KOSKI-jarjestelmaan eika
+ * ilmoittautumisjarjestelmaan. Esto on kahdessa kerroksessa,
  * ja molemmat testataan: kyselysuodatin jottei yoajo edes lue rivia, ja tarkistus
  * lahetyspolulla joka kattaa myos suorat kutsut.
  */
@@ -76,7 +77,7 @@ class YkiOppijanumerotonSuoritusTest(
     }
 
     @Test
-    fun `oppijanumerollinen suoritus menee KOSKEen normaalisti`() {
+    fun `oppijanumerollinen suoritus menee KOSKI-jarjestelmaan normaalisti`() {
         val tulos = koskiYkiRequestMapper.ykiSuoritusToKoskiRequest(suoritus(2, oppijanumero))
 
         assertTrue(tulos.isRight(), "siirto estyi: ${(tulos as? Either.Left)?.value}")

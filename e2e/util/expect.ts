@@ -7,7 +7,6 @@ export const expectToHaveTexts = async (
   // locator.all() ei odota renderöintiä, joten ilman tätä vertailu voi osua tyhjään DOMiin.
   await expect(locator).toHaveCount(texts.length)
 
-  // Tehdään vertailu parhaiden käytäntöjen mukaan, jotta vältetään väpättävät testit...
   const locators = await locator.all()
   if (locators.length !== texts.length) {
     expect(await locator.allTextContents()).toEqual(texts)

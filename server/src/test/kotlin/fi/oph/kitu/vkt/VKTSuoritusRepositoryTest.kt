@@ -88,7 +88,6 @@ class VKTSuoritusRepositoryTest(
         val generator = VktSuoritusMockGenerator()
         repository.saveAll(List(1000) { generator.generateRandomVktSuoritusEntity(vktValidation) })
 
-        // Erilaiset kombinaatiot, joilla funktiota testatataan
         val taitotasot =
             listOf(
                 Koodisto.VktTaitotaso.Erinomainen,

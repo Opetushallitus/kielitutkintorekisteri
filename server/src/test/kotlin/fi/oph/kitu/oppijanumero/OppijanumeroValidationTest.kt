@@ -56,8 +56,6 @@ class OppijanumeroValidationTest {
     private fun oppijaNotFound(): OppijanumeroException.OppijaNotFoundException =
         OppijanumeroException.OppijaNotFoundException(EmptyRequest(), ResponseEntity.notFound().build())
 
-    // mapHenkiloOidToMasterOid
-
     @Test
     fun `mapHenkiloOidToMasterOid palauttaa oppijanumerorekisterin master-oidin`() {
         val master = Oid("1.2.246.562.24.33342764709")
@@ -81,8 +79,6 @@ class OppijanumeroValidationTest {
 
         assertIs<ValidationError.EnrichmentError>((result as Either.Left).value)
     }
-
-    // validateOppijanumeroInOnr
 
     @Test
     fun `validateOppijanumeroInOnr palauttaa löytyvän henkilön`() {

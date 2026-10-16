@@ -26,13 +26,13 @@ interface VktOsakoe :
     val oppilaitos: Oid?
     val merkittyPoistettavaksi: Instant?
 
-    /***
+    /**
      * Suorituksen vastaanottajan oid. Tätä ei siirretä kielitutkintorekisteriin,
      * vaan se täytetään VktSuoritus-objektin arvon mukaan käyttöliittymää renderöitäessä.
      */
     val suorituksenVastaanottaja: String?
 
-    /***
+    /**
      * Suorituspaikkakunnan koodiarvo. Tätä ei siirretä kielitutkintorekisteriin,
      * vaan se täytetään VktSuoritus-objektin arvon mukaan käyttöliittymää renderöitäessä.
      */

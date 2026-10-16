@@ -25,8 +25,6 @@ class SolkiRestClientConfig(
         restClientBuilder
             .baseUrl(baseUrl)
             .withBasicAuth(user, password)
-            // retrieveEntitySafely(String::class.java) kaatuisi Jacksonin sisalla ilman tata:
-            // Spring 7:n oletus-StringHttpMessageConverter mainostaa vain text/*.
             .withLenientStringConverter()
             .build()
 }

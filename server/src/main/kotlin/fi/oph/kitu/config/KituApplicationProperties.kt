@@ -17,8 +17,6 @@ object ApplicationProperties {
     lateinit var environment: Environment
 }
 
-// Initializes Application properties,
-// when Spring boot does the scan
 @Component
 class ApplicationPropertiesInitializer(
     val kitu: KituApplicationProperties,
