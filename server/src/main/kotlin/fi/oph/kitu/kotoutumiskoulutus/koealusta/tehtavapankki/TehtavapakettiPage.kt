@@ -341,7 +341,7 @@ private fun decodePluginFileName(raw: String): String =
         raw
     }
 
-// Moodlen tehtävätyyppien suomennokset. Kattaa Moodle 4.x:n vakio-tyypit ja
+// Moodlen tehtävätyyppien näyttönimet. Kattaa Moodle 4.x:n vakio-tyypit ja
 // yleiset kontribuutio-tyypit (mm. Koealustan käyttämä cloudpoodll).
 // Tuntemattomalle tyypille palautetaan tyypin tekninen tunniste sellaisenaan.
 internal fun moodleTehtavatyyppiNimi(tyyppi: String): String =
@@ -416,7 +416,7 @@ internal fun moodleTehtavatyyppiNimi(tyyppi: String): String =
     }?.toString() ?: tyyppi
 
 // Koealustan kielikoodit ovat tyypillisesti ISO 639-2 kolmikirjaimisia
-// (FIN/SWE/ENG). Esitetään virkailijalle suomeksi; tuntematon koodi
+// (FIN/SWE/ENG). Esitetään virkailijalle käännettynä; tuntematon koodi
 // näytetään raakana, jotta uudet kielet eivät jää kokonaan piiloon.
 internal fun languageLabel(code: String): String =
     when (code.lowercase()) {

@@ -36,11 +36,7 @@ sealed class SolkiArvioijaException(
         oppijanumero: String,
     ) : SolkiArvioijaException(oppijanumero, null, "Empty or unserializable response")
 
-    /**
-     * Yhteysvirhe. [fi.oph.kitu.restclient.retrieveEntitySafely] heittaa
-     * `ResourceAccessException`in lapi, joten se on napattava tassa: muuten tallennuksen
-     * synkroninen lahetysyritys kaataisi virkailijan pyynnon jo tallennetulle riville.
-     */
+    /** Yhteysvirhe; ks. [SolkiArvioijaClientImpl.laheta]. */
     class ConnectionFailure(
         oppijanumero: String,
         cause: Throwable,

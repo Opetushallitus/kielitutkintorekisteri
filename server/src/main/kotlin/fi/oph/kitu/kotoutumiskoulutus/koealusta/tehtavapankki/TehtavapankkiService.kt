@@ -23,7 +23,7 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.Base64
 
-// Wired vain kun spring.cloud.aws.s3.enabled on tosi. Bean luodaan
+// Wired ellei spring.cloud.aws.s3.enabled ole false. Bean luodaan
 // myös testeissä ja e2e:ssä kun ne osoittavat LocalStackiin; ajastettu
 // import gateataan erikseen TehtavapankkiScheduledTasksissa.
 @Service
@@ -54,11 +54,6 @@ class TehtavapankkiService(
         const val S3_META_LANGUAGE: String = "lahde-language"
     }
 
-    /**
-     * 1. Replaces white spaces with underscore.
-     * 2. Replaces any character that isn't a number, letter or underscore with nothing.
-     * 3. Takes first 128 characters from the name-string
-     */
     fun sanitizeFilename(string: String) =
         string
             .replace(' ', '_')

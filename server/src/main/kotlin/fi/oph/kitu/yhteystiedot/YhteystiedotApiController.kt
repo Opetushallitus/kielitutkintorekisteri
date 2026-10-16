@@ -59,13 +59,6 @@ class YhteystiedotApiController(
             ).log("Yhteystiedot lookup")
     }
 
-    /**
-     * Palauttaa todistuksen postitusosoitteen sekä toivotun kielen todistukselle annettuun opiskeluoikeuden tunnisteeseen (OID) liittyen.
-     *
-     * @param oid Opiskeluoikeuteen liittyvä tunniste (OID), jonka perusteella yhteystiedot haetaan.
-     * @return ResponseEntity, joka sisältää joko löydetyt yhteystiedot HTTP 200 -tilakoodin kanssa
-     *         tai YhteystietoNotFound-virheilmoituksen HTTP 404 -tilakoodin kanssa, jos yhteystietoja ei löydy.
-     */
     @GetMapping("/opiskeluoikeus/{oid}", produces = ["application/yhteystiedot+json", "application/json"])
     @Operation(
         summary = "Palauttaa todistuksen postitusosoitteen sekä toivotun kielen todistukselle",
@@ -143,13 +136,6 @@ class YhteystiedotApiController(
             ?: ResponseEntity(YhteystietoNotFound(oid.toString()), HttpStatus.NOT_FOUND)
     }
 
-    /**
-     * Palauttaa todistuksen postitusosoitteen sekä toivotun kielen todistukselle annettuun lähdejärjestelmän tunnukseen liittyen.
-     *
-     * @param tunnus Opiskeluoikeuteen liittyvä lähdejärjestelmän tunniste, jonka perusteella yhteystiedot haetaan.
-     * @return ResponseEntity, joka sisältää joko löydetyt yhteystiedot HTTP 200 -tilakoodin kanssa
-     *         tai YhteystietoNotFound-virheilmoituksen HTTP 404 -tilakoodin kanssa, jos yhteystietoja ei löydy.
-     */
     @GetMapping(
         "/opiskeluoikeus/lahdejarjestelman/{tunnus}",
         produces = ["application/yhteystiedot+json", "application/json"],

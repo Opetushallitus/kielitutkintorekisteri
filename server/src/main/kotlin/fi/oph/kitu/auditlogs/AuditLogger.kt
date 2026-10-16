@@ -33,8 +33,6 @@ class AuditLogger(
     lateinit var environment: String
 
     /**
-     * Logs events.
-     *
      * Note: the logged events with this method will be passed to an audit log integration on a lambda.
      */
     fun log(

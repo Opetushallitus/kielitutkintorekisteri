@@ -158,7 +158,7 @@ class TehtavapankkiIngestService(
                     ),
                 )
 
-            // Pass A: collect groups in source order. <question type="category">
+            // Collect groups in source order. <question type="category">
             // marks the start of a group. Questions appearing before any category
             // get a synthetic default group prepended on demand.
             val pendingRyhmat = mutableListOf<TehtavaryhmaEntity>()

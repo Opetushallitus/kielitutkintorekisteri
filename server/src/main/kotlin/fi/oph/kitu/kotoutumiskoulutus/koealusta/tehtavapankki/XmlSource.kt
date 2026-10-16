@@ -25,7 +25,6 @@ class StringXmlSource(
     override fun openStream(): InputStream = content.byteInputStream(Charsets.UTF_8)
 }
 
-/** Luokkapolulla oleva XML-resurssi. */
 class ClassPathXmlSource(
     private val resourcePath: String,
 ) : XmlSource {

@@ -18,33 +18,25 @@ if [ "$HAS_SESSION" -eq "0" ]; then
   exit 0
 fi
 
-# If there is no session...
-# Start a new tmux session and detach immediately
-# Window 0:zsh
 info "Starting new tmux session..."
 tmux new-session -d -s $SESS_NAME
 
-# Window 0:database docker
 WINDOW="database"
 tmux rename-window -t $SESS_NAME:0 "$WINDOW"
 tmux send-keys -t $SESS_NAME:"$WINDOW.0" "$REPO_ROOT/scripts/start_database_docker.sh" C-m
 
-# Window 2: OpenTelemetry tracing
 WINDOW="otel-tracing"
 tmux new-window -t $SESS_NAME -n "$WINDOW"
 tmux send-keys -t $SESS_NAME:"$WINDOW" "docker compose up jaeger" C-m
 
-# Window 3:idea
 WINDOW="idea"
 tmux new-window -t $SESS_NAME -n "idea"
 tmux send-keys -t $SESS_NAME:"idea" "idea $REPO_ROOT" C-m
 
-# Window 4:springboot
 WINDOW="springboot"
 tmux new-window -t $SESS_NAME -n "$WINDOW"
 tmux send-keys -t $SESS_NAME:"$WINDOW" "$REPO_ROOT/scripts/start_local_server.sh" C-m
 
-# Window 5:workspace
 WINDOW="workspace"
 tmux new-window -t $SESS_NAME -n "$WINDOW"
 tmux send-keys -t $SESS_NAME:"$WINDOW" "cd $REPO_ROOT" C-m

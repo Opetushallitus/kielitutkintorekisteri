@@ -19,7 +19,6 @@ import kotlin.test.assertIs
 class OppijanumeroServiceTests {
     @Test
     fun `oppijanumero service does not find user`() {
-        // Facade
         val restClientBuilder = RestClient.builder().baseUrl("http://localhost:8080/oppijanumerorekisteri-service")
         val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
         mockServer
@@ -129,7 +128,6 @@ class OppijanumeroServiceTests {
 
     @Test
     fun `oppijanumero service received bad request`() {
-        // Facade
         val restClientBuilder = RestClient.builder().baseUrl("http://localhost:8080/oppijanumerorekisteri-service")
         val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
         mockServer

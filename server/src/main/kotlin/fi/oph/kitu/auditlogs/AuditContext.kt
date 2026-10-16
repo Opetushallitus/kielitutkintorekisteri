@@ -48,7 +48,6 @@ data class AuditContext(
 
             val userOid = userDetails.oid
 
-            // Used to set organization oid for the logged in user.
             val opetushallitusOrganisaatioOid = getOpetushallitusOrganizationOid()
 
             val userAgent = request.getHeader("user-agent").orEmpty()

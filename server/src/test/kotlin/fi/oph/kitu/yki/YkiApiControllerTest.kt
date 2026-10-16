@@ -341,7 +341,7 @@ class YkiApiControllerTest(
     }
 
     /**
-     * Oppijanumeroton suoritus saa olla kannassa 2011-2016 historiadatan vuoksi, mutta sita ei saa
+     * Oppijanumeroton suoritus saa olla kannassa SQL-migraatioilla siirretyn historiadatan vuoksi, mutta sita ei saa
      * voida syottaa rajapinnasta. Esto on tyyppitasolla: Henkilo.oid on ei-nullable ilman
      * default-arvoa. Tama testi kiinnittaa sen, jottei takuu katoa vahingossa.
      */

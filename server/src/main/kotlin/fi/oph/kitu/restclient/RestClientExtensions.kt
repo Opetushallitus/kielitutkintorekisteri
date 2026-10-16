@@ -28,7 +28,8 @@ fun <T> RestClient.RequestBodySpec.nullableBody(body: T?): RestClient.RequestBod
     }
 
 /**
- * Does not throw, like [RestClient.RequestBodySpec.retrieve] if receiving non 2xx status code.
+ * Unlike [RestClient.RequestBodySpec.retrieve], does not throw on a non-2xx status code.
+ * Connection errors ([org.springframework.web.client.ResourceAccessException]) still propagate.
  *
  * Returns nulls for various reasons, for example:
  *  - `T` is null
@@ -71,7 +72,7 @@ fun RestClient.Builder.withLenientStringConverter(): RestClient.Builder {
 }
 
 // Jackson 3's own default is 20 MB. Callers that have a documented reason
-// (e.g. Koealusta tehtäväpankki — see TehtavapankkiClientImpl) override
+// (e.g. Koealusta tehtäväpankki — see TehtavapankkiXmlParser) override
 // with an explicit larger value; the helper's own default stays modest.
 fun RestClient.Builder.withJacksonStreamMaxStringLength(maxStringLength: Int = 10_000_000): RestClient.Builder =
     this

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import tools.jackson.databind.json.JsonMapper
 
 /**
- * Koneluettava debug-reitti, jolla nahdaan mita kitu lahettaisi KOSKEen. Erillaan
+ * Koneluettava debug-reitti, jolla nahdaan mita kitu lahettaisi KOSKI-jarjestelmaan. Erillaan
  * YkiViewControllerista, koska yleiso ja vastausmuoto ovat eri: tama palauttaa JSONia
  * ja bodyttoman 404:n, kun virkailijanakymat heittavat YkiSuoritusNotFoundErrorin ja
  * saavat HTML-virhesivun.

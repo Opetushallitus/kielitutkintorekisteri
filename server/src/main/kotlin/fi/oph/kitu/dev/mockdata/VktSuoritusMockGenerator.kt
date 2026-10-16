@@ -73,9 +73,8 @@ class VktSuoritusMockGenerator(
     }
 
     fun randomOppija(oppijaOidIndex: Long): Henkilo {
-        // Tätä satunnaista oidia käytettiin aiemmin oppijan oidissa. Luodaan se edelleen, mutta ei käytetä,
-        // jotta muut satunnaisarvot eivät muutu ja hajota testejä, jotka odottavat fikstuurissa olevan
-        // juuri tietyt arvot.
+        // Arvotaan mutta ei käytetä: poisto muuttaisi seuraavat satunnaisarvot ja rikkoisi testit,
+        // jotka odottavat fikstuurissa juuri tiettyjä arvoja.
         generateRandomOppijaOid(random)
 
         return Henkilo(

@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 /**
  * Lähdetekstit ovat `lokalisointi/fi.json`issa ja [UiText] sisältää vain avaimet, joten mikään
- * kääntäjä ei enää valvo niiden vastaavuutta. Tämä testi on se valvonta: kumpikin suunta on
+ * kääntäjä ei valvo niiden vastaavuutta. Tämä testi on se valvonta: kumpikin suunta on
  * tarkistettava, koska puuttuva lähdeteksti renderöisi avainmerkkijonon ja ylimääräinen
  * lähdeteksti jäisi ikuisesti roikkumaan Tolgeeseen.
  */

@@ -33,7 +33,7 @@ data class YkiSuoritusEntity(
     @IgnoreForEquality("DB")
     val id: Int?,
     val suorittajanOID: Oid?,
-    // Hetuja ei ole enää tallennettu Kielitutkintorekisteriin 1.1.2026 alkaen
+    // Hetua ei tallenneta tutkinnoille, joiden tutkintopäivä on hetunSiirronRajapaiva (1.1.2026) tai myöhemmin
     val hetu: String?,
     val sukupuoli: Sukupuoli,
     val sukunimi: String,
