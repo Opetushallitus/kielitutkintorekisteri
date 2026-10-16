@@ -13,6 +13,7 @@ import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
 import fi.oph.kitu.tiedontuontischema.YkiTarkastusarviointi
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.util.toJsonNode
@@ -35,6 +36,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.ResponseEntity
+import org.springframework.jdbc.core.JdbcTemplate
 import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 import kotlin.test.Test
@@ -46,13 +48,14 @@ class IlmoittautumisjarjestelmaServiceTests(
     @param:Autowired val ykiApi: YkiApiController,
     @param:Autowired val ykiView: YkiViewController,
     @param:Autowired val suoritukset: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired val ilmoittautumisjarjestelmaClient: IlmoittautumisjarjestelmaClientMock,
     @param:Autowired val ykiCsvImport: YkiService,
     @param:Autowired val ykiDevController: YkiController,
 ) {
     @BeforeEach
     fun setup() {
-        suoritukset.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         ilmoittautumisjarjestelmaClient.reset()
     }
 

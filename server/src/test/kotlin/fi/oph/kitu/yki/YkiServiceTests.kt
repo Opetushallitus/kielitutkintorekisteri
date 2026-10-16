@@ -11,6 +11,7 @@ import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
 import fi.oph.kitu.tiedontuontischema.YkiTarkastusarviointi
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.assertEquals
@@ -31,13 +33,14 @@ import kotlin.test.assertEquals
 @Import(OpenTelemetryTestConfig::class, DBContainerConfiguration::class)
 class YkiServiceTests(
     @param:Autowired private val ykiSuoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val ykiArvioijaRepository: YkiArvioijaRepository,
     @param:Autowired private val inMemorySpanExporter: InMemorySpanExporter,
 ) {
     @BeforeEach
     fun nukeDb() {
         ykiArvioijaRepository.deleteAll()
-        ykiSuoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         inMemorySpanExporter.reset()
     }
 

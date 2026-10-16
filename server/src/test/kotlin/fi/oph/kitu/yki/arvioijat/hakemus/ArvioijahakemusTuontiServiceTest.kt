@@ -11,6 +11,7 @@ import fi.oph.kitu.ataru.OptionAnswer
 import fi.oph.kitu.ataru.SiirtoHakemus
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.tyhjennaArvioijahakemukset
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.Tutkintokieli
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import java.time.Instant
 import java.time.LocalDate
@@ -37,6 +39,7 @@ import kotlin.test.assertNotNull
 @Import(DBContainerConfiguration::class)
 class ArvioijahakemusTuontiServiceTest(
     @param:Autowired private val repository: ArvioijahakemusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val arvioijaRepository: YkiArvioijaRepository,
     @param:Autowired private val kausiRepository: YkiArvioijaKausiRepository,
     @param:Autowired private val arvioijaService: YkiArvioijaService,
@@ -55,7 +58,7 @@ class ArvioijahakemusTuontiServiceTest(
 
     @BeforeEach
     fun setup() {
-        repository.deleteAll()
+        jdbcTemplate.tyhjennaArvioijahakemukset()
         arvioijaRepository.deleteAll()
         ataru.hakemukset = emptyList()
         ataru.siirtokutsut.clear()

@@ -487,11 +487,6 @@ class YkiSuoritusRepository(
         fullTrace = true,
     )
 
-    fun deleteAll() {
-        jdbcTemplate.execute("TRUNCATE TABLE yki_suoritus_lisatieto")
-        jdbcTemplate.execute("TRUNCATE TABLE yki_suoritus CASCADE")
-    }
-
     private fun insertSuoritus(
         suoritus: YkiSuoritusEntity,
         updateOnConflict: Boolean = false,

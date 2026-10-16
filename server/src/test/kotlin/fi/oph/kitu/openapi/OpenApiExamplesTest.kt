@@ -1,10 +1,10 @@
 package fi.oph.kitu.openapi
 
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.vkt.VktSuoritusRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
-import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DynamicTest
@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request
@@ -32,7 +33,7 @@ class OpenApiExamplesTest(
     @param:Autowired private val context: WebApplicationContext,
     @param:Autowired private val postgres: PostgreSQLContainer,
     @param:Autowired private val vktSuoritusRepository: VktSuoritusRepository,
-    @param:Autowired private val ykiSuoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val ykiArvioijaRepository: YkiArvioijaRepository,
 ) {
     private lateinit var mockMvc: MockMvc
@@ -45,7 +46,7 @@ class OpenApiExamplesTest(
     @AfterEach
     fun cleanup() {
         vktSuoritusRepository.deleteAll()
-        ykiSuoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         ykiArvioijaRepository.deleteAll()
     }
 
