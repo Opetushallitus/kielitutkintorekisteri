@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: kitu
       PGUSER: kitu
     ports:
-      - "5432:5432"
+      - "${KITU_DB_PORT:-5432}:5432"
 
   jaeger:
     image: jaegertracing/jaeger:latest
