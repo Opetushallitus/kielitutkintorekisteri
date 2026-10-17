@@ -1,7 +1,6 @@
 package fi.oph.kitu.koodisto
 
 import arrow.core.Either
-import fi.oph.kitu.organisaatiot.KoodiviiteUri
 import fi.oph.kitu.yki.Tutkintotaso
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource

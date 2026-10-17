@@ -10,7 +10,7 @@ RUN mvn package -DskipTests
 
 FROM amazoncorretto:25.0.4-al2023
 
-# amazoncorretto:25.0.3-al2023 on minimaalinen AL2023 -image ilman
+# amazoncorretto:*-al2023 on minimaalinen AL2023 -image ilman
 # shadow-utils-pakettia, joten lisätään ei-root-käyttäjä suoraan
 # /etc/passwd- ja /etc/group-tiedostoihin pakettien asentamisen sijaan.
 RUN echo 'app:x:10001:' >> /etc/group \

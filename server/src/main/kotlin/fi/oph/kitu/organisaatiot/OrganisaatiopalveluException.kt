@@ -5,51 +5,44 @@ import org.springframework.http.ResponseEntity
 import java.util.Date
 
 sealed class OrganisaatiopalveluException(
-    val request: OrganisaatiopalveluRequest,
     message: String,
     val organisaatiopalveluError: OrganisaatiopalveluError? = null,
     cause: Throwable? = null,
 ) : Throwable(message, cause) {
     class UnexpectedError(
-        request: OrganisaatiopalveluRequest,
         val response: ResponseEntity<String>,
         message: String = "Unexpected error in organisaatio-service",
-    ) : OrganisaatiopalveluException(request, message)
+    ) : OrganisaatiopalveluException(message)
 
     class MalformedResponse(
-        request: OrganisaatiopalveluRequest,
         val response: ResponseEntity<String>,
         message: String = "Malformed response from organisaatio-service",
         cause: Throwable,
-    ) : OrganisaatiopalveluException(request, message, cause = cause)
+    ) : OrganisaatiopalveluException(message, cause = cause)
 
     class BadResponse(
-        request: OrganisaatiopalveluRequest,
         val response: ResponseEntity<String>,
         message: String = "Bad response from organisaatio-service",
         organisaatiopalveluError: OrganisaatiopalveluError,
         cause: Throwable,
-    ) : OrganisaatiopalveluException(request, message, organisaatiopalveluError, cause)
+    ) : OrganisaatiopalveluException(message, organisaatiopalveluError, cause)
 
     class BadRequest(
-        request: OrganisaatiopalveluRequest,
         val response: ResponseEntity<String>,
         message: String = "Bad request to organisaatio-service",
         organisaatiopalveluError: OrganisaatiopalveluError? = null,
         cause: Throwable? = null,
-    ) : OrganisaatiopalveluException(request, message, organisaatiopalveluError, cause)
+    ) : OrganisaatiopalveluException(message, organisaatiopalveluError, cause)
 
     class NotFoundException(
-        request: OrganisaatiopalveluRequest,
-        message: String = "Oppija not found from organisaatio-service",
+        message: String = "Organisaatio not found from organisaatio-service",
         organisaatiopalveluError: OrganisaatiopalveluError? = null,
         cause: Throwable? = null,
-    ) : OrganisaatiopalveluException(request, message, organisaatiopalveluError, cause)
+    ) : OrganisaatiopalveluException(message, organisaatiopalveluError, cause)
 
     class NullResponse(
-        request: OrganisaatiopalveluRequest,
         message: String = "Empty or unserializable response from organisaatio-service",
-    ) : OrganisaatiopalveluException(request, message)
+    ) : OrganisaatiopalveluException(message)
 }
 
 data class OrganisaatiopalveluError(

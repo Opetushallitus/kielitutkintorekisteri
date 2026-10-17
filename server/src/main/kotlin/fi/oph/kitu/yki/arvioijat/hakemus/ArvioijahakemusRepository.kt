@@ -73,8 +73,4 @@ class ArvioijahakemusRepository(
             MapSqlParameterSource("oid", hakemusOid),
         )
     }
-
-    fun deleteAll() {
-        jdbc.update("DELETE FROM yki_arvioijahakemus", MapSqlParameterSource())
-    }
 }

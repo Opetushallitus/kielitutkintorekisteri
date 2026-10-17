@@ -5,6 +5,7 @@ import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.dev.mockdata.createOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.oid.OidClass
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
@@ -38,7 +39,7 @@ class YkiSuoritusRepositoryTest(
 ) {
     @BeforeEach
     fun nukeDb() {
-        ykiSuoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
     }
 
     @Test
@@ -371,7 +372,6 @@ class YkiSuoritusRepositoryTest(
 
         assertIs<Either.Left<*>>(result)
         assertIs<HyvaksyTarkistusarviointiError.EiTarkistusarvioitu>(result.value)
-        // Ei muutosta arviointitilassa
         val storedAfter = ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).first()
         assertEquals(Arviointitila.ARVIOITU, storedAfter.arviointitila)
     }

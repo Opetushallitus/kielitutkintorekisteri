@@ -7,7 +7,6 @@ import arrow.core.raise.ensureNotNull
 import fi.oph.kitu.jdbc.Columns
 import fi.oph.kitu.jdbc.ConflictHandler
 import fi.oph.kitu.jdbc.Constraint
-import fi.oph.kitu.jdbc.OnConflictDoNothing
 import fi.oph.kitu.jdbc.UpdateOnConflict
 import fi.oph.kitu.jdbc.sqlAll
 import fi.oph.kitu.oid.Oid
@@ -488,11 +487,6 @@ class YkiSuoritusRepository(
         fullTrace = true,
     )
 
-    fun deleteAll() {
-        jdbcTemplate.execute("TRUNCATE TABLE yki_suoritus_lisatieto")
-        jdbcTemplate.execute("TRUNCATE TABLE yki_suoritus CASCADE")
-    }
-
     private fun insertSuoritus(
         suoritus: YkiSuoritusEntity,
         updateOnConflict: Boolean = false,
@@ -595,9 +589,6 @@ class YkiSuoritusRepository(
         fullTrace: Boolean = false,
     ): T? {
         require(values.isNotEmpty()) { "values must not be empty" }
-        if (onConflict is OnConflictDoNothing) {
-            require(returning == null) { "cannot use OnConflictDoNothing while returning $returning" }
-        }
 
         val sql =
             """

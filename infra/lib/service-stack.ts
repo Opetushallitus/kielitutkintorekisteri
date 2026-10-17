@@ -78,7 +78,6 @@ export class ServiceStack extends Stack {
       internetFacing: true,
     })
 
-    // Create an S3 bucket
     const tehtavapankkiBucket = new s3.Bucket(this, "Kitu-Bucket", {
       bucketName: `kitu-bucket-${props.name}`,
       publicReadAccess: false,
@@ -194,7 +193,6 @@ export class ServiceStack extends Stack {
 
     // The default target group health check for ALBs is {healthyThresholdCount: 5, interval: Duration.seconds(30)}.
     // This means that a deployment takes at least 5*30 seconds = 2 minutes 30 seconds per container.
-    // Let's go faster.
     this.service.targetGroup.configureHealthCheck({
       enabled: true,
       healthyThresholdCount: 2,
@@ -206,7 +204,6 @@ export class ServiceStack extends Stack {
     // This means that a deployment can take 300 seconds to wait for a container to shut down.
     // This value should be low enough that deployments are fast, and high enough that any large file transfers succeed.
     // This only affects connections that are open when a new deployment occurs.
-    // Let's go faster.
     this.service.targetGroup.setAttribute(
       "deregistration_delay.timeout_seconds",
       "5",

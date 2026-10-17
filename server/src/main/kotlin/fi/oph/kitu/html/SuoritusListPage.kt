@@ -28,11 +28,9 @@ fun FlowContent.csvDownloadButton(href: String) {
 }
 
 /**
- * Listanäkymien yhteinen toimintorivi: rivimäärä, CSV-lataus ja suodatinnappi. Viisi
- * listasivua rakensi tämän erikseen lähes rivilleen samoin.
+ * Listanäkymien yhteinen toimintorivi: rivimäärä, CSV-lataus ja suodatinnappi.
  *
- * Rivimäärä kääritään aina testId("numberOfRows")-elementtiin. Aiemmin kolme viidestä
- * teki niin ja kaksi ei, mikä pakotti e2e-testit kiertoteille.
+ * Rivimäärä kääritään aina testId("numberOfRows")-elementtiin, johon e2e-testit nojaavat.
  */
 fun FlowContent.listViewActions(
     countLabel: LocalizedString,

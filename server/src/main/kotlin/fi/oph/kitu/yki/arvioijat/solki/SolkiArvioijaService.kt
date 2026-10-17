@@ -40,7 +40,7 @@ interface SolkiArvioijaService {
 }
 
 // open, koska @WithSpan vaatii CGLIB-proxyn: ilman @Service-annotaatiota Kotlinin allopen ei
-// enaa avaa luokkaa.
+// avaa luokkaa.
 open class SolkiArvioijaServiceImpl(
     private val repository: YkiArvioijaRepository,
     private val client: SolkiArvioijaClient,

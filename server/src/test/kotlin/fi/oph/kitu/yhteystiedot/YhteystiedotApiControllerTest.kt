@@ -35,8 +35,6 @@ class YhteystiedotApiControllerTest {
     @Autowired private var postgres: PostgreSQLContainer? = null
     private var mockMvc: MockMvc? = null
 
-    @Autowired private lateinit var yhteystiedotService: YhteystiedotService
-
     @Autowired private lateinit var ykiSuoritukset: YkiSuoritusRepository
 
     private val auditLogbackLogger = LoggerFactory.getLogger(AUDIT_LOGGER_NAME) as LogbackLogger
@@ -65,7 +63,6 @@ class YhteystiedotApiControllerTest {
 
     @Test
     fun `Hakeminen olemassaolevalla oidilla palauttaa yhteystiedot`() {
-        // Setup
         val opiskeluoikeusOid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow()
         val suoritus =
             generateRandomYkiSuoritusEntity().copy(
@@ -74,7 +71,6 @@ class YhteystiedotApiControllerTest {
             )
         ykiSuoritukset.save(suoritus, updateOnConflict = true)
 
-        // Act
         mockMvc!!
             .get("/yhteystiedot/api/opiskeluoikeus/$opiskeluoikeusOid") {
                 accept = MediaType.APPLICATION_JSON
@@ -114,7 +110,6 @@ class YhteystiedotApiControllerTest {
     fun `Hakeminen muulla oidilla palauttaa yhteystiedot`() {
         val opiskeluoikeusOid = "1.2.246.562.24.00000000000"
 
-        // Act
         mockMvc!!
             .get("/yhteystiedot/api/opiskeluoikeus/$opiskeluoikeusOid") {
                 accept = MediaType.APPLICATION_JSON
@@ -144,7 +139,6 @@ class YhteystiedotApiControllerTest {
 
     @Test
     fun `Hakeminen olemassaolevalla lahdejarjestelman tunnuksella palauttaa yhteystiedot`() {
-        // Setup
         val tunnus = "yki.123456"
         val suoritus =
             generateRandomYkiSuoritusEntity().copy(
@@ -153,7 +147,6 @@ class YhteystiedotApiControllerTest {
             )
         ykiSuoritukset.save(suoritus, updateOnConflict = true)
 
-        // Act
         mockMvc!!
             .get("/yhteystiedot/api/opiskeluoikeus/lahdejarjestelman/$tunnus") {
                 accept = MediaType.APPLICATION_JSON
@@ -193,7 +186,6 @@ class YhteystiedotApiControllerTest {
     fun `Hakeminen tuntemattomalla lahdejarjestelman tunnuksella palauttaa 404`() {
         val tunnus = "yki.tuntematon-tunnus"
 
-        // Act
         mockMvc!!
             .get("/yhteystiedot/api/opiskeluoikeus/lahdejarjestelman/$tunnus") {
                 accept = MediaType.APPLICATION_JSON

@@ -5,8 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 
 /**
  * Virkailijanäkymä kertoo "ei löydy" heittämällä tämän. GlobalControllerExceptionHandler
- * tunnistaa koko hierarkian yhdellä haaralla, joten uusi domain ei enää vaadi muutosta
- * kahteen tiedostoon — aiemmin unohdus käsittelijän listasta renderöi hiljaa 500-sivun.
+ * tunnistaa koko hierarkian yhdellä haaralla, joten uusi domain ei vaadi muutosta käsittelijään.
  *
  * Reason ei päädy käyttäjälle (käsittelijä renderöi ErrorPage.notFoundin), vaan se
  * dokumentoi aikeen lokeihin ja trace-tietoihin.

@@ -98,7 +98,7 @@ data class YkiArvioijaParams(
                     param to "%$term%",
                 )
             }
-            // Alikyselyn laskettu sarake, ei enaa yki_arvioija_tila-enum.
+            // Alikyselyn laskettu tekstisarake: ei enum-castia.
             tila?.let { add("tila = :tila", "tila" to it.name) }
             kieli?.let { add("kieli = :kieli::yki_tutkintokieli", "kieli" to it.name) }
             taso?.let { add("tasot @> ARRAY[:taso]::text[]", "taso" to it.name) }

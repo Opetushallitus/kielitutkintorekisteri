@@ -8,9 +8,7 @@ import org.springframework.context.annotation.Configuration
 
 /**
  * Toteutuksia on vain yksi, ja integraatiokytkin luetaan sen sisalla: kytkin estaa automaattisen
- * lahetyksen, mutta virkailijan kasin kaynnistama lahetys toimii aina. Aiemmin kytkin valitsi
- * kahden beanin valilta, jolloin lahetyskoneisto puuttui kokonaan kytkimen ollessa pois eika
- * painiketta voinut toteuttaa.
+ * lahetyksen, mutta virkailijan kasin kaynnistama lahetys toimii aina.
  *
  * Bean rakennetaan tassa eika `@Service`-annotaatiolla, jotta [SolkiArvioijaServiceImpl] pysyy
  * tavallisena luokkana, jonka testit voivat konstruoida suoraan.

@@ -30,9 +30,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 /**
- * Siirtymavaiheen kayttaytyminen: kirjoituskytkin on pois paalta, jolloin Solki on yha
+ * Siirtymavaiheen kayttaytyminen: integraatiokytkin on pois paalta, jolloin Solki on yha
  * arvioijarekisterin master ja saa kirjoittaa koko merkinnan. Kavennettu polku on
- * [YkiApiControllerTest]issa, joka ajaa kytkin paalla.
+ * [YkiArvioijaKavennettuApiTest]issa, joka ajaa kytkin paalla.
  */
 @SpringBootTest(properties = ["kitu.yki.arvioijarekisteri.integraatio.enabled=false"])
 @Import(DBContainerConfiguration::class)

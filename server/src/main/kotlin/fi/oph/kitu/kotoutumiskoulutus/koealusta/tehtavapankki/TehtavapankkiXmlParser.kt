@@ -43,7 +43,6 @@ class TehtavapankkiXmlParser {
         parse(xml.byteInputStream(Charsets.UTF_8))
 
     private fun buildQuiz(root: JsonNode): TehtavapankkiQuiz {
-        // The <quiz> root contains one or more <question> children.
         val raw = root.get("question") ?: return TehtavapankkiQuiz()
         val questions = raw.iterableNodes().map { buildQuestion(it) }
         return TehtavapankkiQuiz(questions)
@@ -162,8 +161,6 @@ class TehtavapankkiXmlParser {
         }
     }
 }
-
-// --- JsonNode tree-walking helpers ---
 
 /**
  * Returns the text content of a child element, normalized.

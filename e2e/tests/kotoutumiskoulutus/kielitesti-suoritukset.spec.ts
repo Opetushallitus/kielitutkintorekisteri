@@ -172,13 +172,11 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
   }) => {
     await kielitestiSuorituksetPage.open()
 
-    // Intercept the download
     const [download] = await Promise.all([
       page.waitForEvent("download"),
       kielitestiSuorituksetPage.getCSVDownloadLink().click(),
     ])
 
-    // Save the file to a temporary location
     const path = await download.path()
     expect(path).not.toBeNull()
 

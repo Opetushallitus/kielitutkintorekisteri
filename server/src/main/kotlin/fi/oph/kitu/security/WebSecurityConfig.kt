@@ -197,11 +197,7 @@ class WebSecurityConfig {
      * muuttaa [jakarta.servlet.ServletRequest.getScheme] palauttamaan
      * `https` jolloin palvelun kautta luodut urlit muodostuvat oikein.
      *
-     *
-     * Aktivointi: `kayttooikeus.uses-ssl-proxy` arvoon `true`.
-     *
-     * @return EmbeddedServletContainerCustomizer jonka Spring automaattisesti
-     * tunnistaa ja lisää servlet containerin konfigurointiin
+     * Aktivointi: `kitu.uses-ssl-proxy` arvoon `true`.
      *
      * Katso myös: [Oppijanumerorekisterin toteutus](https://github.com/Opetushallitus/oppijanumerorekisteri/blob/e2de50dfc039280ff3f657456451d67e6af40bd3/henkilo-ui/src/main/java/fi/vm/sade/henkiloui/configurations/ServletContainerConfiguration.java)
      */

@@ -19,6 +19,7 @@ import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
 import fi.oph.kitu.tiedontuontischema.YkiTarkastusarviointi
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.verboseContentJson
@@ -39,6 +40,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity
@@ -63,8 +65,8 @@ import kotlin.test.assertNull
 @Import(DBContainerConfiguration::class)
 class YkiApiControllerTest(
     @param:Autowired val timeService: TestTimeService,
-    @param:Autowired val arvioijaRepository: YkiArvioijaRepository,
     @param:Autowired val suoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired val ykiApiController: YkiApiController,
 ) {
     @Autowired
@@ -339,7 +341,7 @@ class YkiApiControllerTest(
     }
 
     /**
-     * Oppijanumeroton suoritus saa olla kannassa 2011-2016 historiadatan vuoksi, mutta sita ei saa
+     * Oppijanumeroton suoritus saa olla kannassa SQL-migraatioilla siirretyn historiadatan vuoksi, mutta sita ei saa
      * voida syottaa rajapinnasta. Esto on tyyppitasolla: Henkilo.oid on ei-nullable ilman
      * default-arvoa. Tama testi kiinnittaa sen, jottei takuu katoa vahingossa.
      */
@@ -705,7 +707,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `CSV-vienti näyttää taustalta täydennetyn opiskeluoikeus-OIDin`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
 
         val opiskeluoikeusOid = Oid.parse("1.2.246.562.15.00000000001").getOrThrow()
         val vanhempiVersio =
@@ -749,7 +751,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `CSV-vienti suodattaa istuntoon tallennetulla hakusanalla`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
 
         val loydettava = generateRandomYkiSuoritusEntity().copy(sukunimi = "Zebrakalastaja")
         val muu = generateRandomYkiSuoritusEntity().copy(sukunimi = "Muukalainen")
@@ -774,7 +776,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `CSV-vienti suodattaa rekisteriintuontiajalla`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
 
         val rajauksessa =
             generateRandomYkiSuoritusEntity().copy(
@@ -807,7 +809,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `tilastojen CSV-vienti ryhmittelee rajatut suoritukset ilman henkilötietoja`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
 
         val paiva = LocalDate.of(2026, 3, 14)
         val tuonti = Instant.parse("2026-03-20T10:00:00Z")
@@ -860,7 +862,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `tilastojen CSV-vienti sisältää vain valitut ryhmittelysarakkeet`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         suoritusRepository.saveAllNewEntities(
             listOf(
                 generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.FIN),
@@ -895,7 +897,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `tilastojen CSV-vienti ryhmittelee tutkintovuoden mukaan`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         suoritusRepository.saveAllNewEntities(
             listOf(
                 generateRandomYkiSuoritusEntity()
@@ -928,7 +930,7 @@ class YkiApiControllerTest(
 
     @Test
     fun `CSV-vienti sisältää tarkistusarviointitiedot ja rekisteriintuontiajan`() {
-        suoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
 
         val suoritus =
             generateRandomYkiSuoritusEntity().copy(

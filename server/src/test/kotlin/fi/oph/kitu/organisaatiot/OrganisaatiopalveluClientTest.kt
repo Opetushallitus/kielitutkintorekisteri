@@ -71,7 +71,7 @@ class OrganisaatiopalveluClientTest {
             .andRespond(withStatus(HttpStatus.NOT_FOUND))
 
         val result =
-            client.get("api/1.2.246.562.10.999", responseType = GetOrganisaatioResponse::class.java)
+            client.get("api/1.2.246.562.10.999", responseType = GetOrganisaatiohierarkiaResponse::class.java)
 
         val left = assertIs<Either.Left<OrganisaatiopalveluException>>(result).value
         assertIs<OrganisaatiopalveluException.NotFoundException>(left)
@@ -84,7 +84,7 @@ class OrganisaatiopalveluClientTest {
             .expect(requestTo("$serviceUrl/api/x"))
             .andRespond(withStatus(HttpStatus.BAD_REQUEST).body("validation failed"))
 
-        val result = client.get("api/x", responseType = GetOrganisaatioResponse::class.java)
+        val result = client.get("api/x", responseType = GetOrganisaatiohierarkiaResponse::class.java)
 
         val left = assertIs<Either.Left<OrganisaatiopalveluException>>(result).value
         val badRequest = assertIs<OrganisaatiopalveluException.BadRequest>(left)
@@ -98,7 +98,7 @@ class OrganisaatiopalveluClientTest {
             .expect(requestTo("$serviceUrl/api/x"))
             .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR))
 
-        val result = client.get("api/x", responseType = GetOrganisaatioResponse::class.java)
+        val result = client.get("api/x", responseType = GetOrganisaatiohierarkiaResponse::class.java)
 
         val left = assertIs<Either.Left<OrganisaatiopalveluException>>(result).value
         assertIs<OrganisaatiopalveluException.UnexpectedError>(left)

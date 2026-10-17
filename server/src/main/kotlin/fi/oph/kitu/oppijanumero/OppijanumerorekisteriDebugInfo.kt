@@ -4,17 +4,13 @@ import fi.oph.kitu.util.defaultObjectMapper
 import org.springframework.http.ResponseEntity
 import tools.jackson.module.kotlin.readValue
 
-interface DebugInfo {
-    val source: String
-}
-
 data class OppijanumerorekisteriDebugInfo(
     val request: OppijanumerorekisteriRequest,
     val detectedTypicalErrors: List<String>,
     val error: OppijanumeroServiceError?,
     val rawResponse: String?,
-) : DebugInfo {
-    override val source = "oppijanumerorekisteri"
+) {
+    val source = "oppijanumerorekisteri"
 
     override fun toString(): String = defaultObjectMapper.writeValueAsString(this)
 

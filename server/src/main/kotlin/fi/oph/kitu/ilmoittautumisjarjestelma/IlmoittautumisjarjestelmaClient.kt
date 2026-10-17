@@ -41,7 +41,7 @@ class IlmoittautumisjarjestelmaClientImpl(
             responseType = responseType,
             nullResponse = { IlmoittautumisjarjestelmaException.NullResponse(it) },
             // Tama palvelu ei erottele 404:aa muista 4xx-virheista, toisin kuin ONR ja
-            // organisaatiopalvelu — sailytetaan entinen kaytos.
+            // organisaatiopalvelu.
             notFound = { req, res -> IlmoittautumisjarjestelmaException.BadRequest(req, res) },
             badRequest = { req, res -> IlmoittautumisjarjestelmaException.BadRequest(req, res) },
             unexpected = { req, res -> IlmoittautumisjarjestelmaException.UnexpectedError(req, res) },

@@ -273,7 +273,8 @@ jobs:
     # Always build on main (the deploy needs the image pushed to ECR).
     # On PRs, only run when Dockerfile/.dockerignore changed — the app code is
     # already verified by server_tests/frontend_tests, so a green check from
-    # this job on every PR is mostly wasted CI time.
+    # this job on every PR is mostly wasted CI time. In the merge queue
+    # list_changes forces image=true, so the image is always built there.
     if: github.ref_name == 'main' || needs.list_changes.outputs.image == 'true'
     permissions:
       id-token: write

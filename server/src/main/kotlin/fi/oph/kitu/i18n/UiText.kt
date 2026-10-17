@@ -248,8 +248,6 @@ object UiText {
             get() = tr("yki.hyvaksytytTarkistusarvioinnit")
         val korjaaHyvaksymispaiva: LocalizedString
             get() = tr("yki.korjaaHyvaksymispaiva")
-        val suoritustenTuonninVirheet: LocalizedString
-            get() = tr("yki.suoritustenTuonninVirheet")
         val siirtoaEiTehda: LocalizedString get() = tr("yki.siirtoaEiTehda")
 
         val suoritustaEdeltavaEiLaheteta: LocalizedString
@@ -540,8 +538,6 @@ object UiText {
             val ashaNumero: LocalizedString get() = tr("yki.sarake.ashaNumero")
             val solkiTila: LocalizedString get() = tr("yki.sarake.solkiTila")
             val muokattu: LocalizedString get() = tr("yki.sarake.muokattu")
-            val solkiId: LocalizedString get() = tr("yki.sarake.solkiId")
-            val kentta: LocalizedString get() = tr("yki.sarake.kentta")
             val paivamaara: LocalizedString get() = tr("yki.sarake.paivamaara")
             val asiatunnus: LocalizedString get() = tr("yki.sarake.asiatunnus")
             val tarkistusarviointi: LocalizedString
@@ -584,23 +580,6 @@ object UiText {
                 val odottaaYksilointia: LocalizedString get() = tr("yki.arvioijahakemus.tila.odottaaYksilointia")
                 val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
             }
-        }
-
-        object Virhesarake {
-            val oppijanumero: LocalizedString get() = tr("yki.virhesarake.oppijanumero")
-            val hetu: LocalizedString get() = tr("yki.virhesarake.hetu")
-            val nimi: LocalizedString get() = tr("yki.virhesarake.nimi")
-            val virheellinenKentta: LocalizedString
-                get() = tr("yki.virhesarake.virheellinenKentta")
-            val virheellinenArvo: LocalizedString
-                get() = tr("yki.virhesarake.virheellinenArvo")
-            val virheellinenRivi: LocalizedString
-                get() = tr("yki.virhesarake.virheellinenRivi")
-            val virheenRivinumero: LocalizedString
-                get() = tr("yki.virhesarake.virheenRivinumero")
-            val virheenLuontiaika: LocalizedString
-                get() = tr("yki.virhesarake.virheenLuontiaika")
-            val lastModified: LocalizedString get() = tr("yki.virhesarake.lastModified")
         }
     }
 

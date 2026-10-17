@@ -97,10 +97,8 @@ class KoealustaMappingService(
                                 oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response)
 
                             KoealustaMappingError.OppijanumeroFailure(
-                                it,
                                 "Oppijanumeron haku epäonnistui: ${debugInfo.message() ?: it.oppijanumeroServiceError?.error ?: it.message ?: "ei tarkempia tietoja"}",
                                 Oid.parse(user.completions.first().schoolOID).getOrNull(),
-                                moodleId = user.userid.toString(),
                                 user.completions.first().teacheremail,
                                 debugInfo.toString(),
                                 oppija,

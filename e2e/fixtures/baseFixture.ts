@@ -3,11 +3,9 @@ import KielitestiSuorituksetPage from "../models/kotoutumiskoulutus/KielitestiSu
 import IndexPage from "../models/IndexPage"
 import YkiSuorituksetPage from "../models/yki/YkiSuorituksetPage"
 import YkiSuorituksenTiedotPage from "../models/yki/YkiSuorituksenTiedotPage"
-import YkiSuorituksetErrorPage from "../models/yki/YkiSuorituksetErrorPage"
 import { createTestDatabase } from "../db/database"
 import * as kotoSuoritusFixture from "./kotoSuoritus"
 import * as ykiSuoritusFixture from "./ykiSuoritus"
-import * as ykiSuoritusErrorFixture from "./ykiSuoritusError"
 import * as kotoSuoritusErrorFixture from "./kotoError"
 import * as vktSuoritusFixture from "./vktSuoritus"
 import * as ykiArvioijaFixture from "./ykiArvioija"
@@ -27,7 +25,6 @@ interface Fixtures {
   ykiSuorituksenTiedotPage: YkiSuorituksenTiedotPage
   ykiArvioijatPage: YkiArvioijatPage
   ykiArvioijaLomakePage: YkiArvioijaLomakePage
-  ykiSuorituksetErrorPage: YkiSuorituksetErrorPage
   ykiTarkistusarvioinnitPage: YkiTarkistusarvioinnitPage
   ykiHyvaksytytTarkistusarvioinnitPage: YkiHyvaksytytTarkistusarvioinnitPage
   kielitestiSuorituksetPage: KielitestiSuorituksetPage
@@ -36,7 +33,6 @@ interface Fixtures {
   basePage: BasePage
   kotoSuoritus: typeof kotoSuoritusFixture
   ykiSuoritus: typeof ykiSuoritusFixture
-  ykiSuoritusError: typeof ykiSuoritusErrorFixture
   ykiArvioija: typeof ykiArvioijaFixture
   kotoSuoritusError: typeof kotoSuoritusErrorFixture
   vktSuorituksetPage: VktSuorituksetPage
@@ -88,10 +84,6 @@ export const test = baseTest.extend<Fixtures, WorkerArgs>({
     const ykiArvioijaLomakePage = new YkiArvioijaLomakePage(page, config)
     await use(ykiArvioijaLomakePage)
   },
-  ykiSuorituksetErrorPage: async ({ page, config }, use) => {
-    const ykiSuorituksetErrorPage = new YkiSuorituksetErrorPage(page, config)
-    await use(ykiSuorituksetErrorPage)
-  },
   ykiTarkistusarvioinnitPage: async ({ page, config }, use) => {
     const ykiTarkistusarvioinnitPage = new YkiTarkistusarvioinnitPage(
       page,
@@ -127,9 +119,6 @@ export const test = baseTest.extend<Fixtures, WorkerArgs>({
   },
   ykiArvioija: async ({}, use) => {
     await use({ ...ykiArvioijaFixture })
-  },
-  ykiSuoritusError: async ({}, use) => {
-    await use({ ...ykiSuoritusErrorFixture })
   },
   kotoSuoritusError: async ({}, use) => {
     await use({ ...kotoSuoritusErrorFixture })

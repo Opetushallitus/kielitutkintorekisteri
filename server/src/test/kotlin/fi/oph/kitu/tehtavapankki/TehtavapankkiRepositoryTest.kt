@@ -177,7 +177,7 @@ class TehtavapankkiRepositoryTest(
 
     @Test
     fun `eri versio_hashit samalle lahde-id-parille rinnakkain, sama hash kahdesti ei`() {
-        val v1 = seedPaketti(versioHash = "hash-v1")
+        seedPaketti(versioHash = "hash-v1")
         Thread.sleep(20) // varmistaa eri 'luotu'-aikaleimat
         val v2 = seedPaketti(versioHash = "hash-v2")
 
@@ -189,7 +189,6 @@ class TehtavapankkiRepositoryTest(
         assertNotNull(latest)
         assertEquals(v2, latest.id)
         assertEquals("hash-v2", latest.versioHash)
-        assertNotNull(v1) // unused-warning suppression
 
         assertFailsWith<DuplicateKeyException> {
             seedPaketti(versioHash = "hash-v1") // sama (lahde,id,hash) -> UNIQUE rikkoutuu

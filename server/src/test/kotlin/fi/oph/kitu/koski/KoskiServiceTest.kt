@@ -7,6 +7,7 @@ import fi.oph.kitu.auditlogs.OpenTelemetryTestConfig
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.web.client.ExpectedCount
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -45,8 +47,8 @@ class KoskiServiceTest(
     @param:Autowired private val koskiYkiRequestMapper: KoskiYkiRequestMapper,
     @param:Autowired private val koskiVktRequestMapper: KoskiVktRequestMapper,
     @param:Autowired private val ykiSuoritusRepository: YkiSuoritusRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val mockRestClientBuilder: RestClient.Builder,
-    @param:Autowired private val tracer: Tracer,
     @param:Autowired private val inMemorySpanExporter: InMemorySpanExporter,
     @param:Autowired private val koskiErrorService: KoskiErrorService,
     @param:Autowired private val postgres: PostgreSQLContainer,
@@ -58,9 +60,6 @@ class KoskiServiceTest(
     private lateinit var customVktSuoritusRepository: CustomVktSuoritusRepository
 
     @Autowired
-    private lateinit var vktSuoritusRepository: VktSuoritusRepository
-
-    @Autowired
     private lateinit var ykiService: YkiService
 
     @Autowired
@@ -68,14 +67,13 @@ class KoskiServiceTest(
 
     @BeforeEach
     fun nukeDb() {
-        ykiSuoritusRepository.deleteAll()
+        jdbcTemplate.tyhjennaYkiSuoritukset()
         inMemorySpanExporter.reset()
         timeService.resetClock()
     }
 
     @Test
     fun `test sending koski request`() {
-        // Arrange
         val suoritus = generateRandomYkiSuoritusEntity()
         val koskiResponse = successfulKoskiResponseFor(suoritus)
         val mockServer = MockRestServiceServer.bindTo(mockRestClientBuilder).build()
@@ -113,7 +111,6 @@ class KoskiServiceTest(
 
     @Test
     fun `test failed koski request`() {
-        // Arrange
         val expectedResponse =
             """
             [{"key": "notFound.oppijaaEiLöydy","message": "Oppijaa 1.2.246.562.24.00000000000 ei löydy."}]

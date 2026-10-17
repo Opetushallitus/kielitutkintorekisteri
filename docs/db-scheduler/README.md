@@ -63,13 +63,15 @@ seuraavassa ajossa. Käsin käynnistetty ajo laskee ikkunan käynnistyshetkestä
 
 ### Kotoutumiskoulutuksen kielitaidon tehtäväpankin lataus
 
-Lataa tehtäväpankin varmuuskopion ja tallentaa S3-bucketiin.
+Lataa tehtäväpankin varmuuskopion S3-bucketiin, poistaa sisällöltään samat kopiot ja purkaa
+kunkin kurssin uusimman version tehtäväpankin tauluihin; upotetut ääni- ja kuvatiedostot
+tallennetaan erillisinä S3-objekteina.
 
 ## YKI-arvioijarekisteri
 
-Nämä ajot ovat olemassa vain, kun kitu on arvioijarekisterin master. Lähetysajot
-(`Laheta ...`) rekisteröidään vain, jos `kitu.yki.arvioijarekisteri.integraatio.enabled=true`;
-muuten ne eivät näy käyttöliittymässä lainkaan.
+Arvioijarekisterin ylläpitoajot ovat aina olemassa. Solki-lähetysajot (`Laheta ...`)
+rekisteröidään vain, jos `kitu.yki.arvioijarekisteri.integraatio.enabled=true`; muuten ne eivät
+näy käyttöliittymässä lainkaan.
 
 ### Laheta YKI-arvioijat Solkiin
 

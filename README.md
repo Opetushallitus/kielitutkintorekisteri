@@ -82,8 +82,9 @@ Oletuspayload on `server/src/test/resources/yki-tiedonsiirto-example.json`. `dev
 
 Kun internet-yhteyttä ei ole saatavilla (esim. lentokoneessa tai junassa), sovelluksen voi käynnistää
 ilman AWS Secrets Manager -kutsuja ja ilman Untuva Opintopolun saavutettavuutta. Tämä käyttää
-`local-opintopolku`-profiilia, joka mockaa Koodisto-, Oppijanumero-, Organisaatio- ja
-Tehtäväpankki-palvelut sekä ohittaa Otuvan JWT-validoinnin paikallisella avaimella.
+`local-opintopolku`-profiilia, joka mockaa Koodisto-, Oppijanumero-, Organisaatio-, Tehtäväpankki-
+ja Ataru-palvelut, korvaa CAS-kirjautumisen `/dev/mocklogin`-reitillä ja ohittaa Otuvan
+JWT-validoinnin paikallisella avaimella.
 
 Ennakkovaatimukset (tee verkossa ollessasi):
 
@@ -112,7 +113,8 @@ Kirjautumaton pyyntö ohjataan automaattisesti mock-kirjautumissivulle
 
 Rajoitukset offline-tilassa:
 
-- KOSKI-, YKI- ja Koealusta-tuontien ajastetut tehtävät on poistettu käytöstä.
+- KOSKI-siirron ja Koealustan suoritustuonnin ajastetut tehtävät on poistettu käytöstä;
+  tehtäväpankin tuonti ajetaan mock-dataa vasten.
 - Ulkoiset integraatiot palauttavat mock-dataa eivätkä kutsu oikeita palveluita.
 - E2E-testit (Playwright) eivät kuulu offline-tukeen.
 
@@ -167,14 +169,15 @@ Julkaisu tapahtuu automaattisesti GitHub Actions -palvelussa [Build](./.github/w
 
 Julkaisun voi myös ajaa omalta koneelta komennoilla:
 
-[//]: # "TODO: luo skripti tätä varten"
-
 ```shell
-(cd infra && TAG=$(git rev-parse HEAD) npx cdk deploy 'Util/**')
-(cd infra && TAG=$(git rev-parse HEAD) npx cdk deploy 'Dev/**')
-(cd infra && TAG=$(git rev-parse HEAD) npx cdk deploy 'Test/**')
-(cd infra && TAG=$(git rev-parse HEAD) npx cdk deploy 'Prod/**')
+(cd infra && TAG=$(git rev-parse main) npx cdk deploy --exclusively 'Util/**')
+(cd infra && TAG=$(git rev-parse main) npx cdk deploy --exclusively 'Dev/**')
+(cd infra && TAG=$(git rev-parse main) npx cdk deploy --exclusively 'Test/**')
+(cd infra && TAG=$(git rev-parse main) npx cdk deploy --exclusively 'Prod/**')
 ```
+
+`TAG`in on osoitettava `main`in committiin, koska imaget rakennetaan ECR:ään vain siitä.
+Devin voi deployata myös komennolla `npm run deploy/dev`.
 
 ### Salaisuudet AWS-ympäristöissä
 
@@ -183,7 +186,7 @@ Seuraavat salaisuudet pitää luoda manuaalisesti AWS Secret Manageriin.
 Lista vastaa `secrets`-lohkoa tiedostossa [service-stack.ts](infra/lib/service-stack.ts) — deploy ei
 onnistu, jos jokin näistä puuttuu tililtä.
 
-- `kielitesti-token`: Koealustan salaisuus. Ks. [fi.oph.kitu.kielitesti-paketti](server/src/main/kotlin/fi/oph/kitu/kotoutumiskoulutus).
+- `kielitesti-token`: Koealustan salaisuus. Ks. [fi.oph.kitu.kotoutumiskoulutus-paketti](server/src/main/kotlin/fi/oph/kitu/kotoutumiskoulutus).
 - `palvelukayttaja-password`: OPH:n palvelukäyttäjän salasana, jolla mm. oppijanumerorekisteriä
   kutsutaan. Ks. [fi.oph.kitu.oppijanumero-paketti](server/src/main/kotlin/fi/oph/kitu/oppijanumero).
 - `palvelukayttaja-oauth-password`: saman palvelukäyttäjän OAuth2-salaisuus.
@@ -273,7 +276,7 @@ pelkkä `{name}`-korvaus, joten ICU-syntaksi renderöityisi raakana. Tämä kosk
 ./scripts/check-formatting.sh
 
 # paketoi projektin.
-mvn package
+(cd server && ./mvnw package)
 
 # Voit käyttää tätä jos ajat ympäristöä terminaalin kautta
 ./scripts/start_local_server.sh

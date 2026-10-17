@@ -83,12 +83,10 @@ object TehtavapankkiPage {
                                         td {
                                             val pakettiId = pakettiIdsByS3Avain[tp.key]
                                             if (pakettiId != null) {
-                                                // Paketti löytyy DB:stä — linkki näkymään, josta voi myös ladata XML:n.
                                                 a(
                                                     href = Links.Tehtavapankki.paketti(pakettiId),
                                                 ) { +UiText.Koto.naytaSisalto }
                                             } else {
-                                                // Ei selattavaa versiota — tarjotaan raaka XML.
                                                 a(href = Links.Tehtavapankki.download(tp.key)) {
                                                     attributes["download"] = ""
                                                     +UiText.Koto.lataaXml

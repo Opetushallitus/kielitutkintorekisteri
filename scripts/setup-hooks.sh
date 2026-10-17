@@ -5,8 +5,7 @@ set -e
 echo "Setting up pre-commit hook..."
 
 # core.hooksPath osoittaa suoraan versionhallittuun hooks-hakemistoon, jolloin
-# hookin muutokset tulevat voimaan ilman uutta asennusta. Aiemmin hook
-# kopioitiin .git/hooks/:iin, eivätkä päivitykset koskaan päätyneet perille.
+# hookin muutokset tulevat voimaan ilman uutta asennusta.
 git config core.hooksPath hooks
 chmod +x ./hooks/pre-commit
 

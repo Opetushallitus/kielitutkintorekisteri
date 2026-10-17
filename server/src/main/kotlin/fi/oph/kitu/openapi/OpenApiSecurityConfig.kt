@@ -40,7 +40,7 @@ class OpenApiSecurityConfig : GlobalOpenApiCustomizer {
                 .flows(
                     OAuthFlows()
                         .clientCredentials(
-                            // En löytänyt tapaa kysyä Spring Securityltä suoraan token-urlia, joten joudumme muodostamaan sen käsin tässä.
+                            // Spring Security ei tarjoa token-URLia, joten se muodostetaan käsin.
                             OAuthFlow()
                                 .tokenUrl(
                                     // Javan URI-luokan uri.resolve(path) ylikirjoittaa koko polun, joten käytetään Springin UriComponentsBuilder-helpperiä polkusegmenttien lisäämiseksi loppuun.
