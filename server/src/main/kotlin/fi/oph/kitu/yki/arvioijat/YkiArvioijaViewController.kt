@@ -4,6 +4,7 @@ import fi.oph.kitu.html.FormErrors
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessage
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroException
@@ -44,14 +45,7 @@ class YkiArvioijaViewController(
                 arvioijat = arvioijat,
                 params = params,
                 pagination =
-                    Pagination.valueOf(
-                        currentPageNumber = params.page,
-                        numberOfRows = kokonaismaara,
-                        pageSize = params.limit,
-                        url = { page ->
-                            Links.Yki.arvioijat() + httpParams(params.toMap() + ("page" to page.toString()))
-                        },
-                    ),
+                    params.pagination(kokonaismaara, Links.Yki.arvioijat()),
                 muokkausKaytossa = asetukset.muokkausKaytossa,
                 hakemustenTuontiKaytossa = asetukset.hakemustenTuontiKaytossa,
             ),

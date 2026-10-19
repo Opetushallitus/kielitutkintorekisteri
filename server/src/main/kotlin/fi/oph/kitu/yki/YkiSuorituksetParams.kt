@@ -1,5 +1,6 @@
 package fi.oph.kitu.yki
 import fi.oph.kitu.html.table.ColumnTag
+import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.SortDirection
@@ -15,8 +16,8 @@ import java.time.LocalDate
 
 data class YkiSuorituksetParams(
     var versionHistory: Boolean = false,
-    var limit: Int = 100,
-    var page: Int = 1,
+    override var limit: Int = 100,
+    override var page: Int = 1,
     var sortColumn: YkiSuoritusColumn = YkiSuoritusColumn.Tutkintopaiva,
     var sortDirection: SortDirection = SortDirection.DESC,
     var search: String = "",
@@ -27,7 +28,7 @@ data class YkiSuorituksetParams(
     var tutkintoloppu: LocalDate? = null,
     var tutkintokieli: Tutkintokieli? = null,
     var tutkintotaso: Tutkintotaso? = null,
-    var piilotaHenkilotiedot: Boolean = false,
+    override var piilotaHenkilotiedot: Boolean = false,
     val piilotaVanhentuneetTiedot: Boolean = false,
     val arviointitila: Arviointitila? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -38,8 +39,8 @@ data class YkiSuorituksetParams(
     var tilastoSortDirection: SortDirection = SortDirection.DESC,
     var aikaryhmittely: YkiSuoritusAikaryhmittely? = null,
     var ryhmittely: List<YkiSuoritusTilastoColumn>? = null,
-) {
-    fun toMap(): Map<String, String?> =
+) : PaginatedListViewParams {
+    override fun toMap(): Map<String, String?> =
         mapOf(
             "recallSearch" to search.isNotEmpty().toTrueOrNull(),
             "versionHistory" to versionHistory.toTrueOrNull(),
@@ -119,12 +120,12 @@ data class YkiSuorituksetParams(
             sortDirection = sortDirection,
         )
 
-    fun excludeTags(): Set<ColumnTag> =
-        setOfNotNull(
-            if (piilotaHenkilotiedot) ColumnTag.PERSONAL_DATA else null,
-            if (piilotaVanhentuneetTiedot) ColumnTag.OBSOLETE else null,
-            if (versionHistory) null else ColumnTag.VERSION_HISTORY_ONLY,
-        )
+    override fun excludeTags(): Set<ColumnTag> =
+        super.excludeTags() +
+            setOfNotNull(
+                if (piilotaVanhentuneetTiedot) ColumnTag.OBSOLETE else null,
+                if (versionHistory) null else ColumnTag.VERSION_HISTORY_ONLY,
+            )
 
     fun csvFileName() =
         buildCsvFilename(

@@ -1,5 +1,6 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 import fi.oph.kitu.html.table.ColumnTag
+import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
@@ -10,8 +11,8 @@ import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 
 data class KielitestiSuorituksetParams(
-    val limit: Int = PAGINATED_DEFAULT_PAGE_SIZE,
-    val page: Int = 1,
+    override val limit: Int = PAGINATED_DEFAULT_PAGE_SIZE,
+    override val page: Int = 1,
     val sortColumn: KielitestiSuoritusColumn = KielitestiSuoritusColumn.Suoritusaika,
     val sortDirection: SortDirection = SortDirection.DESC,
     val search: String = "",
@@ -19,10 +20,10 @@ data class KielitestiSuorituksetParams(
     var suoritusalku: LocalDate? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var suoritusloppu: LocalDate? = null,
-    val piilotaHenkilotiedot: Boolean = false,
+    override val piilotaHenkilotiedot: Boolean = false,
     val testikieli: Testikieli? = null,
     val naytettavatSuoritukset: NaytettavatSuoritukset = NaytettavatSuoritukset.VALMIIT,
-) {
+) : PaginatedListViewParams {
     fun toFilter(): KielitestiSuoritusFilter =
         KielitestiSuoritusFilter(
             search = search,
@@ -39,7 +40,7 @@ data class KielitestiSuorituksetParams(
             pageNumber = page - 1,
         )
 
-    fun toMap(): Map<String, String?> =
+    override fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search,
             "page" to page.toString(),
@@ -50,11 +51,6 @@ data class KielitestiSuorituksetParams(
             "testikieli" to testikieli?.toString(),
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
             "naytettavatSuoritukset" to naytettavatSuoritukset.name,
-        )
-
-    fun excludeTags(): Set<ColumnTag> =
-        setOfNotNull(
-            if (piilotaHenkilotiedot) ColumnTag.PERSONAL_DATA else null,
         )
 
     fun csvFileName() =

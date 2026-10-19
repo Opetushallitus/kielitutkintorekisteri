@@ -6,6 +6,7 @@ import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.hiddenValue
 import fi.oph.kitu.html.hiddenValues
 import fi.oph.kitu.html.input
+import fi.oph.kitu.html.listSearchForm
 import fi.oph.kitu.html.listViewActions
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
@@ -15,6 +16,7 @@ import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.testId
@@ -51,25 +53,12 @@ object KielitestiSuorituksetPage {
             h2 { +UiText.Nav.suoritukset }
             errorsArticle(errorsCount, Links.Kielitesti.virheet())
 
-            form(action = "", method = FormMethod.get, classes = "grid center-vertically") {
-                hiddenValues(filterParams.toMap() - "search" - "page")
-                fieldSet {
-                    attributes["role"] = "search"
-                    input {
-                        testId("search")
-                        id = "search"
-                        type = InputType.search
-                        name = "search"
-                        value = filterParams.search
-                        placeholder = UiText.Koto.hakusana.toString()
-                    }
-                    button {
-                        testId("search-button")
-                        type = ButtonType.submit
-                        +UiText.Koto.suodata
-                    }
-                }
-            }
+            listSearchForm(
+                value = filterParams.search,
+                placeholder = UiText.Koto.hakusana,
+                buttonText = UiText.Koto.suodata,
+                params = filterParams.toMap(),
+            )
 
             article(classes = "overflow-auto") {
                 header {
@@ -125,11 +114,7 @@ fun FlowContent.kielitestiSuoritusFilterButton(params: KielitestiSuorituksetPara
             )
         }
         fieldSet {
-            toggleFilter(
-                "piilotaHenkilotiedot",
-                UiText.Filter.piilotaHenkilotiedot.toString(),
-                params.piilotaHenkilotiedot,
-            )
+            piilotaHenkilotiedotFilter(params.piilotaHenkilotiedot)
         }
         fieldSet {
             enumFilter<NaytettavatSuoritukset>(

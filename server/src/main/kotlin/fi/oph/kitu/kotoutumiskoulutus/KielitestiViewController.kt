@@ -2,6 +2,7 @@ package fi.oph.kitu.kotoutumiskoulutus
 
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuorituksetPage
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuorituksetParams
@@ -63,12 +64,7 @@ class KielitestiViewController(
                 filterParams = params,
                 numberOfSuoritukset = numberOfSuoritukset,
                 pagination =
-                    Pagination.valueOf(
-                        currentPageNumber = params.page,
-                        numberOfRows = numberOfSuoritukset,
-                        pageSize = params.limit,
-                        url = { currentPage -> httpParams(params.toMap().plus("page" to currentPage)) },
-                    ),
+                    params.pagination(numberOfSuoritukset),
             ),
         )
     }

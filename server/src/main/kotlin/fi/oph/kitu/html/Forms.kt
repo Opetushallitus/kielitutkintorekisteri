@@ -1,10 +1,16 @@
 package fi.oph.kitu.html
 
+import fi.oph.kitu.i18n.LocalizedString
+import fi.oph.kitu.i18n.unaryPlus
+import kotlinx.html.ButtonType
 import kotlinx.html.FORM
 import kotlinx.html.FlowContent
 import kotlinx.html.FormMethod
 import kotlinx.html.InputType
+import kotlinx.html.button
+import kotlinx.html.fieldSet
 import kotlinx.html.form
+import kotlinx.html.id
 import kotlinx.html.input
 import org.springframework.security.web.csrf.CsrfToken
 import java.time.LocalDate
@@ -72,5 +78,34 @@ fun FlowContent.hiddenValue(
 fun FlowContent.hiddenValues(values: Map<String, String?>) {
     values.forEach { (key, value) ->
         value?.let { hiddenValue(key, value) }
+    }
+}
+
+fun FlowContent.listSearchForm(
+    value: String?,
+    placeholder: LocalizedString,
+    buttonText: LocalizedString,
+    params: Map<String, String?>,
+    action: String = "",
+    inputTestId: String = "search",
+) {
+    form(action = action, method = FormMethod.get, classes = "grid center-vertically") {
+        hiddenValues(params - "search" - "page")
+        fieldSet {
+            attributes["role"] = "search"
+            input {
+                testId(inputTestId)
+                id = "search"
+                type = InputType.search
+                name = "search"
+                this.value = value.orEmpty()
+                this.placeholder = placeholder.toString()
+            }
+            button {
+                testId("search-button")
+                type = ButtonType.submit
+                +buttonText
+            }
+        }
     }
 }

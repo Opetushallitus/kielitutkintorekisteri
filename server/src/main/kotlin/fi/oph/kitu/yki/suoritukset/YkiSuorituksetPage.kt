@@ -16,6 +16,7 @@ import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.testId
@@ -185,11 +186,7 @@ fun FlowContent.ykiSuoritusFilterButton(
             toggleFilter("versionHistory", UiText.Yki.naytaVersiohistoria.toString(), params.versionHistory)
         }
         fieldSet {
-            toggleFilter(
-                "piilotaHenkilotiedot",
-                UiText.Filter.piilotaHenkilotiedot.toString(),
-                params.piilotaHenkilotiedot,
-            )
+            piilotaHenkilotiedotFilter(params.piilotaHenkilotiedot)
         }
         fieldSet {
             toggleFilter(

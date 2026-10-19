@@ -5,6 +5,7 @@ import fi.oph.kitu.html.ViewMessage
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.ViewMessageType
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.i18n.LocalizationService
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.ilmoittautumisjarjestelma.IlmoittautumisjarjestelmaService
@@ -125,12 +126,7 @@ class YkiViewController(
                 totalSuoritukset = totalSuoritukset,
                 filterParams = params,
                 pagination =
-                    Pagination.valueOf(
-                        currentPageNumber = params.page,
-                        numberOfRows = totalSuoritukset.toInt(),
-                        pageSize = params.limit,
-                        url = { currentPage -> httpParams(params.toMap().plus("page" to currentPage)) },
-                    ),
+                    params.pagination(totalSuoritukset.toInt()),
                 koskiErrorsCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, false).toLong(),
                 csrfToken = csrfToken,
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,

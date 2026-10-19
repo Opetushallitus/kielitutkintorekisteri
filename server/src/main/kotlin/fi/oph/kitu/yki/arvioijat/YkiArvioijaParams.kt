@@ -1,6 +1,7 @@
 package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.html.table.ColumnTag
+import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.PaginatedSortOrder
@@ -23,13 +24,14 @@ data class YkiArvioijaParams(
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var kausiPaattyyEnnen: LocalDate? = null,
     var vainSolkiVirheet: Boolean = false,
-    var piilotaHenkilotiedot: Boolean = false,
+    override var piilotaHenkilotiedot: Boolean = false,
     var sortColumn: YkiArvioijaColumn = YkiArvioijaColumn.Sukunimi,
     var sortDirection: SortDirection = SortDirection.ASC,
-    var page: Int = 1,
-    var limit: Int = PAGINATED_DEFAULT_PAGE_SIZE,
-) : SqlFilter() {
-    fun toMap(): Map<String, String?> =
+    override var page: Int = 1,
+    override var limit: Int = PAGINATED_DEFAULT_PAGE_SIZE,
+) : SqlFilter(),
+    PaginatedListViewParams {
+    override fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search.ifEmpty { null },
             "tila" to tila?.name,
@@ -50,8 +52,6 @@ data class YkiArvioijaParams(
             pageNumber = (page - 1).coerceAtLeast(0),
             pageSize = limit,
         )
-
-    fun excludeTags(): Set<ColumnTag> = setOfNotNull(if (piilotaHenkilotiedot) ColumnTag.PERSONAL_DATA else null)
 
     fun csvFileName() =
         buildCsvFilename(

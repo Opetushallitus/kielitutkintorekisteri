@@ -7,6 +7,7 @@ import fi.oph.kitu.html.card
 import fi.oph.kitu.html.hiddenValue
 import fi.oph.kitu.html.hiddenValues
 import fi.oph.kitu.html.input
+import fi.oph.kitu.html.listSearchForm
 import fi.oph.kitu.html.listViewHeader
 import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.ColumnTag
@@ -15,6 +16,7 @@ import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.testId
@@ -154,11 +156,7 @@ fun FlowContent.arvioijaFilterButton(params: YkiArvioijaParams) {
                 UiText.Yki.solkiLahetystenVirheet.toString(),
                 params.vainSolkiVirheet,
             )
-            toggleFilter(
-                "piilotaHenkilotiedot",
-                UiText.Filter.piilotaHenkilotiedot.toString(),
-                params.piilotaHenkilotiedot,
-            )
+            piilotaHenkilotiedotFilter(params.piilotaHenkilotiedot)
         }
     }
 }
@@ -168,24 +166,12 @@ fun FlowContent.arvioijaFilterButton(params: YkiArvioijaParams) {
  * kulkevat jo URL-parametreina, joten hakusanan on kuljettava samaa reittia. Muuten
  * lajittelulinkin klikkaus pyyhkisi haun.
  */
-fun FlowContent.arvioijaSearch(params: YkiArvioijaParams) {
-    section(classes = "grid center-vertically") {
-        form(action = Links.Yki.arvioijat(), method = FormMethod.get) {
-            // Sailyta suodattimet ja jarjestys, mutta palaa ensimmaiselle sivulle.
-            hiddenValues(params.toMap() - "search" - "page")
-            fieldSet {
-                attributes["role"] = "search"
-                input(
-                    id = "search",
-                    type = InputType.text,
-                    name = "search",
-                    value = params.search,
-                    placeholder = UiText.Yki.hakusanaArvioija.toString(),
-                ) {
-                    testId("arvioijaSearch")
-                    button(type = ButtonType.submit) { +UiText.Yki.suodata }
-                }
-            }
-        }
-    }
-}
+fun FlowContent.arvioijaSearch(params: YkiArvioijaParams) =
+    listSearchForm(
+        value = params.search,
+        placeholder = UiText.Yki.hakusanaArvioija,
+        buttonText = UiText.Yki.suodata,
+        params = params.toMap(),
+        action = Links.Yki.arvioijat(),
+        inputTestId = "arvioijaSearch",
+    )
