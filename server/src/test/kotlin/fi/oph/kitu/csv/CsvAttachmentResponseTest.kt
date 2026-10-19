@@ -1,4 +1,4 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.csv
 
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.TolgeeMessages

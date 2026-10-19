@@ -1,4 +1,4 @@
-package fi.oph.kitu.csvparsing
+package fi.oph.kitu.csv
 
 import java.io.OutputStream
 

@@ -1,10 +1,10 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
+import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.SortDirection
-import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.webmvc.toTrueOrNull
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate

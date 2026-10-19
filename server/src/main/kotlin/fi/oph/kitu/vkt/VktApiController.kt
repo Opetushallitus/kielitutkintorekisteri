@@ -1,12 +1,12 @@
 package fi.oph.kitu.vkt
 
+import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
 import fi.oph.kitu.tiedontuontischema.VktSuoritus
 import fi.oph.kitu.util.validation.ValidationService
 import fi.oph.kitu.util.validation.orThrowBadRequest
-import fi.oph.kitu.webmvc.csvAttachmentResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
