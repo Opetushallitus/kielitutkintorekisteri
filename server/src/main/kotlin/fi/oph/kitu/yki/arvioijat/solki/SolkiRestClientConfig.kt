@@ -1,4 +1,4 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat.solki
 
 import fi.oph.kitu.restclient.withBasicAuth
 import fi.oph.kitu.restclient.withLenientStringConverter
