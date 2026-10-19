@@ -16,6 +16,17 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+fun isoJavaTimeModule(): SimpleModule =
+    SimpleModule()
+        .addSerializer(LocalDate::class.java, LocalDateSerializer(DateTimeFormatter.ISO_LOCAL_DATE))
+        .addSerializer(
+            LocalDateTime::class.java,
+            LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+        ).addSerializer(
+            ZonedDateTime::class.java,
+            ZonedDateTimeSerializer(DateTimeFormatter.ISO_ZONED_DATE_TIME),
+        )
+
 /**
  * Yleiskäyttöinen json-mapper, jolle on konffattu:
  *
@@ -25,19 +36,8 @@ import java.time.format.DateTimeFormatter
  *      - Ei välitä yllättävistä propertyista
  */
 val defaultObjectMapper: JsonMapper by lazy {
-    val javaTime =
-        SimpleModule()
-            .addSerializer(LocalDate::class.java, LocalDateSerializer(DateTimeFormatter.ISO_LOCAL_DATE))
-            .addSerializer(
-                LocalDateTime::class.java,
-                LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-            ).addSerializer(
-                ZonedDateTime::class.java,
-                ZonedDateTimeSerializer(DateTimeFormatter.ISO_ZONED_DATE_TIME),
-            )
-
     jacksonMapperBuilder()
-        .addModule(javaTime)
+        .addModule(isoJavaTimeModule())
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .build()
