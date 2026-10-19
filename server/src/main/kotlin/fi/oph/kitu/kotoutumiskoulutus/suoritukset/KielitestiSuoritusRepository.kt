@@ -3,12 +3,16 @@ package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.PaginatedSortOrder
 import fi.oph.kitu.jdbc.SortDirection
+import fi.oph.kitu.jdbc.SqlCondition
+import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
 import fi.oph.kitu.jdbc.orderSql
 import fi.oph.kitu.jdbc.pageSql
+import fi.oph.kitu.jdbc.searchTermsCondition
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.organisaatiot.OrganisaatioService
 import fi.oph.kitu.util.equalsIgnoringAnnotated
+import fi.oph.kitu.util.searchTerms
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.PagingAndSortingRepository
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -136,69 +140,52 @@ data class KielitestiSuoritusFilter(
     val testikieli: Testikieli? = null,
     val orgOids: List<Oid> = emptyList(),
     val naytettavatSuoritukset: NaytettavatSuoritukset = NaytettavatSuoritukset.VALMIIT,
-) {
+) : SqlFilter() {
     fun withOrgOids(oids: List<Oid>): KielitestiSuoritusFilter = copy(orgOids = oids)
 
-    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
-
-    fun params(): Map<String, Any?> = sqlSpec.params()
-
-    /**
-     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
-     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
-     * kyselylla kahdesti.
-     */
-    private val sqlSpec by lazy {
-        SqlFilterBuilder().apply {
-            add(searchAndOrgQuery(), searchParams() + orgOidsParams())
-            add(testikieli?.let { "testikieli = :filter_kieli" }, "filter_kieli" to testikieli?.name)
-            add(suoritusalku?.let { "suoritusaika >= :filter_alkupaiva" }, "filter_alkupaiva" to suoritusalku)
-            add(
-                suoritusloppu?.let { "suoritusaika <= :filter_loppupaiva" },
-                "filter_loppupaiva" to suoritusloppu?.plusDays(1),
+    override fun SqlFilterBuilder.build() {
+        val hakuehdot =
+            listOfNotNull(
+                searchTermsCondition(searchTerms(search), HAKUSARAKKEET, "search_str"),
+                orgOidsCondition(),
             )
-            add(naytettavatSuoritukset.whereSql)
+        if (hakuehdot.isNotEmpty()) {
+            add(
+                hakuehdot.joinToString(" OR ") { "(${it.sql})" },
+                hakuehdot.fold(emptyMap()) { acc, it ->
+                    acc +
+                        it.params
+                },
+            )
         }
+        add(testikieli?.let { "testikieli = :filter_kieli" }, "filter_kieli" to testikieli?.name)
+        add(suoritusalku?.let { "suoritusaika >= :filter_alkupaiva" }, "filter_alkupaiva" to suoritusalku)
+        add(
+            suoritusloppu?.let { "suoritusaika <= :filter_loppupaiva" },
+            "filter_loppupaiva" to suoritusloppu?.plusDays(1),
+        )
+        add(naytettavatSuoritukset.whereSql)
     }
 
-    private fun searchParams(): Map<String, String> =
-        search
-            ?.trim()
-            ?.split(" ")
-            ?.mapIndexed { index, term -> "search_str_$index" to "%$term%" }
-            ?.toMap() ?: emptyMap()
-
-    private fun searchAndOrgQuery(): String? =
-        listOfNotNull(searchQuery(), orgOidsQuery())
-            .takeIf { it.isNotEmpty() }
-            ?.joinToString(" OR ")
-
-    private fun searchQuery(): String? =
-        searchParams()
-            .takeIf { it.isNotEmpty() }
-            ?.map { (key, _) ->
-                """
-                oppijanumero ILIKE :$key
-                OR etunimet ILIKE :$key
-                OR sukunimi ILIKE :$key
-                OR email ILIKE :$key
-                OR kurssi ILIKE :$key
-                OR kurssi_id::text ILIKE :$key
-                OR opettajan_email ILIKE :$key
-                OR oppilaitos_oid ILIKE :$key
-                OR tehtavapaketti ILIKE :$key
-                """.trimIndent()
-            }?.joinToString(" OR ")
-
-    private fun orgOidsQuery(): String? =
+    private fun orgOidsCondition(): SqlCondition? =
         orgOids.takeIf { it.isNotEmpty() && it.size < 10 }?.let {
-            "oppilaitos_oid IN (:filter_org_oids)"
+            SqlCondition("oppilaitos_oid IN (:filter_org_oids)", mapOf("filter_org_oids" to it.map(Oid::toString)))
         }
 
-    private fun orgOidsParams(): Map<String, Any?> =
-        orgOids.takeIf { it.isNotEmpty() && it.size < 10 }?.let {
-            mapOf("filter_org_oids" to it.map(Oid::toString))
-        } ?: emptyMap()
+    companion object {
+        private val HAKUSARAKKEET =
+            listOf(
+                "oppijanumero",
+                "etunimet",
+                "sukunimi",
+                "email",
+                "kurssi",
+                "kurssi_id::text",
+                "opettajan_email",
+                "oppilaitos_oid",
+                "tehtavapaketti",
+            )
+    }
 }
 
 data class KielitestiSuoritusOrder(

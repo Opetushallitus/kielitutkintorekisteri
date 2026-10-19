@@ -93,6 +93,14 @@ class KielitestiSuoritusRepositoryTest(
     }
 
     @Test
+    fun `kaikkien hakusanojen on osuttava samaan suoritukseen`() {
+        val filter = KielitestiSuoritusFilter(search = "raija integraatio")
+        val result = customKielitestiSuoritusRepository.findSuoritukset(filter)
+        assertEquals(1, result.size)
+        assertTrue(suoritusRaija.equalsIgnoringAnnotated(result.first(), "KOTO"))
+    }
+
+    @Test
     fun `Kielitestisuorituksen haku oppijanumerolla`() {
         val filter = KielitestiSuoritusFilter(search = "1.2.246.562.198.88975028874")
         val result = customKielitestiSuoritusRepository.findSuoritukset(filter)

@@ -5,6 +5,15 @@ import arrow.core.toNonEmptySetOrNull
 import fi.oph.kitu.oid.Oid.Companion.isOidOfClass
 import fi.oph.kitu.oid.OidClass
 
+private val SEARCH_TERM_SEPARATOR = Regex("[\\s,;]+")
+
+fun searchTerms(query: String?): List<String> =
+    query
+        ?.trim()
+        ?.split(SEARCH_TERM_SEPARATOR)
+        ?.filter { it.isNotEmpty() }
+        .orEmpty()
+
 data class SearchTerms(
     val terms: Map<TermKind, NonEmptySet<String>>,
 ) {
@@ -23,11 +32,7 @@ data class SearchTerms(
     companion object {
         fun from(query: String?): SearchTerms =
             SearchTerms(
-                query
-                    ?.trim()
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.split(Regex("[\\s,;]+"))
-                    .orEmpty()
+                searchTerms(query)
                     .groupBy { TermKind.from(it) }
                     .mapValues { it.value.toNonEmptySetOrNull()!! },
             )
