@@ -1,7 +1,11 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat.solki
 
 import fi.oph.kitu.restclient.withLenientStringConverter
 import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.yki.Tutkintokieli
+import fi.oph.kitu.yki.Tutkintotaso
+import fi.oph.kitu.yki.arvioijat.arvioija
+import fi.oph.kitu.yki.arvioijat.arvioijaOid
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClientImpl
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest

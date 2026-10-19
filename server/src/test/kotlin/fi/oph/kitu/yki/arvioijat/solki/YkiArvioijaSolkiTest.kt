@@ -1,4 +1,4 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat.solki
 
 import arrow.core.Either
 import arrow.core.left
@@ -8,11 +8,14 @@ import fi.oph.kitu.TestTimeService
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.Tutkintokieli
+import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.Tallennuslahde
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
+import fi.oph.kitu.yki.arvioijat.arvioijaOid
 import fi.oph.kitu.yki.arvioijat.solki.Lahetystulos
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest

@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 
 @SpringBootTest
 @Import(DBContainerConfiguration::class)
-class VKTSuoritusRepositoryTest(
+class VktSuoritusRepositoryTest(
     @param:Autowired private var repository: VktSuoritusRepository,
     @param:Autowired private var customRepository: CustomVktSuoritusRepository,
     @param:Autowired private var postgres: PostgreSQLContainer,

@@ -1,4 +1,4 @@
-package fi.oph.kitu.util.validation
+package fi.oph.kitu.tiedontuontischema
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.oid.Oid

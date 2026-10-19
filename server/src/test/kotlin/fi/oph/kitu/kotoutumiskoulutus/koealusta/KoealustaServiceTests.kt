@@ -1,4 +1,4 @@
-package fi.oph.kitu.kotoutumiskoulutus
+package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService

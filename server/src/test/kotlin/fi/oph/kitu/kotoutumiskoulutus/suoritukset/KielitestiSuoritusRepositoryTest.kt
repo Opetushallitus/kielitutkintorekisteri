@@ -1,4 +1,4 @@
-package fi.oph.kitu.kotoutumiskoulutus
+package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Arvosana

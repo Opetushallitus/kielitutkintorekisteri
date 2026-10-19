@@ -25,6 +25,8 @@ import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.arvioijat.YkiArvioija
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeus
+import fi.oph.kitu.yki.arvioijat.arvioija
+import fi.oph.kitu.yki.arvioijat.arvioijaOid
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn

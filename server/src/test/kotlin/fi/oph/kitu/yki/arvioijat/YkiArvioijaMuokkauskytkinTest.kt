@@ -1,10 +1,11 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
 import org.junit.jupiter.api.BeforeEach

@@ -1,4 +1,4 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.suoritukset
 
 import arrow.core.Either
 import fi.oph.kitu.DBContainerConfiguration
@@ -6,6 +6,10 @@ import fi.oph.kitu.dev.mockdata.createOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.oid.OidClass
 import fi.oph.kitu.tyhjennaYkiSuoritukset
+import fi.oph.kitu.yki.Arviointitila
+import fi.oph.kitu.yki.TutkinnonOsa
+import fi.oph.kitu.yki.Tutkintokieli
+import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter

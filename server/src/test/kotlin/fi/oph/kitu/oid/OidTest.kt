@@ -1,4 +1,4 @@
-package fi.oph.kitu
+package fi.oph.kitu.oid
 
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oid.Oid.Companion.isOidOfClass
