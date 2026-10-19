@@ -217,22 +217,42 @@ jatkokausi, joka alkaa voimassa olevan kauden päättymistä seuraavana päivän
 vuoden raja alkupäivälle ei koske tällaista jatkokautta (`TallennaArvioija.automaattinenJatkokausi`).
 
 - **Lomakkeen kartoitus on ympäristökohtainen asetus** `kitu.ataru.arvioijahakemus.*`
-  (`ArvioijahakemusLomake`), koska jokaisessa ympäristössä on oma lomake ja ataru generoi kenttien
-  id:t ja vaihtoehtojen arvot lomakkeelle: `lomakkeenAvain`, `kielet[<vastausavain>]=<Tutkintokieli>`,
-  `tasot[<vastausavain>]=<Tutkintotaso>` ja `kentat.*` (yhteystiedot; oletuksena
-  henkilötietomoduulin vakioavaimet `email`, `address`, `postal-code`, `postal-office`).
-  Puutteellinen kartoitus kaataa tuonnin ennen atarun kutsua, jottei hakemuksia kirjata pysyvästi
-  hylätyiksi. Hyväksymisehdot ovat koodissa (`ArvioijahakemusKriteeri`), koska atarun tilojen nimet
-  ovat kaikissa ympäristöissä samat.
+  (`ArvioijahakemusLomake`) tiedostossa `server/src/main/resources/arvioijahakemuslomake.yml`,
+  yksi YAML-dokumentti ympäristöä kohden (`spring.config.activate.on-profile`). Jokaisessa
+  ympäristössä on oma lomake, ja ataru generoi kenttien id:t ja vaihtoehtojen arvot lomakkeelle:
+
+  ```yaml
+  kitu.ataru.arvioijahakemus:
+    lomakkeenAvain: <lomakkeen avain>
+    kielikysymys: <kielikysymyksen id>
+    kielet:
+      "0":
+        {
+          kieli: FIN,
+          tasokysymys: <suomen tasokysymyksen id>,
+          tasot: { "0": [PT, KT], "1": [YT] },
+        }
+  ```
+
+  Avaimet ovat vaihtoehtojen arvoja. Tasot valitaan kielikohtaisesti: jokaisella kielivaihtoehdolla
+  on oma jatkokysymyksensä, ja yksi vaihtoehto voi antaa useita tasoja ("perus- ja keskitaso" =
+  PT + KT). Yhteystiedot (`kentat.*`) ovat oletuksena henkilötietomoduulin vakioavaimet `email`,
+  `address`, `postal-code` ja `postal-office`. Puutteellinen kartoitus kaataa tuonnin ennen atarun
+  kutsua, jottei hakemuksia kirjata pysyvästi hylätyiksi, ja `ArvioijahakemusLomakeTest` sitoo
+  tiedoston jokaisen dokumentin ja vaatii sen ehjäksi. Hyväksymisehdot ovat koodissa
+  (`ArvioijahakemusKriteeri`), koska atarun tilojen nimet ovat kaikissa ympäristöissä samat.
+
 - **Siirron `keyValues` on litistetty**: arvot ovat aina merkkijonoja, eivät koskaan taulukoita.
   Monivalinnan jokainen valittu vaihtoehto on oma avaimensa `<kentän id>_<vaihtoehdon arvo>`,
   toistuvat tekstikentät ja liitteet `<kentän id>_<järjestysnumero>`, kysymysryhmät
   `<kentän id>_group<i>…` ja muut kentät `<kentän id>`. Itse kirjoitettujen vaihtoehtojen arvot ovat
   järjestysnumeroita `"0"`, `"1"`, … (eivät muutu vaihtoehtoja järjestellessä; uusi saa suurimman
   arvon + 1), koodistovaihtoehdoilla koodiarvo. Kenttien id:t ja vaihtoehdot saa lomakkeesta
-  reitiltä `GET /lomake-editori/api/forms/latest/{lomakkeen avain}`. Kartoitettavan kysymyksen
-  vaihtoehto, jota asetuksissa ei ole, hylkää hakemuksen ("Tuntematon kieli tai taso"), jottei
-  lomakkeeseen myöhemmin lisätty vaihtoehto katoa hiljaa.
+  reitiltä `GET /lomake-editori/api/forms/latest/{lomakkeen avain}`. Kitu muodostaa vastausavaimen
+  kysymyksen id:stä ja vaihtoehdon arvosta. Kartoitetun kysymyksen vaihtoehto, jota asetuksissa ei
+  ole (myös kysymysryhmän `_group`-avain), hylkää hakemuksen ("Tuntematon kieli tai taso"), jottei
+  lomakkeeseen myöhemmin lisätty vaihtoehto katoa hiljaa. Samoin hylätään valittu kieli, jolle ei ole
+  valittu tasoa.
 - `AtaruClient.haeHakemusavaimet(...)` → `POST /lomake-editori/api/applications/list`
   (`form-key`, `option-answers`, sivukursori `sort.offset`). Tämä on atarun virkailija-UI:n reitti,
   ei sovittu ulkoinen rajapinta. Pyynnössä on oltava myös `states-and-filters`

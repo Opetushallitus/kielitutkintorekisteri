@@ -59,8 +59,16 @@ class ArvioijahakemusTuontiServiceTest(
     private val lomake =
         ArvioijahakemusLomake(
             lomakkeenAvain = "lomake",
-            kielet = mapOf("kielet_0" to Tutkintokieli.FIN),
-            tasot = mapOf("tasot_0" to Tutkintotaso.PT, "tasot_1" to Tutkintotaso.KT),
+            kielikysymys = "kielet",
+            kielet =
+                mapOf(
+                    "0" to
+                        ArvioijahakemusLomake.Kielivaihtoehto(
+                            Tutkintokieli.FIN,
+                            "tasot",
+                            mapOf("0" to setOf(Tutkintotaso.PT, Tutkintotaso.KT), "1" to setOf(Tutkintotaso.YT)),
+                        ),
+                ),
         )
 
     @BeforeEach
@@ -92,7 +100,7 @@ class ArvioijahakemusTuontiServiceTest(
     private fun hakemus(
         oid: String,
         personOid: String?,
-        keyValues: String = """{"kielet_0":"0","tasot_0":"0","tasot_1":"1"}""",
+        keyValues: String = """{"kielet_0":"0","tasot_0":"0"}""",
         state: String = "active",
     ) = SiirtoHakemus(
         hakemusOid = oid,
@@ -140,10 +148,10 @@ class ArvioijahakemusTuontiServiceTest(
 
         val virhe =
             assertFailsWith<IllegalStateException> {
-                tuo(timeService, asetukset = ArvioijahakemusLomake(lomakkeenAvain = "lomake", kielet = lomake.kielet))
+                tuo(timeService, asetukset = ArvioijahakemusLomake(lomakkeenAvain = "lomake", kielikysymys = "kielet"))
             }
 
-        assertContains(virhe.message.orEmpty(), "tasot")
+        assertContains(virhe.message.orEmpty(), "kielet")
         assertEquals(emptyList(), ataru.listauskutsut)
         assertEquals(emptyList(), repository.haeKaikki())
     }

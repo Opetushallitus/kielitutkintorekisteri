@@ -5,9 +5,9 @@
     "state": "active",
     "keyValues": {
       "yki-arvioija-kielet_0": "0",
+      "yki-arvioija-tasot-fin_0": "0",
       "yki-arvioija-kielet_1": "1",
-      "yki-arvioija-tasot_0": "0",
-      "yki-arvioija-tasot_1": "1",
+      "yki-arvioija-tasot-swe_1": "1",
       "email": "kivinen-testi@oph.fi"
     }
   },
@@ -17,7 +17,7 @@
     "state": "active",
     "keyValues": {
       "yki-arvioija-kielet_2": "2",
-      "yki-arvioija-tasot_2": "2"
+      "yki-arvioija-tasot-eng_1": "1"
     }
   }
 ]
