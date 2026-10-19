@@ -1,4 +1,4 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.etusivu
 
 import fi.oph.kitu.html.ViewMessage
 import org.springframework.http.CacheControl

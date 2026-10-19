@@ -1,4 +1,4 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.etusivu
 
 import fi.oph.kitu.koski.KoskiErrorService
 import fi.oph.kitu.koski.VktMappingId

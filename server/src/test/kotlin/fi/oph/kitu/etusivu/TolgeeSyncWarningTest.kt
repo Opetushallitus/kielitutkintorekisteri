@@ -1,4 +1,4 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.etusivu
 
 import fi.oph.kitu.i18n.tolgee.TolgeeSyncResult
 import fi.oph.kitu.i18n.tolgee.TolgeeSyncStatus

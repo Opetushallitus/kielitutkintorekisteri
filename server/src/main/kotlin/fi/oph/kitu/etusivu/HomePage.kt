@@ -1,4 +1,4 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.etusivu
 
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.ViewMessageData
@@ -16,6 +16,7 @@ import fi.oph.kitu.i18n.formatRelativeTime
 import fi.oph.kitu.i18n.tolgee.TolgeeSyncResult
 import fi.oph.kitu.i18n.tolgee.TolgeeSyncStatus
 import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.webmvc.Links
 import kotlinx.html.FlowContent
 import kotlinx.html.UL
 import kotlinx.html.a
