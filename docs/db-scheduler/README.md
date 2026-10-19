@@ -107,7 +107,7 @@ henkilön yksilöintiä. Yksittäisen hakemuksen virhe ei pysäytä muita, mutta
 epäonnistuneeksi. Hylätyt näkyvät
 näkymässä `/yki/arvioijat/hakemukset`. Tehtävä on olemassa vain, kun `kitu.ataru.service.url`
 on asetettu; ajastus `kitu.ataru.arvioijahakemus.schedule`. Ajo kaatuu heti alkuun, jos
-ympäristön lomakekartoitus (`kitu.ataru.arvioijahakemus.*`) on puutteellinen.
+ympäristön lomakekartoitus (`arvioijahakemuslomake.yml`) on puutteellinen.
 
 ## Läpileikkaavat
 

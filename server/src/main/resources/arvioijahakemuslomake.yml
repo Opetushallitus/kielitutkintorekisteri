@@ -1,0 +1,48 @@
+# Atarun arvioijahakemuslomakkeen kartoitus ympäristöittäin (ArvioijahakemusLomake), tuodaan
+# application.propertiesista (spring.config.import). Jokaisessa ympäristössä on oma lomake, joten
+# kysymysten id:t ja vaihtoehtojen arvot ovat ympäristökohtaisia: ne saa lomakkeelta reitiltä
+# GET /lomake-editori/api/forms/latest/{lomakkeenAvain}. Kielten ja tasojen avaimet ovat
+# vaihtoehtojen arvoja; "perus- ja keskitaso" on yksi vaihtoehto, joka antaa tasot PT ja KT.
+# Ympäristö, jolla ei ole kartoitusta, kaatuu tuonnin alussa (ArvioijahakemusLomake.puutteet).
+
+---
+spring.config.activate.on-profile: e2e | local-opintopolku
+kitu.ataru.arvioijahakemus:
+  lomakkeenAvain: yki-arvioijahakemus
+  kielikysymys: yki-arvioija-kielet
+  kielet:
+    "0":
+      kieli: FIN
+      tasokysymys: yki-arvioija-tasot-fin
+      tasot: { "0": [PT, KT], "1": [YT] }
+    "1":
+      kieli: SWE
+      tasokysymys: yki-arvioija-tasot-swe
+      tasot: { "0": [PT, KT], "1": [YT] }
+    "2":
+      kieli: ENG
+      tasokysymys: yki-arvioija-tasot-eng
+      tasot: { "0": [PT, KT], "1": [YT] }
+
+---
+spring.config.activate.on-profile: qa
+kitu.ataru.arvioijahakemus:
+  lomakkeenAvain: fa9c8e45-49b4-4c1b-8b42-43958fff2899
+  kielikysymys: a886d639-ef13-4442-9b0f-f0818c849450
+  kielet:
+    "0":
+      kieli: FIN
+      tasokysymys: aa5ef81b-181f-4d7a-9e55-4b54338b6903
+      tasot: { "0": [PT, KT], "1": [YT] }
+    "3":
+      kieli: SWE
+      tasokysymys: c5d174b5-9a2e-4ee7-8d4a-53afbac520f5
+      tasot: { "0": [PT, KT], "1": [YT] }
+    "4":
+      kieli: ENG
+      tasokysymys: 19cde2b6-66c8-4c2e-aaff-013114945cda
+      tasot: { "1": [PT, KT], "0": [YT] }
+    "5":
+      kieli: FRA
+      tasokysymys: 9a7afc4c-d3b6-4755-90ab-d2b5507a8927
+      tasot: { "1": [PT, KT], "0": [YT] }
