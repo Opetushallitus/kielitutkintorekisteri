@@ -3,8 +3,8 @@ package fi.oph.kitu.koski
 import arrow.core.Either
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
-import fi.oph.kitu.auditlogs.OpenTelemetryTestConfig
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
+import fi.oph.kitu.observability.OpenTelemetryTestConfig
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
 import fi.oph.kitu.tyhjennaYkiSuoritukset

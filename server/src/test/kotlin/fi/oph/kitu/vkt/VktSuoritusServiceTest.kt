@@ -2,10 +2,10 @@ package fi.oph.kitu.vkt
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.auditlogs.AuditLogger
-import fi.oph.kitu.auditlogs.OpenTelemetryTestConfig
 import fi.oph.kitu.dev.mockdata.VktSuoritusMockGenerator
 import fi.oph.kitu.i18n.LocalizationService
 import fi.oph.kitu.koodisto.Koodisto
+import fi.oph.kitu.observability.OpenTelemetryTestConfig
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.tiedontuontischema.VktValidation

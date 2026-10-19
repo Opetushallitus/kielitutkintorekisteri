@@ -1,4 +1,4 @@
-package fi.oph.kitu.auditlogs
+package fi.oph.kitu.observability
 
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.OpenTelemetry

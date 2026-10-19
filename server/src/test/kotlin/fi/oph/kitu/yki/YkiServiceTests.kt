@@ -1,7 +1,7 @@
 package fi.oph.kitu.yki
 
 import fi.oph.kitu.DBContainerConfiguration
-import fi.oph.kitu.auditlogs.OpenTelemetryTestConfig
+import fi.oph.kitu.observability.OpenTelemetryTestConfig
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus

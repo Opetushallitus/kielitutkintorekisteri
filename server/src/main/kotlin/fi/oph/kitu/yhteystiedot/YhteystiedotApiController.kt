@@ -1,7 +1,7 @@
 package fi.oph.kitu.yhteystiedot
 
 import fi.oph.kitu.auditlogs.AUDIT_LOGGER_NAME
-import fi.oph.kitu.auditlogs.add
+import fi.oph.kitu.observability.add
 import fi.oph.kitu.oid.Oid
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag

@@ -1,6 +1,6 @@
 package fi.oph.kitu.observability
 
-import fi.oph.kitu.auditlogs.add
+import fi.oph.kitu.observability.add
 import io.opentelemetry.contrib.aws.resource.EcsResourceProvider
 import io.opentelemetry.instrumentation.resources.ContainerResourceProvider
 import io.opentelemetry.instrumentation.resources.HostIdResourceProvider

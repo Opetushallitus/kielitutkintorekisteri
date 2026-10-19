@@ -1,4 +1,4 @@
-package fi.oph.kitu.auditlogs
+package fi.oph.kitu.observability
 
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.common.Attributes

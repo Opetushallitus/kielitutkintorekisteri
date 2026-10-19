@@ -1,5 +1,7 @@
 package fi.oph.kitu.auditlogs
 
+import fi.oph.kitu.observability.add
+import fi.oph.kitu.observability.forEventType
 import fi.oph.kitu.security.cas.CasUserDetails
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
