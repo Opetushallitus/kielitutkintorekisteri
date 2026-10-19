@@ -16,6 +16,7 @@ import java.net.http.HttpClient
 @ConditionalOnNonEmptyProperty("kitu.ataru.service.url")
 @Profile("!e2e & !local-opintopolku")
 class AtaruRestClientConfig(
+    private val restClientBuilder: RestClient.Builder,
     @param:Value($$"${kitu.ataru.service.url}")
     private val serviceUrl: String,
     @param:Value($$"${kitu.opintopolkuHostname}")
@@ -32,8 +33,8 @@ class AtaruRestClientConfig(
         val cas =
             CasSessionClient(
                 restClient =
-                    RestClient
-                        .builder()
+                    restClientBuilder
+                        .clone()
                         .requestFactory(ilmanUudelleenohjauksia())
                         .defaultHeaders { it["Caller-Id"] = callerId }
                         .build(),
@@ -44,8 +45,8 @@ class AtaruRestClientConfig(
                 sessionCookieName = "ring-session",
             )
         val restClient =
-            RestClient
-                .builder()
+            restClientBuilder
+                .clone()
                 .requestFactory(ilmanUudelleenohjauksia())
                 .withLenientStringConverter()
                 .defaultHeaders { it["Caller-Id"] = callerId }
