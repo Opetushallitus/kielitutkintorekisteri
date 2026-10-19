@@ -220,7 +220,11 @@ vuoden raja alkupäivälle ei koske tällaista jatkokautta (`TallennaArvioija.au
   `ArvioijahakemusKriteeri`ssä — kovakoodattuina, ei asetuksina.
 - `AtaruClient.haeHakemusavaimet(...)` → `POST /lomake-editori/api/applications/list`
   (`form-key`, `option-answers`, sivukursori `sort.offset`). Tämä on atarun virkailija-UI:n reitti,
-  ei sovittu ulkoinen rajapinta.
+  ei sovittu ulkoinen rajapinta. Pyynnössä on oltava myös `states-and-filters`
+  (`StatesAndFilters`), vaikka atarun skeema sallii sen puuttumisen: ilman sitä listaus kaatuu
+  500:aan (`IllegalArgumentException`), ja puuttuva käsittely- tai liitetilalista pudottaa hiljaa
+  kaikki hakemukset. Kitu pyytää kaikki tilat, myös passivoidut hakemukset, ja hylkää ne vasta
+  `ArvioijahakemusKriteeri`ssä, jotta ne kirjautuvat tilaan `EI_TAYTA_EHTOJA`.
 - `AtaruClient.haeHakemukset(...)` → `POST /lomake-editori/api/external/siirto?salliYksiloimattomat=true`
   (runkona hakemusavaimet, 200 kerrallaan). Ilman parametria yksikin yksilöimätön hakija kaataa
   koko kutsun 409:llä.

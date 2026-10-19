@@ -64,6 +64,37 @@ class AtaruClientImplTest {
     }
 
     @Test
+    fun `listaus lahettaa atarun olettamat tilat ja suodattimet`() {
+        server
+            .expect(requestTo("$serviceUrl/api/applications/list"))
+            .andExpect(
+                content().json(
+                    """{"states-and-filters":{
+                         "filters":{
+                           "only-ssn":{"with-ssn":true,"without-ssn":true},
+                           "only-identified":{"identified":true,"unidentified":true},
+                           "active-status":{"active":true,"passive":true},
+                           "eligibility-set-automatically":{"yes":true,"no":true}},
+                         "processing-states-to-include":["unprocessed","processing","invited-to-interview",
+                           "invited-to-exam","evaluating","valintaesitys","processed","information-request",
+                           "processing-fee-overdue","processing-fee-paid","decision-fee-outstanding",
+                           "decision-fee-overdue","decision-fee-paid","invoiced"],
+                         "attachment-states-to-include":["not-checked","checked","incomplete-attachment",
+                           "attachment-missing","overdue","no-requirements"]}}""",
+                ),
+            ).andRespond(
+                withSuccess(
+                    """{"sort":{"order-by":"created-time","order":"asc"},"applications":[]}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        client.haeHakemusavaimet("lomake", emptyList())
+
+        server.verify()
+    }
+
+    @Test
     fun `siirto pilkkoo avaimet eriin ja jasentaa vastausten muodot`() {
         val avaimet = (1..AtaruClientImpl.SIIRRON_ERAKOKO + 1).map { "h$it" }
         server
