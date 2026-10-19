@@ -10,7 +10,6 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Testikieli
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.Oppija
-import fi.oph.kitu.util.result.getOrThrow
 import org.springframework.stereotype.Service
 import java.time.Instant
 

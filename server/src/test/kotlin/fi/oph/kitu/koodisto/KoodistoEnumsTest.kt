@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNull
 
 class KoodistoEnumsTest {
     @Test

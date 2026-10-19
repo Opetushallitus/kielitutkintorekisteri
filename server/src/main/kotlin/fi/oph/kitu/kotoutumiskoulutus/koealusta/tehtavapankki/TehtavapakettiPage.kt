@@ -5,7 +5,6 @@ import fi.oph.kitu.html.card
 import fi.oph.kitu.html.cardContent
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.html.safeHtml
-import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
 import fi.oph.kitu.i18n.unaryPlus

@@ -7,7 +7,6 @@ import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
-import jakarta.servlet.http.HttpSession
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest

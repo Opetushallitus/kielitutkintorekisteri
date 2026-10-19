@@ -1,6 +1,5 @@
 package fi.oph.kitu.yki.suoritukset
 
-import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.jdbc.getEnum
 import fi.oph.kitu.jdbc.getEnumOrNull
 import fi.oph.kitu.jdbc.getInstant

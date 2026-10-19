@@ -15,7 +15,6 @@ import org.apereo.cas.client.session.SingleSignOutFilter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.tomcat.TomcatConnectorCustomizer
 import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory
 import org.springframework.boot.web.server.WebServerFactoryCustomizer
 import org.springframework.context.annotation.Bean

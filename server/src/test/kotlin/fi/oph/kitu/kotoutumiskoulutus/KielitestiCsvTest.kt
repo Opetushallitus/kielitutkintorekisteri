@@ -2,11 +2,7 @@ package fi.oph.kitu.kotoutumiskoulutus
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.jdbc.SortDirection
-import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Arvosana
-import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
-import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusService
-import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Testikieli
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiErrorService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusError
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorColumn

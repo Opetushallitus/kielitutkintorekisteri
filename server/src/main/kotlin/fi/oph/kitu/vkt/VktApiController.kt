@@ -1,6 +1,5 @@
 package fi.oph.kitu.vkt
 
-import fi.oph.kitu.koodisto.KoodistoService
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess

@@ -2,7 +2,6 @@ package fi.oph.kitu.util.validation
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
-import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.right
 import fi.oph.kitu.util.validation.Validation.ValidationError

@@ -1,7 +1,6 @@
 package fi.oph.kitu.tiedontuontischema
 
 import fi.oph.kitu.oid.Oid
-import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.yki.Sukupuoli
 
 data class Henkilo(

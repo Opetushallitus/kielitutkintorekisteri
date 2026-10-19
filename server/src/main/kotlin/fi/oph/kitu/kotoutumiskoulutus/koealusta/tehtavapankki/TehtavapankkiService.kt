@@ -8,7 +8,6 @@ import fi.oph.kitu.util.TimeService
 import io.awspring.cloud.s3.ObjectMetadata
 import io.awspring.cloud.s3.S3Template
 import io.opentelemetry.api.trace.Span
-import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

@@ -2,7 +2,6 @@ package fi.oph.kitu.vkt
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.ColumnTags
 import fi.oph.kitu.html.table.RenderableDisplayTableEnum
-import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDate

@@ -1,5 +1,4 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
-import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription

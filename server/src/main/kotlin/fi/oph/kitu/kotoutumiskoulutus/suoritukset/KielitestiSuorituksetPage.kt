@@ -4,8 +4,6 @@ import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.errorsArticle
 import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.hiddenValue
-import fi.oph.kitu.html.hiddenValues
-import fi.oph.kitu.html.input
 import fi.oph.kitu.html.listSearchForm
 import fi.oph.kitu.html.listViewActions
 import fi.oph.kitu.html.pagination
@@ -18,23 +16,15 @@ import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
-import fi.oph.kitu.html.table.toggleFilter
-import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.webmvc.Links
-import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
-import kotlinx.html.FormMethod
-import kotlinx.html.InputType
 import kotlinx.html.article
-import kotlinx.html.button
 import kotlinx.html.fieldSet
-import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.header
-import kotlinx.html.id
 import kotlinx.html.table
 
 object KielitestiSuorituksetPage {

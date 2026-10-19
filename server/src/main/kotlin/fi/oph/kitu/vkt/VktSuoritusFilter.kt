@@ -1,9 +1,7 @@
 package fi.oph.kitu.vkt
 
-import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.ListViewParams
 import fi.oph.kitu.html.table.Nimetty
-import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription

@@ -1,7 +1,5 @@
 package fi.oph.kitu.html
 
-import fi.oph.kitu.i18n.finnishDateTime
-import fi.oph.kitu.koski.KoskiErrorEntity
 import jakarta.servlet.http.HttpSession
 import kotlinx.html.FlowContent
 import kotlinx.html.article
