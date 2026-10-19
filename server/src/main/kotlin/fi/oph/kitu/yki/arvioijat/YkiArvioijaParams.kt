@@ -5,7 +5,10 @@ import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.PaginatedSortOrder
 import fi.oph.kitu.jdbc.SortDirection
+import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
+import fi.oph.kitu.jdbc.addSearchTerms
+import fi.oph.kitu.util.searchTerms
 import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
@@ -25,7 +28,7 @@ data class YkiArvioijaParams(
     var sortDirection: SortDirection = SortDirection.ASC,
     var page: Int = 1,
     var limit: Int = PAGINATED_DEFAULT_PAGE_SIZE,
-) {
+) : SqlFilter() {
     fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search.ifEmpty { null },
@@ -70,43 +73,20 @@ data class YkiArvioijaParams(
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
         )
 
-    private fun hakusanat(): List<String> = search.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-
-    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
-
-    fun sqlParams(): Map<String, Any?> = sqlSpec.params()
-
-    /**
-     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
-     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
-     * kyselylla kahdesti.
-     */
-    private val sqlSpec by lazy {
-        SqlFilterBuilder().apply {
-            // Jokaisen hakusanan on osuttava johonkin kenttaan, jolloin "Ranja Ohman"
-            // loytaa henkilon vaikka termit ovat eri sarakkeissa.
-            hakusanat().forEachIndexed { i, term ->
-                val param = "hakusana_$i"
-                add(
-                    """
-                    sukunimi ILIKE :$param
-                    OR etunimet ILIKE :$param
-                    OR arvioija_oid ILIKE :$param
-                    OR sahkopostiosoite ILIKE :$param
-                    OR asha_numero ILIKE :$param
-                    """.trimIndent(),
-                    param to "%$term%",
-                )
-            }
-            // Alikyselyn laskettu tekstisarake: ei enum-castia.
-            tila?.let { add("tila = :tila", "tila" to it.name) }
-            kieli?.let { add("kieli = :kieli::yki_tutkintokieli", "kieli" to it.name) }
-            taso?.let { add("tasot @> ARRAY[:taso]::text[]", "taso" to it.name) }
-            kausiPaattyyEnnen?.let {
-                add("kauden_paattymispaiva IS NOT NULL AND kauden_paattymispaiva < :kausiLoppuu", "kausiLoppuu" to it)
-            }
-            if (vainSolkiVirheet) add("solki_lahetysvirhe IS NOT NULL")
+    override fun SqlFilterBuilder.build() {
+        addSearchTerms(
+            searchTerms(search),
+            listOf("sukunimi", "etunimet", "arvioija_oid", "sahkopostiosoite", "asha_numero"),
+            "hakusana",
+        )
+        // Alikyselyn laskettu tekstisarake: ei enum-castia.
+        tila?.let { add("tila = :tila", "tila" to it.name) }
+        kieli?.let { add("kieli = :kieli::yki_tutkintokieli", "kieli" to it.name) }
+        taso?.let { add("tasot @> ARRAY[:taso]::text[]", "taso" to it.name) }
+        kausiPaattyyEnnen?.let {
+            add("kauden_paattymispaiva IS NOT NULL AND kauden_paattymispaiva < :kausiLoppuu", "kausiLoppuu" to it)
         }
+        if (vainSolkiVirheet) add("solki_lahetysvirhe IS NOT NULL")
     }
 }
 

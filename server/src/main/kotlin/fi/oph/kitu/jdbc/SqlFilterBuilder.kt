@@ -8,10 +8,7 @@ class SqlFilterBuilder {
         condition: String?,
         vararg bindings: Pair<String, Any?>,
     ) {
-        if (condition != null) {
-            clauses.add(condition)
-            bindings.forEach { (name, value) -> params[name] = value }
-        }
+        add(condition, bindings.toMap())
     }
 
     fun add(
@@ -19,6 +16,8 @@ class SqlFilterBuilder {
         bindings: Map<String, Any?>,
     ) {
         if (condition != null) {
+            val duplicates = bindings.keys intersect params.keys
+            require(duplicates.isEmpty()) { "SQL-parametri annettu kahdesti: $duplicates" }
             clauses.add(condition)
             params.putAll(bindings)
         }

@@ -384,7 +384,7 @@ class CustomYkiArvioijaRepositoryImpl(
             ORDER BY ${order.orderSql()}, kieli, arvioija_id
             ${order.pageSql().orEmpty()}
             """.trimIndent(),
-            params.sqlParams() + ("tanaan" to tanaan),
+            params.params() + ("tanaan" to tanaan),
             YkiArvioijaListRow.fromRow,
         )
     }
@@ -399,7 +399,7 @@ class CustomYkiArvioijaRepositoryImpl(
             SELECT count(*) FROM ($LIST_VIEW_SELECT) arvioijarivi
             ${params.whereSql().orEmpty()}
             """.trimIndent(),
-            params.sqlParams() + ("tanaan" to tanaan),
+            params.params() + ("tanaan" to tanaan),
             Int::class.java,
         ) ?: 0
 

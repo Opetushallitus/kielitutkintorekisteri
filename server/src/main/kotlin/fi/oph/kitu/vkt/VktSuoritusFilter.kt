@@ -9,9 +9,12 @@ import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.PaginatedSortOrder
 import fi.oph.kitu.jdbc.SortDirection
+import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
+import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.jdbc.orderSql
 import fi.oph.kitu.koodisto.Koodisto
+import fi.oph.kitu.util.searchTerms
 import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.yki.toTrueOrNull
 import java.time.LocalDate
@@ -25,7 +28,7 @@ data class VktSuoritusFilter(
     val arvioitu: VktArvioinninTila? = null,
     val merkittyPoistettavaksi: Boolean? = null,
     val piilotaHenkilotiedot: Boolean = false,
-) {
+) : SqlFilter() {
     fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search,
@@ -67,35 +70,19 @@ data class VktSuoritusFilter(
             if (piilotaHenkilotiedot) ColumnTag.PERSONAL_DATA else null,
         )
 
-    fun whereSql(): String? = sqlSpec.whereClauseOrNull()
-
-    fun params(): Map<String, Any?> = sqlSpec.params()
-
-    /**
-     * Rakennetaan kerran per instanssi: whereSql ja params tarvitsevat molemmat saman
-     * suodattimen, ja erillisina funktiokutsuina SqlFilterBuilder rakennettiin joka
-     * kyselylla kahdesti.
-     */
-    private val sqlSpec by lazy {
-        SqlFilterBuilder().apply {
-            add(searchQuery(), "filter_search" to "%${search.orEmpty()}%")
-            add(alkupaiva?.let { "osakokeet.tutkintopaiva >= :filter_alkupaiva" }, "filter_alkupaiva" to alkupaiva)
-            add(loppupaiva?.let { "osakokeet.tutkintopaiva <= :filter_loppupaiva" }, "filter_loppupaiva" to loppupaiva)
-            add(tutkintokieli?.let { "tutkintokieli = :filter_kieli" }, "filter_kieli" to tutkintokieli?.name)
-            add(taitotaso?.let { "taitotaso = :filter_taso" }, "filter_taso" to taitotaso?.name)
-            add(arvioituQuery())
-            add(merkittyPoistettavaksiQuery())
-        }
+    override fun SqlFilterBuilder.build() {
+        addSearchTerms(
+            searchTerms(search),
+            listOf("vkt_suoritus.etunimet", "vkt_suoritus.sukunimi", "vkt_suoritus.suorittajan_oid"),
+            "filter_search",
+        )
+        add(alkupaiva?.let { "osakokeet.tutkintopaiva >= :filter_alkupaiva" }, "filter_alkupaiva" to alkupaiva)
+        add(loppupaiva?.let { "osakokeet.tutkintopaiva <= :filter_loppupaiva" }, "filter_loppupaiva" to loppupaiva)
+        add(tutkintokieli?.let { "tutkintokieli = :filter_kieli" }, "filter_kieli" to tutkintokieli?.name)
+        add(taitotaso?.let { "taitotaso = :filter_taso" }, "filter_taso" to taitotaso?.name)
+        add(arvioituQuery())
+        add(merkittyPoistettavaksiQuery())
     }
-
-    private fun searchQuery(): String? =
-        search?.takeIf { it.isNotEmpty() }?.let {
-            """
-            vkt_suoritus.etunimet ILIKE :filter_search
-            OR vkt_suoritus.sukunimi ILIKE :filter_search
-            OR vkt_suoritus.suorittajan_oid ILIKE :filter_search
-            """.trimIndent()
-        }
 
     private fun arvioituQuery(): String? =
         when (arvioitu) {
