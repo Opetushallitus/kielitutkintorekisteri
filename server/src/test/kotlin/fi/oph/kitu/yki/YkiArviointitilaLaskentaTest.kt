@@ -1,4 +1,4 @@
-package fi.oph.kitu.yki.suoritukset
+package fi.oph.kitu.yki
 
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.laskeArviointitila

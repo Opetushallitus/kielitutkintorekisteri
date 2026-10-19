@@ -1,4 +1,4 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila

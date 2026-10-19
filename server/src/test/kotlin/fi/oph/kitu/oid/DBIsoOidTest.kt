@@ -1,5 +1,6 @@
-package fi.oph.kitu
+package fi.oph.kitu.oid
 
+import fi.oph.kitu.DBContainerConfiguration
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows

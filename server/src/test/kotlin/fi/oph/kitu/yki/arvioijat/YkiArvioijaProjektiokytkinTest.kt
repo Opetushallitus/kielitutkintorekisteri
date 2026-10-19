@@ -1,9 +1,11 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.Tutkintokieli
+import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.Kausioikeus
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository

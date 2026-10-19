@@ -1,6 +1,7 @@
-package fi.oph.kitu.yki
+package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
