@@ -9,6 +9,7 @@ import fi.oph.kitu.ataru.AtaruException
 import fi.oph.kitu.ataru.HakemusOtsake
 import fi.oph.kitu.ataru.OptionAnswer
 import fi.oph.kitu.ataru.SiirtoHakemus
+import fi.oph.kitu.ataru.StatesAndFilters
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.tyhjennaArvioijahakemukset
@@ -20,7 +21,6 @@ import fi.oph.kitu.yki.arvioijat.TallennaArvioija
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaService
-import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemusLomake.Kentat
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -56,21 +56,31 @@ class ArvioijahakemusTuontiServiceTest(
 
     private val ataru = FakeAtaruClient()
 
+    private val lomake =
+        ArvioijahakemusLomake(
+            lomakkeenAvain = "lomake",
+            kielet = mapOf("kielet_0" to Tutkintokieli.FIN),
+            tasot = mapOf("tasot_0" to Tutkintotaso.PT, "tasot_1" to Tutkintotaso.KT),
+        )
+
     @BeforeEach
     fun setup() {
         jdbcTemplate.tyhjennaArvioijahakemukset()
         arvioijaRepository.deleteAll()
         ataru.hakemukset = emptyList()
         ataru.siirtokutsut.clear()
+        ataru.listauskutsut.clear()
     }
 
     private fun tuo(
         timeService: TestTimeService,
         kirjanpito: ArvioijahakemusRepository = repository,
+        asetukset: ArvioijahakemusLomake = lomake,
     ): Tuontiyhteenveto =
         timeService.runWithFixedClock(hetki) {
             ArvioijahakemusTuontiService(
                 ataru,
+                asetukset,
                 kirjanpito,
                 arvioijaService,
                 kausiRepository,
@@ -82,7 +92,7 @@ class ArvioijahakemusTuontiServiceTest(
     private fun hakemus(
         oid: String,
         personOid: String?,
-        keyValues: String = """{"${Kentat.KIELET}":["fin"],"${Kentat.TASOT}":["PT","KT"]}""",
+        keyValues: String = """{"kielet_0":"0","tasot_0":"0","tasot_1":"1"}""",
         state: String = "active",
     ) = SiirtoHakemus(
         hakemusOid = oid,
@@ -104,7 +114,7 @@ class ArvioijahakemusTuontiServiceTest(
                 hakemus(
                     "h1",
                     petronOid,
-                    """{"${Kentat.KIELET}":["fin"],"${Kentat.TASOT}":["PT"],"${Kentat.SAHKOPOSTI}":"hakemus@oph.fi"}""",
+                    """{"kielet_0":"0","tasot_0":"0","email":"hakemus@oph.fi"}""",
                 ),
             )
 
@@ -119,6 +129,23 @@ class ArvioijahakemusTuontiServiceTest(
         val rivi = repository.haeKaikki().single()
         assertEquals(ArvioijahakemuksenTila.KASITELTY, rivi.tila)
         assertEquals(arvioija.id?.toInt(), rivi.arvioijaId)
+        assertEquals(listOf("lomake"), ataru.listauskutsut)
+    }
+
+    @Test
+    fun `puutteellinen lomakeasetus kaataa ajon ennen atarun kutsumista`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        ataru.hakemukset = listOf(hakemus("h1", petronOid))
+
+        val virhe =
+            assertFailsWith<IllegalStateException> {
+                tuo(timeService, asetukset = ArvioijahakemusLomake(lomakkeenAvain = "lomake", kielet = lomake.kielet))
+            }
+
+        assertContains(virhe.message.orEmpty(), "tasot")
+        assertEquals(emptyList(), ataru.listauskutsut)
+        assertEquals(emptyList(), repository.haeKaikki())
     }
 
     @Test
@@ -163,7 +190,7 @@ class ArvioijahakemusTuontiServiceTest(
                 hakemus(
                     "h1",
                     petronOid,
-                    """{"${Kentat.KIELET}":["fin"],"${Kentat.TASOT}":["PT"],"${Kentat.KATUOSOITE}":"Uusi katu 2"}""",
+                    """{"kielet_0":"0","tasot_0":"0","address":"Uusi katu 2"}""",
                 ),
             )
 
@@ -299,11 +326,16 @@ class ArvioijahakemusTuontiServiceTest(
     private class FakeAtaruClient : AtaruClient {
         var hakemukset: List<SiirtoHakemus> = emptyList()
         val siirtokutsut = mutableListOf<List<String>>()
+        val listauskutsut = mutableListOf<String>()
 
         override fun haeHakemusavaimet(
             formKey: String,
             ehdot: List<OptionAnswer>,
-        ): Either<AtaruException, List<HakemusOtsake>> = hakemukset.map { HakemusOtsake(it.hakemusOid) }.right()
+            tilat: StatesAndFilters,
+        ): Either<AtaruException, List<HakemusOtsake>> {
+            listauskutsut += formKey
+            return hakemukset.map { HakemusOtsake(it.hakemusOid) }.right()
+        }
 
         override fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>> {
             siirtokutsut += avaimet

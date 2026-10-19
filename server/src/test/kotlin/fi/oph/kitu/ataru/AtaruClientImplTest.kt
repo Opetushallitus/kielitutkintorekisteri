@@ -36,6 +36,7 @@ class AtaruClientImplTest {
             .andExpect(method(HttpMethod.POST))
             .andExpect(jsonPath("$['form-key']").value("lomake"))
             .andExpect(jsonPath("$['option-answers'][0].key").value("kentta"))
+            .andExpect(jsonPath("$['states-and-filters']['processing-states-to-include'][0]").value("processed"))
             .andExpect(jsonPath("$.sort.offset").doesNotExist())
             .andRespond(
                 withSuccess(
@@ -56,15 +57,18 @@ class AtaruClientImplTest {
 
         val otsakkeet =
             client
-                .haeHakemusavaimet("lomake", listOf(OptionAnswer("kentta", listOf("x"))))
-                .getOrNull()
+                .haeHakemusavaimet(
+                    "lomake",
+                    listOf(OptionAnswer("kentta", listOf("x"))),
+                    StatesAndFilters(processingStatesToInclude = listOf("processed")),
+                ).getOrNull()
 
         assertEquals(listOf("a1", "a2", "a3"), otsakkeet?.map { it.key })
         server.verify()
     }
 
     @Test
-    fun `listaus lahettaa atarun olettamat tilat ja suodattimet`() {
+    fun `oletussuodattimet paastavat kaikki hakemukset lapi`() {
         server
             .expect(requestTo("$serviceUrl/api/applications/list"))
             .andExpect(
@@ -89,21 +93,34 @@ class AtaruClientImplTest {
                 ),
             )
 
-        client.haeHakemusavaimet("lomake", emptyList())
+        client.haeHakemusavaimet("lomake", emptyList(), StatesAndFilters())
 
         server.verify()
     }
 
     @Test
-    fun `siirto pilkkoo avaimet eriin ja jasentaa vastausten muodot`() {
+    fun `siirto pilkkoo avaimet eriin ja jasentaa atarun litistetyt vastaukset`() {
         val avaimet = (1..AtaruClientImpl.SIIRRON_ERAKOKO + 1).map { "h$it" }
         server
             .expect(requestTo("$serviceUrl/api/external/siirto?salliYksiloimattomat=true"))
             .andExpect(jsonPath("$.length()").value(AtaruClientImpl.SIIRRON_ERAKOKO))
             .andRespond(
                 withSuccess(
-                    """[{"hakemusOid":"h1","personOid":"1.2.246.562.24.1","state":"active",
-                        "keyValues":{"a":"yksi","b":["x","y"],"c":[["g1"],["g2"]]},"tuntematon":1}]""",
+                    """[{"hakemusOid":"h1","personOid":"1.2.246.562.98.1",
+                        "person":{"oidHenkilo":"1.2.246.562.98.1","etunimet":"Testi","sukunimi":"Hakija",
+                          "kutsumanimi":"Testi","syntymaaika":"2016-05-02","turvakielto":false,"sukupuoli":"1",
+                          "aidinkieli":{"kieliKoodi":"fi","kieliTyyppi":"suomi"},
+                          "asiointiKieli":{"kieliKoodi":"fi","kieliTyyppi":"suomi"},"kansalaisuudet":["246"]},
+                        "keyValues":{"a886d639-ef13-4442-9b0f-f0818c849450_0":"0",
+                          "0b0f7c13-cab3-4169-8fff-076b73fb158e_0":"608f3e27-b57d-4211-bd19-a547b8e55e2b",
+                          "0817208a-6b81-434c-9db6-8432d8a2d1c4":"1","email":"hakija@example.com"},
+                        "attachments":{"0b0f7c13-cab3-4169-8fff-076b73fb158e_0":"608f3e27-b57d-4211-bd19-a547b8e55e2b"},
+                        "hakukohdeReviews":[{"requirement":"processing-state","state":"processing","hakukohde":"form"}],
+                        "hakukohdeAttachmentReviews":[],"applicationReviewNotes":[],"applicationPaymentStates":[],
+                        "state":"active","hakuOid":null,"hakutoiveet":[],
+                        "originallySubmitted":"2026-10-01T09:47:40.810+03:00",
+                        "versionCreated":"2026-10-01T09:47:40.810+03:00",
+                        "versionModified":"2026-10-01T14:08:54.164+03:00"}]""",
                     MediaType.APPLICATION_JSON,
                 ),
             )
@@ -114,11 +131,11 @@ class AtaruClientImplTest {
 
         val hakemukset = client.haeHakemukset(avaimet).getOrNull()!!
 
-        assertEquals(1, hakemukset.size)
-        val keyValues = hakemukset.single().keyValues
-        assertEquals("yksi", keyValues["a"]?.asString())
-        assertEquals(2, keyValues["b"]?.size())
-        assertEquals(true, keyValues["c"]?.get(0)?.isArray)
+        val hakemus = hakemukset.single()
+        assertEquals("1.2.246.562.98.1", hakemus.personOid)
+        assertEquals("Hakija", hakemus.person?.sukunimi)
+        assertEquals("0", hakemus.keyValues["a886d639-ef13-4442-9b0f-f0818c849450_0"]?.asString())
+        assertEquals("hakija@example.com", hakemus.keyValues["email"]?.asString())
         server.verify()
     }
 

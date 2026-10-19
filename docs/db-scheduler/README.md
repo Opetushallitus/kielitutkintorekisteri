@@ -100,12 +100,14 @@ tästä käyttöliittymästä** ennen kuin Solki-integraation kytkin avataan.
 
 ### Tuo YKI-arvioijahakemukset atarusta
 
-Hakee atarun (hakemuspalvelu) arvioijahakemukset ja luo niistä arvioijamerkinnät. Käsitelty
+Hakee atarun (hakemuspalvelu) arvioijahakemukset, jotka virkailija on atarussa merkinnyt
+käsitellyiksi ja hakukelpoisiksi, ja luo niistä arvioijamerkinnät. Käsitelty
 hakemus kirjataan tauluun `yki_arvioijahakemus`, eikä sitä haeta uudelleen, paitsi jos se odottaa
 henkilön yksilöintiä. Yksittäisen hakemuksen virhe ei pysäytä muita, mutta ajo merkitään
 epäonnistuneeksi. Hylätyt näkyvät
 näkymässä `/yki/arvioijat/hakemukset`. Tehtävä on olemassa vain, kun `kitu.ataru.service.url`
-on asetettu; ajastus `kitu.ataru.arvioijahakemus.schedule`.
+on asetettu; ajastus `kitu.ataru.arvioijahakemus.schedule`. Ajo kaatuu heti alkuun, jos
+ympäristön lomakekartoitus (`kitu.ataru.arvioijahakemus.*`) on puutteellinen.
 
 ## Läpileikkaavat
 

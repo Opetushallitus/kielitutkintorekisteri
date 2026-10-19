@@ -20,21 +20,16 @@ data class ApplicationListRequest(
     @get:JsonProperty("attachment-review-states")
     val attachmentReviewStates: Map<String, Any> = emptyMap(),
     @get:JsonProperty("states-and-filters")
-    val statesAndFilters: StatesAndFilters = StatesAndFilters(),
+    val statesAndFilters: StatesAndFilters,
 )
 
 /**
  * Skeema sallii `states-and-filters`-kentan puuttumisen, mutta palvelin ei: ilman `filters`-ehtoja
  * listaus kaatuu 500:aan (`IllegalArgumentException`), ja puuttuva tilalista pudottaa hiljaa kaikki hakemukset.
+ * Oletusarvot paastavat kaikki hakemukset lapi; rajaus korvaa [PERUSSUODATTIMET]-avaimia tai lyhentaa tilalistoja.
  */
 data class StatesAndFilters(
-    val filters: Map<String, Map<String, Boolean>> =
-        mapOf(
-            "only-ssn" to mapOf("with-ssn" to true, "without-ssn" to true),
-            "only-identified" to mapOf("identified" to true, "unidentified" to true),
-            "active-status" to mapOf("active" to true, "passive" to true),
-            "eligibility-set-automatically" to mapOf("yes" to true, "no" to true),
-        ),
+    val filters: Map<String, Map<String, Boolean>> = PERUSSUODATTIMET,
     @get:JsonProperty("processing-states-to-include")
     val processingStatesToInclude: List<String> =
         listOf(
@@ -56,7 +51,17 @@ data class StatesAndFilters(
     @get:JsonProperty("attachment-states-to-include")
     val attachmentStatesToInclude: List<String> =
         listOf("not-checked", "checked", "incomplete-attachment", "attachment-missing", "overdue", "no-requirements"),
-)
+) {
+    companion object {
+        val PERUSSUODATTIMET: Map<String, Map<String, Boolean>> =
+            mapOf(
+                "only-ssn" to mapOf("with-ssn" to true, "without-ssn" to true),
+                "only-identified" to mapOf("identified" to true, "unidentified" to true),
+                "active-status" to mapOf("active" to true, "passive" to true),
+                "eligibility-set-automatically" to mapOf("yes" to true, "no" to true),
+            )
+    }
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ApplicationListSort(

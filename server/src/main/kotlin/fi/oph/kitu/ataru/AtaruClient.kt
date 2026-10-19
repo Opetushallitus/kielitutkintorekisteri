@@ -12,10 +12,11 @@ import org.springframework.web.client.RestClient
 import java.net.URI
 
 interface AtaruClient {
-    /** Hakuun kuulumattoman lomakkeen hakemusten avaimet; [ehdot] suodatetaan jo atarussa. */
+    /** Hakuun kuulumattoman lomakkeen hakemusten avaimet; [ehdot] ja [tilat] suodatetaan jo atarussa. */
     fun haeHakemusavaimet(
         formKey: String,
         ehdot: List<OptionAnswer>,
+        tilat: StatesAndFilters,
     ): Either<AtaruException, List<HakemusOtsake>>
 
     fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>>
@@ -29,6 +30,7 @@ open class AtaruClientImpl(
     override fun haeHakemusavaimet(
         formKey: String,
         ehdot: List<OptionAnswer>,
+        tilat: StatesAndFilters,
     ): Either<AtaruException, List<HakemusOtsake>> =
         either {
             val otsakkeet = mutableListOf<HakemusOtsake>()
@@ -38,7 +40,7 @@ open class AtaruClientImpl(
                 val sivu =
                     post(
                         "api/applications/list",
-                        ApplicationListRequest(formKey, ehdot, sort),
+                        ApplicationListRequest(formKey, ehdot, sort, statesAndFilters = tilat),
                         ApplicationListResponse::class.java,
                     ).bind()
                 otsakkeet += sivu.applications

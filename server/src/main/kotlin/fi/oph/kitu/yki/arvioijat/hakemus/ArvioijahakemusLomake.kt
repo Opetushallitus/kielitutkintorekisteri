@@ -7,75 +7,75 @@ import fi.oph.kitu.ataru.SiirtoHakemus
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
-import tools.jackson.databind.JsonNode
+import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
- * Atarun arvioijahakemuslomakkeen rakenne. Lomakkeen avain ja kenttien id:t ovat
- * PAIKKAMERKKEJA, kunnes lomake on julkaistu: vaihda ne tahan, kun ne tiedetaan.
- * Henkilotietomoduulin kentat (`address`, `postal-code`, ...) ovat atarun vakioavaimia.
+ * Atarun arvioijahakemuslomakkeen kartoitus arvioijamerkinnaksi. Ymparistokohtainen asetus, koska
+ * jokaisessa ymparistossa on oma lomake ja ataru generoi kenttien id:t ja vaihtoehtojen arvot lomakkeelle.
+ *
+ * [kielet]- ja [tasot]-avaimet ovat siirron litistettyja vastausavaimia `<kentan id>_<vaihtoehdon arvo>`:
+ * monivalinnan valittu vaihtoehto nakyy `keyValues`-avaimena, esim. `kielet[<kentan id>_0]=FIN`.
  */
-object ArvioijahakemusLomake {
-    const val LOMAKKEEN_AVAIN = "yki-arvioijahakemus"
+@ConfigurationProperties("kitu.ataru.arvioijahakemus")
+class ArvioijahakemusLomake(
+    val lomakkeenAvain: String = "",
+    val kielet: Map<String, Tutkintokieli> = emptyMap(),
+    val tasot: Map<String, Tutkintotaso> = emptyMap(),
+    val kentat: Yhteystietokentat = Yhteystietokentat(),
+) {
+    class Yhteystietokentat(
+        val sahkoposti: String = "email",
+        val katuosoite: String = "address",
+        val postinumero: String = "postal-code",
+        val postitoimipaikka: String = "postal-office",
+    )
 
-    object Kentat {
-        const val KIELET = "yki-arvioija-kielet"
-        const val TASOT = "yki-arvioija-tasot"
-        const val SAHKOPOSTI = "email"
-        const val KATUOSOITE = "address"
-        const val POSTINUMERO = "postal-code"
-        const val POSTITOIMIPAIKKA = "postal-office"
-    }
+    fun puutteet(): List<String> =
+        listOfNotNull(
+            "lomakkeenAvain".takeIf { lomakkeenAvain.isBlank() },
+            "kielet".takeIf { kielet.isEmpty() },
+            "tasot".takeIf { tasot.isEmpty() },
+        ) + kielet.filterValues { it.isLegacy() }.map { (avain, kieli) -> "kielet[$avain]: vanhentunut kieli $kieli" }
 
     fun kartoita(hakemus: SiirtoHakemus): Either<String, Arvioijahakemus> {
         val henkiloOid =
             hakemus.personOid?.takeIf { it.isNotBlank() }
                 ?: return "Hakemuksella ei ole henkilöä".left()
 
-        val kielet = arvot(hakemus, Kentat.KIELET)
-        val tasot = arvot(hakemus, Kentat.TASOT)
-        val tuntemattomat =
-            kielet.filter { koodi -> kieli(koodi) == null } + tasot.filter { koodi -> taso(koodi) == null }
+        val tuntemattomat = tuntemattomatVaihtoehdot(hakemus)
         if (tuntemattomat.isNotEmpty()) return "Tuntematon kieli tai taso: ${tuntemattomat.joinToString()}".left()
-        if (kielet.isEmpty() || tasot.isEmpty()) return "Hakemuksella ei ole kieliä tai tasoja".left()
 
-        val tasojoukko = tasot.mapNotNull(::taso).toSet()
+        val valitutKielet = kielet.filterKeys(hakemus.keyValues::containsKey).values.toSortedSet()
+        val tasojoukko = tasot.filterKeys(hakemus.keyValues::containsKey).values.toSet()
+        if (valitutKielet.isEmpty() || tasojoukko.isEmpty()) return "Hakemuksella ei ole kieliä tai tasoja".left()
+
         return Arvioijahakemus(
             hakemusOid = hakemus.hakemusOid,
             henkiloOid = henkiloOid,
-            arviointioikeudet =
-                kielet
-                    .mapNotNull(::kieli)
-                    .distinct()
-                    .map { TallennaArvioija.Arviointioikeus(it, tasojoukko) },
-            sahkopostiosoite = arvo(hakemus, Kentat.SAHKOPOSTI),
-            katuosoite = arvo(hakemus, Kentat.KATUOSOITE),
-            postinumero = arvo(hakemus, Kentat.POSTINUMERO),
-            postitoimipaikka = arvo(hakemus, Kentat.POSTITOIMIPAIKKA),
+            arviointioikeudet = valitutKielet.map { TallennaArvioija.Arviointioikeus(it, tasojoukko) },
+            sahkopostiosoite = arvo(hakemus, kentat.sahkoposti),
+            katuosoite = arvo(hakemus, kentat.katuosoite),
+            postinumero = arvo(hakemus, kentat.postinumero),
+            postitoimipaikka = arvo(hakemus, kentat.postitoimipaikka),
         ).right()
     }
 
-    private fun kieli(koodi: String): Tutkintokieli? =
-        Tutkintokieli.entries.firstOrNull { it.solkiCode.equals(koodi, ignoreCase = true) && !it.isLegacy() }
-
-    private fun taso(koodi: String): Tutkintotaso? =
-        Tutkintotaso.entries.firstOrNull {
-            it.name.equals(koodi, ignoreCase = true)
+    private fun tuntemattomatVaihtoehdot(hakemus: SiirtoHakemus): List<String> {
+        val kysymykset = (kielet.keys + tasot.keys).map(::kentanId).toSet()
+        return hakemus.keyValues.keys.filter { avain ->
+            kentanId(avain) in kysymykset && avain !in kielet && avain !in tasot
         }
+    }
+
+    private fun kentanId(vastausavain: String): String = vastausavain.substringBeforeLast('_')
 
     private fun arvo(
         hakemus: SiirtoHakemus,
         kentta: String,
-    ): String? = arvot(hakemus, kentta).firstOrNull()
-
-    private fun arvot(
-        hakemus: SiirtoHakemus,
-        kentta: String,
-    ): List<String> = hakemus.keyValues[kentta]?.let(::litistetty).orEmpty()
-
-    private fun litistetty(node: JsonNode): List<String> =
-        when {
-            node.isArray -> node.values().flatMap(::litistetty)
-            node.isNull -> emptyList()
-            else -> listOf(node.asString().trim()).filter { it.isNotEmpty() }
-        }
+    ): String? =
+        hakemus.keyValues[kentta]
+            ?.takeUnless { it.isNull }
+            ?.asString()
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
 }
