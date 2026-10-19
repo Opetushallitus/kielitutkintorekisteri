@@ -131,7 +131,7 @@ class YkiViewController(
                         pageSize = params.limit,
                         url = { currentPage -> httpParams(params.toMap().plus("page" to currentPage)) },
                     ),
-                koskiErrorsCount = koskiErrorService.countByEntity("yki", false).toLong(),
+                koskiErrorsCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, false).toLong(),
                 csrfToken = csrfToken,
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),
@@ -185,8 +185,8 @@ class YkiViewController(
 
     @GetMapping("/koski-virheet", produces = ["text/html"])
     fun koskiVirheetView(hidden: Boolean = false): ResponseEntity<String> {
-        val errors = koskiErrorService.findAllByEntity("yki", hidden)
-        val hiddenCount = if (hidden) null else koskiErrorService.countByEntity("yki", true)
+        val errors = koskiErrorService.findAllByEntity(YkiMappingId.ENTITY, hidden)
+        val hiddenCount = if (hidden) null else koskiErrorService.countByEntity(YkiMappingId.ENTITY, true)
         val suoritusIds = errors.mapNotNull { YkiMappingId.parse(it.id)?.suoritusId }
 
         return ResponseEntity.ok(

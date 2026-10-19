@@ -167,8 +167,8 @@ class VktViewController(
 
     @GetMapping("/koski-virheet", produces = ["text/html"])
     fun showKoskiVirheet(hidden: Boolean = false): ResponseEntity<String> {
-        val errors = koskiErrorService.findAllByEntity("vkt", hidden)
-        val hiddenCount = if (hidden) null else koskiErrorService.countByEntity("vkt", true)
+        val errors = koskiErrorService.findAllByEntity(VktMappingId.ENTITY, hidden)
+        val hiddenCount = if (hidden) null else koskiErrorService.countByEntity(VktMappingId.ENTITY, true)
         val translations =
             localizationService
                 .translationBuilder()
@@ -211,7 +211,7 @@ class VktViewController(
 
     private fun getMessages(): List<ViewMessageData> =
         listOfNotNull(
-            koskiErrorService.countByEntity("vkt", false).let {
+            koskiErrorService.countByEntity(VktMappingId.ENTITY, false).let {
                 if (it > 0) {
                     val text = "$it siirtoa KOSKI-tietovarantoon on epäonnistunut"
                     ViewMessageData.html(ViewMessageType.ERROR) {
