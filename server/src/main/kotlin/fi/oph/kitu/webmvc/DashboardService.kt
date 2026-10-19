@@ -1,6 +1,8 @@
 package fi.oph.kitu.webmvc
 
 import fi.oph.kitu.koski.KoskiErrorService
+import fi.oph.kitu.koski.VktMappingId
+import fi.oph.kitu.koski.YkiMappingId
 import fi.oph.kitu.kotoutumiskoulutus.koealusta.tehtavapankki.TehtavapankkiService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.CustomKielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
@@ -63,7 +65,7 @@ class DashboardService(
             tarkistusarvioinnitOdottamassaCount =
                 ykiSuoritusRepository.countTarkistusarvioinnitOdottamassaHyvaksyntaa(),
             latestReceivedAt = ykiSuoritusRepository.findLatestReceivedAt(),
-            koskiErrorCount = koskiErrorService.countByEntity("yki", hidden = false).toLong(),
+            koskiErrorCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, hidden = false).toLong(),
         )
 
     private fun computeVkt(): VktStats {
@@ -74,7 +76,7 @@ class DashboardService(
             suorituksetErinomaisenTaso = counts.erinomaisenTasonSuoritukset,
             suorituksetHyvaJaTyydyttavaTaso = counts.hyvanJaTyydyttavanTasonSuoritukset,
             latestReceivedAt = customVktSuoritusRepository.findLatestCreatedAt()?.toInstant(),
-            koskiErrorCount = koskiErrorService.countByEntity("vkt", hidden = false).toLong(),
+            koskiErrorCount = koskiErrorService.countByEntity(VktMappingId.ENTITY, hidden = false).toLong(),
         )
     }
 

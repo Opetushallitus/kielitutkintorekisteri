@@ -147,10 +147,12 @@ sealed class KoskiErrorMappingId(
 
 data class VktMappingId(
     val ryhma: CustomVktSuoritusRepository.Tutkintoryhma,
-) : KoskiErrorMappingId("vkt") {
+) : KoskiErrorMappingId(ENTITY) {
     override fun mappedId(): String = "${ryhma.oppijanumero}/${ryhma.tutkintokieli.name}/${ryhma.taitotaso.name}"
 
     companion object {
+        const val ENTITY = "vkt"
+
         fun parse(id: String): VktMappingId? {
             try {
                 val (oppijanumero, kieli, taitotaso) = id.split("/")
@@ -170,10 +172,12 @@ data class VktMappingId(
 
 data class YkiMappingId(
     val suoritusId: Int?,
-) : KoskiErrorMappingId("yki") {
+) : KoskiErrorMappingId(ENTITY) {
     override fun mappedId(): String = suoritusId.toString()
 
     companion object {
+        const val ENTITY = "yki"
+
         fun parse(id: String): YkiMappingId? =
             try {
                 YkiMappingId(
