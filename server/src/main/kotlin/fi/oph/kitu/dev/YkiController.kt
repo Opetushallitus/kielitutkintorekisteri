@@ -1,11 +1,8 @@
 package fi.oph.kitu.dev
 
-import fi.oph.kitu.config.isProduction
-import fi.oph.kitu.config.isQA
 import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.boot.SpringApplication
 import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
@@ -15,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
-import kotlin.system.exitProcess
 
 @RestController
 @RequestMapping("/dev")
@@ -27,12 +23,7 @@ class YkiController(
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     @PostConstruct
-    fun init() {
-        if (environment.isProduction() || environment.isQA()) {
-            logger.error("Fatal error: MockLoginController loaded in a prod-like environment")
-            exitProcess(SpringApplication.exit(applicationContext))
-        }
-    }
+    fun init() = environment.exitIfProdLike(applicationContext, this)
 
     /**
      * Solki-stubi arvioijan lahetykselle. Virhepolkuja ei ohjata taalta: client maarittaa URLin,
