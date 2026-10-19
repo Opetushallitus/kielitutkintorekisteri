@@ -17,7 +17,7 @@ import fi.oph.kitu.jdbc.orderSql
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.util.searchTerms
 import fi.oph.kitu.webmvc.buildCsvFilename
-import fi.oph.kitu.yki.toTrueOrNull
+import fi.oph.kitu.webmvc.toTrueOrNull
 import java.time.LocalDate
 
 data class VktSuoritusFilter(
