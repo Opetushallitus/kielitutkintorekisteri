@@ -213,11 +213,10 @@ class VktViewController(
         listOfNotNull(
             koskiErrorService.countByEntity(VktMappingId.ENTITY, false).let {
                 if (it > 0) {
-                    val text = "$it siirtoa KOSKI-tietovarantoon on epäonnistunut"
                     ViewMessageData.html(ViewMessageType.ERROR) {
-                        +text
+                        +UiText.Error.koskiSiirtoEpaonnistunut(it.toLong())
                         br()
-                        a(href = Links.Vkt.koskiVirheet()) { +UiText.Vkt.naytaVirheet }
+                        a(href = Links.Vkt.koskiVirheet()) { +UiText.Error.katsoVirheet }
                     }
                 } else {
                     null

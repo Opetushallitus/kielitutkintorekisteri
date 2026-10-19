@@ -127,7 +127,6 @@ object UiText {
         val osakoe: LocalizedString get() = tr("vkt.osakoe")
         val muutoksetTallennettu: LocalizedString
             get() = tr("vkt.muutoksetTallennettu")
-        val naytaVirheet: LocalizedString get() = tr("vkt.naytaVirheet")
         val merkittyKasitellyksiEiOid: LocalizedString
             get() =
                 tr("vkt.merkittyKasitellyksiEiOid")
