@@ -1,7 +1,4 @@
 package fi.oph.kitu.vkt.html
-import fi.oph.kitu.html.errorMessageDetails
-import fi.oph.kitu.html.hideErrorLink
-import fi.oph.kitu.html.koskiErrorsPage
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.Translations
@@ -10,6 +7,9 @@ import fi.oph.kitu.i18n.finnishDateTime
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.koski.KoskiErrorEntity
 import fi.oph.kitu.koski.VktMappingId
+import fi.oph.kitu.koski.errorMessageDetails
+import fi.oph.kitu.koski.hideErrorLink
+import fi.oph.kitu.koski.koskiErrorsPage
 import fi.oph.kitu.webmvc.Links
 import kotlinx.html.a
 

@@ -40,22 +40,6 @@ data class ViewMessageData(
             type: ViewMessageType,
             f: FlowContent.() -> Unit,
         ): ViewMessageData = ViewMessageData(createHTML().section { f() }, type, isHtml = true)
-
-        fun from(koskiError: KoskiErrorEntity): ViewMessageData =
-            html(ViewMessageType.ERROR) {
-                +"KOSKI-siirto on epäonnistunut "
-                finnishDateTime(koskiError.timestamp)
-                +": "
-
-                val error = koskiError.errorJson()
-                section {
-                    if (error != null) {
-                        json(error)
-                    } else {
-                        +koskiError.message
-                    }
-                }
-            }
     }
 }
 
