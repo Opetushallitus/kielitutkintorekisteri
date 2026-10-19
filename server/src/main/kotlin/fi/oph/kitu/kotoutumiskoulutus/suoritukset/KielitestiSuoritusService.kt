@@ -2,8 +2,6 @@ package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 
 import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
-import fi.oph.kitu.jdbc.SortDirection
-import fi.oph.kitu.jdbc.sortedWithDirectionBy
 import fi.oph.kitu.observability.setAttribute
 import fi.oph.kitu.observability.use
 import fi.oph.kitu.organisaatiot.OrganisaatioService

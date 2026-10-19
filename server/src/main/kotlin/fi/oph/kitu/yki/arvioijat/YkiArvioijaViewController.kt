@@ -1,13 +1,10 @@
 package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.html.FormErrors
-import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessage
-import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.oid.Oid
-import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.security.CurrentUser
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.Validation.ValidationError
@@ -22,7 +19,6 @@ import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
 import java.net.URI
 
 @Controller

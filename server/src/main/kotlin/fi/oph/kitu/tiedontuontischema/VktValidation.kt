@@ -1,6 +1,5 @@
 package fi.oph.kitu.tiedontuontischema
 
-import arrow.core.raise.Raise
 import arrow.core.raise.accumulate
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull

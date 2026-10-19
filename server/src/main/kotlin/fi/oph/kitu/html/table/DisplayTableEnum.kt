@@ -1,6 +1,5 @@
 package fi.oph.kitu.html.table
 
-import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.LocalizedString
 import kotlinx.html.FlowContent
 import java.io.OutputStream

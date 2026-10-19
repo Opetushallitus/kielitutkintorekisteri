@@ -1,15 +1,12 @@
 package fi.oph.kitu.yki
 import fi.oph.kitu.html.KituRequest
-import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessage
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.ViewMessageType
-import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.i18n.LocalizationService
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.ilmoittautumisjarjestelma.IlmoittautumisjarjestelmaService
-import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.koski.KoskiErrorService
 import fi.oph.kitu.koski.KoskiYkiMappingError
 import fi.oph.kitu.koski.KoskiYkiRequestMapper
@@ -25,7 +22,6 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastotPage
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitPage
 import fi.oph.kitu.yki.suoritukset.error.YkiKoskiErrors
 import jakarta.servlet.http.HttpSession
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.stereotype.Controller
@@ -35,7 +31,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.view.RedirectView
 import java.time.LocalDate
 

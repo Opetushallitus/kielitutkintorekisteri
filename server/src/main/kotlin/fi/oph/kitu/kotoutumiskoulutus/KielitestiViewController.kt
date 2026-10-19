@@ -1,7 +1,5 @@
 package fi.oph.kitu.kotoutumiskoulutus
 
-import fi.oph.kitu.html.Pagination
-import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuorituksetPage
@@ -15,14 +13,12 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorP
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.sortByOrgName
 import fi.oph.kitu.organisaatiot.OrganisaatioService
 import fi.oph.kitu.webmvc.ResourceNotFoundException
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
 
 @Controller
 @RequestMapping("/koto-kielitesti", produces = ["text/html"])

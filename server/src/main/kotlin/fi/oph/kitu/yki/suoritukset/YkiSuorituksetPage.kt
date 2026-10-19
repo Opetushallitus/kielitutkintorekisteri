@@ -2,7 +2,6 @@ package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessageData
-import fi.oph.kitu.html.errorsArticle
 import fi.oph.kitu.html.filterDescriptionList
 import fi.oph.kitu.html.formPost
 import fi.oph.kitu.html.input

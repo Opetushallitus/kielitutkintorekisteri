@@ -6,7 +6,6 @@ import fi.oph.kitu.html.card
 import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.viewMessage
-import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDate

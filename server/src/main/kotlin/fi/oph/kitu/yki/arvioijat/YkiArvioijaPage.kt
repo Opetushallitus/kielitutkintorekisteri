@@ -5,8 +5,6 @@ import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.buttonLink
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.hiddenValue
-import fi.oph.kitu.html.hiddenValues
-import fi.oph.kitu.html.input
 import fi.oph.kitu.html.listSearchForm
 import fi.oph.kitu.html.listViewHeader
 import fi.oph.kitu.html.pagination
@@ -25,17 +23,11 @@ import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.CurrentUser
 import fi.oph.kitu.webmvc.Links
-import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
-import kotlinx.html.FormMethod
-import kotlinx.html.InputType
-import kotlinx.html.button
 import kotlinx.html.fieldSet
-import kotlinx.html.form
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.li
-import kotlinx.html.section
 
 object YkiArvioijaPage {
     fun render(

@@ -29,8 +29,6 @@ import kotlinx.html.a
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.h3
-import kotlinx.html.span
-import kotlinx.html.strong
 
 object YkiSuoritusPage {
     fun render(

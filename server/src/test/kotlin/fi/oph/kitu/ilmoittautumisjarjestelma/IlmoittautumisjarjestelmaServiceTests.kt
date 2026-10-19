@@ -22,7 +22,6 @@ import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.YkiApiController
-import fi.oph.kitu.yki.YkiService
 import fi.oph.kitu.yki.YkiViewController
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
