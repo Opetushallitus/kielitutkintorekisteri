@@ -1,6 +1,7 @@
 package fi.oph.kitu.vkt
 
 import fi.oph.kitu.html.table.ColumnTag
+import fi.oph.kitu.html.table.ListViewParams
 import fi.oph.kitu.html.table.Nimetty
 import fi.oph.kitu.i18n.CurrentLanguage
 import fi.oph.kitu.i18n.LocalizedString
@@ -27,8 +28,9 @@ data class VktSuoritusFilter(
     val taitotaso: Koodisto.VktTaitotaso? = null,
     val arvioitu: VktArvioinninTila? = null,
     val merkittyPoistettavaksi: Boolean? = null,
-    val piilotaHenkilotiedot: Boolean = false,
-) : SqlFilter() {
+    override val piilotaHenkilotiedot: Boolean = false,
+) : SqlFilter(),
+    ListViewParams {
     fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search,
@@ -63,11 +65,6 @@ data class VktSuoritusFilter(
             loppupaiva?.toString(),
             arvioitu?.name?.lowercase(),
             merkittyPoistettavaksi?.let { "merkitty_poistettavaksi" },
-        )
-
-    fun excludeTags(): Set<ColumnTag> =
-        setOfNotNull(
-            if (piilotaHenkilotiedot) ColumnTag.PERSONAL_DATA else null,
         )
 
     override fun SqlFilterBuilder.build() {

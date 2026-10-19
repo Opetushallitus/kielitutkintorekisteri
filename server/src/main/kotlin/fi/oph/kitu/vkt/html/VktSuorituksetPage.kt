@@ -12,6 +12,7 @@ import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
@@ -128,11 +129,7 @@ fun FlowContent.vktSuoritusFilterButton(filter: VktSuoritusFilter) {
             )
         }
         fieldSet {
-            toggleFilter(
-                "piilotaHenkilotiedot",
-                UiText.Filter.piilotaHenkilotiedot.toString(),
-                filter.piilotaHenkilotiedot,
-            )
+            piilotaHenkilotiedotFilter(filter.piilotaHenkilotiedot)
         }
     }
 }

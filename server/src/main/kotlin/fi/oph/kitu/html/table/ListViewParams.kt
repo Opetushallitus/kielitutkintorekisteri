@@ -1,0 +1,27 @@
+package fi.oph.kitu.html.table
+
+import fi.oph.kitu.html.Pagination
+
+interface ListViewParams {
+    val piilotaHenkilotiedot: Boolean
+
+    fun excludeTags(): Set<ColumnTag> = setOfNotNull(ColumnTag.PERSONAL_DATA.takeIf { piilotaHenkilotiedot })
+}
+
+interface PaginatedListViewParams : ListViewParams {
+    val page: Int
+    val limit: Int
+
+    fun toMap(): Map<String, String?>
+}
+
+fun PaginatedListViewParams.pagination(
+    numberOfRows: Int,
+    baseUrl: String = "",
+): Pagination =
+    Pagination.valueOf(
+        currentPageNumber = page,
+        numberOfRows = numberOfRows,
+        pageSize = limit,
+        url = { pageNumber -> baseUrl + httpParams(toMap() + ("page" to pageNumber.toString())) },
+    )

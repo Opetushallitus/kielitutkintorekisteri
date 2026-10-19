@@ -53,6 +53,9 @@ fun FlowContent.dateFilter(
     }
 }
 
+fun FlowContent.piilotaHenkilotiedotFilter(value: Boolean) =
+    toggleFilter("piilotaHenkilotiedot", UiText.Filter.piilotaHenkilotiedot.toString(), value)
+
 fun FlowContent.toggleFilter(
     id: String,
     labelText: String,

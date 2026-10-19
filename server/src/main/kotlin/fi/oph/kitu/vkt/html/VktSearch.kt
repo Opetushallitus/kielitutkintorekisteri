@@ -1,38 +1,14 @@
 package fi.oph.kitu.vkt.html
-import fi.oph.kitu.html.hiddenValues
-import fi.oph.kitu.html.testId
-import fi.oph.kitu.i18n.CurrentLanguage
-import fi.oph.kitu.i18n.UiText
-import fi.oph.kitu.i18n.unaryPlus
-import fi.oph.kitu.vkt.VktSuoritusFilter
-import kotlinx.html.ButtonType
-import kotlinx.html.FlowContent
-import kotlinx.html.FormMethod
-import kotlinx.html.InputType
-import kotlinx.html.button
-import kotlinx.html.fieldSet
-import kotlinx.html.form
-import kotlinx.html.id
-import kotlinx.html.input
 
-fun FlowContent.vktSearch(filter: VktSuoritusFilter) {
-    form(action = "", method = FormMethod.get, classes = "grid center-vertically") {
-        hiddenValues(filter.toMap().filterKeys { it != "search" })
-        fieldSet {
-            attributes["role"] = "search"
-            input {
-                testId("search")
-                id = "search"
-                type = InputType.search
-                name = "search"
-                value = filter.search.orEmpty()
-                placeholder = UiText.Vkt.oppijanumeroTaiNimi.toString()
-            }
-            button {
-                testId("search-button")
-                type = ButtonType.submit
-                +UiText.Vkt.suodata
-            }
-        }
-    }
-}
+import fi.oph.kitu.html.listSearchForm
+import fi.oph.kitu.i18n.UiText
+import fi.oph.kitu.vkt.VktSuoritusFilter
+import kotlinx.html.FlowContent
+
+fun FlowContent.vktSearch(filter: VktSuoritusFilter) =
+    listSearchForm(
+        value = filter.search,
+        placeholder = UiText.Vkt.oppijanumeroTaiNimi,
+        buttonText = UiText.Vkt.suodata,
+        params = filter.toMap(),
+    )
