@@ -1,8 +1,6 @@
 package fi.oph.kitu.dev
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret
-import fi.oph.kitu.config.isProduction
-import fi.oph.kitu.config.isQA
 import fi.oph.kitu.dev.MockLoginController.Companion.E2E_TEST_SECRET_KEY
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
@@ -28,10 +26,7 @@ import kotlinx.html.strong
 import kotlinx.html.title
 import kotlinx.html.ul
 import kotlinx.html.unsafe
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.SpringApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -60,7 +55,6 @@ import org.springframework.web.context.WebApplicationContext
 import java.net.URI
 import java.util.Date
 import javax.crypto.spec.SecretKeySpec
-import kotlin.system.exitProcess
 
 @RestController
 @RequestMapping("/dev")
@@ -69,19 +63,13 @@ class MockLoginController(
     private val environment: Environment,
     private val applicationContext: WebApplicationContext,
 ) {
-    private val logger: Logger = LoggerFactory.getLogger(javaClass)
     private val securityContextRepository = HttpSessionSecurityContextRepository()
 
     @Value($$"${kitu.appUrl}")
     private lateinit var rootUrl: String
 
     @PostConstruct
-    fun init() {
-        if (environment.isProduction() || environment.isQA()) {
-            logger.error("Fatal error: MockLoginController loaded in a prod-like environment")
-            exitProcess(SpringApplication.exit(applicationContext))
-        }
-    }
+    fun init() = environment.exitIfProdLike(applicationContext, this)
 
     @GetMapping("/login", produces = [MediaType.TEXT_HTML_VALUE])
     fun mockLoginPage(): ResponseEntity<String> = ResponseEntity.ok(renderMockLoginPage(rootUrl))
