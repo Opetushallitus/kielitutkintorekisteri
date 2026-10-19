@@ -1,6 +1,6 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.csv
 
-import fi.oph.kitu.csvparsing.writeExcelCsvPrelude
+import fi.oph.kitu.csv.writeExcelCsvPrelude
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableCsvRenderer
 import fi.oph.kitu.html.table.RenderableDisplayTableEnum

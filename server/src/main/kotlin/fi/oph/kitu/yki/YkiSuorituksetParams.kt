@@ -1,11 +1,11 @@
 package fi.oph.kitu.yki
+import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.util.SearchTerms
-import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.webmvc.toTrueOrNull
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn

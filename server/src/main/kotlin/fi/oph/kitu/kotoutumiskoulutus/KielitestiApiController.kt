@@ -1,5 +1,6 @@
 package fi.oph.kitu.kotoutumiskoulutus
 
+import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.i18n.isoDate
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuorituksetParams
@@ -9,7 +10,6 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiErrorService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorColumn
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorCsvColumn
 import fi.oph.kitu.util.TimeService
-import fi.oph.kitu.webmvc.csvAttachmentResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

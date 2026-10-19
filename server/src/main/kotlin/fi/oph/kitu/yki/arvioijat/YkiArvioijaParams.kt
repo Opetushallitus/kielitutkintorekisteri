@@ -1,5 +1,6 @@
 package fi.oph.kitu.yki.arvioijat
 
+import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.html.table.PaginatedListViewParams
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
@@ -9,7 +10,6 @@ import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
 import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.util.searchTerms
-import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import org.springframework.format.annotation.DateTimeFormat

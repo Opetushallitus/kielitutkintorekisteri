@@ -1,5 +1,6 @@
 package fi.oph.kitu.vkt
 
+import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.html.table.ListViewParams
 import fi.oph.kitu.html.table.Nimetty
 import fi.oph.kitu.i18n.LocalizedString
@@ -14,7 +15,6 @@ import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.jdbc.orderSql
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.util.searchTerms
-import fi.oph.kitu.webmvc.buildCsvFilename
 import fi.oph.kitu.webmvc.toTrueOrNull
 import java.time.LocalDate
 
