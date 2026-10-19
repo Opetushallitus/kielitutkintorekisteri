@@ -7,7 +7,7 @@ import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.TimeService
-import fi.oph.kitu.util.validation.ValidationService
+import fi.oph.kitu.util.validation.validate
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaService
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
@@ -20,7 +20,7 @@ import java.time.LocalDate
 class YkiArvioijaKausiService(
     private val arvioijaRepository: YkiArvioijaRepository,
     private val kausiRepository: YkiArvioijaKausiRepository,
-    private val validationService: ValidationService,
+    private val tallennaKausiValidation: TallennaKausiValidation,
     private val auditLogger: AuditLogger,
     private val timeService: TimeService,
     private val solki: SolkiArvioijaService,
@@ -188,8 +188,8 @@ class YkiArvioijaKausiService(
         val arvioija =
             arvioijaRepository.findArvioijaById(arvioijaId) ?: return YkiArvioijaError.ArvioijaaEiLoydy.left()
 
-        return validationService
-            .validateAndEnrich(komento)
+        return tallennaKausiValidation
+            .validate(komento)
             .mapLeft { YkiArvioijaError.Validointivirheet(it) }
             .map { validoitu ->
                 kirjoita(validoitu)

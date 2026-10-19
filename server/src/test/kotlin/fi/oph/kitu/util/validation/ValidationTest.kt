@@ -10,6 +10,7 @@ import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
+import fi.oph.kitu.tiedontuontischema.TiedonsiirtoValidation
 import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
@@ -21,8 +22,10 @@ import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
+import fi.oph.kitu.yki.arvioijat.TallennaArvioijaValidation
 import fi.oph.kitu.yki.arvioijat.YkiArvioija
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaValidation
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeus
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,8 +38,10 @@ import kotlin.test.assertEquals
 
 @SpringBootTest
 @Import(DBContainerConfiguration::class)
-class ValidationServiceTest(
-    @param:Autowired val validation: ValidationService,
+class ValidationTest(
+    @param:Autowired val tiedonsiirto: TiedonsiirtoValidation,
+    @param:Autowired val arvioijaValidation: YkiArvioijaValidation,
+    @param:Autowired val tallennaArvioijaValidation: TallennaArvioijaValidation,
     @param:Autowired val timeService: TestTimeService,
 ) {
     val validiYkiSuoritus =
@@ -95,7 +100,7 @@ class ValidationServiceTest(
 
     @Test
     fun `YKI-suorituksen validoinnin happy path`() {
-        val result = validation.validateAndEnrich(validiYkiSuoritus)
+        val result = tiedonsiirto.validateAndEnrich(validiYkiSuoritus)
         assertEquals(validiYkiSuoritus.right(), result)
     }
 
@@ -109,7 +114,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
 
         assertEquals(
             fail(
@@ -127,7 +132,7 @@ class ValidationServiceTest(
                 henkilo = Henkilo(oid = Oid.parse("1.2.246.562.24.20000000000").getOrThrow(), hetu = "010180-9026"),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
 
         assertEquals(
             nonEmptyListOf<ValidationError>(
@@ -147,7 +152,7 @@ class ValidationServiceTest(
                 henkilo = Henkilo(oid = Oid.parse("1.2.246.562.24.88888888888").getOrThrow(), hetu = "010180-9026"),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
 
         assertEquals(
             suoritus
@@ -183,7 +188,7 @@ class ValidationServiceTest(
                     ),
             )
 
-        val result = validation.validateAndEnrich(arvioija)
+        val result = arvioijaValidation.validate(arvioija)
 
         assertEquals(
             fail(
@@ -199,7 +204,7 @@ class ValidationServiceTest(
         val suoritus =
             validiYkiSuoritus.modifySuoritus { it.copy(arviointipaiva = null) }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
 
         assertEquals(
             fail(
@@ -223,7 +228,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
 
         assertEquals(
             fail(
@@ -246,7 +251,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
 
         assertEquals(
             fail(
@@ -270,7 +275,7 @@ class ValidationServiceTest(
                     ),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "todistuskieli"),
@@ -293,7 +298,7 @@ class ValidationServiceTest(
                     ),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(suoritus.right(), result)
     }
 
@@ -314,7 +319,7 @@ class ValidationServiceTest(
                     ),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("henkilo", "maa"),
@@ -341,7 +346,7 @@ class ValidationServiceTest(
                     ),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(suoritus.right(), result)
     }
 
@@ -362,7 +367,7 @@ class ValidationServiceTest(
                     ),
             )
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             suoritus.copy(henkilo = suoritus.henkilo.copy(maa = "FIN")).right(),
             result,
@@ -380,7 +385,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(suoritus.right(), result)
     }
 
@@ -398,7 +403,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "arviointitila"),
@@ -419,7 +424,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(suoritus.right(), result)
     }
 
@@ -430,7 +435,7 @@ class ValidationServiceTest(
                 it.copy(osat = it.osat.map { osa -> osa.copy(arvosana = 12) })
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "arviointitila"),
@@ -458,7 +463,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(suoritus.right(), result)
     }
 
@@ -469,7 +474,7 @@ class ValidationServiceTest(
                 it.copy(arviointitila = Arviointitila.TARKISTUSARVIOITAVA)
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "arviointitila"),
@@ -491,7 +496,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "tarkistusarviointi"),
@@ -513,7 +518,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "tarkistusarviointi"),
@@ -535,7 +540,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "tarkistusarviointi"),
@@ -557,7 +562,7 @@ class ValidationServiceTest(
                 )
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "tarkistusarviointi"),
@@ -574,7 +579,7 @@ class ValidationServiceTest(
                 it.copy(tarkistusarviointi = validiTarkistusarviointi)
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "tarkistusarviointi"),
@@ -591,7 +596,7 @@ class ValidationServiceTest(
                 it.copy(arviointitila = Arviointitila.TARKISTUSARVIOITU)
             }
 
-        val result = validation.validateAndEnrich(suoritus)
+        val result = tiedonsiirto.validateAndEnrich(suoritus)
         assertEquals(
             fail(
                 listOf("suoritus", "arviointitila"),
@@ -623,7 +628,7 @@ class ValidationServiceTest(
 
     @Test
     fun `Arvioijan tallennuksen happy path`() {
-        assertEquals(validiTallennaArvioija.right(), validation.validateAndEnrich(validiTallennaArvioija))
+        assertEquals(validiTallennaArvioija.right(), tallennaArvioijaValidation.validate(validiTallennaArvioija))
     }
 
     @Test
@@ -633,21 +638,21 @@ class ValidationServiceTest(
 
     @Test
     fun `Arvioijalle on annettava postitoimipaikka`() {
-        val result = validation.validateAndEnrich(validiTallennaArvioija.copy(postitoimipaikka = " "))
+        val result = tallennaArvioijaValidation.validate(validiTallennaArvioija.copy(postitoimipaikka = " "))
 
         assertEquals(fail(listOf("postitoimipaikka"), "Postitoimipaikka on pakollinen tieto"), result)
     }
 
     @Test
     fun `Arvioijan postinumeron on oltava viisi numeroa`() {
-        val result = validation.validateAndEnrich(validiTallennaArvioija.copy(postinumero = "994"))
+        val result = tallennaArvioijaValidation.validate(validiTallennaArvioija.copy(postinumero = "994"))
 
         assertEquals(fail(listOf("postinumero"), "Postinumeron on oltava viisi numeroa"), result)
     }
 
     @Test
     fun `Arvioijan sahkopostiosoitteen on oltava kelvollinen`() {
-        val result = validation.validateAndEnrich(validiTallennaArvioija.copy(sahkopostiosoite = "devnull-2"))
+        val result = tallennaArvioijaValidation.validate(validiTallennaArvioija.copy(sahkopostiosoite = "devnull-2"))
 
         assertEquals(fail(listOf("sahkopostiosoite"), "Sähköpostiosoite on virheellinen"), result)
     }
@@ -656,12 +661,12 @@ class ValidationServiceTest(
     fun `Arvioijan sahkopostiosoite saa puuttua`() {
         val arvioija = validiTallennaArvioija.copy(sahkopostiosoite = null)
 
-        assertEquals(arvioija.right(), validation.validateAndEnrich(arvioija))
+        assertEquals(arvioija.right(), tallennaArvioijaValidation.validate(arvioija))
     }
 
     @Test
     fun `Arvioijalle on valittava vahintaan yksi arviointioikeus`() {
-        val result = validation.validateAndEnrich(validiTallennaArvioija.copy(arviointioikeudet = emptyList()))
+        val result = tallennaArvioijaValidation.validate(validiTallennaArvioija.copy(arviointioikeudet = emptyList()))
 
         assertEquals(
             fail(listOf("arviointioikeus"), "Valitse vähintään yksi tutkintokieli ja tutkintotaso"),
@@ -672,7 +677,7 @@ class ValidationServiceTest(
     @Test
     fun `Arvioijan jokaiselle kielelle on valittava vahintaan yksi taso`() {
         val result =
-            validation.validateAndEnrich(
+            tallennaArvioijaValidation.validate(
                 validiTallennaArvioija.copy(
                     arviointioikeudet =
                         listOf(TallennaArvioija.Arviointioikeus(Tutkintokieli.FIN, emptySet())),
@@ -691,7 +696,7 @@ class ValidationServiceTest(
     @Test
     fun `Samaa tutkintokielta ei voi valita kahdesti`() {
         val result =
-            validation.validateAndEnrich(
+            tallennaArvioijaValidation.validate(
                 validiTallennaArvioija.copy(
                     arviointioikeudet =
                         listOf(
@@ -708,7 +713,7 @@ class ValidationServiceTest(
     fun `Arvioijan kausi ei voi alkaa yli vuoden paasta`() {
         val result =
             timeService.runWithFixedClock(Instant.parse("2025-09-29T12:00:00Z")) {
-                validation.validateAndEnrich(
+                tallennaArvioijaValidation.validate(
                     validiTallennaArvioija.copy(
                         kaudenAlkupaiva = timeService.today().plusYears(1).plusDays(1),
                     ),
@@ -724,7 +729,7 @@ class ValidationServiceTest(
     @Test
     fun `Arvioijaa, jonka oidia ei loydy oppijanumerorekisterista, ei voi tallentaa`() {
         val result =
-            validation.validateAndEnrich(
+            tallennaArvioijaValidation.validate(
                 validiTallennaArvioija.copy(
                     arvioijaOid = Oid.parse("1.2.246.562.24.20000000000").getOrThrow(),
                 ),

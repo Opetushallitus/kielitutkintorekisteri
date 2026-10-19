@@ -4,12 +4,28 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.raise.Raise
+import arrow.core.raise.either
 import arrow.core.raise.withError
 
 typealias ValidationResult<T> = Either<NonEmptyList<Validation.ValidationError>, T>
 
 typealias ValidationRaise = Raise<NonEmptyList<Validation.ValidationError>>
 typealias EnrichmentRaise = Raise<Validation.ValidationError.EnrichmentError>
+
+fun <T> Validation<T>.validate(value: T): ValidationResult<T> = either { validateAndEnrich(value) }
+
+/**
+ * Heittaa ValidationExceptionin, jonka GlobalControllerExceptionHandler kaantaa 400:ksi.
+ * Nimi erottaa taman util.result.getOrThrow'sta, joka heittaa Leftin sellaisenaan tai
+ * IllegalStateExceptionin eli paatyy 500:aan — vaara import vaihtaisi statuskoodin hiljaa.
+ */
+fun <T> ValidationResult<T>.orThrowBadRequest(): T =
+    fold(
+        ifLeft = { errors: NonEmptyList<Validation.ValidationError> ->
+            throw Validation.ValidationException(errors)
+        },
+        ifRight = { it },
+    )
 
 interface Validation<T> {
     fun ValidationRaise.validateAndEnrich(value: T): T {
