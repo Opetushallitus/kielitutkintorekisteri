@@ -80,7 +80,8 @@ Each domain typically contains its own `*ApiController`, `*ViewController` (serv
 - `security/` — CAS + OAuth2 (OPH virkailija SSO); `security/cas/` and `security/oauth2/`.
 - `ataru/` — client for the ataru hakemuspalvelu (CAS session via `security/cas/client/`); used only by `yki/arvioijat/hakemus/`
 - `observability/`, `auditlogs/` — OpenTelemetry + ECS-formatted structured logs
-- `csv/`, `tiedontuontischema/`, `html/`, `i18n/` — cross-cutting utilities
+- `etusivu/` — the etusivu kojelauta (`HomeController`, `HomePage`, `DashboardService`); the one package besides `webmvc/Links.kt` that deliberately depends on every domain
+- `csv/`, `tiedontuontischema/`, `html/`, `i18n/` — cross-cutting utilities. `html/`, `util/`, `jdbc/` and `i18n/` must not import feature-domain packages (`yki/`, `vkt/`, `kotoutumiskoulutus/`, `koski/`, …); the `koodisto/` reference-data client is the one allowed exception
 - `tehtavapankki/` — tehtäväpankin entiteetit + repository (**top-level**, erillinen `kotoutumiskoulutus/koealusta/tehtavapankki/`-paketista, joka sisältää logiikan ja näkymät)
 - `config/`, `jdbc/`, `oid/`, `openapi/`, `restclient/`, `util/`, `webmvc/`, `dev/` — infrastruktuuri ja apupaketit (`dev/` = dev/test-only controllers incl. mock login and the Solki stub; `dev/mockdata/` = random test-data generators)
 

@@ -48,6 +48,7 @@ Integraatioiden yksityiskohdat: [Integraatiot](./integraatiot.md).
 - **`restclient/`** — `RestClient`-konfiguraatio ja apufunktiot
 - **`tehtavapankki/`** — tehtäväpankin entiteetit ja repository (logiikka ja näkymät ovat
   paketissa `kotoutumiskoulutus/koealusta/tehtavapankki/`)
+- **`etusivu/`** — etusivun kojelauta, joka kokoaa luvut kaikista toiminta-alueista
 - **`config/`**, **`jdbc/`**, **`oid/`**, **`openapi/`**, **`util/`**, **`webmvc/`**, **`dev/`** —
   konfiguraatio-, apu- ja kehitysaikaiset paketit
 
