@@ -1,6 +1,7 @@
 package fi.oph.kitu.webmvc
 
 import fi.oph.kitu.config.ApplicationProperties
+import fi.oph.kitu.etusivu.HomeController
 import fi.oph.kitu.i18n.LokalisointiViewController
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.kotoutumiskoulutus.KielitestiApiController

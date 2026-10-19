@@ -1,4 +1,4 @@
-package fi.oph.kitu.webmvc
+package fi.oph.kitu.etusivu
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.i18n.LocalizedString
