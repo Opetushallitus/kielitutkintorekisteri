@@ -5,6 +5,7 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.virkailijaSession
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -59,8 +60,15 @@ class EiLoydyVirhesivuTest(
         for (polku in polut) {
             val vastaus =
                 mockMvc
-                    .perform(get(polku).session(virkailijaSession()))
-                    .andReturn()
+                    .perform(
+                        get(
+                            polku,
+                        ).session(
+                            virkailijaSession(
+                                authorities = listOf(Authority.VIRKAILIJA, Authority.YKI_ARVIOIJAREKISTERI),
+                            ),
+                        ),
+                    ).andReturn()
                     .response
 
             assertEquals(404, vastaus.status, polku)
@@ -73,38 +81,16 @@ class EiLoydyVirhesivuTest(
     fun `json-paattypisteet palauttavat tyhjan 404n`() {
         val vastaus =
             mockMvc
-                .perform(get("/yki/koski-request/999999").session(virkailijaSession()))
-                .andExpect(status().isNotFound)
+                .perform(
+                    get(
+                        "/yki/koski-request/999999",
+                    ).session(
+                        virkailijaSession(authorities = listOf(Authority.VIRKAILIJA, Authority.YKI_ARVIOIJAREKISTERI)),
+                    ),
+                ).andExpect(status().isNotFound)
                 .andReturn()
                 .response
 
         assertEquals("", vastaus.contentAsString)
-    }
-
-    private fun virkailijaSession(): MockHttpSession {
-        val principal =
-            CasUserDetails(
-                name = "test-virkailija",
-                oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
-                strongAuth = false,
-                kayttajaTyyppi = "VIRKAILIJA",
-                asiointikieli = null,
-                authorities =
-                    listOf(Authority.VIRKAILIJA, Authority.YKI_ARVIOIJAREKISTERI).map {
-                        SimpleGrantedAuthority(it.role())
-                    },
-            )
-        val authentication: Authentication =
-            UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
-        val securityContext =
-            SecurityContextHolder.createEmptyContext().apply {
-                this.authentication = authentication
-            }
-        return MockHttpSession().also { session ->
-            session.setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                securityContext,
-            )
-        }
     }
 }
