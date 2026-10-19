@@ -12,6 +12,7 @@ import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.koski.KoskiErrorService
 import fi.oph.kitu.koski.KoskiVktRequestMapper
 import fi.oph.kitu.koski.VktMappingId
+import fi.oph.kitu.koski.toViewMessage
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
 import fi.oph.kitu.vkt.html.KoskiTransferState
@@ -113,7 +114,7 @@ class VktViewController(
         val messages =
             listOfNotNull(
                 viewMessage?.consume(),
-                koskiErrorService.findById(VktMappingId(id))?.let { ViewMessageData.from(it) },
+                koskiErrorService.findById(VktMappingId(id))?.toViewMessage(),
             )
 
         return ResponseEntity.ok(
