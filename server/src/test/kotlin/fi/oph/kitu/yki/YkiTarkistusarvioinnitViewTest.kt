@@ -7,6 +7,7 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.virkailijaSession
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,24 +67,5 @@ class YkiTarkistusarvioinnitViewTest(
             }
 
         assertContains(html, """value="2026-01-02"""")
-    }
-
-    private fun virkailijaSession(): MockHttpSession {
-        val principal =
-            CasUserDetails(
-                name = "test-virkailija",
-                oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
-                strongAuth = false,
-                kayttajaTyyppi = "VIRKAILIJA",
-                asiointikieli = null,
-                authorities = listOf(SimpleGrantedAuthority(Authority.VIRKAILIJA.role())),
-            )
-        val securityContext =
-            SecurityContextHolder.createEmptyContext().apply {
-                authentication = UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
-            }
-        return MockHttpSession().also {
-            it.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext)
-        }
     }
 }

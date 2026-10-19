@@ -5,6 +5,7 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.virkailijaSession
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -103,28 +104,5 @@ class LokalisointiViewControllerTest(
             .andExpect(status().is3xxRedirection)
 
         assertEquals("Allmän språkexamen", TolgeeMessages.get("nav.yki")?.sv)
-    }
-
-    private fun virkailijaSession(): MockHttpSession {
-        val principal =
-            CasUserDetails(
-                name = "test-virkailija",
-                oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
-                strongAuth = false,
-                kayttajaTyyppi = "VIRKAILIJA",
-                authorities = listOf(SimpleGrantedAuthority(Authority.VIRKAILIJA.role())),
-            )
-        val authentication: Authentication =
-            UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
-        val securityContext =
-            SecurityContextHolder.createEmptyContext().apply {
-                this.authentication = authentication
-            }
-        return MockHttpSession().also { session ->
-            session.setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                securityContext,
-            )
-        }
     }
 }
