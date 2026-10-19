@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.testcontainers.postgresql.PostgreSQLContainer
+import java.io.ByteArrayOutputStream
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -28,6 +29,7 @@ class KielitestiCsvTest(
     @param:Autowired val kielitestiSuoritusRepository: KielitestiSuoritusRepository,
     @param:Autowired val kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
     @param:Autowired val kielitestiErrorService: KielitestiErrorService,
+    @param:Autowired val kielitestiApiController: KielitestiApiController,
     @param:Autowired val postgres: PostgreSQLContainer,
 ) {
     @BeforeEach
@@ -84,16 +86,17 @@ class KielitestiCsvTest(
 
         kielitestiSuoritusErrorRepository.saveAll(suoritukset)
 
-        val actualCsv = kielitestiErrorService.generateErrorsCsvStream()
+        val actualCsv =
+            ByteArrayOutputStream().also { kielitestiApiController.getErrorsAsCsv().body!!.writeTo(it) }
         val expectedCsv =
             """
             virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;onrEtunimet;onrKutsumanimi;onrSukunimi;virheellinenKentta;virheellinenArvo
-            "2024-11-22T10:49:49Z";;"010180-9026";"Ranja Testi Öhman-Testi";Ranja;"Testi Öhman-Testi";Ranja;"1.2.246.562.10.14893989377";"testi@example.com";"Kirjoitusvirhe nimessä tai henkilötunnuksessa";"{""request"": {""etunimet"": ""Ranja"", ""hetu"": ""010180-9026"", ""kutsumanimi"": ""Ranja"", ""sukunimi"": ""Testi Öhman-Testi""}}";"Korjaa nimet lähdejärjestelmään näin:";"Ranja Testi";Ranja;"Öhman-Testi";;
-            "2024-11-22T10:49:49Z";"1.2.246.562.24.67409348034";"010180-9026";"Eino Testi Välimaa-Testi";"Eino Test";"Välimaa-Testi";Eino;"1.2.246.562.10.14893989377";"testi@example.com";"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";;;;;;puhuminen;"virheellinen arvosana"
+            2024-11-22T10:49:49Z;;010180-9026;Ranja Testi Öhman-Testi;Ranja;Testi Öhman-Testi;Ranja;1.2.246.562.10.14893989377;testi@example.com;Kirjoitusvirhe nimessä tai henkilötunnuksessa;"{""request"": {""etunimet"": ""Ranja"", ""hetu"": ""010180-9026"", ""kutsumanimi"": ""Ranja"", ""sukunimi"": ""Testi Öhman-Testi""}}";Korjaa nimet lähdejärjestelmään näin:;Ranja Testi;Ranja;Öhman-Testi;;
+            2024-11-22T10:49:49Z;1.2.246.562.24.67409348034;010180-9026;Eino Testi Välimaa-Testi;Eino Test;Välimaa-Testi;Eino;1.2.246.562.10.14893989377;testi@example.com;"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";;;;;;puhuminen;virheellinen arvosana
 
             """.trimIndent()
 
-        assertEquals(expectedCsv, actualCsv.toString(Charsets.UTF_8))
+        assertEquals("\uFEFF" + expectedCsv, actualCsv.toString(Charsets.UTF_8))
     }
 
     @Test

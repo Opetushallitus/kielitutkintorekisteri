@@ -39,9 +39,9 @@ Integraatioiden yksityiskohdat: [Integraatiot](./integraatiot.md).
 
 ### Läpileikkaavat paketit
 
-- **`csvparsing/`** — Vain vientiin: Excel-yhteensopiva CSV-alkutavu ja koton virhe-CSV:n
-  Jackson-kirjoitin. Listanäkymien CSV:t tuotetaan `html/table/`-paketin sarake-enumeista
-  (`DisplayTableCsvRenderer`, `webmvc/CsvAttachmentResponse.kt`).
+- **`csvparsing/`** — Excel-yhteensopiva CSV-alkutavu (BOM). Kaikki CSV-viennit tuotetaan
+  sarake-enumeista `html/table/`-paketin `DisplayTableCsvRenderer`illa
+  (`webmvc/CsvAttachmentResponse.kt`).
 - **`tiedontuontischema/`** — Suoritusten tuontirajapintojen tietomallit ja validoinnit
 - **`html/`** — kotlinx-html-sivupohjat ja komponentit
 - **`i18n/`** — Käännöstuki

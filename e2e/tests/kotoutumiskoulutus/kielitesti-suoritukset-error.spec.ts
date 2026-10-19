@@ -298,7 +298,7 @@ describe('"Koto Suoritukset" -page', () => {
     let headers =
       "virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;onrEtunimet;onrKutsumanimi;onrSukunimi;virheellinenKentta;virheellinenArvo"
     let ranjaError =
-      '"2024-11-22T10:49:49Z";"1.2.246.562.24.20281155246";"010180-9026";"Ranja Testi Öhman-Testi";"Ranja Testi";"Öhman-Testi";Ranja;"1.2.246.562.10.14893989377";"opettaja@testi.oph.fi";"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";;;;;;puhuminen;"virheellinen arvosana"'
+      '2024-11-22T10:49:49Z;1.2.246.562.24.20281155246;010180-9026;Ranja Testi Öhman-Testi;Ranja Testi;Öhman-Testi;Ranja;1.2.246.562.10.14893989377;opettaja@testi.oph.fi;"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";;;;;;puhuminen;virheellinen arvosana'
     expect(csvContent).toContain(headers)
     expect(csvContent).toContain(ranjaError)
   })
