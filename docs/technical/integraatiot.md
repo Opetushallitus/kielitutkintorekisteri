@@ -216,24 +216,44 @@ Arvioijahakemuslomakkeen hakemuksista luodaan YKI-arvioijamerkinnät (uusi arvio
 jatkokausi, joka alkaa voimassa olevan kauden päättymistä seuraavana päivänä). Lomakkeen
 vuoden raja alkupäivälle ei koske tällaista jatkokautta (`TallennaArvioija.automaattinenJatkokausi`).
 
-- Lomakkeen avain ja kenttien id:t ovat `ArvioijahakemusLomake`ssa ja hyväksymisehdot
-  `ArvioijahakemusKriteeri`ssä — kovakoodattuina, ei asetuksina.
+- **Lomakkeen kartoitus on ympäristökohtainen asetus** `kitu.ataru.arvioijahakemus.*`
+  (`ArvioijahakemusLomake`), koska jokaisessa ympäristössä on oma lomake ja ataru generoi kenttien
+  id:t ja vaihtoehtojen arvot lomakkeelle: `lomakkeenAvain`, `kielet[<vastausavain>]=<Tutkintokieli>`,
+  `tasot[<vastausavain>]=<Tutkintotaso>` ja `kentat.*` (yhteystiedot; oletuksena
+  henkilötietomoduulin vakioavaimet `email`, `address`, `postal-code`, `postal-office`).
+  Puutteellinen kartoitus kaataa tuonnin ennen atarun kutsua, jottei hakemuksia kirjata pysyvästi
+  hylätyiksi. Hyväksymisehdot ovat koodissa (`ArvioijahakemusKriteeri`), koska atarun tilojen nimet
+  ovat kaikissa ympäristöissä samat.
+- **Siirron `keyValues` on litistetty**: arvot ovat aina merkkijonoja, eivät koskaan taulukoita.
+  Monivalinnan jokainen valittu vaihtoehto on oma avaimensa `<kentän id>_<vaihtoehdon arvo>`,
+  toistuvat tekstikentät ja liitteet `<kentän id>_<järjestysnumero>`, kysymysryhmät
+  `<kentän id>_group<i>…` ja muut kentät `<kentän id>`. Itse kirjoitettujen vaihtoehtojen arvot ovat
+  järjestysnumeroita `"0"`, `"1"`, … (eivät muutu vaihtoehtoja järjestellessä; uusi saa suurimman
+  arvon + 1), koodistovaihtoehdoilla koodiarvo. Kenttien id:t ja vaihtoehdot saa lomakkeesta
+  reitiltä `GET /lomake-editori/api/forms/latest/{lomakkeen avain}`. Kartoitettavan kysymyksen
+  vaihtoehto, jota asetuksissa ei ole, hylkää hakemuksen ("Tuntematon kieli tai taso"), jottei
+  lomakkeeseen myöhemmin lisätty vaihtoehto katoa hiljaa.
 - `AtaruClient.haeHakemusavaimet(...)` → `POST /lomake-editori/api/applications/list`
   (`form-key`, `option-answers`, sivukursori `sort.offset`). Tämä on atarun virkailija-UI:n reitti,
   ei sovittu ulkoinen rajapinta. Pyynnössä on oltava myös `states-and-filters`
   (`StatesAndFilters`), vaikka atarun skeema sallii sen puuttumisen: ilman sitä listaus kaatuu
   500:aan (`IllegalArgumentException`), ja puuttuva käsittely- tai liitetilalista pudottaa hiljaa
-  kaikki hakemukset. Kitu pyytää kaikki tilat, myös passivoidut hakemukset, ja hylkää ne vasta
-  `ArvioijahakemusKriteeri`ssä, jotta ne kirjautuvat tilaan `EI_TAYTA_EHTOJA`.
+  kaikki hakemukset. Kitu hakee vain virkailijan atarussa **käsitellyksi ja hakukelpoiseksi**
+  merkitsemät, passivoimattomat hakemukset (`ArvioijahakemusKriteeri.atarunTilat`). Muuttuvat ehdot
+  rajataan atarussa, koska kirjattua hakemusta ei haeta uudelleen: myöhemmin hyväksytty tai
+  uudelleen aktivoitu hakemus tulee näin käsitellyksi seuraavalla ajolla.
 - `AtaruClient.haeHakemukset(...)` → `POST /lomake-editori/api/external/siirto?salliYksiloimattomat=true`
   (runkona hakemusavaimet, 200 kerrallaan). Ilman parametria yksikin yksilöimätön hakija kaataa
-  koko kutsun 409:llä.
+  koko kutsun 409:llä. Siirto jättää hiljaa pois hakemuksen, jolla ei vielä ole henkilöä
+  (`person_oid IS NOT NULL`), ja passivoidun hakemuksen (ilman `returnInactivated=true`:ta); sellainen
+  näkyy vain yhteenvedon `yritetaanUudelleen`-luvussa ja haetaan seuraavalla ajolla uudelleen.
 - Virhetyypit: `BadRequest`, `UnexpectedError`, `MalformedResponse`, `NullResponse`, `Unauthorized`.
 - **Autentikointi on CAS, ei OAuth2**: ataru ei hyväksy Bearer-tokenia. `security/cas/client/`
   kirjautuu palvelukäyttäjänä (`/cas/v1/tickets` → ST palvelulle `/lomake-editori/auth/cas` →
   eväste `ring-session`) ja kirjautuu uudelleen 401:n jälkeen.
 - Käsittelytilat (`yki_arvioijahakemus.tila`): `KASITELTY`, `HYLATTY`, `EI_TAYTA_EHTOJA`,
-  `ODOTTAA_YKSILOINTIA` (haetaan joka ajolla uudelleen) ja `KASITTELYSSA` (ajo keskeytyi arvioijan
+  `ODOTTAA_YKSILOINTIA` (henkilöä ei ole vielä yksilöity ONR:ssä; haetaan joka ajolla uudelleen) ja
+  `KASITTELYSSA` (ajo keskeytyi arvioijan
   tallennuksen jälkeen; tarkistettava käsin, ei käsitellä uudelleen).
 - `kitu.ataru.service.url` tyhjä = integraatio pois päältä (ei asiakasta, palvelua eikä eräajoa).
 

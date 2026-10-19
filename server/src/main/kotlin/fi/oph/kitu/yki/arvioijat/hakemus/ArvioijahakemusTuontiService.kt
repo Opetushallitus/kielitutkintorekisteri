@@ -45,6 +45,7 @@ data class Tuontiyhteenveto(
 @ConditionalOnNonEmptyProperty("kitu.ataru.service.url")
 class ArvioijahakemusTuontiService(
     private val ataru: AtaruClient,
+    private val lomake: ArvioijahakemusLomake,
     private val repository: ArvioijahakemusRepository,
     private val arvioijaService: YkiArvioijaService,
     private val kausiRepository: YkiArvioijaKausiRepository,
@@ -55,10 +56,17 @@ class ArvioijahakemusTuontiService(
 
     @WithSpan("ataru.arvioijahakemus.tuonti")
     fun tuo(): Tuontiyhteenveto {
+        val puutteet = lomake.puutteet()
+        check(puutteet.isEmpty()) {
+            "Arvioijahakemuslomakkeen asetukset (kitu.ataru.arvioijahakemus) ovat puutteelliset: ${puutteet.joinToString()}"
+        }
         val avaimet =
             ataru
-                .haeHakemusavaimet(ArvioijahakemusLomake.LOMAKKEEN_AVAIN, ArvioijahakemusKriteeri.atarunSuodatus)
-                .getOrElse { throw it }
+                .haeHakemusavaimet(
+                    lomake.lomakkeenAvain,
+                    ArvioijahakemusKriteeri.atarunSuodatus,
+                    ArvioijahakemusKriteeri.atarunTilat,
+                ).getOrElse { throw it }
                 .map { it.key }
         val kasitellyt = repository.kasitellyt(avaimet)
         val uudet = avaimet.filterNot(kasitellyt::contains)
@@ -121,7 +129,7 @@ class ArvioijahakemusTuontiService(
         }
 
         return either {
-            val kartoitettu = ArvioijahakemusLomake.kartoita(hakemus).mapLeft { Hylkays(it) }.bind()
+            val kartoitettu = lomake.kartoita(hakemus).mapLeft { Hylkays(it) }.bind()
             val esitaytto = arvioijaService.haeHenkilotiedot(kartoitettu.henkiloOid).mapLeft(::hylkays).bind()
             val alku = kaudenAlkupaiva(esitaytto)
             val komento = komento(kartoitettu, esitaytto, alku).bind()

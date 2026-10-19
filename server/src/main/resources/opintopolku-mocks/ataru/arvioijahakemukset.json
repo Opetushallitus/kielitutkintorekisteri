@@ -4,8 +4,10 @@
     "personOid": "1.2.246.562.24.59267607404",
     "state": "active",
     "keyValues": {
-      "yki-arvioija-kielet": ["fin", "swe"],
-      "yki-arvioija-tasot": ["PT", "KT"],
+      "yki-arvioija-kielet_0": "0",
+      "yki-arvioija-kielet_1": "1",
+      "yki-arvioija-tasot_0": "0",
+      "yki-arvioija-tasot_1": "1",
       "email": "kivinen-testi@oph.fi"
     }
   },
@@ -14,8 +16,8 @@
     "personOid": "1.2.246.562.24.10691606777",
     "state": "active",
     "keyValues": {
-      "yki-arvioija-kielet": ["eng"],
-      "yki-arvioija-tasot": ["YT"]
+      "yki-arvioija-kielet_2": "2",
+      "yki-arvioija-tasot_2": "2"
     }
   }
 ]

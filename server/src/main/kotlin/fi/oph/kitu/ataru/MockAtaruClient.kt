@@ -19,6 +19,7 @@ class MockAtaruClient : AtaruClient {
     override fun haeHakemusavaimet(
         formKey: String,
         ehdot: List<OptionAnswer>,
+        tilat: StatesAndFilters,
     ): Either<AtaruException, List<HakemusOtsake>> = hakemukset.map { HakemusOtsake(it.hakemusOid, it.state) }.right()
 
     override fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>> =
