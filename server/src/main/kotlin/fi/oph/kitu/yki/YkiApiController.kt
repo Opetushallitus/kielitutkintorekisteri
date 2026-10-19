@@ -5,9 +5,10 @@ import fi.oph.kitu.ilmoittautumisjarjestelma.IlmoittautumisjarjestelmaService
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
+import fi.oph.kitu.tiedontuontischema.TiedonsiirtoValidation
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
-import fi.oph.kitu.util.validation.ValidationService
 import fi.oph.kitu.util.validation.orThrowBadRequest
+import fi.oph.kitu.util.validation.validate
 import fi.oph.kitu.yki.Arviointitila.ARVIOITU
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.Tallennuslahde
@@ -16,6 +17,7 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaColumn
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaService
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaValidation
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -45,7 +47,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 @Tag(name = "Yleinen kielitutkinto")
 class YkiApiController(
     private val service: YkiService,
-    private val validationService: ValidationService,
+    private val tiedonsiirtoValidation: TiedonsiirtoValidation,
+    private val arvioijaValidation: YkiArvioijaValidation,
     private val ykiArvioijaRepository: YkiArvioijaRepository,
     private val ykiSuoritusRepository: YkiSuoritusRepository,
     private val ilmoittautumisjarjestelma: IlmoittautumisjarjestelmaService,
@@ -200,7 +203,7 @@ class YkiApiController(
     fun postHenkilosuoritus(
         @RequestBody data: Henkilosuoritus<YkiSuoritus>,
     ): ResponseEntity<*> {
-        val enrichedData = validationService.validateAndEnrich(data).orThrowBadRequest()
+        val enrichedData = tiedonsiirtoValidation.validateAndEnrich(data).orThrowBadRequest()
         val entity =
             try {
                 YkiSuoritusEntity.from(enrichedData)
@@ -291,7 +294,7 @@ class YkiApiController(
     fun postArvioija(
         @RequestBody arvioija: YkiArvioija,
     ): ResponseEntity<*> {
-        val validatedArvioija = validationService.validateAndEnrich(arvioija).orThrowBadRequest()
+        val validatedArvioija = arvioijaValidation.validate(arvioija).orThrowBadRequest()
 
         return if (asetukset.integraatioKaytossa) {
             paivitaYhteystiedot(validatedArvioija)

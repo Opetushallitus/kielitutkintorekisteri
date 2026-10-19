@@ -12,7 +12,7 @@ import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.Validation.ValidationError
-import fi.oph.kitu.util.validation.ValidationService
+import fi.oph.kitu.util.validation.validate
 import fi.oph.kitu.yki.arvioijat.solki.Lahetystulos
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaService
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -26,7 +26,8 @@ import java.time.ZoneOffset
 class YkiArvioijaService(
     private val repository: YkiArvioijaRepository,
     private val kausiRepository: YkiArvioijaKausiRepository,
-    private val validationService: ValidationService,
+    private val tallennaArvioijaValidation: TallennaArvioijaValidation,
+    private val paivitaArvioijanTiedotValidation: PaivitaArvioijanTiedotValidation,
     private val oppijanumeroService: OppijanumeroService,
     private val auditLogger: AuditLogger,
     private val timeService: TimeService,
@@ -72,8 +73,8 @@ class YkiArvioijaService(
         tekija: Oid?,
         odotettuMuokkaushetki: OffsetDateTime? = null,
     ): Either<YkiArvioijaError, YkiArvioijaEntity> =
-        validationService
-            .validateAndEnrich(komento)
+        tallennaArvioijaValidation
+            .validate(komento)
             .mapLeft { YkiArvioijaError.Validointivirheet(it) }
             .flatMap { validoitu ->
                 // Lisayslomakkeelle voi paatya myos jo rekisterissa oleva arvioija (jatkokausi),
@@ -209,8 +210,8 @@ class YkiArvioijaService(
         // Polun id ratkaisee kenen tietoja muokataan, ei lomakkeen piilokentta.
         val kohdistettu = komento.copy(arvioijaOid = olemassaoleva.arvioijaOid)
 
-        return validationService
-            .validateAndEnrich(kohdistettu)
+        return paivitaArvioijanTiedotValidation
+            .validate(kohdistettu)
             .mapLeft { YkiArvioijaError.Validointivirheet(it) }
             .flatMap { validoitu ->
                 tallennaTaiKonflikti(

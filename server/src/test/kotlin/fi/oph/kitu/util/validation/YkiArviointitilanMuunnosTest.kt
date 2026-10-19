@@ -6,6 +6,7 @@ import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
+import fi.oph.kitu.tiedontuontischema.TiedonsiirtoValidation
 import fi.oph.kitu.tiedontuontischema.YkiJarjestaja
 import fi.oph.kitu.tiedontuontischema.YkiOsa
 import fi.oph.kitu.tiedontuontischema.YkiSuoritus
@@ -25,7 +26,7 @@ import kotlin.test.assertEquals
 @SpringBootTest(properties = ["kitu.yki.convertLegacyArviointitila.enabled=true"])
 @Import(DBContainerConfiguration::class)
 class YkiArviointitilanMuunnosTest(
-    @param:Autowired val validation: ValidationService,
+    @param:Autowired val validation: TiedonsiirtoValidation,
 ) {
     private fun suoritus(
         arviointitila: Arviointitila,

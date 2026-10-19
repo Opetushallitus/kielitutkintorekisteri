@@ -40,8 +40,9 @@ ja `ensureNotNull` predikaatteihin. Alivalidaattori, joka itse akkumuloi, ottaa
 `RaiseAccumulate<ValidationError>`-vastaanottimen ja sisältää sisäkkäisiä `accumulating { … }`
 -lohkoja.
 
-Kontrollerikerros kutsuu `validation.validateAndEnrich(…).orThrowBadRequest()`
-(`util/validation/ValidationService.kt`); syntyvä `ValidationException` napataan
+Validaattori ajetaan kutsulla `validator.validate(arvo)`; tiedonsiirron suoritukset kulkevat
+`tiedontuontischema/TiedonsiirtoValidation`in kautta, joka ajaa yhteisen ja VKT- tai YKI-kohtaisen
+validoinnin. Kontrollerikerros kutsuu tulokselle `.orThrowBadRequest()` (`util/validation/Validation.kt`); syntyvä `ValidationException` napataan
 `GlobalControllerExceptionHandler`issa ja muunnetaan 400-vastaukseksi. Älä käytä tässä
 `util/result`-paketin `getOrThrow()`ia: se heittää Left-arvon sellaisenaan, ja tulos on 500.
 

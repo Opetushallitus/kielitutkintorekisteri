@@ -4,8 +4,8 @@ import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
+import fi.oph.kitu.tiedontuontischema.TiedonsiirtoValidation
 import fi.oph.kitu.tiedontuontischema.VktSuoritus
-import fi.oph.kitu.util.validation.ValidationService
 import fi.oph.kitu.util.validation.orThrowBadRequest
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -30,7 +30,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 class VktApiController(
     val customSuoritusRepository: CustomVktSuoritusRepository,
     val service: VktSuoritusService,
-    private val validation: ValidationService,
+    private val validation: TiedonsiirtoValidation,
 ) {
     @PutMapping("/kios", produces = ["application/json"])
     @Operation(
