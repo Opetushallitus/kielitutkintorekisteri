@@ -1,4 +1,4 @@
-package fi.oph.kitu.auditlogs
+package fi.oph.kitu.observability
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

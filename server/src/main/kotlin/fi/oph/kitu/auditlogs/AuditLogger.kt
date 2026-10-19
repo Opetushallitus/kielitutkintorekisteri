@@ -1,5 +1,6 @@
 package fi.oph.kitu.auditlogs
 
+import fi.oph.kitu.observability.add
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.TimeService

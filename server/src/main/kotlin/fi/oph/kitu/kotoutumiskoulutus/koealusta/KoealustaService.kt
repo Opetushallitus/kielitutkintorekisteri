@@ -1,10 +1,10 @@
 package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
 import fi.oph.kitu.auditlogs.AuditLogger
-import fi.oph.kitu.auditlogs.PeerService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.CustomKielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
+import fi.oph.kitu.observability.PeerService
 import fi.oph.kitu.observability.setAttribute
 import fi.oph.kitu.restclient.withLenientStringConverter
 import fi.oph.kitu.util.TimeService

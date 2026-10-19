@@ -1,7 +1,7 @@
 package fi.oph.kitu.organisaatiot
 
 import fi.oph.kitu.DBContainerConfiguration
-import fi.oph.kitu.auditlogs.OpenTelemetryTestConfig
+import fi.oph.kitu.observability.OpenTelemetryTestConfig
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
