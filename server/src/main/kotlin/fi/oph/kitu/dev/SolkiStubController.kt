@@ -16,7 +16,7 @@ import org.springframework.web.context.WebApplicationContext
 @RestController
 @RequestMapping("/dev")
 @Profile("local", "test", "e2e")
-class YkiController(
+class SolkiStubController(
     private val environment: Environment,
     private val applicationContext: WebApplicationContext,
 ) {

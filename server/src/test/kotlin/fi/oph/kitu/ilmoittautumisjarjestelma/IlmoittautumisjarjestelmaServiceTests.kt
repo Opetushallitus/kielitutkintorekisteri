@@ -3,7 +3,6 @@ package fi.oph.kitu.ilmoittautumisjarjestelma
 import arrow.core.left
 import arrow.core.right
 import fi.oph.kitu.DBContainerConfiguration
-import fi.oph.kitu.dev.YkiController
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
