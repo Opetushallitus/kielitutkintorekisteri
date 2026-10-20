@@ -11,8 +11,6 @@ import java.time.OffsetDateTime
 
 /** Hakemuksen tiedot kartoitettuna; puuttuvat yhteystiedot taydennetaan ONR:sta. */
 data class Arvioijahakemus(
-    val hakemusOid: String,
-    val henkiloOid: String,
     val arviointioikeudet: List<TallennaArvioija.Arviointioikeus>,
     val sahkopostiosoite: String?,
     val katuosoite: String?,
