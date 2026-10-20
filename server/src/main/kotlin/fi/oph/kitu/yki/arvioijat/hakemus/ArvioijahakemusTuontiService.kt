@@ -76,14 +76,25 @@ class ArvioijahakemusTuontiService(
             ataru
                 .haeHakemukset(uudet)
                 .getOrElse { throw it }
-                .mapNotNull { hakemus ->
-                    try {
-                        kasittele(hakemus)
-                    } catch (e: Exception) {
-                        epaonnistui++
-                        logger.error("Arvioijahakemuksen ${hakemus.hakemusOid} käsittely epäonnistui", e)
-                        null
-                    }
+                .mapIndexedNotNull { indeksi, alkio ->
+                    alkio.fold(
+                        ifLeft = { virhe ->
+                            epaonnistui++
+                            logger.error(
+                                "Siirron alkiota $indeksi (hakemus ${virhe.hakemusOid}) ei voitu jäsentää (polku: ${virhe.polku})",
+                            )
+                            null
+                        },
+                        ifRight = { hakemus ->
+                            try {
+                                kasittele(hakemus)
+                            } catch (e: Exception) {
+                                epaonnistui++
+                                logger.error("Arvioijahakemuksen ${hakemus.hakemusOid} käsittely epäonnistui", e)
+                                null
+                            }
+                        },
+                    )
                 }
 
         auditLogger.logAllInternalOnly(

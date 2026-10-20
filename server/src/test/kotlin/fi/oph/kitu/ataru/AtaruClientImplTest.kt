@@ -15,6 +15,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.web.client.RestClient
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 
 class AtaruClientImplTest {
@@ -131,11 +132,89 @@ class AtaruClientImplTest {
 
         val hakemukset = client.haeHakemukset(avaimet).getOrNull()!!
 
-        val hakemus = hakemukset.single()
+        val hakemus = hakemukset.single().getOrNull()!!
         assertEquals("1.2.246.562.98.1", hakemus.personOid)
         assertEquals("0", hakemus.keyValues["a886d639-ef13-4442-9b0f-f0818c849450_0"]?.asString())
         assertEquals("hakija@example.com", hakemus.keyValues["email"]?.asString())
         server.verify()
+    }
+
+    @Test
+    fun `jasentymaton alkio ei kaada muita saman erän hakemuksia`() {
+        server
+            .expect(requestTo("$serviceUrl/api/external/siirto?salliYksiloimattomat=true"))
+            .andRespond(
+                withSuccess(
+                    """[{"hakemusOid":"h1","personOid":"p1","keyValues":{"email":"hakija@example.com"}},
+                        {"hakemusOid":"h2","personOid":"p2","keyValues":null},
+                        {"hakemusOid":"h3","personOid":"p3","keyValues":[]},
+                        {"personOid":"p4","keyValues":{}},
+                        {"hakemusOid":"h5","keyValues":{}},
+                        {"hakemusOid":"h6","personOid":" ","keyValues":{}},
+                        42,
+                        null]""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        val tulokset = client.haeHakemukset(listOf("h1")).getOrNull()!!
+
+        assertEquals("h1", tulokset[0].getOrNull()?.hakemusOid)
+        assertEquals(
+            listOf(
+                SiirtoJasennysvirhe("h2", "p2", "keyValues"),
+                SiirtoJasennysvirhe("h3", "p3", "keyValues"),
+                SiirtoJasennysvirhe(null, "p4", "hakemusOid"),
+                SiirtoJasennysvirhe("h5", null, "personOid"),
+                SiirtoJasennysvirhe("h6", null, "personOid"),
+                SiirtoJasennysvirhe(null, null, ""),
+                SiirtoJasennysvirhe(null, null, ""),
+            ),
+            tulokset.drop(1).map { it.leftOrNull() },
+        )
+    }
+
+    @Test
+    fun `jasennysvirhe ei toista syotteen arvoa`() {
+        server
+            .expect(requestTo("$serviceUrl/api/external/siirto?salliYksiloimattomat=true"))
+            .andRespond(
+                withSuccess(
+                    """[{"hakemusOid":"h1","personOid":"p1","keyValues":"010101-123N"}]""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        val virhe =
+            client
+                .haeHakemukset(listOf("h1"))
+                .getOrNull()!!
+                .single()
+                .leftOrNull()!!
+
+        assertEquals(SiirtoJasennysvirhe("h1", "p1", "keyValues"), virhe)
+        assertFalse(virhe.toString().contains("010101-123N"))
+    }
+
+    @Test
+    fun `siirron henkilotietoja ei jasenneta`() {
+        server
+            .expect(requestTo("$serviceUrl/api/external/siirto?salliYksiloimattomat=true"))
+            .andRespond(
+                withSuccess(
+                    """[{"hakemusOid":"h1","personOid":"p1","person":"ei objekti","keyValues":{}}]""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        assertEquals(
+            SiirtoHakemus("h1", "p1"),
+            client
+                .haeHakemukset(listOf("h1"))
+                .getOrNull()!!
+                .single()
+                .getOrNull(),
+        )
     }
 
     @Test
@@ -155,6 +234,12 @@ class AtaruClientImplTest {
         server
             .expect(requestTo("$serviceUrl/api/external/siirto?salliYksiloimattomat=true"))
             .andRespond(withSuccess("{ei jsonia", MediaType.APPLICATION_JSON))
+        assertIs<AtaruException.MalformedResponse>(client.haeHakemukset(listOf("h1")).leftOrNull())
+
+        server.reset()
+        server
+            .expect(requestTo("$serviceUrl/api/external/siirto?salliYksiloimattomat=true"))
+            .andRespond(withSuccess("""{"hakemusOid":"h1"}""", MediaType.APPLICATION_JSON))
         assertIs<AtaruException.MalformedResponse>(client.haeHakemukset(listOf("h1")).leftOrNull())
     }
 }

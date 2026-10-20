@@ -1,6 +1,7 @@
 package fi.oph.kitu.yki.arvioijat.hakemus
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
@@ -9,6 +10,7 @@ import fi.oph.kitu.ataru.AtaruException
 import fi.oph.kitu.ataru.HakemusOtsake
 import fi.oph.kitu.ataru.OptionAnswer
 import fi.oph.kitu.ataru.SiirtoHakemus
+import fi.oph.kitu.ataru.SiirtoJasennysvirhe
 import fi.oph.kitu.ataru.StatesAndFilters
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
@@ -76,6 +78,7 @@ class ArvioijahakemusTuontiServiceTest(
         jdbcTemplate.tyhjennaArvioijahakemukset()
         arvioijaRepository.deleteAll()
         ataru.hakemukset = emptyList()
+        ataru.jasentymattomat = emptyList()
         ataru.siirtokutsut.clear()
         ataru.listauskutsut.clear()
     }
@@ -286,6 +289,18 @@ class ArvioijahakemusTuontiServiceTest(
     }
 
     @Test
+    fun `jasentymaton siirron alkio kaataa ajon estamatta muita`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        ataru.hakemukset = listOf(hakemus("h1", petronOid))
+        ataru.jasentymattomat = listOf(SiirtoJasennysvirhe("h2", null, "personOid"))
+
+        assertFailsWith<IllegalStateException> { tuo(timeService) }
+
+        assertEquals(ArvioijahakemuksenTila.KASITELTY, repository.haeKaikki().single().tila)
+    }
+
+    @Test
     fun `kaatuminen arvioijan tallennuksen jalkeen ei esta muita eika luo toista kautta`(
         @Autowired timeService: TestTimeService,
         @Autowired jdbc: NamedParameterJdbcTemplate,
@@ -318,6 +333,7 @@ class ArvioijahakemusTuontiServiceTest(
 
     private class FakeAtaruClient : AtaruClient {
         var hakemukset: List<SiirtoHakemus> = emptyList()
+        var jasentymattomat: List<SiirtoJasennysvirhe> = emptyList()
         val siirtokutsut = mutableListOf<List<String>>()
         val listauskutsut = mutableListOf<String>()
 
@@ -327,12 +343,19 @@ class ArvioijahakemusTuontiServiceTest(
             tilat: StatesAndFilters,
         ): Either<AtaruException, List<HakemusOtsake>> {
             listauskutsut += formKey
-            return hakemukset.map { HakemusOtsake(it.hakemusOid) }.right()
+            return (hakemukset.map { it.hakemusOid } + jasentymattomat.mapNotNull { it.hakemusOid })
+                .map { HakemusOtsake(it) }
+                .right()
         }
 
-        override fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>> {
+        override fun haeHakemukset(
+            avaimet: List<String>,
+        ): Either<AtaruException, List<Either<SiirtoJasennysvirhe, SiirtoHakemus>>> {
             siirtokutsut += avaimet
-            return hakemukset.filter { it.hakemusOid in avaimet }.right()
+            return (
+                hakemukset.filter { it.hakemusOid in avaimet }.map { it.right() } +
+                    jasentymattomat.filter { it.hakemusOid == null || it.hakemusOid in avaimet }.map { it.left() }
+            ).right()
         }
     }
 }

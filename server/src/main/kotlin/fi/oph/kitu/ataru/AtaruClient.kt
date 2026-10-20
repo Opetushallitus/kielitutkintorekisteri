@@ -9,6 +9,7 @@ import fi.oph.kitu.util.defaultObjectMapper
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.http.HttpMethod
 import org.springframework.web.client.RestClient
+import tools.jackson.databind.JsonNode
 import java.net.URI
 
 interface AtaruClient {
@@ -19,7 +20,7 @@ interface AtaruClient {
         tilat: StatesAndFilters,
     ): Either<AtaruException, List<HakemusOtsake>>
 
-    fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>>
+    fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<Either<SiirtoJasennysvirhe, SiirtoHakemus>>>
 }
 
 open class AtaruClientImpl(
@@ -50,15 +51,17 @@ open class AtaruClientImpl(
         }
 
     @WithSpan
-    override fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<SiirtoHakemus>> =
+    override fun haeHakemukset(
+        avaimet: List<String>,
+    ): Either<AtaruException, List<Either<SiirtoJasennysvirhe, SiirtoHakemus>>> =
         either {
             avaimet.chunked(SIIRRON_ERAKOKO).flatMap { era ->
                 post(
                     "api/external/siirto?salliYksiloimattomat=true",
                     era,
-                    Array<SiirtoHakemus>::class.java,
+                    Array<JsonNode>::class.java,
                 ).bind()
-                    .toList()
+                    .map(SiirtoHakemus::jasenna)
             }
         }
 

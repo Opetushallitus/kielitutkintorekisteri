@@ -1,8 +1,15 @@
 package fi.oph.kitu.ataru
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import fi.oph.kitu.util.defaultObjectMapper
+import tools.jackson.core.JacksonException
 import tools.jackson.databind.JsonNode
+import tools.jackson.databind.exc.InvalidNullException
+import kotlin.jvm.optionals.getOrNull
 
 /** `option-answers`: tarkka vastaavuus valintakentan arvoon; tyhja [options] osuu tyhjiin vastauksiin. */
 data class OptionAnswer(
@@ -86,4 +93,43 @@ data class SiirtoHakemus(
     val hakemusOid: String,
     val personOid: String,
     val keyValues: Map<String, JsonNode> = emptyMap(),
+) {
+    companion object {
+        fun jasenna(alkio: JsonNode): Either<SiirtoJasennysvirhe, SiirtoHakemus> {
+            fun virhe(polku: String) =
+                SiirtoJasennysvirhe(
+                    hakemusOid = alkio.path("hakemusOid").tunniste(),
+                    personOid = alkio.path("personOid").tunniste(),
+                    polku = polku,
+                ).left()
+
+            if (!alkio.isObject) return virhe("")
+            val hakemus =
+                try {
+                    defaultObjectMapper.treeToValue(alkio, SiirtoHakemus::class.java)
+                } catch (e: JacksonException) {
+                    return virhe(e.polku())
+                }
+            return when {
+                hakemus.hakemusOid.isBlank() -> virhe("hakemusOid")
+                hakemus.personOid.isBlank() -> virhe("personOid")
+                else -> hakemus.right()
+            }
+        }
+
+        private fun JsonNode.tunniste(): String? = stringValueOpt().getOrNull()?.takeIf { it.isNotBlank() }
+
+        private fun JacksonException.polku(): String =
+            path
+                .mapNotNull { it.propertyName ?: it.index.takeIf { i -> i >= 0 }?.let { i -> "[$i]" } }
+                .joinToString(".")
+                .ifEmpty { (this as? InvalidNullException)?.propertyName?.simpleName.orEmpty() }
+    }
+}
+
+/** Ei Jacksonin virheviestia: se voi toistaa syotteen arvon, esimerkiksi hetun. */
+data class SiirtoJasennysvirhe(
+    val hakemusOid: String?,
+    val personOid: String?,
+    val polku: String,
 )
