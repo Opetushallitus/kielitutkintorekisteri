@@ -86,6 +86,14 @@ object HomePage {
             href = Links.Yki.arvioijat() + "?vainSolkiVirheet=true",
             errorIfNonZero = true,
         )
+        s.arvioijahakemusVirheCount?.let {
+            statRow(
+                label = UiText.Etusivu.virheellisetArvioijahakemukset,
+                value = it,
+                href = Links.Yki.arvioijahakemusVirheet(),
+                errorIfNonZero = true,
+            )
+        }
         statRow(
             label = UiText.Etusivu.koskiSiirronVirheet,
             value = s.koskiErrorCount,

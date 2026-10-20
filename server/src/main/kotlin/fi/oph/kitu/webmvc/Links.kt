@@ -189,6 +189,9 @@ object Links {
 
         fun arvioijahakemukset(): String =
             linkTo(methodOn(ArvioijahakemusViewController::class.java).hakemuksetView()).toString()
+
+        fun arvioijahakemusVirheet(): String =
+            linkTo(methodOn(ArvioijahakemusViewController::class.java).virheetView()).toString()
     }
 
     object Kielitesti {

@@ -9,7 +9,9 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorR
 import fi.oph.kitu.util.cache.InMemoryCache
 import fi.oph.kitu.util.scheduling.SchedulerStatsRepository
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
+import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
+import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemusVirheRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.ObjectProvider
@@ -28,6 +30,8 @@ class DashboardService(
     private val tehtavapankkiServiceProvider: ObjectProvider<TehtavapankkiService>,
     private val schedulerStatsRepository: SchedulerStatsRepository,
     private val koskiErrorService: KoskiErrorService,
+    private val arvioijahakemusVirheRepository: ArvioijahakemusVirheRepository,
+    private val arvioijarekisteriAsetukset: ArvioijarekisteriAsetukset,
     /**
      * Konstruktorissa eika @Value-kenttana, koska valimuistit alustetaan property-initialisoijissa
      * — kenttainjektio tapahtuisi vasta niiden jalkeen. Nolla poistaa valimuistin kaytosta;
@@ -66,6 +70,8 @@ class DashboardService(
                 ykiSuoritusRepository.countTarkistusarvioinnitOdottamassaHyvaksyntaa(),
             latestReceivedAt = ykiSuoritusRepository.findLatestReceivedAt(),
             koskiErrorCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, hidden = false).toLong(),
+            arvioijahakemusVirheCount =
+                arvioijahakemusVirheRepository.takeIf { arvioijarekisteriAsetukset.hakemustenTuontiKaytossa }?.count(),
         )
 
     private fun computeVkt(): VktStats {
@@ -102,6 +108,7 @@ data class YkiStats(
     val tarkistusarvioinnitOdottamassaCount: Long,
     val latestReceivedAt: Instant?,
     val koskiErrorCount: Long,
+    val arvioijahakemusVirheCount: Long?,
 )
 
 data class VktStats(

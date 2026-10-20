@@ -2,10 +2,12 @@ package fi.oph.kitu.yki.arvioijat.hakemus
 
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.card
+import fi.oph.kitu.html.errorsArticle
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
 import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.webmvc.Links
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.p
@@ -17,7 +19,10 @@ import kotlinx.html.thead
 import kotlinx.html.tr
 
 object ArvioijahakemusPage {
-    fun render(rivit: List<ArvioijahakemusEntity>): String =
+    fun render(
+        rivit: List<ArvioijahakemusEntity>,
+        virheita: Long,
+    ): String =
         Page.renderHtml(
             wideContent = true,
             ohje = UiText.Ohje.Yki.arvioijahakemukset,
@@ -25,6 +30,7 @@ object ArvioijahakemusPage {
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Yki.Arvioijahakemus.otsikko }
             p { +UiText.Yki.Arvioijahakemus.kasittelemattomienKuvaus }
+            errorsArticle(virheita, Links.Yki.arvioijahakemusVirheet())
 
             if (rivit.isEmpty()) {
                 p { +UiText.Yki.Arvioijahakemus.eiRiveja }

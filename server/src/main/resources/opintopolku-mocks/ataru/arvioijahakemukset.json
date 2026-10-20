@@ -19,5 +19,16 @@
       "yki-arvioija-kielet_2": "2",
       "yki-arvioija-tasot-eng_1": "1"
     }
+  },
+  {
+    "hakemusOid": "1.2.246.562.11.00000000000000000003",
+    "personOid": "1.2.246.562.24.20281154321",
+    "state": "active",
+    "keyValues": {
+      "yki-arvioija-kielet_0": "0",
+      "yki-arvioija-tasot-fin_2": "2",
+      "yki-arvioija-kielet_9": "9",
+      "email": ["virheellinen-1@oph.fi", "virheellinen-2@oph.fi"]
+    }
   }
 ]
