@@ -1,0 +1,4828 @@
+[
+  {
+    "koodiUri": "maatjavaltiot1_abw",
+    "koodiArvo": "ABW",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Aruba"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Aruba"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Aruba"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_afg",
+    "koodiArvo": "AFG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Afganistan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Afghanistan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Afghanistan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ago",
+    "koodiArvo": "AGO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Angola"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Angola"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Angola"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_aia",
+    "koodiArvo": "AIA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Anguilla"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Anguilla"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Anguilla"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ala",
+    "koodiArvo": "ALA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ahvenanmaa"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Åland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Åland Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_alb",
+    "koodiArvo": "ALB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Albania"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Albanien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Albania"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_and",
+    "koodiArvo": "AND",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Andorra"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Andorra"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Andorra"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ant",
+    "koodiArvo": "ANT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Alankomaiden Antillit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Det forna Nederländska Antillerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Former Netherlands Antilles"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_are",
+    "koodiArvo": "ARE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Arabiemiirikunnat"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förenade Arabemiraten"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "United Arab Emirates"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_arg",
+    "koodiArvo": "ARG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Argentiina"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Argentina"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Argentina"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_arm",
+    "koodiArvo": "ARM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Armenia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Armenien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Armenia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_asm",
+    "koodiArvo": "ASM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Amerikan Samoa"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Amerikanska Samoa"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "American Samoa"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ata",
+    "koodiArvo": "ATA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Antarktis"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Antarktis"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Antarctica"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_atf",
+    "koodiArvo": "ATF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ranskan eteläiset alueet"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "De franska territorierna i södra Indiska Oceanen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "French Southern Territories"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_atg",
+    "koodiArvo": "ATG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Antigua ja Barbuda"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Antigua och Barbuda"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Antigua and Barbuda"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_aus",
+    "koodiArvo": "AUS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Australia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Australien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Australia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_aut",
+    "koodiArvo": "AUT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Itävalta"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Österrike"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Austria"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_aze",
+    "koodiArvo": "AZE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Azerbaidžan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Azerbajdzjan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Azerbaijan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bdi",
+    "koodiArvo": "BDI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Burundi"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Burundi"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Burundi"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bel",
+    "koodiArvo": "BEL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Belgia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Belgien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Belgium"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ben",
+    "koodiArvo": "BEN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Benin"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Benin"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Benin"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bes",
+    "koodiArvo": "BES",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bonaire, Sint Eustatius ja Saba"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bonaire, Sint Eustatius och Saba"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bonaire, Sint Eustatius and Saba"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bfa",
+    "koodiArvo": "BFA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Burkina Faso"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Burkina Faso"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Burkina Faso"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bgd",
+    "koodiArvo": "BGD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bangladesh"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bangladesh"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bangladesh"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bgr",
+    "koodiArvo": "BGR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bulgaria"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bulgarien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bulgaria"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bhr",
+    "koodiArvo": "BHR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bahrain"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bahrain"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bahrain"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bhs",
+    "koodiArvo": "BHS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bahama"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bahamas"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bahamas"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bih",
+    "koodiArvo": "BIH",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bosnia ja Hertsegovina"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bosnien och Hercegovina"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bosnia and Herzegovina"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_blm",
+    "koodiArvo": "BLM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint Barthélemy"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Barthélemy"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Barthélemy"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_blr",
+    "koodiArvo": "BLR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Valko-Venäjä"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Vitryssland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Belarus"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_blz",
+    "koodiArvo": "BLZ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Belize"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Belize"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Belize"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bmu",
+    "koodiArvo": "BMU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bermuda"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bermuda"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bermuda"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bol",
+    "koodiArvo": "BOL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bolivia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bolivia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bolivia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bra",
+    "koodiArvo": "BRA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Brasilia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Brasilien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Brazil"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_brb",
+    "koodiArvo": "BRB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Barbados"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Barbados"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Barbados"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_brn",
+    "koodiArvo": "BRN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Brunei"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Brunei"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Brunei Darussalam"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_btn",
+    "koodiArvo": "BTN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bhutan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bhutan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bhutan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bvt",
+    "koodiArvo": "BVT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Bouvet'nsaari"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Bouvetön"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Bouvet Island"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_bwa",
+    "koodiArvo": "BWA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Botswana"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Botswana"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Botswana"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_caf",
+    "koodiArvo": "CAF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Keski-Afrikan tasavalta"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Centralafrikanska republiken"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Central African Republic"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_can",
+    "koodiArvo": "CAN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kanada"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kanada"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Canada"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cck",
+    "koodiArvo": "CCK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kookossaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Cocosöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cocos (Keeling) Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_che",
+    "koodiArvo": "CHE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Sveitsi"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Schweiz"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Switzerland"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_chl",
+    "koodiArvo": "CHL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Chile"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Chile"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Chile"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_chn",
+    "koodiArvo": "CHN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kiina"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kina"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "China"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_civ",
+    "koodiArvo": "CIV",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Norsunluurannikko"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Elfenbenskusten"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Côte d'lvoire"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cmr",
+    "koodiArvo": "CMR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kamerun"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kamerun"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cameroon"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_zar",
+    "koodiArvo": "COD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kongo (Kongo-Kinshasa)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kongo (Kongo-Kinshasa)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Congo, The Democratic Republic of"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cog",
+    "koodiArvo": "COG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kongo (Kongo-Brazzaville)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kongo (Kongo-Brazzaville)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Congo (Congo-Brazzaville)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cok",
+    "koodiArvo": "COK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Cookinsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Cooköarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cook Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_col",
+    "koodiArvo": "COL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kolumbia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Colombia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Colombia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_com",
+    "koodiArvo": "COM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Komorit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Komorerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Comoros"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cpv",
+    "koodiArvo": "CPV",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kap Verde"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kap Verde"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cabo Verde"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cri",
+    "koodiArvo": "CRI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Costa Rica"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Costa Rica"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Costa Rica"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cub",
+    "koodiArvo": "CUB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kuuba"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kuba"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cuba"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cuw",
+    "koodiArvo": "CUW",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Curaçao"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Curaçao"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Curaçao"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cxr",
+    "koodiArvo": "CXR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Joulusaari"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Julön"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Christmas Island"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cym",
+    "koodiArvo": "CYM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Caymansaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Caymanöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cayman Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cyp",
+    "koodiArvo": "CYP",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kypros"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Cypern"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cyprus"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_cze",
+    "koodiArvo": "CZE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tšekki"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tjeckien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Czech Republic"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_deu",
+    "koodiArvo": "DEU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saksa"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tyskland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Germany"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_dji",
+    "koodiArvo": "DJI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Djibouti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Djibouti"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Djibouti"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_dma",
+    "koodiArvo": "DMA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Dominica"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Dominica"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Dominica"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_dnk",
+    "koodiArvo": "DNK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tanska"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Danmark"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Denmark"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_dom",
+    "koodiArvo": "DOM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Dominikaaninen tasavalta"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Dominikanska republiken"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Dominican Republic"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_dza",
+    "koodiArvo": "DZA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Algeria"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Algeriet"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Algeria"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ecu",
+    "koodiArvo": "ECU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ecuador"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Ecuador"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Ecuador"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_egy",
+    "koodiArvo": "EGY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Egypti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Egypten"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Egypt"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_eri",
+    "koodiArvo": "ERI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Eritrea"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Eritrea"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Eritrea"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_esh",
+    "koodiArvo": "ESH",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Länsi-Sahara"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Västsahara"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Western Sahara"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_esp",
+    "koodiArvo": "ESP",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Espanja"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Spanien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Spain"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_est",
+    "koodiArvo": "EST",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Viro"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Estland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Estonia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_eth",
+    "koodiArvo": "ETH",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Etiopia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Etiopien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Ethiopia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_fin",
+    "koodiArvo": "FIN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Suomi"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Finland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Finland"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_fji",
+    "koodiArvo": "FJI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Fidži"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Fiji"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Fiji"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_flk",
+    "koodiArvo": "FLK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Falklandinsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Falklandsöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Falkland Islands (Malvinas)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_fra",
+    "koodiArvo": "FRA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ranska"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Frankrike"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "France"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_fro",
+    "koodiArvo": "FRO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Färsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Färöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Faroe Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_fsm",
+    "koodiArvo": "FSM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mikronesia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mikronesien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Micronesia, Federated States of"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gab",
+    "koodiArvo": "GAB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Gabon"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Gabon"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Gabon"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gbr",
+    "koodiArvo": "GBR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Yhdistynyt kuningaskunta"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förenade kungariket"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "United Kingdom"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_geo",
+    "koodiArvo": "GEO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Georgia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Georgien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Georgia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ggy",
+    "koodiArvo": "GGY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guernsey"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guernsey"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guernsey"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gha",
+    "koodiArvo": "GHA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ghana"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Ghana"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Ghana"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gib",
+    "koodiArvo": "GIB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Gibraltar"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Gibraltar"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Gibraltar"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gin",
+    "koodiArvo": "GIN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guinea"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guinea"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guinea"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_glp",
+    "koodiArvo": "GLP",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guadeloupe"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guadeloupe"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guadeloupe"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gmb",
+    "koodiArvo": "GMB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Gambia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Gambia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Gambia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gnb",
+    "koodiArvo": "GNB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guinea-Bissau"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guinea-Bissau"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guinea-Bissau"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gnq",
+    "koodiArvo": "GNQ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Päiväntasaajan Guinea"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Ekvatorialguinea"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Equatorial Guinea"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_grc",
+    "koodiArvo": "GRC",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kreikka"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Grekland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Greece"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_grd",
+    "koodiArvo": "GRD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Grenada"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Grenada"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Grenada"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_grl",
+    "koodiArvo": "GRL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Grönlanti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Grönland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Greenland"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gtm",
+    "koodiArvo": "GTM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guatemala"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guatemala"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guatemala"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_guf",
+    "koodiArvo": "GUF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ranskan Guayana"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Franska Guyana"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "French Guiana"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_gum",
+    "koodiArvo": "GUM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guam"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guam"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guam"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_guy",
+    "koodiArvo": "GUY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Guyana"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Guyana"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Guyana"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_hkg",
+    "koodiArvo": "HKG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Hongkong"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Hongkong"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Hong Kong"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_hmd",
+    "koodiArvo": "HMD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Heard ja McDonaldinsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Heardön och McDonaldöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Heard Island and McDonald Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_hnd",
+    "koodiArvo": "HND",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Honduras"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Honduras"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Honduras"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_hrv",
+    "koodiArvo": "HRV",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kroatia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kroatien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Croatia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_hti",
+    "koodiArvo": "HTI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Haiti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Haiti"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Haiti"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_hun",
+    "koodiArvo": "HUN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Unkari"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Ungern"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Hungary"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_idn",
+    "koodiArvo": "IDN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Indonesia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Indonesien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Indonesia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_imn",
+    "koodiArvo": "IMN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mansaari"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Isle of Man"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Isle of Man"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ind",
+    "koodiArvo": "IND",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Intia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Indien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "India"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_iot",
+    "koodiArvo": "IOT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Brittiläinen Intian valtameren alue"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Brittiska territoriet i Indiska Oceanen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "British Indian Ocean Territory"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_irl",
+    "koodiArvo": "IRL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Irlanti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Irland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Ireland"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_irn",
+    "koodiArvo": "IRN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Iran"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Iran"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Iran, Islamic Republic of"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_irq",
+    "koodiArvo": "IRQ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Irak"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Irak"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Iraq"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_isl",
+    "koodiArvo": "ISL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Islanti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Island"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Iceland"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_isr",
+    "koodiArvo": "ISR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Israel"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Israel"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Israel"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ita",
+    "koodiArvo": "ITA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Italia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Italien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Italy"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_jam",
+    "koodiArvo": "JAM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Jamaika"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Jamaica"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Jamaica"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_jey",
+    "koodiArvo": "JEY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Jersey"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Jersey"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Jersey"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_jor",
+    "koodiArvo": "JOR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Jordania"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Jordanien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Jordan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_jpn",
+    "koodiArvo": "JPN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Japani"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Japan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Japan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_kaz",
+    "koodiArvo": "KAZ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kazakstan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kazakstan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kazakhstan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ken",
+    "koodiArvo": "KEN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kenia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kenya"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kenya"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_kgz",
+    "koodiArvo": "KGZ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kirgisia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kirgizistan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kyrgyzstan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_khm",
+    "koodiArvo": "KHM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kambodža"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kambodja"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Cambodia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_kir",
+    "koodiArvo": "KIR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kiribati"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kiribati"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kiribati"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_kna",
+    "koodiArvo": "KNA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint Kitts ja Nevis"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Kitts och Nevis"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Kitts and Nevis"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_kor",
+    "koodiArvo": "KOR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Korean Tasavalta (Etelä-Korea)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Republiken Korea (Sydkorea)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Korea, Republic of (South Korea)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_kwt",
+    "koodiArvo": "KWT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kuwait"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kuwait"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kuwait"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lao",
+    "koodiArvo": "LAO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Laos"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Laos"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Lao People’s Democratic Republic"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lbn",
+    "koodiArvo": "LBN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Libanon"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Libanon"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Lebanon"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lbr",
+    "koodiArvo": "LBR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Liberia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Liberia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Liberia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lby",
+    "koodiArvo": "LBY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Libya"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Libyen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Libya"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lca",
+    "koodiArvo": "LCA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint Lucia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Lucia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Lucia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lie",
+    "koodiArvo": "LIE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Liechtenstein"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Liechtenstein"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Liechtenstein"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lka",
+    "koodiArvo": "LKA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Sri Lanka"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sri Lanka"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Sri Lanka"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lso",
+    "koodiArvo": "LSO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Lesotho"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Lesotho"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Lesotho"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ltu",
+    "koodiArvo": "LTU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Liettua"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Litauen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Lithuania"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lux",
+    "koodiArvo": "LUX",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Luxemburg"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Luxemburg"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Luxembourg"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_lva",
+    "koodiArvo": "LVA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Latvia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Lettland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Latvia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mac",
+    "koodiArvo": "MAC",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Macao"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Macao"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Macao"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_maf",
+    "koodiArvo": "MAF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint Martin (Ranskan osa)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Martin (Fransk del)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Martin (French Part)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mar",
+    "koodiArvo": "MAR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Marokko"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Marocko"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Morocco"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mco",
+    "koodiArvo": "MCO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Monaco"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Monaco"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Monaco"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mda",
+    "koodiArvo": "MDA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Moldova"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Moldavien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Moldova, Republic of"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mdg",
+    "koodiArvo": "MDG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Madagaskar"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Madagaskar"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Madagascar"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mdv",
+    "koodiArvo": "MDV",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Malediivit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Maldiverna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Maldives"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mex",
+    "koodiArvo": "MEX",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Meksiko"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mexiko"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mexico"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mhl",
+    "koodiArvo": "MHL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Marshallinsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Marshallöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Marshall Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mkd",
+    "koodiArvo": "MKD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Pohjois-Makedonia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nordmakedonien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "North Macedonia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mli",
+    "koodiArvo": "MLI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mali"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mali"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mali"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mlt",
+    "koodiArvo": "MLT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Malta"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Malta"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Malta"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mmr",
+    "koodiArvo": "MMR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Myanmar"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Myanmar"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Myanmar"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mne",
+    "koodiArvo": "MNE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Montenegro"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Montenegro"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Montenegro"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mng",
+    "koodiArvo": "MNG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mongolia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mongoliet"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mongolia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mnp",
+    "koodiArvo": "MNP",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Pohjois-Mariaanit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nordmarianerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Northern Mariana Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_moz",
+    "koodiArvo": "MOZ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mosambik"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Moçambique"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mozambique"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mrt",
+    "koodiArvo": "MRT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mauritania"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mauretanien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mauritania"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_msr",
+    "koodiArvo": "MSR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Montserrat"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Montserrat"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Montserrat"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mtq",
+    "koodiArvo": "MTQ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Martinique"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Martinique"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Martinique"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mus",
+    "koodiArvo": "MUS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mauritius"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mauritius"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mauritius"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mwi",
+    "koodiArvo": "MWI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Malawi"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Malawi"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Malawi"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_mys",
+    "koodiArvo": "MYS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Malesia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Malaysia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Malaysia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_myt",
+    "koodiArvo": "MYT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Mayotte"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Mayotte"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Mayotte"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nam",
+    "koodiArvo": "NAM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Namibia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Namibia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Namibia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ncl",
+    "koodiArvo": "NCL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Uusi-Kaledonia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nya Kaledonien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "New Caledonia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ner",
+    "koodiArvo": "NER",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Niger"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Niger"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Niger"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nfk",
+    "koodiArvo": "NFK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Norfolkinsaari"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Norfolkön"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Norfolk Island"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nga",
+    "koodiArvo": "NGA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Nigeria"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nigeria"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Nigeria"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nic",
+    "koodiArvo": "NIC",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Nicaragua"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nicaragua"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Nicaragua"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_niu",
+    "koodiArvo": "NIU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Niue"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Niue"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Niue"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nld",
+    "koodiArvo": "NLD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Alankomaat"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nederländerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Netherlands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nor",
+    "koodiArvo": "NOR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Norja"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Norge"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Norway"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_npl",
+    "koodiArvo": "NPL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Nepal"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nepal"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Nepal"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nru",
+    "koodiArvo": "NRU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Nauru"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nauru"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Nauru"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_nzl",
+    "koodiArvo": "NZL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Uusi-Seelanti"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nya Zeeland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "New Zealand"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_omn",
+    "koodiArvo": "OMN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Oman"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Oman"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Oman"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pak",
+    "koodiArvo": "PAK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Pakistan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Pakistan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Pakistan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pan",
+    "koodiArvo": "PAN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Panama"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Panama"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Panama"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pcn",
+    "koodiArvo": "PCN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Pitcairn"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Pitcairn"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Pitcairn"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_per",
+    "koodiArvo": "PER",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Peru"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Peru"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Peru"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_phl",
+    "koodiArvo": "PHL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Filippiinit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Filippinerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Philippines"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_plw",
+    "koodiArvo": "PLW",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Palau"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Palau"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Palau"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_png",
+    "koodiArvo": "PNG",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Papua-Uusi-Guinea"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Papua Nya Guinea"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Papua New Guinea"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pol",
+    "koodiArvo": "POL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Puola"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Polen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Poland"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pri",
+    "koodiArvo": "PRI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Puerto Rico"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Puerto Rico"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Puerto Rico"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_prk",
+    "koodiArvo": "PRK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Korean demokraattinen kansantasavalta (Pohjois-Korea)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Demokratiska folkrepubliken Korea (Nordkorea)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Korea, Democratic People’s Republic of (North Korea)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_prt",
+    "koodiArvo": "PRT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Portugali"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Portugal"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Portugal"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pry",
+    "koodiArvo": "PRY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Paraguay"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Paraguay"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Paraguay"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pse",
+    "koodiArvo": "PSE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Palestiinan valtio"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Staten Palestina"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Palestine"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_pyf",
+    "koodiArvo": "PYF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ranskan Polynesia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Franska Polynesien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "French Polynesia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_qat",
+    "koodiArvo": "QAT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Qatar"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Qatar"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Qatar"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_reu",
+    "koodiArvo": "REU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Réunion"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Réunion"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Réunion"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_rom",
+    "koodiArvo": "ROU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Romania"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Rumänien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Romania"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_rus",
+    "koodiArvo": "RUS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Venäjä"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Ryssland"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Russian Federation"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_rwa",
+    "koodiArvo": "RWA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ruanda"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Rwanda"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Rwanda"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sau",
+    "koodiArvo": "SAU",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saudi-Arabia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saudiarabien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saudi Arabia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sdn",
+    "koodiArvo": "SDN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Sudan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sudan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Sudan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sen",
+    "koodiArvo": "SEN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Senegal"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Senegal"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Senegal"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sgp",
+    "koodiArvo": "SGP",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Singapore"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Singapore"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Singapore"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sgs",
+    "koodiArvo": "SGS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Etelä-Georgia ja Eteläiset Sandwichsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sydgeorgien och Sydsandwichöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "South Georgia and the South Sandwich Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_shn",
+    "koodiArvo": "SHN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint Helena"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Helena"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Helena"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sjm",
+    "koodiArvo": "SJM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Svalbard ja Jan Mayen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Svalbard och Jan Mayen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Svalbard and Jan Mayen"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_slb",
+    "koodiArvo": "SLB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Salomonsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Salomonöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Solomon Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sle",
+    "koodiArvo": "SLE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Sierra Leone"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sierra Leone"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Sierra Leone"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_slv",
+    "koodiArvo": "SLV",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "El Salvador"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "El Salvador"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "El Salvador"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_smr",
+    "koodiArvo": "SMR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "San Marino"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "San Marino"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "San Marino"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_som",
+    "koodiArvo": "SOM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Somalia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Somalia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Somalia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_spm",
+    "koodiArvo": "SPM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint-Pierre ja Miquelon"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Pierre och Miquelon"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Pierre and Miquelon"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_srb",
+    "koodiArvo": "SRB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Serbia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Serbien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Serbia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ssd",
+    "koodiArvo": "SSD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Etelä-Sudan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sydsudan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "South Sudan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_stp",
+    "koodiArvo": "STP",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "São Tomé ja Príncipe"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "São Tomé och Príncipe"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Sao Tome and Principe"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_sur",
+    "koodiArvo": "SUR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Suriname"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Surinam"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Suriname"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_svk",
+    "koodiArvo": "SVK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Slovakia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Slovakien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Slovakia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_svn",
+    "koodiArvo": "SVN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Slovenia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Slovenien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Slovenia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_swe",
+    "koodiArvo": "SWE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ruotsi"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sverige"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Sweden"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_swz",
+    "koodiArvo": "SWZ",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Eswatini"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Eswatini"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Eswatini"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_smx",
+    "koodiArvo": "SXM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Sint Maarten (Alankomaiden osa)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sint Maarten (Nederländsk del)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Sint Maarten (Dutch Part)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_syc",
+    "koodiArvo": "SYC",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Seychellit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Seychellerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Seychelles"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_syr",
+    "koodiArvo": "SYR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Syyria"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Syrien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Syrian Arab Republic"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tca",
+    "koodiArvo": "TCA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Turks- ja Caicossaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Turks- och Caicosöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Turks and Caicos Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tcd",
+    "koodiArvo": "TCD",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tšad"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tchad"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Chad"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tgo",
+    "koodiArvo": "TGO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Togo"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Togo"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Togo"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tha",
+    "koodiArvo": "THA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Thaimaa"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Thailand"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Thailand"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tjk",
+    "koodiArvo": "TJK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tadžikistan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tadzjikistan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Tajikistan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tkl",
+    "koodiArvo": "TKL",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tokelau"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tokelau"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Tokelau"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tkm",
+    "koodiArvo": "TKM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Turkmenistan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Turkmenistan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Turkmenistan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tmp",
+    "koodiArvo": "TLS",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Itä-Timor"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Östtimor"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "East Timor"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ton",
+    "koodiArvo": "TON",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tonga"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tonga"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Tonga"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tto",
+    "koodiArvo": "TTO",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Trinidad ja Tobago"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Trinidad och Tobago"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Trinidad and Tobago"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tun",
+    "koodiArvo": "TUN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tunisia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tunisien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Tunisia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tur",
+    "koodiArvo": "TUR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Turkki"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Turkiet"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Türkiye"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tuv",
+    "koodiArvo": "TUV",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tuvalu"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tuvalu"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Tuvalu"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_twn",
+    "koodiArvo": "TWN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Taiwan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Taiwan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Taiwan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_tza",
+    "koodiArvo": "TZA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tansania"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Tanzania"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Tanzania, United Republic of"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_uga",
+    "koodiArvo": "UGA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Uganda"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Uganda"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Uganda"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ukr",
+    "koodiArvo": "UKR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ukraina"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Ukraina"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Ukraine"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_umi",
+    "koodiArvo": "UMI",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Yhdysvaltain pienet erillissaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förenta Staternas mindre öar i Oceanien och Västindien"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "United States Minor Outlying Islands"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ury",
+    "koodiArvo": "URY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Uruguay"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Uruguay"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Uruguay"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_usa",
+    "koodiArvo": "USA",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Yhdysvallat (USA)"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förenta Staterna (USA)"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "United States"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_uzb",
+    "koodiArvo": "UZB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Uzbekistan"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Uzbekistan"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Uzbekistan"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_vat",
+    "koodiArvo": "VAT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Vatikaani"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Vatikanstaten"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Holy See (Vatican City State)"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_vct",
+    "koodiArvo": "VCT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Saint Vincent ja Grenadiinit"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Saint Vincent och Grenadinerna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Saint Vincent and the Grenadines"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_ven",
+    "koodiArvo": "VEN",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Venezuela"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Venezuela"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Venezuela, Bolivarian Republic of"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_vgb",
+    "koodiArvo": "VGB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Brittiläiset Neitsytsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Brittiska Jungfruöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Virgin Islands, British"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_vir",
+    "koodiArvo": "VIR",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Yhdysvaltain Neitsytsaaret"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Amerikanska Jungfruöarna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Virgin Islands, U.S."
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_vnm",
+    "koodiArvo": "VNM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Vietnam"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Vietnam"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Viet Nam"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_vut",
+    "koodiArvo": "VUT",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Vanuatu"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Vanuatu"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Vanuatu"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_wlf",
+    "koodiArvo": "WLF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Wallis ja Futuna"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Wallis och Futuna"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Wallis and Futuna"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_wsm",
+    "koodiArvo": "WSM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Samoa"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Samoa"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Samoa"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_xkk",
+    "koodiArvo": "XKK",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kosovo"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kosovo"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kosovo"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_xkx",
+    "koodiArvo": "XKX",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kosovo"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Kosovo"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Kosovo"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_xxx",
+    "koodiArvo": "XXX",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tuntematon"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Okänt land"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Unknown"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_yem",
+    "koodiArvo": "YEM",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Jemen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Yemen"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Yemen"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_yyy",
+    "koodiArvo": "YYY",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ilman kansalaisuutta"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Utan nationalitet"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Without Citizenship"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_zaf",
+    "koodiArvo": "ZAF",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Etelä-Afrikka"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Sydafrika"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "South Africa"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_zmb",
+    "koodiArvo": "ZMB",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Sambia"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Zambia"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Zambia"
+      }
+    ]
+  },
+  {
+    "koodiUri": "maatjavaltiot1_zwe",
+    "koodiArvo": "ZWE",
+    "versio": 2,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Zimbabwe"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Zimbabwe"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Zimbabwe"
+      }
+    ]
+  }
+]

@@ -1,0 +1,78 @@
+[
+  {
+    "koodiUri": "vktarvosana_erinomainen",
+    "koodiArvo": "erinomainen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Erinomainen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Utmärkt"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Excellent"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktarvosana_hylatty",
+    "koodiArvo": "hylatty",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Hylätty"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Underkänd"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Fail"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktarvosana_hyva",
+    "koodiArvo": "hyva",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Hyvä"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "God"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Good"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktarvosana_tyydyttava",
+    "koodiArvo": "tyydyttava",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tyydyttävä"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Nöjaktig"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Satisfactory"
+      }
+    ]
+  }
+]

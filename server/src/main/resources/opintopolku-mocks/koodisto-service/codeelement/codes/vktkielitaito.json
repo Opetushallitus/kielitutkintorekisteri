@@ -1,0 +1,59 @@
+[
+  {
+    "koodiUri": "vktkielitaito_kirjallinen",
+    "koodiArvo": "kirjallinen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kirjallinen taito"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förmåga att använda språket i skrift"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Written skills"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktkielitaito_suullinen",
+    "koodiArvo": "suullinen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Suullinen taito"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förmåga att använda språket i tal"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Oral skills"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktkielitaito_ymmartaminen",
+    "koodiArvo": "ymmartaminen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Ymmärtämisen taito"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Förmåga att förstå språket"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Comprehension skills"
+      }
+    ]
+  }
+]
