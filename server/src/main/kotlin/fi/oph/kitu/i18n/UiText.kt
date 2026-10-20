@@ -580,6 +580,17 @@ object UiText {
                 val odottaaYksilointia: LocalizedString get() = tr("yki.arvioijahakemus.tila.odottaaYksilointia")
                 val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
             }
+
+            object Virhe {
+                val virheellinenRakenne: LocalizedString get() = tr("yki.arvioijahakemus.virhe.virheellinenRakenne")
+                val tuntematonVaihtoehto: LocalizedString get() = tr("yki.arvioijahakemus.virhe.tuntematonVaihtoehto")
+                val eiKielia: LocalizedString get() = tr("yki.arvioijahakemus.virhe.eiKielia")
+                val kieleltaPuuttuuTaso: LocalizedString get() = tr("yki.arvioijahakemus.virhe.kieleltaPuuttuuTaso")
+                val vaaraTietotyyppi: LocalizedString get() = tr("yki.arvioijahakemus.virhe.vaaraTietotyyppi")
+                val validointivirhe: LocalizedString get() = tr("yki.arvioijahakemus.virhe.validointivirhe")
+                val henkiloaEiLoydy: LocalizedString get() = tr("yki.arvioijahakemus.virhe.henkiloaEiLoydy")
+                val osoitePuuttuu: LocalizedString get() = tr("yki.arvioijahakemus.virhe.osoitePuuttuu")
+            }
         }
     }
 

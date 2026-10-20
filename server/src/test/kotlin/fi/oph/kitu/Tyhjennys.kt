@@ -9,4 +9,5 @@ fun JdbcTemplate.tyhjennaYkiSuoritukset() {
 
 fun JdbcTemplate.tyhjennaArvioijahakemukset() {
     update("DELETE FROM yki_arvioijahakemus")
+    update("DELETE FROM yki_arvioijahakemus_virhe")
 }
