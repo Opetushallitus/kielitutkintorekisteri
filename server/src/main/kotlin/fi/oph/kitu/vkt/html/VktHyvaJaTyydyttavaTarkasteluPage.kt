@@ -12,8 +12,8 @@ import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
+import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
-import fi.oph.kitu.vkt.VktOsakoe
 import kotlinx.html.FlowContent
 import kotlinx.html.h1
 import kotlinx.html.h2
@@ -41,15 +41,16 @@ object VktHyvaJaTyydyttavaTarkasteluPage {
 
             h3 { +UiText.Vkt.osakokeet }
             card(overflowAuto = true) {
-                vktHyvaJaTyydyttavaOsakoeTable(data.suoritus.osat, translations)
+                vktHyvaJaTyydyttavaOsakoeTable(data, translations)
             }
         }
 }
 
 fun FlowContent.vktHyvaJaTyydyttavaOsakoeTable(
-    osat: List<VktOsakoe>,
+    data: VktHenkilosuoritus,
     t: Translations,
 ) {
+    val osat = data.suoritus.osat
     displayTable(
         osat.sortedBy { it.tutkintopaiva }.reversed(),
         listOf(
@@ -74,7 +75,19 @@ fun FlowContent.vktHyvaJaTyydyttavaOsakoeTable(
                     .toString(),
                 width = "16%",
             ) {
-                +it.suorituksenVastaanottaja.toString()
+                if (it.suorituksenVastaanottaja == null) {
+                    val lahdeId = data.suoritus.lahdejarjestelmanId
+                    if (lahdeId.lahde == Lahdejarjestelma.OPH) {
+                        // Manuaalisesti lisätty. Näytä diaarinumero.
+                        +UiText.Vkt.diaarinumero
+                        +": "
+                        +lahdeId.id
+                    } else {
+                        +"–"
+                    }
+                } else {
+                    +it.suorituksenVastaanottaja.toString()
+                }
             },
             DisplayTableColumn(
                 UiText.Vkt.Sarake.suorituspaikkakunta

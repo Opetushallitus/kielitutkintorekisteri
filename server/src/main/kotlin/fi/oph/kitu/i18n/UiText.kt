@@ -130,6 +130,7 @@ object UiText {
         val merkittyKasitellyksiEiOid: LocalizedString
             get() =
                 tr("vkt.merkittyKasitellyksiEiOid")
+        val diaarinumero: LocalizedString get() = tr("vkt.diaarinumero")
 
         object Sarake {
             val ilmoittautumisenTunniste: LocalizedString
