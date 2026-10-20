@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 
 @Service
-@Profile("test | e2e | local-opintopolku")
+@Profile("test | e2e")
 class MockKoodistoService : KoodistoService {
     override fun getKoodiviitteet(koodistoUri: String): List<KoodistopalveluKoodiviite>? =
         when (koodistoUri) {

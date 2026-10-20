@@ -1,0 +1,78 @@
+[
+  {
+    "koodiUri": "vktosakoe_kirjoittaminen",
+    "koodiArvo": "kirjoittaminen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Kirjoittaminen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Skriftlig färdighet"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Writing"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktosakoe_puheenymmartaminen",
+    "koodiArvo": "puheenymmartaminen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Puheen ymmärtäminen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Hörförståelse"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Listening comprehension"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktosakoe_puhuminen",
+    "koodiArvo": "puhuminen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Puhuminen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Muntlig färdighet"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Speaking"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vktosakoe_tekstinymmartaminen",
+    "koodiArvo": "tekstinymmartaminen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Tekstin ymmärtäminen"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Läsförståelse"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Reading comprehension"
+      }
+    ]
+  }
+]

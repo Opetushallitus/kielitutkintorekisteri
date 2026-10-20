@@ -1,0 +1,40 @@
+[
+  {
+    "koodiUri": "vkttutkintotaso_erinomainen",
+    "koodiArvo": "erinomainen",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Valtionhallinnon kielitutkinnot (VKT), erinomaisen taidon tutkinto"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Språkexamina för statsförvaltningen (VKT), examina som gäller utmärkta språkkunskaper"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Civil Service Language Proficiency Certificates (VKT), excellent level examination"
+      }
+    ]
+  },
+  {
+    "koodiUri": "vkttutkintotaso_hyvajatyydyttava",
+    "koodiArvo": "hyvajatyydyttava",
+    "versio": 1,
+    "metadata": [
+      {
+        "kieli": "FI",
+        "nimi": "Valtionhallinnon kielitutkinnot (VKT), hyvän ja tyydyttävän taidon tutkinto"
+      },
+      {
+        "kieli": "SV",
+        "nimi": "Språkexamina för statsförvaltningen (VKT), examina som gäller goda och nöjaktiga språkkunskaper"
+      },
+      {
+        "kieli": "EN",
+        "nimi": "Civil Service Language Proficiency Certificates (VKT), good and satisfactory level examination"
+      }
+    ]
+  }
+]
