@@ -67,10 +67,15 @@ class ArvioijahakemusRepository(
         )
 
     @WithSpan
-    fun poista(hakemusOid: String) {
+    fun poista(
+        hakemusOid: String,
+        tila: ArvioijahakemuksenTila,
+    ) {
         jdbc.update(
-            "DELETE FROM yki_arvioijahakemus WHERE hakemus_oid = :oid",
-            MapSqlParameterSource("oid", hakemusOid),
+            "DELETE FROM yki_arvioijahakemus WHERE hakemus_oid = :oid AND tila = :tila",
+            MapSqlParameterSource()
+                .addValue("oid", hakemusOid)
+                .addValue("tila", tila.name),
         )
     }
 }

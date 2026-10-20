@@ -55,7 +55,9 @@ class ArvioijahakemusViewControllerTest(
 
     @Test
     fun `nakyma listaa vain kasittelemattomat hakemukset`() {
-        repository.tallenna(rivi("hylatty-hakemus", ArvioijahakemuksenTila.HYLATTY, "Henkilöä ei ole yksilöity"))
+        repository.tallenna(
+            rivi("odottava-hakemus", ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA, "Henkilöä ei ole yksilöity"),
+        )
         repository.tallenna(rivi("kasitelty-hakemus", ArvioijahakemuksenTila.KASITELTY))
 
         val html =
@@ -68,7 +70,7 @@ class ArvioijahakemusViewControllerTest(
                 .andReturn()
                 .response.contentAsString
 
-        assertContains(html, "hylatty-hakemus")
+        assertContains(html, "odottava-hakemus")
         assertContains(html, "Henkilöä ei ole yksilöity")
         assertFalse(html.contains("kasitelty-hakemus"))
     }

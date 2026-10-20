@@ -24,7 +24,7 @@ object ArvioijahakemusPage {
         ) {
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Yki.Arvioijahakemus.otsikko }
-            p { +UiText.Yki.Arvioijahakemus.kuvaus }
+            p { +UiText.Yki.Arvioijahakemus.kasittelemattomienKuvaus }
 
             if (rivit.isEmpty()) {
                 p { +UiText.Yki.Arvioijahakemus.eiRiveja }
