@@ -7,6 +7,7 @@ import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
 import kotlinx.html.FlowContent
 import kotlinx.html.a

@@ -33,6 +33,7 @@ enum class Lahdejarjestelma(
 ) {
     KIOS("kios"),
     Solki("yki"),
+    OPH("oph"), // Manuaalisesti lisätyt suoritukset. Tätä vastaavan tunnisteen id on ASHA-diaarinumero.
     OPHTesti("ophtesti"),
     Unknown("tuntematon"),
     ;
