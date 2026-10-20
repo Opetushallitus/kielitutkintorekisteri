@@ -24,6 +24,10 @@ const viewRoutes = [
   "GET /yki/koski-request/1",
   "GET /yki/tarkistusarvioinnit",
 
+  // ArvioijahakemusViewController
+  "GET /yki/arvioijat/hakemukset",
+  "GET /yki/arvioijat/hakemukset/virheet",
+
   // KielitestiViewController
   "GET /koto-kielitesti/suoritukset",
   "GET /koto-kielitesti/suoritukset/virheet",
@@ -127,6 +131,8 @@ describe("Käyttöoikeustestit", () => {
         "GET /yki/arvioijat/1": 404,
         "GET /yki/arvioijat/1/muokkaa": 403,
         "POST /yki/arvioijat/1": 403,
+        "GET /yki/arvioijat/hakemukset": 403,
+        "GET /yki/arvioijat/hakemukset/virheet": 403,
         "GET /yki/api/suoritukset": 200,
         "GET /yki/api/arvioijat": 200,
         "GET /koto-kielitesti/api/suoritukset": 200,
@@ -154,6 +160,8 @@ describe("Käyttöoikeustestit", () => {
         "POST /yki/arvioijat/uusi": 200,
         "GET /yki/arvioijat/1/muokkaa": 404,
         "POST /yki/arvioijat/1": 404,
+        "GET /yki/arvioijat/hakemukset": 200,
+        "GET /yki/arvioijat/hakemukset/virheet": 200,
       })
     })
 

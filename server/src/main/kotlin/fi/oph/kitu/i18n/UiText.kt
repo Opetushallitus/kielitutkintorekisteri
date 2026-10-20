@@ -27,6 +27,8 @@ object UiText {
     object Etusivu {
         val arvioijienSolkiVirheet: LocalizedString
             get() = tr("etusivu.arvioijienSolkiVirheet")
+        val virheellisetArvioijahakemukset: LocalizedString
+            get() = tr("etusivu.virheellisetArvioijahakemukset")
         val koskiSiirronVirheet: LocalizedString
             get() = tr("etusivu.koskiSiirronVirheet")
         val tuonninVirheet: LocalizedString get() = tr("etusivu.tuonninVirheet")
@@ -579,6 +581,16 @@ object UiText {
                 val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
             }
 
+            object Virheet {
+                val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.virheet.otsikko")
+                val kuvaus: LocalizedString get() = tr("yki.arvioijahakemus.virheet.kuvaus")
+                val eiRiveja: LocalizedString get() = tr("yki.arvioijahakemus.virheet.eiRiveja")
+                val virheet: LocalizedString get() = tr("yki.arvioijahakemus.virheet.virheet")
+                val ensimmainenYritys: LocalizedString get() = tr("yki.arvioijahakemus.virheet.ensimmainenYritys")
+                val viimeisinYritys: LocalizedString get() = tr("yki.arvioijahakemus.virheet.viimeisinYritys")
+                val yrityksia: LocalizedString get() = tr("yki.arvioijahakemus.virheet.yrityksia")
+            }
+
             object Virhe {
                 val virheellinenRakenne: LocalizedString get() = tr("yki.arvioijahakemus.virhe.virheellinenRakenne")
                 val tuntematonVaihtoehto: LocalizedString get() = tr("yki.arvioijahakemus.virhe.tuntematonVaihtoehto")
@@ -865,6 +877,7 @@ object UiText {
             val arvioijaLomake: LocalizedString get() = tr("ohje.yki.arvioijaLomake")
             val kausiLomake: LocalizedString get() = tr("ohje.yki.kausiLomake")
             val arvioijahakemukset: LocalizedString get() = tr("ohje.yki.arvioijahakemukset")
+            val arvioijahakemusVirheet: LocalizedString get() = tr("ohje.yki.arvioijahakemusVirheet")
         }
 
         object Vkt {

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping("/yki/arvioijat/hakemukset")
 class ArvioijahakemusViewController(
     private val repository: ArvioijahakemusRepository,
+    private val virheRepository: ArvioijahakemusVirheRepository,
     private val auditLogger: AuditLogger,
     private val asetukset: ArvioijarekisteriAsetukset,
 ) {
@@ -22,7 +23,17 @@ class ArvioijahakemusViewController(
         auditLogger.logAllInternalOnly("Yki arvioijahakemus viewed", rivit) {
             arrayOf("hakemus.oid" to it.hakemusOid, "henkilo.oid" to it.henkiloOid)
         }
-        return ResponseEntity.ok(ArvioijahakemusPage.render(rivit))
+        return ResponseEntity.ok(ArvioijahakemusPage.render(rivit, virheRepository.count()))
+    }
+
+    @GetMapping("/virheet", produces = ["text/html"])
+    fun virheetView(): ResponseEntity<String> {
+        if (!asetukset.hakemustenTuontiKaytossa) throw ArvioijahakemusNotFoundError()
+        val rivit = virheRepository.haeKaikki()
+        auditLogger.logAllInternalOnly("Yki arvioijahakemuksen virhe viewed", rivit) {
+            arrayOf("hakemus.oid" to it.hakemusOid, "henkilo.oid" to it.henkiloOid)
+        }
+        return ResponseEntity.ok(ArvioijahakemusVirhePage.render(rivit))
     }
 }
 

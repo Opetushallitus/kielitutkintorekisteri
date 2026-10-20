@@ -41,10 +41,25 @@ class ArvioijahakemusPoisKaytostaTest(
     }
 
     @Test
-    fun `hakemusnakyma on 404 kun tuonti ei ole kaytossa`() {
+    fun `hakemusnakymat ovat 404 kun tuonti ei ole kaytossa`() {
         mockMvc
             .perform(get("/yki/arvioijat/hakemukset").session(session()))
             .andExpect(status().isNotFound)
+        mockMvc
+            .perform(get("/yki/arvioijat/hakemukset/virheet").session(session()))
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `etusivulla ei ole hakemusvirheita kun tuonti ei ole kaytossa`() {
+        val html =
+            mockMvc
+                .perform(get("/dashboard/yki").session(session()))
+                .andExpect(status().isOk)
+                .andReturn()
+                .response.contentAsString
+
+        assertFalse(html.contains("/yki/arvioijat/hakemukset/virheet"))
     }
 
     @Test
