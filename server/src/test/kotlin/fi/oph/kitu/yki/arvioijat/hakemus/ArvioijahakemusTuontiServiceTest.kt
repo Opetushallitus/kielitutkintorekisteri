@@ -99,13 +99,11 @@ class ArvioijahakemusTuontiServiceTest(
 
     private fun hakemus(
         oid: String,
-        personOid: String?,
+        personOid: String,
         keyValues: String = """{"kielet_0":"0","tasot_0":"0"}""",
-        state: String = "active",
     ) = SiirtoHakemus(
         hakemusOid = oid,
         personOid = personOid,
-        state = state,
         keyValues =
             defaultObjectMapper
                 .readTree(keyValues)
@@ -269,28 +267,15 @@ class ArvioijahakemusTuontiServiceTest(
     }
 
     @Test
-    fun `ehtoja tayttamaton hakemus kirjataan tarkistettavaksi`(
+    fun `yksiloimaton hakemus odottaa ja haetaan uudelleen jokaisella ajolla`(
         @Autowired timeService: TestTimeService,
     ) {
-        ataru.hakemukset = listOf(hakemus("h1", petronOid, state = "inactivated"))
+        ataru.hakemukset = listOf(hakemus("h1", yksiloimatonOid))
 
-        assertEquals(Tuontiyhteenveto(eiTaytaEhtoja = 1), tuo(timeService))
-
-        assertEquals(ArvioijahakemuksenTila.EI_TAYTA_EHTOJA, repository.haeKasittelemattomat().single().tila)
-        assertEquals(null, arvioijaRepository.findByArvioijaOid(oid(petronOid)))
-    }
-
-    @Test
-    fun `yksiloimaton tai henkiloton hakemus odottaa ja haetaan uudelleen jokaisella ajolla`(
-        @Autowired timeService: TestTimeService,
-    ) {
-        ataru.hakemukset = listOf(hakemus("h1", yksiloimatonOid), hakemus("h2", personOid = null))
-
-        assertEquals(Tuontiyhteenveto(odottaaYksilointia = 2), tuo(timeService))
-        val rivit = repository.haeKasittelemattomat().associateBy { it.hakemusOid }
-        assertEquals(ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA, rivit["h1"]?.tila)
-        assertContains(rivit["h1"]?.syy.orEmpty(), "yksilöity")
-        assertEquals(ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA, rivit["h2"]?.tila)
+        assertEquals(Tuontiyhteenveto(odottaaYksilointia = 1), tuo(timeService))
+        val rivi = repository.haeKasittelemattomat().single()
+        assertEquals(ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA, rivi.tila)
+        assertContains(rivi.syy.orEmpty(), "yksilöity")
 
         ataru.hakemukset = listOf(hakemus("h1", yksiloimatonOid), hakemus("h2", petronOid))
         assertEquals(Tuontiyhteenveto(kasitelty = 1, odottaaYksilointia = 1), tuo(timeService))
