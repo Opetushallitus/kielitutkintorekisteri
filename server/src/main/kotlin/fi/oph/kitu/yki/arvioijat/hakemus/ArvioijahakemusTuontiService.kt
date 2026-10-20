@@ -124,8 +124,17 @@ class ArvioijahakemusTuontiService(
 
     private fun kasittele(hakemus: SiirtoHakemus): ArvioijahakemusEntity? =
         either {
-            val kartoitettu = lomake.kartoita(hakemus).mapLeft { Hylkays(it) }.bind()
-            val esitaytto = arvioijaService.haeHenkilotiedot(kartoitettu.henkiloOid).mapLeft(::hylkays).bind()
+            val kartoitettu =
+                lomake
+                    .kartoita(hakemus)
+                    .mapLeft { virheet ->
+                        Hylkays(
+                            virheet.joinToString(
+                                "; ",
+                            ) { listOfNotNull(it.tyyppi.nimi.toString(), it.kentta).joinToString(" ") },
+                        )
+                    }.bind()
+            val esitaytto = arvioijaService.haeHenkilotiedot(hakemus.personOid).mapLeft(::hylkays).bind()
             val alku = kaudenAlkupaiva(esitaytto)
             val komento = komento(kartoitettu, esitaytto, alku).bind()
 

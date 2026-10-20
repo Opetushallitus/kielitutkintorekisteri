@@ -1,5 +1,6 @@
 package fi.oph.kitu.yki.arvioijat.hakemus
 
+import arrow.core.nonEmptyListOf
 import fi.oph.kitu.ataru.SiirtoHakemus
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.yki.Tutkintokieli
@@ -7,6 +8,10 @@ import fi.oph.kitu.yki.Tutkintotaso.KT
 import fi.oph.kitu.yki.Tutkintotaso.PT
 import fi.oph.kitu.yki.Tutkintotaso.YT
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
+import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemuksenVirhetyyppi.EI_KIELIA
+import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemuksenVirhetyyppi.KIELELTA_PUUTTUU_TASO
+import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemuksenVirhetyyppi.TUNTEMATON_VAIHTOEHTO
+import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemuksenVirhetyyppi.VAARA_TIETOTYYPPI
 import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemusLomake.Kielivaihtoehto
 import org.springframework.boot.context.properties.bind.Binder
 import org.springframework.boot.context.properties.source.ConfigurationPropertySource
@@ -15,7 +20,6 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.ClassPathResource
 import tools.jackson.databind.JsonNode
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
 class ArvioijahakemusLomakeTest {
@@ -40,15 +44,20 @@ class ArvioijahakemusLomakeTest {
                 ),
         )
 
-    private fun hakemus(vararg vastaukset: Pair<String, String>) =
+    private fun hakemus(vararg vastaukset: Pair<String, Any?>) =
         SiirtoHakemus(
             hakemusOid = "1.2.246.562.11.1",
             personOid = "1.2.246.562.24.59267607404",
-            keyValues =
-                vastaukset.associate { (avain, arvo) ->
-                    avain to defaultObjectMapper.valueToTree<JsonNode>(arvo)
-                },
+            keyValues = vastaukset.associate { (avain, arvo) -> avain to json(arvo) },
         )
+
+    private fun json(arvo: Any?): JsonNode = defaultObjectMapper.valueToTree(arvo)
+
+    private fun virhe(
+        tyyppi: ArvioijahakemuksenVirhetyyppi,
+        kentta: String,
+        arvo: Any? = null,
+    ) = ArvioijahakemuksenVirhe(tyyppi, kentta, arvo?.let(::json))
 
     private fun binder(yaml: String) =
         Binder(
@@ -86,22 +95,27 @@ class ArvioijahakemusLomakeTest {
     }
 
     @Test
-    fun `asetuksista puuttuva kieli tai taso hylataan`() {
-        val tuntematonKieli =
-            lomake.kartoita(
-                hakemus(
-                    "${kielet}_7" to "7",
-                    "${kielet}_0" to "0",
-                    "${suomenTasot}_0" to "0",
-                ),
-            )
-        assertContains(tuntematonKieli.leftOrNull()!!, "${kielet}_7")
-
-        val tuntematonTaso = lomake.kartoita(hakemus("${kielet}_0" to "0", "${suomenTasot}_2" to "2"))
-        assertContains(tuntematonTaso.leftOrNull()!!, "${suomenTasot}_2")
-
-        val kysymysryhma = lomake.kartoita(hakemus("${kielet}_0" to "0", "${suomenTasot}_group0_0" to "0"))
-        assertContains(kysymysryhma.leftOrNull()!!, "${suomenTasot}_group0_0")
+    fun `asetuksista puuttuva kieli tai taso on virhe`() {
+        assertEquals(
+            nonEmptyListOf(virhe(TUNTEMATON_VAIHTOEHTO, "${kielet}_7", "7")),
+            lomake
+                .kartoita(hakemus("${kielet}_7" to "7", "${kielet}_0" to "0", "${suomenTasot}_0" to "0"))
+                .leftOrNull(),
+        )
+        assertEquals(
+            nonEmptyListOf(
+                virhe(TUNTEMATON_VAIHTOEHTO, "${suomenTasot}_2", "2"),
+                virhe(KIELELTA_PUUTTUU_TASO, suomenTasot),
+            ),
+            lomake.kartoita(hakemus("${kielet}_0" to "0", "${suomenTasot}_2" to "2")).leftOrNull(),
+        )
+        assertEquals(
+            nonEmptyListOf(
+                virhe(TUNTEMATON_VAIHTOEHTO, "${suomenTasot}_group0_0", "0"),
+                virhe(KIELELTA_PUUTTUU_TASO, suomenTasot),
+            ),
+            lomake.kartoita(hakemus("${kielet}_0" to "0", "${suomenTasot}_group0_0" to "0")).leftOrNull(),
+        )
     }
 
     @Test
@@ -123,15 +137,58 @@ class ArvioijahakemusLomakeTest {
     }
 
     @Test
-    fun `kieli ilman tasoa ja hakemus ilman kielia hylataan`() {
+    fun `kieli ilman tasoa ja hakemus ilman kielia on virhe`() {
         assertEquals(
-            "Kielelle ei ole valittu tasoa: ENG",
+            nonEmptyListOf(virhe(KIELELTA_PUUTTUU_TASO, englanninTasot)),
+            lomake
+                .kartoita(hakemus("${kielet}_0" to "0", "${suomenTasot}_0" to "0", "${kielet}_4" to "4"))
+                .leftOrNull(),
+        )
+        assertEquals(
+            nonEmptyListOf(virhe(EI_KIELIA, kielet)),
+            lomake.kartoita(hakemus("${suomenTasot}_0" to "0")).leftOrNull(),
+        )
+    }
+
+    @Test
+    fun `kaikki virheet kerataan yhteen`() {
+        assertEquals(
+            nonEmptyListOf(
+                virhe(TUNTEMATON_VAIHTOEHTO, "${kielet}_7", "7"),
+                virhe(KIELELTA_PUUTTUU_TASO, englanninTasot),
+                virhe(VAARA_TIETOTYYPPI, "email", listOf("a@b.fi", "c@d.fi")),
+            ),
+            lomake
+                .kartoita(hakemus("${kielet}_7" to "7", "${kielet}_4" to "4", "email" to listOf("a@b.fi", "c@d.fi")))
+                .leftOrNull(),
+        )
+    }
+
+    @Test
+    fun `yhteystiedoksi kelpaa vain teksti`() {
+        val kieli = arrayOf("${kielet}_0" to "0", "${suomenTasot}_0" to "0")
+
+        assertEquals(
+            nonEmptyListOf(
+                virhe(VAARA_TIETOTYYPPI, "email", mapOf("osoite" to "a@b.fi")),
+                virhe(VAARA_TIETOTYYPPI, "address", listOf("Katu 1")),
+                virhe(VAARA_TIETOTYYPPI, "postal-code", 100),
+            ),
             lomake
                 .kartoita(
-                    hakemus("${kielet}_0" to "0", "${suomenTasot}_0" to "0", "${kielet}_4" to "4"),
+                    hakemus(
+                        *kieli,
+                        "email" to mapOf("osoite" to "a@b.fi"),
+                        "address" to listOf("Katu 1"),
+                        "postal-code" to 100,
+                    ),
                 ).leftOrNull(),
         )
-        assertEquals("Hakemuksella ei ole kieliä", lomake.kartoita(hakemus("${suomenTasot}_0" to "0")).leftOrNull())
+
+        val tyhjat = lomake.kartoita(hakemus(*kieli, "email" to null, "address" to "  ")).getOrNull()!!
+        assertEquals(null, tyhjat.sahkopostiosoite)
+        assertEquals(null, tyhjat.katuosoite)
+        assertEquals(null, tyhjat.postinumero)
     }
 
     @Test

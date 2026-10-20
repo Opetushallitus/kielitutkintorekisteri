@@ -1,8 +1,11 @@
 package fi.oph.kitu.yki.arvioijat.hakemus
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
+import arrow.core.NonEmptyList
+import arrow.core.raise.Raise
+import arrow.core.raise.accumulate
+import arrow.core.raise.either
+import arrow.core.raise.ensure
 import fi.oph.kitu.ataru.SiirtoHakemus
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
@@ -56,31 +59,57 @@ class ArvioijahakemusLomake(
                         .map { "kielet[$arvo].tasot[$it]" }
             }
 
-    fun kartoita(hakemus: SiirtoHakemus): Either<String, Arvioijahakemus> {
-        val tuntemattomat = tuntemattomatVastaukset(hakemus)
-        if (tuntemattomat.isNotEmpty()) return "Tuntematon kieli tai taso: ${tuntemattomat.joinToString()}".left()
+    fun kartoita(hakemus: SiirtoHakemus): Either<NonEmptyList<ArvioijahakemuksenVirhe>, Arvioijahakemus> =
+        either {
+            accumulate {
+                tuntemattomatVastaukset(hakemus).forEach { avain ->
+                    accumulating {
+                        raise(
+                            ArvioijahakemuksenVirhe(
+                                ArvioijahakemuksenVirhetyyppi.TUNTEMATON_VAIHTOEHTO,
+                                kentta = avain,
+                                arvo = hakemus.keyValues[avain],
+                            ),
+                        )
+                    }
+                }
 
-        val valitut = kielet.filterKeys { valittu(hakemus, kielikysymys, it) }.values
-        if (valitut.isEmpty()) return "Hakemuksella ei ole kieliä".left()
+                val valitut = kielet.filterKeys { valittu(hakemus, kielikysymys, it) }.values
+                accumulating {
+                    ensure(valitut.isNotEmpty()) {
+                        ArvioijahakemuksenVirhe(ArvioijahakemuksenVirhetyyppi.EI_KIELIA, kentta = kielikysymys)
+                    }
+                }
+                valitut.forEach { vaihtoehto ->
+                    accumulating {
+                        ensure(tasot(hakemus, vaihtoehto).isNotEmpty()) {
+                            ArvioijahakemuksenVirhe(
+                                ArvioijahakemuksenVirhetyyppi.KIELELTA_PUUTTUU_TASO,
+                                kentta = vaihtoehto.tasokysymys,
+                            )
+                        }
+                    }
+                }
 
-        val tasoitta = valitut.filter { tasot(hakemus, it).isEmpty() }.mapNotNull { it.kieli }
-        if (tasoitta.isNotEmpty()) return "Kielelle ei ole valittu tasoa: ${tasoitta.joinToString()}".left()
+                val sahkopostiosoite by accumulating { yhteystieto(hakemus, kentat.sahkoposti) }
+                val katuosoite by accumulating { yhteystieto(hakemus, kentat.katuosoite) }
+                val postinumero by accumulating { yhteystieto(hakemus, kentat.postinumero) }
+                val postitoimipaikka by accumulating { yhteystieto(hakemus, kentat.postitoimipaikka) }
 
-        return Arvioijahakemus(
-            hakemusOid = hakemus.hakemusOid,
-            henkiloOid = hakemus.personOid,
-            arviointioikeudet =
-                valitut
-                    .mapNotNull { vaihtoehto -> vaihtoehto.kieli?.let { it to tasot(hakemus, vaihtoehto) } }
-                    .groupBy({ it.first }, { it.second })
-                    .toSortedMap()
-                    .map { (kieli, tasot) -> TallennaArvioija.Arviointioikeus(kieli, tasot.flatten().toSet()) },
-            sahkopostiosoite = arvo(hakemus, kentat.sahkoposti),
-            katuosoite = arvo(hakemus, kentat.katuosoite),
-            postinumero = arvo(hakemus, kentat.postinumero),
-            postitoimipaikka = arvo(hakemus, kentat.postitoimipaikka),
-        ).right()
-    }
+                Arvioijahakemus(
+                    arviointioikeudet =
+                        valitut
+                            .mapNotNull { vaihtoehto -> vaihtoehto.kieli?.let { it to tasot(hakemus, vaihtoehto) } }
+                            .groupBy({ it.first }, { it.second })
+                            .toSortedMap()
+                            .map { (kieli, tasot) -> TallennaArvioija.Arviointioikeus(kieli, tasot.flatten().toSet()) },
+                    sahkopostiosoite = sahkopostiosoite,
+                    katuosoite = katuosoite,
+                    postinumero = postinumero,
+                    postitoimipaikka = postitoimipaikka,
+                )
+            }
+        }
 
     private fun tasot(
         hakemus: SiirtoHakemus,
@@ -110,13 +139,14 @@ class ArvioijahakemusLomake(
         }
     }
 
-    private fun arvo(
+    private fun Raise<ArvioijahakemuksenVirhe>.yhteystieto(
         hakemus: SiirtoHakemus,
         kentta: String,
-    ): String? =
-        hakemus.keyValues[kentta]
-            ?.takeUnless { it.isNull }
-            ?.asString()
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
+    ): String? {
+        val arvo = hakemus.keyValues[kentta]?.takeUnless { it.isNull } ?: return null
+        ensure(arvo.isString) {
+            ArvioijahakemuksenVirhe(ArvioijahakemuksenVirhetyyppi.VAARA_TIETOTYYPPI, kentta = kentta, arvo = arvo)
+        }
+        return arvo.stringValue().trim().takeIf { it.isNotEmpty() }
+    }
 }
