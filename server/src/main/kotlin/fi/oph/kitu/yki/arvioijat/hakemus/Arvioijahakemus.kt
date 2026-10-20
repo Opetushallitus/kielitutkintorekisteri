@@ -20,7 +20,6 @@ data class Arvioijahakemus(
 
 enum class ArvioijahakemuksenTila {
     KASITELTY,
-    HYLATTY,
     ODOTTAA_YKSILOINTIA,
     KASITTELYSSA,
     ;
@@ -29,7 +28,6 @@ enum class ArvioijahakemuksenTila {
         get() =
             when (this) {
                 KASITELTY -> UiText.Yki.Arvioijahakemus.Tila.kasitelty
-                HYLATTY -> UiText.Yki.Arvioijahakemus.Tila.hylatty
                 ODOTTAA_YKSILOINTIA -> UiText.Yki.Arvioijahakemus.Tila.odottaaYksilointia
                 KASITTELYSSA -> UiText.Yki.Arvioijahakemus.Tila.kasittelyssa
             }

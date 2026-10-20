@@ -564,7 +564,7 @@ object UiText {
 
         object Arvioijahakemus {
             val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.otsikko")
-            val kuvaus: LocalizedString get() = tr("yki.arvioijahakemus.kuvaus")
+            val kasittelemattomienKuvaus: LocalizedString get() = tr("yki.arvioijahakemus.kasittelemattomienKuvaus")
             val eiRiveja: LocalizedString get() = tr("yki.arvioijahakemus.eiRiveja")
             val linkki: LocalizedString get() = tr("yki.arvioijahakemus.linkki")
             val hakemus: LocalizedString get() = tr("yki.arvioijahakemus.hakemus")
@@ -575,7 +575,6 @@ object UiText {
 
             object Tila {
                 val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasitelty")
-                val hylatty: LocalizedString get() = tr("yki.arvioijahakemus.tila.hylatty")
                 val odottaaYksilointia: LocalizedString get() = tr("yki.arvioijahakemus.tila.odottaaYksilointia")
                 val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
             }
