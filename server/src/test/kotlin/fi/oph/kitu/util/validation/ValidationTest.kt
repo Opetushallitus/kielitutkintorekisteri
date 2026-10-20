@@ -24,10 +24,12 @@ import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
 import fi.oph.kitu.yki.arvioijat.TallennaArvioijaValidation
 import fi.oph.kitu.yki.arvioijat.YkiArvioija
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaTila
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaValidation
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeus
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -43,7 +45,13 @@ class ValidationTest(
     @param:Autowired val arvioijaValidation: YkiArvioijaValidation,
     @param:Autowired val tallennaArvioijaValidation: TallennaArvioijaValidation,
     @param:Autowired val timeService: TestTimeService,
+    @param:Autowired val arvioijaRepository: YkiArvioijaRepository,
 ) {
+    @BeforeEach
+    fun nukeDb() {
+        arvioijaRepository.deleteAll()
+    }
+
     val validiYkiSuoritus =
         Henkilosuoritus(
             henkilo = Henkilo(oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(), hetu = "010180-9026"),
