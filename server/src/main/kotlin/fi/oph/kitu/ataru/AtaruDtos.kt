@@ -84,14 +84,6 @@ data class HakemusOtsake(
 
 data class SiirtoHakemus(
     val hakemusOid: String,
-    val personOid: String?,
-    val state: String? = null,
-    val person: SiirtoHenkilo? = null,
+    val personOid: String,
     val keyValues: Map<String, JsonNode> = emptyMap(),
-)
-
-data class SiirtoHenkilo(
-    val oidHenkilo: String? = null,
-    val etunimet: String? = null,
-    val sukunimi: String? = null,
 )

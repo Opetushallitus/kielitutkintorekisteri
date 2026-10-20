@@ -57,10 +57,6 @@ class ArvioijahakemusLomake(
             }
 
     fun kartoita(hakemus: SiirtoHakemus): Either<String, Arvioijahakemus> {
-        val henkiloOid =
-            hakemus.personOid?.takeIf { it.isNotBlank() }
-                ?: return "Hakemuksella ei ole henkilöä".left()
-
         val tuntemattomat = tuntemattomatVastaukset(hakemus)
         if (tuntemattomat.isNotEmpty()) return "Tuntematon kieli tai taso: ${tuntemattomat.joinToString()}".left()
 
@@ -72,7 +68,7 @@ class ArvioijahakemusLomake(
 
         return Arvioijahakemus(
             hakemusOid = hakemus.hakemusOid,
-            henkiloOid = henkiloOid,
+            henkiloOid = hakemus.personOid,
             arviointioikeudet =
                 valitut
                     .mapNotNull { vaihtoehto -> vaihtoehto.kieli?.let { it to tasot(hakemus, vaihtoehto) } }

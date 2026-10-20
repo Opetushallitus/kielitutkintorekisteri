@@ -40,16 +40,15 @@ class ArvioijahakemusLomakeTest {
                 ),
         )
 
-    private fun hakemus(
-        vararg vastaukset: Pair<String, String>,
-        personOid: String? = "1.2.246.562.24.59267607404",
-        state: String = "active",
-    ) = SiirtoHakemus(
-        hakemusOid = "1.2.246.562.11.1",
-        personOid = personOid,
-        state = state,
-        keyValues = vastaukset.associate { (avain, arvo) -> avain to defaultObjectMapper.valueToTree<JsonNode>(arvo) },
-    )
+    private fun hakemus(vararg vastaukset: Pair<String, String>) =
+        SiirtoHakemus(
+            hakemusOid = "1.2.246.562.11.1",
+            personOid = "1.2.246.562.24.59267607404",
+            keyValues =
+                vastaukset.associate { (avain, arvo) ->
+                    avain to defaultObjectMapper.valueToTree<JsonNode>(arvo)
+                },
+        )
 
     private fun binder(yaml: String) =
         Binder(
@@ -136,17 +135,6 @@ class ArvioijahakemusLomakeTest {
     }
 
     @Test
-    fun `hakemus ilman henkiloa hylataan`() {
-        val syy =
-            lomake
-                .kartoita(
-                    hakemus("${kielet}_0" to "0", "${suomenTasot}_0" to "0", personOid = null),
-                ).leftOrNull()
-
-        assertEquals("Hakemuksella ei ole henkilöä", syy)
-    }
-
-    @Test
     fun `puutteet kertoo puuttuvat asetukset ja vanhentuneet kielet`() {
         assertEquals(emptyList(), lomake.puutteet())
         assertEquals(listOf("lomakkeenAvain", "kielikysymys", "kielet"), ArvioijahakemusLomake().puutteet())
@@ -213,12 +201,6 @@ class ArvioijahakemusLomakeTest {
                 }
 
         assertEquals(listOf("e2e | local-opintopolku", "qa"), profiilit)
-    }
-
-    @Test
-    fun `inaktivoitu hakemus ei tayta ehtoja`() {
-        assertEquals(false, ArvioijahakemusKriteeri.tayttyy(hakemus(state = "inactivated")))
-        assertEquals(true, ArvioijahakemusKriteeri.tayttyy(hakemus()))
     }
 
     @Test

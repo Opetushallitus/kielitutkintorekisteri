@@ -383,7 +383,6 @@
   "yki.arvioijahakemus.kasitelty": "Käsitelty",
   "yki.arvioijahakemus.tila.kasitelty": "Käsitelty",
   "yki.arvioijahakemus.tila.hylatty": "Hylätty",
-  "yki.arvioijahakemus.tila.eiTaytaEhtoja": "Ei täytä ehtoja",
   "yki.arvioijahakemus.tila.odottaaYksilointia": "Odottaa yksilöintiä",
   "yki.arvioijahakemus.tila.kasittelyssa": "Käsittely keskeytyi",
   "yki.arvioijahakemus.virhe.virheellinenRakenne": "Hakemuspalvelun vastaus on virheellinen",

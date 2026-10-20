@@ -25,7 +25,6 @@ import java.time.ZoneOffset
 data class Tuontiyhteenveto(
     val kasitelty: Int = 0,
     val hylatty: Int = 0,
-    val eiTaytaEhtoja: Int = 0,
     val odottaaYksilointia: Int = 0,
     val yritetaanUudelleen: Int = 0,
     val epaonnistui: Int = 0,
@@ -97,7 +96,6 @@ class ArvioijahakemusTuontiService(
             Tuontiyhteenveto(
                 kasitelty = tilat[ArvioijahakemuksenTila.KASITELTY] ?: 0,
                 hylatty = tilat[ArvioijahakemuksenTila.HYLATTY] ?: 0,
-                eiTaytaEhtoja = tilat[ArvioijahakemuksenTila.EI_TAYTA_EHTOJA] ?: 0,
                 odottaaYksilointia = tilat[ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA] ?: 0,
                 yritetaanUudelleen = uudet.size - rivit.size - epaonnistui,
                 epaonnistui = epaonnistui,
@@ -105,7 +103,6 @@ class ArvioijahakemusTuontiService(
         Span.current().apply {
             setAttribute("arvioijahakemus.kasitelty", yhteenveto.kasitelty.toLong())
             setAttribute("arvioijahakemus.hylatty", yhteenveto.hylatty.toLong())
-            setAttribute("arvioijahakemus.eiTaytaEhtoja", yhteenveto.eiTaytaEhtoja.toLong())
             setAttribute("arvioijahakemus.odottaaYksilointia", yhteenveto.odottaaYksilointia.toLong())
             setAttribute("arvioijahakemus.yritetaanUudelleen", yhteenveto.yritetaanUudelleen.toLong())
             setAttribute("arvioijahakemus.epaonnistui", yhteenveto.epaonnistui.toLong())
@@ -114,21 +111,8 @@ class ArvioijahakemusTuontiService(
         return yhteenveto
     }
 
-    private fun kasittele(hakemus: SiirtoHakemus): ArvioijahakemusEntity? {
-        if (!ArvioijahakemusKriteeri.tayttyy(hakemus)) {
-            return kirjaa(rivi(hakemus, ArvioijahakemuksenTila.EI_TAYTA_EHTOJA))
-        }
-        if (hakemus.personOid.isNullOrBlank()) {
-            return kirjaa(
-                rivi(
-                    hakemus,
-                    ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA,
-                    syy = "Hakemukselle ei ole vielä luotu henkilöä",
-                ),
-            )
-        }
-
-        return either {
+    private fun kasittele(hakemus: SiirtoHakemus): ArvioijahakemusEntity? =
+        either {
             val kartoitettu = lomake.kartoita(hakemus).mapLeft { Hylkays(it) }.bind()
             val esitaytto = arvioijaService.haeHenkilotiedot(kartoitettu.henkiloOid).mapLeft(::hylkays).bind()
             val alku = kaudenAlkupaiva(esitaytto)
@@ -164,7 +148,6 @@ class ArvioijahakemusTuontiService(
             },
             ifRight = { it },
         )?.let(::kirjaa)
-    }
 
     private fun kirjaa(rivi: ArvioijahakemusEntity): ArvioijahakemusEntity = rivi.also(repository::tallenna)
 

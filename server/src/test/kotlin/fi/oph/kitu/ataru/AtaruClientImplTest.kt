@@ -133,7 +133,6 @@ class AtaruClientImplTest {
 
         val hakemus = hakemukset.single()
         assertEquals("1.2.246.562.98.1", hakemus.personOid)
-        assertEquals("Hakija", hakemus.person?.sukunimi)
         assertEquals("0", hakemus.keyValues["a886d639-ef13-4442-9b0f-f0818c849450_0"]?.asString())
         assertEquals("hakija@example.com", hakemus.keyValues["email"]?.asString())
         server.verify()
