@@ -4,6 +4,7 @@ import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.ViewMessageType
 import fi.oph.kitu.html.card
+import fi.oph.kitu.html.formPost
 import fi.oph.kitu.html.json
 import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.html.table.displayTable
@@ -16,6 +17,7 @@ import fi.oph.kitu.koski.KoskiErrorEntity
 import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.article
+import kotlinx.html.button
 import kotlinx.html.details
 import kotlinx.html.h1
 import kotlinx.html.h2
@@ -82,14 +84,16 @@ fun koskiErrorsPage(
         }
     }
 
-/** Piilota/palauta-linkki on molemmilla sivuilla sama; vain URLin muodostus eroaa. */
+/** Piilota/palauta-toiminto on molemmilla sivuilla sama; vain URLin muodostus eroaa. */
 fun FlowContent.hideErrorLink(
     error: KoskiErrorEntity,
     hideUrl: (KoskiErrorEntity, Boolean) -> String?,
 ) {
     hideUrl(error, !error.hidden)?.let { url ->
-        a(href = url) {
-            if (error.hidden) +UiText.Toiminto.palauta else +UiText.Toiminto.piilota
+        formPost(url) {
+            button(classes = "stat-link") {
+                if (error.hidden) +UiText.Toiminto.palauta else +UiText.Toiminto.piilota
+            }
         }
     }
 }

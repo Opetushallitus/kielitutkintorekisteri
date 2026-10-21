@@ -187,7 +187,7 @@ class VktViewController(
         return ResponseEntity.ok(VktKoskiErrors.render(errors, hiddenCount, translations))
     }
 
-    @GetMapping("/koski-virheet/piilota/{oppijanumero}/{tutkintokieli}/{taitotaso}/{hidden}", produces = ["text/html"])
+    @PostMapping("/koski-virheet/piilota/{oppijanumero}/{tutkintokieli}/{taitotaso}/{hidden}", produces = ["text/html"])
     fun hideKoskiVirheet(
         @PathVariable oppijanumero: String,
         @PathVariable tutkintokieli: Koodisto.Tutkintokieli,
