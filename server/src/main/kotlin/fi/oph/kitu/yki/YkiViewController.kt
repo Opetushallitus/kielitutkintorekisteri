@@ -189,7 +189,7 @@ class YkiViewController(
         )
     }
 
-    @GetMapping("/koski-virheet/piilota/{suoritusId}/{hidden}", produces = ["text/html"])
+    @PostMapping("/koski-virheet/piilota/{suoritusId}/{hidden}", produces = ["text/html"])
     fun hideKoskiVirheet(
         @PathVariable suoritusId: Int,
         @PathVariable hidden: Boolean,

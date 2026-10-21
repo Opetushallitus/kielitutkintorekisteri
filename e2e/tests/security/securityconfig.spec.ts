@@ -20,7 +20,7 @@ const viewRoutes = [
   "GET /yki/arvioijat/1/muokkaa",
   "POST /yki/arvioijat/1",
   "GET /yki/koski-virheet",
-  "GET /yki/koski-virheet/piilota/1/true",
+  "POST /yki/koski-virheet/piilota/1/true",
   "GET /yki/koski-request/1",
   "GET /yki/tarkistusarvioinnit",
 
@@ -40,7 +40,7 @@ const viewRoutes = [
   "GET /vkt/suoritukset/1.2.246.562.24.00000000856/SWE/Erinomainen",
   "POST /vkt/suoritukset/1.2.246.562.24.00000000856/SWE/Erinomainen",
   "GET /vkt/koski-virheet",
-  "GET /vkt/koski-virheet/piilota/1.2.246.562.24.00000000856/SWE/Erinomainen/true",
+  "POST /vkt/koski-virheet/piilota/1.2.246.562.24.00000000856/SWE/Erinomainen/true",
   "GET /vkt/koski-request/1.2.246.562.24.00000000856/SWE/Erinomainen",
 ] satisfies Route[]
 
