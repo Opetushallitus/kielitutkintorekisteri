@@ -9,11 +9,11 @@ class CasStatelessTicketCache : StatelessTicketCache {
     override fun getByTicketId(serviceTicket: String): CasAuthenticationToken? = tickets[serviceTicket]
 
     override fun putTicketInCache(token: CasAuthenticationToken) {
-        tickets[token.principal.toString()] = token
+        tickets[token.credentials.toString()] = token
     }
 
     override fun removeTicketFromCache(token: CasAuthenticationToken) {
-        tickets.remove(token.principal.toString())
+        tickets.remove(token.credentials.toString())
     }
 
     override fun removeTicketFromCache(serviceTicket: String) {
