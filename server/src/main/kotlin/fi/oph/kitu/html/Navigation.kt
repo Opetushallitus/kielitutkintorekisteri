@@ -41,6 +41,7 @@ object Navigation {
                         UiText.Nav.hyvanJaTyydyttavanSuoritukset,
                         Links.Vkt.hyvanJaTyydyttavanTaitotasonSuoritukset(),
                     ),
+                    MenuItem(UiText.Nav.vktUusintaoikeudet, Links.Vkt.uusintaoikeudet()),
                 ),
             ),
             MenuItemGroup(

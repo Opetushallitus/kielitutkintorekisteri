@@ -87,6 +87,11 @@ object Links {
             ).toString()
 
         fun suorituksetCsv(): String = linkTo(methodOn(VktApiController::class.java).getSuorituksetCsv()).toString()
+
+        fun uusintaoikeudet(): String = linkTo(methodOn(VktViewController::class.java).uusintaoikeudetView()).toString()
+
+        fun uusintaoikeudetCsv(): String =
+            linkTo(methodOn(VktApiController::class.java).getUusintaoikeudetCsv()).toString()
     }
 
     object Yki {

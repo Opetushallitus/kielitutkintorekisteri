@@ -21,6 +21,7 @@ object UiText {
             get() = tr("nav.erinomaisenTaidonSuoritukset")
         val hyvanJaTyydyttavanSuoritukset: LocalizedString
             get() = tr("nav.hyvanJaTyydyttavanSuoritukset")
+        val vktUusintaoikeudet: LocalizedString get() = tr("nav.vktUusintaoikeudet")
         val erajojenHallinta: LocalizedString get() = tr("nav.erajojenHallinta")
     }
 
@@ -155,6 +156,9 @@ object UiText {
             val kirjoittaminen: LocalizedString get() = tr("vkt.sarake.kirjoittaminen")
             val tekstinYmmartaminen: LocalizedString
                 get() = tr("vkt.sarake.tekstinYmmartaminen")
+            val uusittavaOsakoe: LocalizedString get() = tr("vkt.sarake.uusittavaOsakoe")
+            val hylkaamispaatos: LocalizedString get() = tr("vkt.sarake.hylkaamispaatos")
+            val oikeusPaattyy: LocalizedString get() = tr("vkt.sarake.oikeusPaattyy")
 
             val tutkintoryhma: LocalizedString
                 get() = tr("vkt.sarake.tutkintoryhma")
@@ -162,6 +166,15 @@ object UiText {
             val aikaleima: LocalizedString get() = tr("vkt.sarake.aikaleima")
             val pyynto: LocalizedString get() = tr("vkt.sarake.pyynto")
             val piilotus: LocalizedString get() = tr("vkt.sarake.piilotus")
+        }
+
+        object Uusintaoikeus {
+            val kuvaus: LocalizedString get() = tr("vkt.uusintaoikeus.kuvaus")
+            val tarkastelupaiva: LocalizedString get() = tr("vkt.uusintaoikeus.tarkastelupaiva")
+            val henkiloita: LocalizedString get() = tr("vkt.uusintaoikeus.henkiloita")
+            val uusittaviaOsakokeita: LocalizedString
+                get() = tr("vkt.uusintaoikeus.uusittaviaOsakokeita")
+            val eiOikeutettuja: LocalizedString get() = tr("vkt.uusintaoikeus.eiOikeutettuja")
         }
     }
 
@@ -884,6 +897,7 @@ object UiText {
             val suoritukset: LocalizedString get() = tr("ohje.vkt.suoritukset")
             val erinomainen: LocalizedString get() = tr("ohje.vkt.erinomainen")
             val hyvaJaTyydyttava: LocalizedString get() = tr("ohje.vkt.hyvaJaTyydyttava")
+            val uusintaoikeudet: LocalizedString get() = tr("ohje.vkt.uusintaoikeudet")
         }
 
         object Koto {

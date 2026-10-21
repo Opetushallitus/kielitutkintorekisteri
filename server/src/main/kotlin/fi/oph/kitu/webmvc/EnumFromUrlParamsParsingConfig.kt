@@ -3,6 +3,7 @@ package fi.oph.kitu.webmvc
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusColumn
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorColumn
 import fi.oph.kitu.vkt.VktSuoritusColumn
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusColumn
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
@@ -20,6 +21,7 @@ class EnumFromUrlParamsParsingConfig : WebMvcConfigurer {
             addEnumFromUrlParamParser<KielitestiSuoritusColumn>(KielitestiSuoritusColumn::urlParam)
             addEnumFromUrlParamParser<KielitestiSuoritusErrorColumn>(KielitestiSuoritusErrorColumn::urlParam)
             addEnumFromUrlParamParser<VktSuoritusColumn>(VktSuoritusColumn::urlParam)
+            addEnumFromUrlParamParser<VktUusintaoikeusColumn>(VktUusintaoikeusColumn::urlParam)
         }
     }
 
