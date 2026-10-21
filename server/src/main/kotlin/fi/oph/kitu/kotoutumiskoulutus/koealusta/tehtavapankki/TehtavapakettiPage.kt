@@ -39,7 +39,6 @@ import kotlinx.html.strong
 import kotlinx.html.summary
 import kotlinx.html.title
 import kotlinx.html.ul
-import kotlinx.html.unsafe
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.databind.node.NumericNode
@@ -253,11 +252,8 @@ object TehtavapakettiPage {
     ) {
         val cleaned = stripPoodllPlaceholders(text)
         if (format == "html") {
-            // Lähde on Moodlen virkailijakohtainen export, ei loppukäyttäjäsyöte.
-            // S3-asset-viittaukset (@@PLUGINFILE@@/...) kirjoitetaan oikeiksi
-            // download-linkeiksi, jotta upotetut <audio>/<img>-elementit toimivat.
             div("tehtava-teksti") {
-                unsafe { +rewriteMoodleAssetUrls(cleaned, assetPrefix) }
+                safeHtml(rewriteMoodleAssetUrls(cleaned, assetPrefix))
             }
         } else {
             pre("tehtava-teksti") { +cleaned }
@@ -274,7 +270,7 @@ object TehtavapakettiPage {
         if (cleaned.isBlank()) return
         if (format == "html") {
             span {
-                unsafe { +rewriteMoodleAssetUrls(cleaned, assetPrefix) }
+                safeHtml(rewriteMoodleAssetUrls(cleaned, assetPrefix))
             }
         } else {
             +cleaned
