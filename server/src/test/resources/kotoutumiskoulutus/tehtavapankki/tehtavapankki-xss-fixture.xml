@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+  <question type="category">
+    <category>
+      <text>$course$/top</text>
+    </category>
+    <info format="html">
+      <text/>
+    </info>
+    <idnumber/>
+  </question>
+  <question type="category">
+    <category>
+      <text>$course$/top/XSS-ryhmä</text>
+    </category>
+    <info format="html">
+      <text/>
+    </info>
+    <idnumber/>
+  </question>
+  <question type="description">
+    <name>
+      <text>XSS-testitehtävä</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Turvallinen teksti alkaa tästä.</p><script>window.alert('vaarallinen-koodi')</script><img src="x" onerror="window.alert('vaarallinen-koodi')">]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text/>
+    </generalfeedback>
+    <defaultgrade>0.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <idnumber/>
+  </question>
+</quiz>

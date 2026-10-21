@@ -163,6 +163,23 @@ class TehtavapankkiViewControllerTest(
     }
 
     @Test
+    fun `pakettiView sanitoi Moodlen HTML-sisallon`() {
+        val pakettiId =
+            ingest("kotoutumiskoulutus/tehtavapankki/tehtavapankki-xss-fixture.xml", "99-XSS_testi/2026-01-01.xml")
+
+        val response =
+            mockMvc
+                .perform(get("/koto-tehtavapankki/paketti/$pakettiId").session(virkailijaSession()))
+                .andExpect(status().isOk)
+                .andReturn()
+                .response.contentAsString
+
+        assertContains(response, "Turvallinen teksti alkaa tästä.")
+        assertFalse(response.contains("onerror"), "onerror-attribuutin olisi pitänyt poistua")
+        assertFalse(response.contains("window.alert"), "script-sisällön olisi pitänyt poistua")
+    }
+
+    @Test
     fun `pakettiView palauttaa 404 kun id ta ei loydy`() {
         val response =
             mockMvc
@@ -237,12 +254,14 @@ class TehtavapankkiViewControllerTest(
         assertContains(response, "versio vPilotointi")
     }
 
-    private fun ingestFixture(): Int {
-        val xmlBytes =
-            ClassPathResource("kotoutumiskoulutus/tehtavapankki/tehtavapankki-fixture.xml")
-                .inputStream
-                .use { it.readBytes() }
-        val xmlKey = "42-Suomi_alkeet/2026-01-01.xml"
+    private fun ingestFixture(): Int =
+        ingest("kotoutumiskoulutus/tehtavapankki/tehtavapankki-fixture.xml", "42-Suomi_alkeet/2026-01-01.xml")
+
+    private fun ingest(
+        resource: String,
+        xmlKey: String,
+    ): Int {
+        val xmlBytes = ClassPathResource(resource).inputStream.use { it.readBytes() }
         s3Client.putObject(
             { it.bucket(TEST_BUCKET).key(xmlKey) },
             RequestBody.fromBytes(xmlBytes),
