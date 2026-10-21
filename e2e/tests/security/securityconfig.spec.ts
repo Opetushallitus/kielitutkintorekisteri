@@ -36,6 +36,7 @@ const viewRoutes = [
   "GET /vkt/erinomainen/ilmoittautuneet",
   "GET /vkt/erinomainen/arvioidut",
   "GET /vkt/hyvajatyydyttava/suoritukset",
+  "GET /vkt/uusintaoikeudet",
   "GET /vkt/suoritukset/1.2.246.562.24.00000000856/SWE/Erinomainen",
   "POST /vkt/suoritukset/1.2.246.562.24.00000000856/SWE/Erinomainen",
   "GET /vkt/koski-virheet",
@@ -57,6 +58,7 @@ const apiRoutes = [
   // VktApiController
   "PUT /api/vkt/kios",
   "GET /api/vkt/suoritus",
+  "GET /api/vkt/uusintaoikeudet",
 
   // YhteystiedotApiController
   "GET /yhteystiedot/api/opiskeluoikeus/1.2.246.562.24.00000000001",
@@ -138,6 +140,7 @@ describe("Käyttöoikeustestit", () => {
         "GET /koto-kielitesti/api/suoritukset": 200,
         "GET /koto-kielitesti/api/suoritukset/virheet": 200,
         "GET /api/vkt/suoritus": 200,
+        "GET /api/vkt/uusintaoikeudet": 200,
       })
     })
 

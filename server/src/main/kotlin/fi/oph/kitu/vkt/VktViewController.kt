@@ -19,6 +19,9 @@ import fi.oph.kitu.vkt.html.VktErinomaisenArviointiPage
 import fi.oph.kitu.vkt.html.VktHyvaJaTyydyttavaTarkasteluPage
 import fi.oph.kitu.vkt.html.VktKoskiErrors
 import fi.oph.kitu.vkt.html.VktSuorituksetPage
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeudetPage
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusParams
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusService
 import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.webmvc.ResourceNotFoundException
 import kotlinx.html.a
@@ -44,6 +47,7 @@ class VktViewController(
     private val oppijanumeroService: OppijanumeroService,
     private val koskiErrorService: KoskiErrorService,
     private val koskiVktRequestMapper: KoskiVktRequestMapper,
+    private val uusintaoikeudet: VktUusintaoikeusService,
     @param:Qualifier("koskiObjectMapper")
     private val koskiObjectMapper: JsonMapper,
 ) {
@@ -83,6 +87,14 @@ class VktViewController(
     @GetMapping("/hyvajatyydyttava/suoritukset", produces = ["text/html"])
     fun hyvanJaTyydyttavanTaitotasonSuorituksetView(): RedirectView =
         redirectToSuorituksetView(VktSuoritusFilter.HYVAN_JA_TYYDYTTAVAN_TASON_SUORITUKSET)
+
+    @GetMapping("/uusintaoikeudet", produces = ["text/html"])
+    fun uusintaoikeudetView(
+        @ModelAttribute params: VktUusintaoikeusParams = VktUusintaoikeusParams(),
+    ): ResponseEntity<String> =
+        ResponseEntity.ok(
+            VktUusintaoikeudetPage.render(uusintaoikeudet.findUusintaanOikeutetut(params), params),
+        )
 
     private fun redirectToSuorituksetView(filter: VktSuoritusFilter): RedirectView {
         val params = httpParams(filter.toMap())

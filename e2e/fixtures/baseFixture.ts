@@ -14,6 +14,7 @@ import { Config, createConfig } from "../config"
 import KielitestiErrorPage from "../models/kotoutumiskoulutus/KielitestiErrorPage"
 import VktSuorituksetPage from "../models/vkt/VktSuorituksetPage"
 import VktSuorituksenTiedotPage from "../models/vkt/VktSuorituksenTiedotPage"
+import VktUusintaoikeudetPage from "../models/vkt/VktUusintaoikeudetPage"
 import YkiArvioijatPage from "../models/yki/YkiArvioijatPage"
 import YkiArvioijaLomakePage from "../models/yki/YkiArvioijaLomakePage"
 import YkiTarkistusarvioinnitPage from "../models/yki/YkiTarkistusarvioinnitPage"
@@ -37,6 +38,7 @@ interface Fixtures {
   kotoSuoritusError: typeof kotoSuoritusErrorFixture
   vktSuorituksetPage: VktSuorituksetPage
   vktSuorituksenTiedotPage: VktSuorituksenTiedotPage
+  vktUusintaoikeudetPage: VktUusintaoikeudetPage
   vktSuoritus: typeof vktSuoritusFixture
   oauth: OauthRequestContext
 }
@@ -128,6 +130,9 @@ export const test = baseTest.extend<Fixtures, WorkerArgs>({
   },
   vktSuorituksenTiedotPage: async ({ page, config }, use) => {
     await use(new VktSuorituksenTiedotPage(page, config))
+  },
+  vktUusintaoikeudetPage: async ({ page, config }, use) => {
+    await use(new VktUusintaoikeudetPage(page, config))
   },
   vktSuoritus: async ({}, use) => {
     await use({ ...vktSuoritusFixture })

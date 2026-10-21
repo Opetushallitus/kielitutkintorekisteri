@@ -1,5 +1,6 @@
 package fi.oph.kitu.vkt
 
+import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
@@ -7,6 +8,9 @@ import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoValidation
 import fi.oph.kitu.tiedontuontischema.VktSuoritus
 import fi.oph.kitu.util.validation.orThrowBadRequest
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusColumn
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusParams
+import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
@@ -31,6 +35,7 @@ class VktApiController(
     val customSuoritusRepository: CustomVktSuoritusRepository,
     val service: VktSuoritusService,
     private val validation: TiedonsiirtoValidation,
+    private val uusintaoikeudet: VktUusintaoikeusService,
 ) {
     @PutMapping("/kios", produces = ["application/json"])
     @Operation(
@@ -126,6 +131,17 @@ class VktApiController(
             data = service.findEnrichedForCsv(filter, order.copy(pageSize = Int.MAX_VALUE)),
             excludeTags = filter.excludeTags(),
         )
+
+    @GetMapping("/uusintaoikeudet", produces = ["text/csv"])
+    fun getUusintaoikeudetCsv(
+        @ModelAttribute params: VktUusintaoikeusParams = VktUusintaoikeusParams(),
+    ): ResponseEntity<StreamingResponseBody> {
+        val raportti = uusintaoikeudet.findForCsv(params)
+        return csvAttachmentResponse<VktUusintaoikeusColumn, _>(
+            filename = buildCsvFilename("vkt_uusintaoikeudet", false, raportti.tarkastelupaiva.toString()),
+            data = raportti.rivit,
+        )
+    }
 
     @GetMapping("/kios/j_spring_cas_security_check")
     fun casDebugRoute(): ResponseEntity<String> = ResponseEntity.ok("Nice")
