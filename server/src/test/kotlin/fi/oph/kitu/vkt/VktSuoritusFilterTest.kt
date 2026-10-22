@@ -1,5 +1,6 @@
 package fi.oph.kitu.vkt
 
+import fi.oph.kitu.koodisto.Koodisto
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -18,5 +19,16 @@ class VktSuoritusFilterTest {
     @Test
     fun `tyhja haku ei rajaa`() {
         assertNull(VktSuoritusFilter(search = "  ").whereSql())
+    }
+
+    @Test
+    fun `CSV-tiedoston nimessa on taitotason koodiarvo`() {
+        val filter =
+            VktSuoritusFilter(
+                tutkintokieli = Koodisto.Tutkintokieli.FIN,
+                taitotaso = Koodisto.VktTaitotaso.HyväJaTyydyttävä,
+            )
+
+        assertEquals("vkt_suoritukset_henkilotiedot_FIN_hyvajatyydyttava.csv", filter.csvFileName())
     }
 }
