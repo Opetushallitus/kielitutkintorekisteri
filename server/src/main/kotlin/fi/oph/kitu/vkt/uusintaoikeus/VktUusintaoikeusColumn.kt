@@ -94,6 +94,54 @@ enum class VktUusintaoikeusColumn(
         getValue = { it.oikeusPaattyy.finnishDate() },
         comparator = compareBy { it.oikeusPaattyy },
     ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Puhelinnumero(
+        entityName = "puhelinnumero",
+        urlParam = "puhelinnumero",
+        getValue = { it.yhteystiedot?.puhelinnumero.orEmpty() },
+        comparator = compareBy { it.yhteystiedot?.puhelinnumero },
+    ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Sahkoposti(
+        entityName = "sahkoposti",
+        urlParam = "sahkoposti",
+        getValue = { it.yhteystiedot?.sahkoposti.orEmpty() },
+        comparator = compareBy { it.yhteystiedot?.sahkoposti },
+    ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Katuosoite(
+        entityName = "katuosoite",
+        urlParam = "katuosoite",
+        getValue = { it.yhteystiedot?.katuosoite.orEmpty() },
+        comparator = compareBy { it.yhteystiedot?.katuosoite },
+    ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Postinumero(
+        entityName = "postinumero",
+        urlParam = "postinumero",
+        getValue = { it.yhteystiedot?.postinumero.orEmpty() },
+        comparator = compareBy { it.yhteystiedot?.postinumero },
+    ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Postitoimipaikka(
+        entityName = "postitoimipaikka",
+        urlParam = "postitoimipaikka",
+        getValue = { it.yhteystiedot?.postitoimipaikka.orEmpty() },
+        comparator = compareBy { it.yhteystiedot?.postitoimipaikka },
+    ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Maa(
+        entityName = "maa",
+        urlParam = "maa",
+        getValue = { it.yhteystiedot?.maa.orEmpty() },
+        comparator = compareBy { it.yhteystiedot?.maa },
+    ),
     ;
 
     override val uiHeaderValue: LocalizedString
@@ -108,6 +156,12 @@ enum class VktUusintaoikeusColumn(
                 Tutkinnot -> UiText.Vkt.tutkinnot
                 Hylkaamispaatos -> UiText.Vkt.Sarake.hylkaamispaatos
                 OikeusPaattyy -> UiText.Vkt.Sarake.oikeusPaattyy
+                Puhelinnumero -> UiText.Vkt.Sarake.puhelinnumero
+                Sahkoposti -> UiText.Vkt.Sarake.sahkoposti
+                Katuosoite -> UiText.Vkt.Sarake.katuosoite
+                Postinumero -> UiText.Vkt.Sarake.postinumero
+                Postitoimipaikka -> UiText.Vkt.Sarake.postitoimipaikka
+                Maa -> UiText.Vkt.Sarake.maa
             }
 
     companion object {

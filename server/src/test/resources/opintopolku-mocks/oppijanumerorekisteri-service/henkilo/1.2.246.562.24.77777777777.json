@@ -1,0 +1,60 @@
+{
+  "oidHenkilo": "1.2.246.562.24.77777777777",
+  "oppijanumero": "1.2.246.562.24.77777777777",
+  "etunimet": "Ulla Testi",
+  "kutsumanimi": "Ulla",
+  "sukunimi": "Uusija-Testi",
+  "turvakielto": false,
+  "yhteystiedotRyhma": [
+    {
+      "ryhmaKuvaus": "yhteystietotyyppi2",
+      "ryhmaAlkuperaTieto": "alkupera2",
+      "yhteystieto": [
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_SAHKOPOSTI",
+          "yhteystietoArvo": "ulla.tyo@example.com"
+        }
+      ]
+    },
+    {
+      "ryhmaKuvaus": "yhteystietotyyppi4",
+      "ryhmaAlkuperaTieto": "alkupera1",
+      "yhteystieto": [
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_KATUOSOITE",
+          "yhteystietoArvo": "Uusintakatu 3 B 7"
+        },
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_POSTINUMERO",
+          "yhteystietoArvo": "33100"
+        },
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_KAUPUNKI",
+          "yhteystietoArvo": "TAMPERE"
+        },
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_MAA",
+          "yhteystietoArvo": "Suomi"
+        }
+      ]
+    },
+    {
+      "ryhmaKuvaus": "yhteystietotyyppi1",
+      "ryhmaAlkuperaTieto": "alkupera3",
+      "yhteystieto": [
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_MATKAPUHELINNUMERO",
+          "yhteystietoArvo": "+358 40 123 4567"
+        },
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_SAHKOPOSTI",
+          "yhteystietoArvo": "ulla@example.com"
+        },
+        {
+          "yhteystietoTyyppi": "YHTEYSTIETO_KATUOSOITE",
+          "yhteystietoArvo": "Kotikatu 1"
+        }
+      ]
+    }
+  ]
+}

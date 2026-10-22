@@ -35,6 +35,22 @@ interface OppijanumeroService {
             getHenkiloByMasterOid(masterOid).bind()
         }
 
+    fun getHenkilotByHenkiloOids(
+        henkiloOids: Collection<Oid>,
+    ): Either<OppijanumeroException, Map<Oid, OppijanumerorekisteriHenkilo>> =
+        either {
+            henkiloOids
+                .distinct()
+                .mapNotNull { oid ->
+                    getHenkiloByHenkiloOid(oid).fold(
+                        ifLeft = { virhe ->
+                            if (virhe is OppijanumeroException.OppijaNotFoundException) null else raise(virhe)
+                        },
+                        ifRight = { oid to it },
+                    )
+                }.toMap()
+        }
+
     fun parseOid(source: String?): Either<OppijanumeroException, Oid> =
         Oid
             .parse(source)
@@ -91,6 +107,32 @@ class OppijanumeroServiceImpl(
         either {
             val masterOid = getMasterOid(oid).bind()
             client.onrGet("henkilo/$masterOid", OppijanumerorekisteriHenkilo::class.java).bind()
+        }
+
+    @WithSpan
+    @RetryOutboundIntegration
+    override fun getHenkilotByHenkiloOids(
+        henkiloOids: Collection<Oid>,
+    ): Either<OppijanumeroException, Map<Oid, OppijanumerorekisteriHenkilo>> =
+        either {
+            val oidit = henkiloOids.map { it.toString() }.distinct()
+            val henkilot =
+                oidit
+                    .chunked(MASTERHENKILOT_KERRALLA_ENINTAAN)
+                    .flatMap { osa ->
+                        client
+                            .onrPost(
+                                "henkilo/masterHenkilosByOidList",
+                                OidlistaRequest(osa),
+                                MasterHenkilot::class.java,
+                            ).bind()
+                            .entries
+                    }.mapNotNull { (oid, henkilo) -> Oid.parse(oid).getOrNull()?.let { it to henkilo } }
+                    .toMap()
+
+            Span.current().setAttribute("masterhenkilot.kysytty", oidit.size.toLong())
+            Span.current().setAttribute("masterhenkilot.loytyi", henkilot.size.toLong())
+            henkilot
         }
 
     @WithSpan

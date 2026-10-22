@@ -3,6 +3,7 @@ package fi.oph.kitu.vkt.uusintaoikeus
 import fi.oph.kitu.jdbc.getEnum
 import fi.oph.kitu.jdbc.getTypedArray
 import fi.oph.kitu.koodisto.Koodisto
+import fi.oph.kitu.oppijanumero.HenkilonYhteystiedot
 import org.springframework.jdbc.core.RowMapper
 import java.time.LocalDate
 
@@ -18,6 +19,7 @@ data class VktUusintaoikeus(
     val oikeusPaattyy: LocalDate,
     val osakoeNimi: String = "",
     val tutkinnotNimet: String = "",
+    val yhteystiedot: HenkilonYhteystiedot? = null,
 ) {
     companion object {
         val fromRow =

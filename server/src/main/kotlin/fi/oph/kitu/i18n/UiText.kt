@@ -159,6 +159,12 @@ object UiText {
             val uusittavaOsakoe: LocalizedString get() = tr("vkt.sarake.uusittavaOsakoe")
             val hylkaamispaatos: LocalizedString get() = tr("vkt.sarake.hylkaamispaatos")
             val oikeusPaattyy: LocalizedString get() = tr("vkt.sarake.oikeusPaattyy")
+            val puhelinnumero: LocalizedString get() = tr("vkt.sarake.puhelinnumero")
+            val sahkoposti: LocalizedString get() = tr("vkt.sarake.sahkoposti")
+            val katuosoite: LocalizedString get() = tr("vkt.sarake.katuosoite")
+            val postinumero: LocalizedString get() = tr("vkt.sarake.postinumero")
+            val postitoimipaikka: LocalizedString get() = tr("vkt.sarake.postitoimipaikka")
+            val maa: LocalizedString get() = tr("vkt.sarake.maa")
 
             val tutkintoryhma: LocalizedString
                 get() = tr("vkt.sarake.tutkintoryhma")
