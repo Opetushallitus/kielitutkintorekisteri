@@ -58,7 +58,7 @@ data class VktSuoritusFilter(
             "vkt_suoritukset",
             piilotaHenkilotiedot,
             tutkintokieli?.toString(),
-            taitotaso?.toString(),
+            taitotaso?.koodiarvo,
             alkupaiva?.toString(),
             loppupaiva?.toString(),
             arvioitu?.name?.lowercase(),
