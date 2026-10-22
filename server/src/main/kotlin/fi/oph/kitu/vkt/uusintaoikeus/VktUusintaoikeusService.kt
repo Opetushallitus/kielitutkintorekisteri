@@ -15,7 +15,7 @@ class VktUusintaoikeusService(
 ) {
     @WithSpan("VktUusintaoikeusService.findUusintaanOikeutetut")
     fun findUusintaanOikeutetut(params: VktUusintaoikeusParams): VktUusintaoikeusraportti {
-        val tarkastelupaiva = timeService.today()
+        val tarkastelupaiva = params.tarkastelupaiva ?: timeService.today()
         val translations =
             localizationService
                 .translationBuilder()
@@ -23,7 +23,7 @@ class VktUusintaoikeusService(
                 .build()
 
         val rivit =
-            repository.findUusintaanOikeutetut(tarkastelupaiva).map { rivi ->
+            params.rajaa(repository.findUusintaanOikeutetut(tarkastelupaiva)).map { rivi ->
                 rivi.copy(
                     osakoeNimi = translations.get(rivi.osakoe),
                     tutkinnotNimet = rivi.tutkinnot.joinToString(", ") { translations.get(it) },

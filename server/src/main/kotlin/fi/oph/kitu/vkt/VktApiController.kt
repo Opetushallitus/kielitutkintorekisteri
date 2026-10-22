@@ -1,6 +1,5 @@
 package fi.oph.kitu.vkt
 
-import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
@@ -138,8 +137,9 @@ class VktApiController(
     ): ResponseEntity<StreamingResponseBody> {
         val raportti = uusintaoikeudet.findForCsv(params)
         return csvAttachmentResponse<VktUusintaoikeusColumn, _>(
-            filename = buildCsvFilename("vkt_uusintaoikeudet", false, raportti.tarkastelupaiva.toString()),
+            filename = params.csvFileName(raportti.tarkastelupaiva),
             data = raportti.rivit,
+            excludeTags = params.excludeTags(),
         )
     }
 

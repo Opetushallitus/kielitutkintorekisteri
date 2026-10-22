@@ -1,11 +1,16 @@
 package fi.oph.kitu.vkt.uusintaoikeus
 
 import fi.oph.kitu.html.Page
-import fi.oph.kitu.html.csvDownloadButton
+import fi.oph.kitu.html.card
+import fi.oph.kitu.html.listViewHeader
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
+import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
+import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
+import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
@@ -14,12 +19,9 @@ import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.webmvc.Links
 import kotlinx.html.FlowContent
 import kotlinx.html.TBODY
-import kotlinx.html.article
+import kotlinx.html.fieldSet
 import kotlinx.html.h1
 import kotlinx.html.h2
-import kotlinx.html.header
-import kotlinx.html.li
-import kotlinx.html.nav
 import kotlinx.html.p
 import kotlinx.html.span
 import kotlinx.html.table
@@ -28,7 +30,7 @@ import kotlinx.html.td
 import kotlinx.html.th
 import kotlinx.html.thead
 import kotlinx.html.tr
-import kotlinx.html.ul
+import java.time.LocalDate
 
 object VktUusintaoikeudetPage {
     fun render(
@@ -53,30 +55,24 @@ object VktUusintaoikeudetPage {
 
             yhteenveto(raportti.yhteenveto)
 
-            article(classes = "overflow-auto") {
-                header {
-                    nav {
-                        ul {
-                            li {
-                                +UiText.Vkt.Uusintaoikeus.uusittaviaOsakokeita
-                                +": "
-                                span {
-                                    testId("numberOfRows")
-                                    +raportti.rivit.size.toString()
-                                }
-                            }
-                            li { csvDownloadButton(Links.Vkt.uusintaoikeudetCsv() + httpParams(params.toMap())) }
-                        }
-                    }
-                }
+            listViewHeader(
+                countLabel = UiText.Vkt.Uusintaoikeus.uusittaviaOsakokeita,
+                numberOfItems = raportti.rivit.size,
+                csvHref = Links.Vkt.uusintaoikeudetCsv() + httpParams(params.toMap()),
+                filterDescriptions = params.filterDescriptions(),
+            ) { rajausDialogi(params, raportti.tarkastelupaiva) }
 
+            card(overflowAuto = true, compact = true) {
                 if (raportti.rivit.isEmpty()) {
                     p { +UiText.Vkt.Uusintaoikeus.eiOikeutettuja }
                 } else {
                     displayTable(
                         rows = raportti.rivit,
                         columns =
-                            DisplayTableColumn.of<VktUusintaoikeusColumn, VktUusintaoikeus>(setOf(ColumnTag.LIST_VIEW)),
+                            DisplayTableColumn.of<VktUusintaoikeusColumn, VktUusintaoikeus>(
+                                setOf(ColumnTag.LIST_VIEW),
+                                params.excludeTags(),
+                            ),
                         sortedBy = params.sortColumn,
                         sortDirection = params.sortDirection,
                         testId = "uusintaoikeudet",
@@ -88,6 +84,41 @@ object VktUusintaoikeudetPage {
                 }
             }
         }
+
+    private fun FlowContent.rajausDialogi(
+        params: VktUusintaoikeusParams,
+        tarkastelupaiva: LocalDate,
+    ) {
+        tableFilterDialog("") {
+            fieldSet {
+                dateFilter(
+                    "tarkastelupaiva",
+                    UiText.Vkt.Uusintaoikeus.tarkastelupaiva
+                        .toString(),
+                    tarkastelupaiva,
+                )
+            }
+            fieldSet {
+                enumFilter(
+                    "tutkintokieli",
+                    UiText.Vkt.Sarake.tutkintokieli
+                        .toString(),
+                    params.tutkintokieli,
+                )
+            }
+            fieldSet {
+                enumFilter(
+                    "taitotaso",
+                    UiText.Vkt.Sarake.taitotaso
+                        .toString(),
+                    params.taitotaso,
+                )
+            }
+            fieldSet {
+                piilotaHenkilotiedotFilter(params.piilotaHenkilotiedot)
+            }
+        }
+    }
 
     private fun FlowContent.yhteenveto(yhteenveto: VktUusintaoikeusyhteenveto) {
         table {

@@ -18,7 +18,7 @@ enum class VktUusintaoikeusColumn(
     val comparator: Comparator<VktUusintaoikeus>,
     override val renderHtml: (FlowContent.(VktUusintaoikeus) -> Unit)? = null,
 ) : RenderableDisplayTableEnum<VktUusintaoikeus> {
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
     Oppijanumero(
         entityName = "suorittajanOid",
         urlParam = "oppijanumero",
@@ -31,7 +31,7 @@ enum class VktUusintaoikeusColumn(
         },
     ),
 
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
     Sukunimi(
         entityName = "sukunimi",
         urlParam = "sukunimi",
@@ -39,7 +39,7 @@ enum class VktUusintaoikeusColumn(
         comparator = compareBy(String.CASE_INSENSITIVE_ORDER) { it.sukunimi },
     ),
 
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
     Etunimet(
         entityName = "etunimet",
         urlParam = "etunimet",

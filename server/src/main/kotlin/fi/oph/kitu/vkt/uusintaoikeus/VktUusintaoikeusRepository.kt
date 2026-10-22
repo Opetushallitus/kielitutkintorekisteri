@@ -21,8 +21,9 @@ class VktUusintaoikeusRepository(
                 FROM vkt_suoritus
                 ORDER BY ilmoittautumisen_id, created_at DESC
             ),
-            -- Vain arvioidut osakokeet: arvioimaton osakoe (esim. uusintaan ilmoittautuminen, jota ei
-            -- ole vielä arvioitu) ei synnytä eikä kumoa uusintaoikeutta.
+            -- Vain tarkastelupäivään mennessä arvioidut osakokeet: arvioimaton osakoe (esim. uusintaan
+            -- ilmoittautuminen, jota ei ole vielä arvioitu) ei synnytä eikä kumoa uusintaoikeutta, joten
+            -- menneeltä tarkastelupäivältä raportti näyttää tilanteen sellaisena kuin se silloin oli.
             osakokeet AS (
                 SELECT
                     s.suorittajan_oid,
@@ -35,7 +36,7 @@ class VktUusintaoikeusRepository(
                 FROM voimassa_olevat_suoritukset s
                 JOIN vkt_osakoe o ON o.suoritus_id = s.id
                 WHERE o.arvosana IS NOT NULL
-                  AND o.arviointipaiva IS NOT NULL
+                  AND o.arviointipaiva <= :tarkastelupaiva
             ),
             -- Tutkinnot ja niiden osakoeparit (vrt. VktTutkinto.mahdollisetOsakokeidenTyypit).
             -- Ymmärtämisen osakokeet kuuluvat kahteen tutkintoon, joten sama osakoe voi olla
