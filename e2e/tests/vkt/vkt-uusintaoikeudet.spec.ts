@@ -62,8 +62,8 @@ describe("VKT:n uusintaan oikeutetut", () => {
       .filter((rivi) => rivi.length > 0)
 
     expect(rivit).toEqual([
-      "Oppijanumero;Sukunimi;Etunimet;Tutkintokieli;Taitotaso;Uusittava osakoe;Tutkinnot;Hylkäämispäätös;Oikeus päättyy",
-      "1.2.246.562.10.14893989377;Öhman-Testi;Ranja Testi;Suomi;Hyvä ja tyydyttävä;<vktosakoe:kirjoittaminen>;<vktkielitaito:kirjallinen>;12.2.2026;31.12.2028",
+      "Oppijanumero;Sukunimi;Etunimet;Tutkintokieli;Taitotaso;Uusittava osakoe;Tutkinnot;Hylkäämispäätös;Oikeus päättyy;Puhelinnumero;Sähköposti;Katuosoite;Postinumero;Postitoimipaikka;Maa",
+      "1.2.246.562.10.14893989377;Öhman-Testi;Ranja Testi;Suomi;Hyvä ja tyydyttävä;<vktosakoe:kirjoittaminen>;<vktkielitaito:kirjallinen>;12.2.2026;31.12.2028;;;;;;",
     ])
   })
 

@@ -1,9 +1,16 @@
 package fi.oph.kitu.vkt.uusintaoikeus
 
+import arrow.core.Either
+import arrow.core.left
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
+import fi.oph.kitu.auditlogs.AuditLogger
+import fi.oph.kitu.i18n.LocalizationService
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.OppijanumeroException
+import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.virkailijaSession
 import fi.oph.kitu.vkt.VktApiController
@@ -22,6 +29,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
 import java.io.ByteArrayOutputStream
@@ -39,30 +47,17 @@ class VktUusintaoikeudetControllerTest(
     @param:Autowired private val apiController: VktApiController,
     @param:Autowired private val suoritusRepository: VktSuoritusRepository,
     @param:Autowired private val timeService: TestTimeService,
+    @param:Autowired private val repository: VktUusintaoikeusRepository,
+    @param:Autowired private val localizationService: LocalizationService,
+    @param:Autowired private val auditLogger: AuditLogger,
+    @param:Autowired private val oppijanumeroService: OppijanumeroService,
 ) {
     private lateinit var mockMvc: MockMvc
 
     @BeforeEach
     fun setup() {
         suoritusRepository.deleteAll()
-        suoritusRepository.save(
-            VktSuoritusEntity(
-                ilmoittautumisenId = "KIOS:1",
-                suorittajanOid = Oid.parse(HENKILO).getOrThrow(),
-                etunimet = "Testi",
-                sukunimi = "Testinen",
-                tutkintokieli = Koodisto.Tutkintokieli.FIN,
-                suorituspaikkakunta = "091",
-                taitotaso = Koodisto.VktTaitotaso.HyväJaTyydyttävä,
-                suorituksenVastaanottaja = null,
-                osakokeet =
-                    setOf(
-                        osakoe(Koodisto.VktOsakoe.Kirjoittaminen, Koodisto.VktArvosana.Hylätty),
-                        osakoe(Koodisto.VktOsakoe.TekstinYmmärtäminen, Koodisto.VktArvosana.Hyvä),
-                    ),
-                tutkinnot = emptySet(),
-            ),
-        )
+        tallenna(HENKILO, "KIOS:1", sukunimi = "Testinen", etunimet = "Testi")
         mockMvc =
             MockMvcBuilders
                 .webAppContextSetup(context)
@@ -84,8 +79,10 @@ class VktUusintaoikeudetControllerTest(
 
         assertEquals(
             listOf(
-                "Oppijanumero;Sukunimi;Etunimet;Tutkintokieli;Taitotaso;Uusittava osakoe;Tutkinnot;Hylkäämispäätös;Oikeus päättyy",
-                "$HENKILO;Testinen;Testi;Suomi;Hyvä ja tyydyttävä;<vktosakoe:kirjoittaminen>;<vktkielitaito:kirjallinen>;15.3.2025;15.3.2028",
+                "Oppijanumero;Sukunimi;Etunimet;Tutkintokieli;Taitotaso;Uusittava osakoe;Tutkinnot;Hylkäämispäätös;" +
+                    "Oikeus päättyy;Puhelinnumero;Sähköposti;Katuosoite;Postinumero;Postitoimipaikka;Maa",
+                "$HENKILO;Testinen;Testi;Suomi;Hyvä ja tyydyttävä;<vktosakoe:kirjoittaminen>;" +
+                    "<vktkielitaito:kirjallinen>;15.3.2025;15.3.2028;;;;;;",
             ),
             csvRivit(response),
         )
@@ -93,6 +90,58 @@ class VktUusintaoikeudetControllerTest(
             response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION).orEmpty(),
             "vkt_uusintaoikeudet_henkilotiedot_2026-10-21.csv",
         )
+    }
+
+    @Test
+    fun `CSV sisaltaa yhteystiedot oppijanumerorekisterista`() {
+        tallenna(YHTEYSTIEDOLLINEN, "KIOS:2", sukunimi = "Uusija-Testi", etunimet = "Ulla")
+
+        val response =
+            timeService.runWithFixedClock(TARKASTELUHETKI) {
+                apiController.getUusintaoikeudetCsv(VktUusintaoikeusParams())
+            }
+
+        assertEquals(
+            "$YHTEYSTIEDOLLINEN;Uusija-Testi;Ulla;Suomi;Hyvä ja tyydyttävä;<vktosakoe:kirjoittaminen>;" +
+                "<vktkielitaito:kirjallinen>;15.3.2025;15.3.2028;" +
+                "'+358 40 123 4567;ulla@example.com;Uusintakatu 3 B 7;33100;TAMPERE;Suomi",
+            csvRivit(response).single { it.startsWith(YHTEYSTIEDOLLINEN) },
+        )
+    }
+
+    @Test
+    fun `CSV toimitetaan ilman yhteystietoja kun oppijanumerorekisteri ei vastaa`() {
+        tallenna(YHTEYSTIEDOLLINEN, "KIOS:2", sukunimi = "Uusija-Testi", etunimet = "Ulla")
+        val heittaa =
+            palvelu { _ -> throw ResourceAccessException("Oppijanumerorekisteri ei vastaa") }
+        val virhe =
+            palvelu { _ -> OppijanumeroException.MalformedOppijanumero(oppijanumero = "rikki").left() }
+
+        listOf(heittaa, virhe).forEach { service ->
+            val raportti =
+                timeService.runWithFixedClock(
+                    TARKASTELUHETKI,
+                ) { service.findForCsv(VktUusintaoikeusParams()) }
+
+            assertEquals(2, raportti.rivit.size)
+            assertEquals(listOf(null, null), raportti.rivit.map { it.yhteystiedot })
+        }
+    }
+
+    @Test
+    fun `piilotetuilla henkilotiedoilla oppijanumerorekisteria ei kutsuta`() {
+        var kutsuttu = false
+        val service =
+            palvelu { oidit ->
+                kutsuttu = true
+                oppijanumeroService.getHenkilotByHenkiloOids(oidit)
+            }
+
+        timeService.runWithFixedClock(TARKASTELUHETKI) {
+            service.findForCsv(VktUusintaoikeusParams(piilotaHenkilotiedot = true))
+        }
+
+        assertFalse(kutsuttu)
     }
 
     @Test
@@ -203,7 +252,7 @@ class VktUusintaoikeudetControllerTest(
         ByteArrayOutputStream()
             .also { response.body!!.writeTo(it) }
             .toString(Charsets.UTF_8)
-            .removePrefix("﻿")
+            .removePrefix("\uFEFF")
             .lines()
             .filter { it.isNotBlank() }
 
@@ -218,6 +267,46 @@ class VktUusintaoikeudetControllerTest(
                 .replace(Regex(">\\s+<"), "><")
         }
 
+    private fun palvelu(
+        haeHenkilot: (Collection<Oid>) -> Either<OppijanumeroException, Map<Oid, OppijanumerorekisteriHenkilo>>,
+    ) = VktUusintaoikeusService(
+        repository,
+        timeService,
+        localizationService,
+        auditLogger,
+        object : OppijanumeroService by oppijanumeroService {
+            override fun getHenkilotByHenkiloOids(
+                henkiloOids: Collection<Oid>,
+            ): Either<OppijanumeroException, Map<Oid, OppijanumerorekisteriHenkilo>> = haeHenkilot(henkiloOids)
+        },
+    )
+
+    private fun tallenna(
+        henkilo: String,
+        ilmoittautumisenId: String,
+        sukunimi: String,
+        etunimet: String,
+    ) {
+        suoritusRepository.save(
+            VktSuoritusEntity(
+                ilmoittautumisenId = ilmoittautumisenId,
+                suorittajanOid = Oid.parse(henkilo).getOrThrow(),
+                etunimet = etunimet,
+                sukunimi = sukunimi,
+                tutkintokieli = Koodisto.Tutkintokieli.FIN,
+                suorituspaikkakunta = "091",
+                taitotaso = Koodisto.VktTaitotaso.HyväJaTyydyttävä,
+                suorituksenVastaanottaja = null,
+                osakokeet =
+                    setOf(
+                        osakoe(Koodisto.VktOsakoe.Kirjoittaminen, Koodisto.VktArvosana.Hylätty),
+                        osakoe(Koodisto.VktOsakoe.TekstinYmmärtäminen, Koodisto.VktArvosana.Hyvä),
+                    ),
+                tutkinnot = emptySet(),
+            ),
+        )
+    }
+
     private fun osakoe(
         tyyppi: Koodisto.VktOsakoe,
         arvosana: Koodisto.VktArvosana,
@@ -231,6 +320,7 @@ class VktUusintaoikeudetControllerTest(
 
     companion object {
         private const val HENKILO = "1.2.246.562.24.12345678910"
+        private const val YHTEYSTIEDOLLINEN = "1.2.246.562.24.77777777777"
         private val TARKASTELUHETKI = Instant.parse("2026-10-21T09:00:00Z")
     }
 }

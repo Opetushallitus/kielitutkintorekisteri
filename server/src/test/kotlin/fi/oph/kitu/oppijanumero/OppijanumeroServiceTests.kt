@@ -1,14 +1,21 @@
 package fi.oph.kitu.oppijanumero
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import fi.oph.kitu.assertLeftIsThrowable
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity.notFound
 import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.content
+import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
@@ -111,6 +118,119 @@ class OppijanumeroServiceTests {
         val henkilo = service.getHenkiloByHetu("010866-9260").getOrThrow()
 
         assertEquals("Sallinen-Testi", henkilo.sukunimi)
+    }
+
+    @Test
+    fun `getHenkilotByHenkiloOids hakee master-henkilot yhdella kutsulla`() {
+        val restClientBuilder = RestClient.builder().baseUrl(BASE_URL)
+        val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
+        mockServer
+            .expect(requestTo("$BASE_URL/henkilo/masterHenkilosByOidList"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(content().json("""["$YKSILOIMATON", "$YKSILOITY"]"""))
+            .andRespond(
+                withSuccess(
+                    """
+                    {
+                      "$YKSILOIMATON": {
+                        "oidHenkilo": "$YKSILOITY",
+                        "sukunimi": "Sallinen-Testi",
+                        "yhteystiedotRyhma": [
+                          {
+                            "ryhmaKuvaus": "yhteystietotyyppi1",
+                            "yhteystieto": [
+                              { "yhteystietoTyyppi": "YHTEYSTIETO_SAHKOPOSTI", "yhteystietoArvo": "magdalena@example.com" }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                    """.trimIndent(),
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+        val service = OppijanumeroServiceImpl(OppijanumerorekisteriClient(restClientBuilder.build(), BASE_URL))
+
+        val henkilot =
+            service
+                .getHenkilotByHenkiloOids(
+                    listOf(Oid.parse(YKSILOIMATON).getOrThrow(), Oid.parse(YKSILOITY).getOrThrow()),
+                ).getOrThrow()
+
+        assertEquals(setOf(Oid.parse(YKSILOIMATON).getOrThrow()), henkilot.keys)
+        assertEquals(
+            "magdalena@example.com",
+            henkilot.values
+                .single()
+                .yhteystiedot()
+                .sahkoposti,
+        )
+        mockServer.verify()
+    }
+
+    @Test
+    fun `getHenkilotByHenkiloOids ei kutsu rekisteria tyhjalla listalla`() {
+        val restClientBuilder = RestClient.builder().baseUrl(BASE_URL)
+        val mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
+        val service = OppijanumeroServiceImpl(OppijanumerorekisteriClient(restClientBuilder.build(), BASE_URL))
+
+        assertEquals(emptyMap(), service.getHenkilotByHenkiloOids(emptyList()).getOrThrow())
+        mockServer.verify()
+    }
+
+    @Test
+    fun `getHenkilotByHenkiloOids-oletustoteutus jattaa loytymattomat pois ja palauttaa muut virheet`() {
+        val loytyva = Oid.parse(YKSILOITY).getOrThrow()
+        val loytymaton = Oid.parse(YKSILOIMATON).getOrThrow()
+        val rikkinainen = Oid.parse("1.2.246.562.24.99999999999").getOrThrow()
+        val henkilo =
+            defaultObjectMapper.convertValue(mapOf("oidHenkilo" to YKSILOITY), OppijanumerorekisteriHenkilo::class.java)
+        val service =
+            object : OppijanumeroService {
+                override fun getMasterOid(oppija: Oppija): Either<OppijanumeroException, Oid> =
+                    throw NotImplementedError()
+
+                override fun getMasterOid(henkiloOid: Oid): Either<OppijanumeroException, Oid> = henkiloOid.right()
+
+                override fun getOppijanumero(henkiloOid: Oid): Either<OppijanumeroException, Oid> =
+                    throw NotImplementedError()
+
+                override fun getHenkiloByMasterOid(
+                    masterOid: Oid,
+                ): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> =
+                    when (masterOid) {
+                        loytyva -> {
+                            henkilo.right()
+                        }
+
+                        loytymaton -> {
+                            OppijanumeroException
+                                .OppijaNotFoundException(
+                                    EmptyRequest(),
+                                    notFound().build(),
+                                ).left()
+                        }
+
+                        else -> {
+                            OppijanumeroException.MalformedOppijanumero(oppijanumero = "rikki").left()
+                        }
+                    }
+
+                override fun getLinkedOids(henkiloOid: Oid): Either<OppijanumeroException, Set<Oid>> =
+                    throw NotImplementedError()
+
+                override fun getHenkiloByHetu(
+                    hetu: String,
+                ): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> = throw NotImplementedError()
+            }
+
+        assertEquals(
+            mapOf(loytyva to henkilo),
+            service.getHenkilotByHenkiloOids(listOf(loytyva, loytymaton)).getOrThrow(),
+        )
+        assertIs<OppijanumeroException.MalformedOppijanumero>(
+            service.getHenkilotByHenkiloOids(listOf(loytyva, rikkinainen)).leftOrNull(),
+        )
     }
 
     private fun yleistunnisteVastaa(json: String): OppijanumeroServiceImpl {
