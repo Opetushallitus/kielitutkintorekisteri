@@ -227,6 +227,28 @@ class VktUusintaoikeusRepositoryTest(
         assertEquals(listOf(Kirjoittaminen), repository.findUusintaanOikeutetut(TARKASTELUPAIVA).map { it.osakoe })
     }
 
+    @Test
+    fun `menneena tarkastelupaivana huomioidaan vain siihen mennessa arvioidut osakokeet`() {
+        tallenna(
+            osakoe(Kirjoittaminen, LocalDate.of(2025, 3, 1), Hylätty, arviointipaiva = LocalDate.of(2025, 3, 15)),
+            osakoe(TekstinYmmärtäminen, LocalDate.of(2025, 3, 1), Hyvä, arviointipaiva = LocalDate.of(2025, 3, 15)),
+        )
+        tallenna(
+            osakoe(Kirjoittaminen, LocalDate.of(2025, 9, 1), Tyydyttävä, arviointipaiva = LocalDate.of(2025, 9, 15)),
+        )
+
+        assertEquals(emptyList(), repository.findUusintaanOikeutetut(LocalDate.of(2025, 3, 14)))
+        assertEquals(
+            listOf(Kirjoittaminen),
+            repository.findUusintaanOikeutetut(LocalDate.of(2025, 3, 15)).map { it.osakoe },
+        )
+        assertEquals(
+            listOf(Kirjoittaminen),
+            repository.findUusintaanOikeutetut(LocalDate.of(2025, 9, 14)).map { it.osakoe },
+        )
+        assertEquals(emptyList(), repository.findUusintaanOikeutetut(LocalDate.of(2025, 9, 15)))
+    }
+
     private fun tallenna(
         vararg osakokeet: VktSuoritusEntity.VktOsakoe,
         kieli: Koodisto.Tutkintokieli = Koodisto.Tutkintokieli.FIN,

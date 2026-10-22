@@ -66,4 +66,75 @@ describe("VKT:n uusintaan oikeutetut", () => {
       "1.2.246.562.10.14893989377;Öhman-Testi;Ranja Testi;Suomi;Hyvä ja tyydyttävä;<vktosakoe:kirjoittaminen>;<vktkielitaito:kirjallinen>;12.2.2026;31.12.2028",
     ])
   })
+
+  test("tarkastelupäivän voi valita", async ({ vktUusintaoikeudetPage }) => {
+    await vktUusintaoikeudetPage.login()
+    await vktUusintaoikeudetPage.open()
+
+    let dialog = await vktUusintaoikeudetPage.openFilterDialog()
+    await dialog.setTarkastelupaiva("2026-02-11")
+    await dialog.submit()
+    await expect(vktUusintaoikeudetPage.getTarkastelupaiva()).toHaveText(
+      "11.2.2026",
+    )
+    await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("0")
+
+    dialog = await vktUusintaoikeudetPage.openFilterDialog()
+    await dialog.setTarkastelupaiva("2028-06-01")
+    await dialog.submit()
+    await expect(vktUusintaoikeudetPage.getTarkastelupaiva()).toHaveText(
+      "1.6.2028",
+    )
+    await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("1")
+  })
+
+  test("raportin voi rajata taitotason ja kielen mukaan", async ({
+    vktUusintaoikeudetPage,
+  }) => {
+    await vktUusintaoikeudetPage.login()
+    await vktUusintaoikeudetPage.open()
+
+    let dialog = await vktUusintaoikeudetPage.openFilterDialog()
+    await dialog.setTaitotaso("Erinomainen")
+    await dialog.submit()
+    await expect(
+      vktUusintaoikeudetPage
+        .getPageContent()
+        .getByText("Taitotaso: Erinomainen"),
+    ).toBeVisible()
+    await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("0")
+
+    dialog = await vktUusintaoikeudetPage.openFilterDialog()
+    await dialog.setTaitotaso("")
+    await dialog.setTutkintokieli("FIN")
+    await dialog.submit()
+    await expect(
+      vktUusintaoikeudetPage.getPageContent().getByText("Tutkintokieli: Suomi"),
+    ).toBeVisible()
+    await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("1")
+  })
+
+  test("henkilötiedot voi piilottaa", async ({ vktUusintaoikeudetPage }) => {
+    await vktUusintaoikeudetPage.login()
+    await vktUusintaoikeudetPage.open()
+
+    const dialog = await vktUusintaoikeudetPage.openFilterDialog()
+    await dialog.hideHenkilotiedot(true)
+    await dialog.submit()
+
+    await expect(
+      vktUusintaoikeudetPage
+        .getPageContent()
+        .getByText("Henkilötiedot piilotettu"),
+    ).toBeVisible()
+    await expectToHaveTexts(
+      vktUusintaoikeudetPage.table.getCellsOfRow(RIVI),
+      "Suomi",
+      "Hyvä ja tyydyttävä",
+      "<vktosakoe:kirjoittaminen>",
+      "<vktkielitaito:kirjallinen>",
+      "12.2.2026",
+      "31.12.2028",
+    )
+  })
 })

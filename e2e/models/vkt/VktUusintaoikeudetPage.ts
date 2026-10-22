@@ -2,6 +2,7 @@ import BasePage from "../BasePage"
 import { Locator, Page } from "@playwright/test"
 import { Config } from "../../config"
 import DisplayTable from "../components/DisplayTable"
+import { VktUusintaoikeudetFilterDialog } from "./VktUusintaoikeudetFilterDialog"
 
 type Yhteenvetorivi = "erinomainen" | "hyvajatyydyttava" | "yhteensa"
 
@@ -38,5 +39,18 @@ export default class VktUusintaoikeudetPage extends BasePage {
 
   getCsvDownloadLink(): Locator {
     return this.getPageContent().getByText("Lataa tiedot CSV:nä")
+  }
+
+  getTarkastelupaiva(): Locator {
+    return this.getPageContent().getByTestId("tarkastelupaiva")
+  }
+
+  async openFilterDialog() {
+    await this.getPageContent()
+      .getByRole("button", { name: "Rajaa näytettävät tiedot" })
+      .click()
+    return new VktUusintaoikeudetFilterDialog(
+      this.getPageContent().getByTestId("table-filter-dialog"),
+    )
   }
 }
