@@ -11,6 +11,7 @@ import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.testId
+import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
@@ -37,12 +38,14 @@ import kotlinx.html.p
 import kotlinx.html.select
 import kotlinx.html.table
 import org.springframework.security.web.csrf.CsrfToken
+import java.time.LocalDate
 
 object YkiSuoritusTilastotPage {
     fun render(
         tilastot: List<YkiSuoritusTilastoRivi>,
         filterParams: YkiSuorituksetParams,
         csrfToken: CsrfToken?,
+        varhaisinTutkintopaiva: LocalDate?,
         warning: ViewMessageData? = null,
     ): String =
         Page.renderHtml(
@@ -52,6 +55,10 @@ object YkiSuoritusTilastotPage {
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Yki.Tilastot.otsikko }
             viewMessage(warning)
+            varhaisinPaiva(
+                UiText.Yki.varhaisinTutkintopaiva,
+                listOfNotNull(varhaisinTutkintopaiva?.let { null to it }),
+            )
 
             ykiSuoritusHakulomake(filterParams, csrfToken)
 

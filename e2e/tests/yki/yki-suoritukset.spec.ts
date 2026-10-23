@@ -211,6 +211,14 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(varhaisin).toHaveText(
       "Rekisterin varhaisin tutkintopäivä: 25.8.2024",
     )
+
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+    await expect(tilastot.getPageContent()).toContainText(
+      "Ei suorituksia valituilla rajauksilla",
+    )
+    await expect(
+      tilastot.getPageContent().getByTestId("varhaisin-paiva"),
+    ).toHaveText("Rekisterin varhaisin tutkintopäivä: 25.8.2024")
   })
 
   test("filter dialog can be cancelled without applying the filter", async ({
