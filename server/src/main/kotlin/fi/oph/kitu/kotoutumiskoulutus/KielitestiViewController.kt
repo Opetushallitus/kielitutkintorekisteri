@@ -61,6 +61,7 @@ class KielitestiViewController(
                 numberOfSuoritukset = numberOfSuoritukset,
                 pagination =
                     params.pagination(numberOfSuoritukset),
+                varhaisinSuorituspaiva = suoritusService.findVarhaisinSuorituspaiva(),
             ),
         )
     }

@@ -134,6 +134,7 @@ object UiText {
             get() =
                 tr("vkt.merkittyKasitellyksiEiOid")
         val diaarinumero: LocalizedString get() = tr("vkt.diaarinumero")
+        val varhaisinTutkintopaiva: LocalizedString get() = tr("vkt.varhaisinTutkintopaiva")
 
         object Sarake {
             val ilmoittautumisenTunniste: LocalizedString
@@ -286,6 +287,7 @@ object UiText {
         val ilmoittautumisenTiedot: LocalizedString get() =
             tr("yki.ilmoittautumisenTiedot")
         val oppijanumerorekisteri: LocalizedString get() = tr("yki.oppijanumerorekisteri")
+        val varhaisinTutkintopaiva: LocalizedString get() = tr("yki.varhaisinTutkintopaiva")
 
         object Tilastot {
             val otsikko: LocalizedString get() = tr("yki.tilastot.otsikko")
@@ -673,6 +675,7 @@ object UiText {
         val xmlTiedosto: LocalizedString get() = tr("koto.xmlTiedosto")
         val versioLabel: LocalizedString get() = tr("koto.versioLabel")
         val generoituLabel: LocalizedString get() = tr("koto.generoituLabel")
+        val varhaisinSuorituspaiva: LocalizedString get() = tr("koto.varhaisinSuorituspaiva")
 
         object Sarake {
             val oppijanumero: LocalizedString get() = tr("koto.sarake.oppijanumero")

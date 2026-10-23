@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -133,6 +134,27 @@ class CustomVktSuoritusRepository(
             "SELECT MAX(created_at) FROM vkt_suoritus",
             OffsetDateTime::class.java,
         )
+
+    @WithSpan
+    fun findVarhaisimmatTutkintopaivat(): Map<Koodisto.VktTaitotaso, LocalDate> {
+        val query =
+            """
+            WITH viimeisin AS (
+                SELECT DISTINCT ON (ilmoittautumisen_id) id, taitotaso
+                FROM vkt_suoritus
+                ORDER BY ilmoittautumisen_id, created_at DESC
+            )
+            SELECT viimeisin.taitotaso, MIN(vkt_osakoe.tutkintopaiva) AS tutkintopaiva
+            FROM viimeisin
+                JOIN vkt_osakoe ON vkt_osakoe.suoritus_id = viimeisin.id
+            GROUP BY viimeisin.taitotaso
+            """.trimIndent()
+
+        return jdbcTemplate
+            .query(query) { rs, _ ->
+                rs.getEnum<Koodisto.VktTaitotaso>("taitotaso") to rs.getObject("tutkintopaiva", LocalDate::class.java)
+            }.toMap()
+    }
 
     @WithSpan
     fun countSuorituksetByTaitotaso(): VktSuoritusCountsByTaitotaso {

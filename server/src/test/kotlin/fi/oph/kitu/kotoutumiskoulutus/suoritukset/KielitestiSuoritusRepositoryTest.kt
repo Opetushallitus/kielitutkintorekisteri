@@ -21,6 +21,7 @@ import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -163,6 +164,30 @@ class KielitestiSuoritusRepositoryTest(
             fun () = assertEquals(Arvosana.YLIB1, resultJennika?.kuullunYmmartaminen),
             fun () = assertEquals(Arvosana.YLIB1, resultJennika?.puhe),
         )
+    }
+
+    @Test
+    fun `varhaisin suoritusaika ohittaa keskeneräiset suoritukset`() {
+        kielitestiSuoritusRepository.save(
+            suoritusJennika.copy(
+                kurssiId = 33,
+                suoritusaika = Instant.parse("2023-01-01T08:00:00Z"),
+                completed = false,
+            ),
+        )
+
+        assertEquals(
+            Instant.parse("2024-11-22T10:49:49Z"),
+            customKielitestiSuoritusRepository.findVarhaisinSuoritusaika(),
+        )
+    }
+
+    @Test
+    fun `varhaisin suoritusaika puuttuu kun valmiita suorituksia ei ole`() {
+        kielitestiSuoritusRepository.deleteAll()
+        kielitestiSuoritusRepository.save(suoritusRaija.copy(suoritusaika = null, completed = false))
+
+        assertNull(customKielitestiSuoritusRepository.findVarhaisinSuoritusaika())
     }
 
     @Test

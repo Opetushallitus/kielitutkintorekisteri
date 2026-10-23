@@ -44,6 +44,10 @@ class VktSuoritusService(
         getPagination(filter, order),
     )
 
+    @WithSpan("VktSuoritusService.getVarhaisimmatTutkintopaivat")
+    fun getVarhaisimmatTutkintopaivat(): Map<Koodisto.VktTaitotaso, LocalDate> =
+        customSuoritusRepository.findVarhaisimmatTutkintopaivat()
+
     @WithSpan("VktSuoritusService.getPagination")
     fun getPagination(
         filter: VktSuoritusFilter,

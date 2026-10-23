@@ -429,4 +429,64 @@ class VktSuoritusRepositoryTest(
             ),
             VktSuoritusOrder(),
         )
+
+    @Test
+    fun `varhaisimmat tutkintopäivät lasketaan taitotasoittain ilmoittautumisten uusimmista versioista`() {
+        val vanhaVersio =
+            vktSuoritus("1", Koodisto.VktTaitotaso.Erinomainen, LocalDate.of(2019, 3, 1), LocalDate.of(2019, 4, 1))
+        repository.save(vanhaVersio)
+        repository.save(vanhaVersio.copy(osakokeet = osakokeet(LocalDate.of(2020, 6, 6), LocalDate.of(2020, 5, 5))))
+        repository.save(vktSuoritus("2", Koodisto.VktTaitotaso.Erinomainen, LocalDate.of(2021, 1, 1)))
+        repository.save(
+            vktSuoritus(
+                "3",
+                Koodisto.VktTaitotaso.HyväJaTyydyttävä,
+                LocalDate.of(2023, 2, 2),
+                LocalDate.of(2022, 12, 12),
+            ),
+        )
+
+        assertEquals(
+            mapOf(
+                Koodisto.VktTaitotaso.Erinomainen to LocalDate.of(2020, 5, 5),
+                Koodisto.VktTaitotaso.HyväJaTyydyttävä to LocalDate.of(2022, 12, 12),
+            ),
+            customRepository.findVarhaisimmatTutkintopaivat(),
+        )
+    }
+
+    @Test
+    fun `varhaisimmat tutkintopäivät puuttuvat tyhjästä rekisteristä`() {
+        assertEquals(emptyMap(), customRepository.findVarhaisimmatTutkintopaivat())
+    }
+
+    private fun vktSuoritus(
+        ilmoittautumisenId: String,
+        taitotaso: Koodisto.VktTaitotaso,
+        vararg tutkintopaivat: LocalDate,
+    ) = VktSuoritusEntity(
+        ilmoittautumisenId = ilmoittautumisenId,
+        suorittajanOid = Oid.parse("1.2.246.562.24.12345678910").getOrThrow(),
+        etunimet = "Testi",
+        sukunimi = "Testinen",
+        tutkintokieli = Koodisto.Tutkintokieli.FIN,
+        suorituspaikkakunta = "Helsinki",
+        taitotaso = taitotaso,
+        suorituksenVastaanottaja = null,
+        osakokeet = osakokeet(*tutkintopaivat),
+        tutkinnot = setOf(),
+    )
+
+    private fun osakokeet(vararg tutkintopaivat: LocalDate) =
+        tutkintopaivat
+            .zip(Koodisto.VktOsakoe.entries)
+            .map { (tutkintopaiva, tyyppi) ->
+                VktSuoritusEntity.VktOsakoe(
+                    tyyppi = tyyppi,
+                    tutkintopaiva = tutkintopaiva,
+                    arviointipaiva = null,
+                    arvosana = null,
+                    merkittyPoistettavaksi = null,
+                )
+            }.toSet()
 }

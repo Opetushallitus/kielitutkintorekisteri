@@ -16,6 +16,7 @@ import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
+import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.webmvc.Links
@@ -26,6 +27,7 @@ import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.header
 import kotlinx.html.table
+import java.time.LocalDate
 
 object KielitestiSuorituksetPage {
     fun render(
@@ -34,6 +36,7 @@ object KielitestiSuorituksetPage {
         filterParams: KielitestiSuorituksetParams,
         numberOfSuoritukset: Int,
         pagination: Pagination,
+        varhaisinSuorituspaiva: LocalDate?,
     ): String =
         Page.renderHtml(
             wideContent = true,
@@ -42,6 +45,10 @@ object KielitestiSuorituksetPage {
             h1 { +UiText.Nav.kotoutumiskoulutuksenPaattotesti }
             h2 { +UiText.Nav.suoritukset }
             errorsArticle(errorsCount, Links.Kielitesti.virheet())
+            varhaisinPaiva(
+                UiText.Koto.varhaisinSuorituspaiva,
+                listOfNotNull(varhaisinSuorituspaiva?.let { null to it }),
+            )
 
             listSearchForm(
                 value = filterParams.search,

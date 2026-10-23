@@ -97,6 +97,9 @@ class YkiService(
     ): Long = suoritusRepository.countSuoritukset(filter = filter, distinct = !versionHistory)
 
     @WithSpan
+    fun findVarhaisinTutkintopaiva(): LocalDate? = suoritusRepository.findVarhaisinTutkintopaiva()
+
+    @WithSpan
     fun countSuorituksetRyhmittain(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         versionHistory: Boolean = false,

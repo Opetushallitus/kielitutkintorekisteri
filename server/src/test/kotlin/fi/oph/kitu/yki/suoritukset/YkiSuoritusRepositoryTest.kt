@@ -573,6 +573,29 @@ class YkiSuoritusRepositoryTest(
     }
 
     @Test
+    fun `varhaisin tutkintopäivä lasketaan vain suoritusten uusimmista versioista`() {
+        val alkuperainen =
+            generateRandomYkiSuoritusEntity().copy(
+                tutkintopaiva = LocalDate.of(2015, 3, 1),
+                lastModified = Instant.parse("2024-01-01T10:00:00Z"),
+            )
+        val korjattu =
+            alkuperainen.copy(
+                tutkintopaiva = LocalDate.of(2016, 5, 2),
+                lastModified = Instant.parse("2024-02-01T10:00:00Z"),
+            )
+        val myohaisempi = generateRandomYkiSuoritusEntity().copy(tutkintopaiva = LocalDate.of(2020, 1, 1))
+        ykiSuoritusRepository.saveAllNewEntities(listOf(alkuperainen, korjattu, myohaisempi))
+
+        assertEquals(LocalDate.of(2016, 5, 2), ykiSuoritusRepository.findVarhaisinTutkintopaiva())
+    }
+
+    @Test
+    fun `varhaisin tutkintopäivä puuttuu tyhjästä rekisteristä`() {
+        assertNull(ykiSuoritusRepository.findVarhaisinTutkintopaiva())
+    }
+
+    @Test
     fun `count suoritukset with tutkintokieli filter matches find result size`() {
         val fin = generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.FIN)
         val swe = generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.SWE)

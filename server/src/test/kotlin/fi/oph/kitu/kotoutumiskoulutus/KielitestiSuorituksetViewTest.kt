@@ -1,8 +1,12 @@
 package fi.oph.kitu.kotoutumiskoulutus
 
 import fi.oph.kitu.DBContainerConfiguration
+import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
+import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusError
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
+import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.virkailijaSession
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +29,7 @@ import kotlin.test.assertFalse
 class KielitestiSuorituksetViewTest(
     @param:Autowired private val context: WebApplicationContext,
     @param:Autowired private val errorRepository: KielitestiSuoritusErrorRepository,
+    @param:Autowired private val suoritusRepository: KielitestiSuoritusRepository,
 ) {
     private lateinit var mockMvc: MockMvc
 
@@ -36,6 +41,7 @@ class KielitestiSuorituksetViewTest(
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
         errorRepository.deleteAll()
+        suoritusRepository.deleteAll()
     }
 
     @Test
@@ -53,6 +59,26 @@ class KielitestiSuorituksetViewTest(
         assertContains(html, """<input type="hidden" name="testikieli" value="FIN">""")
     }
 
+    @Test
+    fun `listasivu nayttaa varhaisimman suorituspaivan Suomen aikaa`() {
+        suoritusRepository.saveAll(
+            listOf(
+                suoritus(Instant.parse("2025-03-01T10:00:00Z")),
+                suoritus(Instant.parse("2024-11-21T22:30:00Z")),
+            ),
+        )
+
+        assertContains(
+            getHtml("/koto-kielitesti/suoritukset", "naytettavatSuoritukset" to "KESKENERAISET"),
+            """<p data-testid="varhaisin-paiva">Rekisterin varhaisin suorituspäivä: 22.11.2024</p>""",
+        )
+    }
+
+    @Test
+    fun `varhaisinta suorituspaivaa ei nayteta kun valmiita suorituksia ei ole`() {
+        assertFalse(getHtml("/koto-kielitesti/suoritukset").contains("""data-testid="varhaisin-paiva""""))
+    }
+
     private fun getHtml(
         path: String,
         vararg params: Pair<String, String>,
@@ -65,6 +91,26 @@ class KielitestiSuorituksetViewTest(
             ).andExpect(status().isOk)
             .andReturn()
             .response.contentAsString
+
+    private fun suoritus(suoritusaika: Instant) =
+        KielitestiSuoritus(
+            etunimet = "Ranja",
+            sukunimi = "Testi",
+            kutsumanimi = "Ranja",
+            oppijanumero = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
+            email = "ranja@example.com",
+            suoritusaika = suoritusaika,
+            oppilaitosOid = Oid.parse("1.2.246.562.10.14893989377").getOrThrow(),
+            opettajanEmail = "ope@example.com",
+            kurssiId = 32,
+            kurssi = "Integraatio testaus",
+            luetunYmmartaminen = null,
+            kuullunYmmartaminen = null,
+            puhe = null,
+            kirjoittaminen = null,
+            testikieli = null,
+            tehtavapaketti = null,
+        )
 
     private fun virhe(etunimet: String) =
         KielitestiSuoritusError(
