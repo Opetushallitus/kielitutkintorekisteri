@@ -170,6 +170,7 @@ class YkiViewController(
                     ),
                 filterParams = params,
                 csrfToken = csrfToken,
+                varhaisinTutkintopaiva = ykiService.findVarhaisinTutkintopaiva(),
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),
         )
