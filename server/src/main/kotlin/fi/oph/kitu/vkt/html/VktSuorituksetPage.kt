@@ -16,10 +16,12 @@ import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
 import fi.oph.kitu.html.testId
+import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.vkt.VktSuoritusColumn
 import fi.oph.kitu.vkt.VktSuoritusFilter
 import fi.oph.kitu.vkt.VktSuoritusFlat
@@ -29,6 +31,7 @@ import kotlinx.html.FlowContent
 import kotlinx.html.fieldSet
 import kotlinx.html.h1
 import kotlinx.html.h2
+import java.time.LocalDate
 
 object VktSuorituksetPage {
     fun render(
@@ -37,6 +40,7 @@ object VktSuorituksetPage {
         order: VktSuoritusOrder,
         pagination: Pagination,
         translations: Translations,
+        varhaisimmatTutkintopaivat: Map<Koodisto.VktTaitotaso, LocalDate>,
         messages: List<ViewMessageData>,
     ): String =
         Page.renderHtml(
@@ -46,6 +50,12 @@ object VktSuorituksetPage {
             h1 { +UiText.Nav.vkt }
             h2 { +UiText.Nav.kaikkiSuoritukset }
             messages.forEach { viewMessage(it) }
+            varhaisinPaiva(
+                UiText.Vkt.varhaisinTutkintopaiva,
+                Koodisto.VktTaitotaso.entries.mapNotNull { taso ->
+                    varhaisimmatTutkintopaivat[taso]?.let { taso.nimi to it }
+                },
+            )
             vktSearch(filter)
             listViewHeader(
                 countLabel = UiText.Vkt.yhteensa,

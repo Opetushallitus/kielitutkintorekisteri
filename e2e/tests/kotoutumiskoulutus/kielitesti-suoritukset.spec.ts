@@ -369,6 +369,28 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
       await expect(suoritukset).toHaveCount(6)
     })
 
+    test("Varhaisin suorituspäivä lasketaan valmiista suorituksista rajauksesta riippumatta", async ({
+      kielitestiSuorituksetPage,
+    }) => {
+      await kielitestiSuorituksetPage.open()
+
+      const varhaisin = kielitestiSuorituksetPage
+        .getPageContent()
+        .getByTestId("varhaisin-paiva")
+      await expect(varhaisin).toHaveText(
+        "Rekisterin varhaisin suorituspäivä: 22.11.2024",
+      )
+
+      const dialog = await kielitestiSuorituksetPage.openFilterDialog()
+      await dialog.setNaytettavatSuoritukset("KESKENERAISET")
+      await dialog.submit()
+
+      await expect(kielitestiSuorituksetPage.getSuoritusRow()).toHaveCount(1)
+      await expect(varhaisin).toHaveText(
+        "Rekisterin varhaisin suorituspäivä: 22.11.2024",
+      )
+    })
+
     test("Suoritusten valmiusrajaus vaikuttaa myös csv:hen", async ({
       page,
       kielitestiSuorituksetPage,

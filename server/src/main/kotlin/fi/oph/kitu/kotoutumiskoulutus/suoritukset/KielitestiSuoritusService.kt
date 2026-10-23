@@ -5,9 +5,11 @@ import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.observability.setAttribute
 import fi.oph.kitu.observability.use
 import fi.oph.kitu.organisaatiot.OrganisaatioService
+import fi.oph.kitu.util.TimeService
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 @Service
 class KielitestiSuoritusService(
@@ -37,6 +39,13 @@ class KielitestiSuoritusService(
     fun countSuoritukset(filter: KielitestiSuoritusFilter = KielitestiSuoritusFilter()): Int =
         customKielitestiSuoritusRepository
             .countSuoritukset(filter)
+
+    @WithSpan
+    fun findVarhaisinSuorituspaiva(): LocalDate? =
+        customKielitestiSuoritusRepository
+            .findVarhaisinSuoritusaika()
+            ?.atZone(TimeService.zoneId)
+            ?.toLocalDate()
 
     @WithSpan
     fun getSuoritusById(id: Int): KielitestiSuoritus? =

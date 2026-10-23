@@ -71,6 +71,7 @@ class VktViewController(
                 order,
                 pagination,
                 translations,
+                varhaisimmatTutkintopaivat = vktSuoritukset.getVarhaisimmatTutkintopaivat(),
                 messages = getMessages(),
             ),
         )

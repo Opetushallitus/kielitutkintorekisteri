@@ -191,6 +191,28 @@ describe('"YKI Suoritukset" -page', () => {
     )
   })
 
+  test("earliest tutkintopäivä covers the whole register regardless of filters", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+
+    const varhaisin = ykiSuorituksetPage
+      .getPageContent()
+      .getByTestId("varhaisin-paiva")
+    await expect(varhaisin).toHaveText(
+      "Rekisterin varhaisin tutkintopäivä: 25.8.2024",
+    )
+
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await dialog.setTuontiaika("2020-01-01", "2020-12-31")
+    await dialog.submit()
+
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(0)
+    await expect(varhaisin).toHaveText(
+      "Rekisterin varhaisin tutkintopäivä: 25.8.2024",
+    )
+  })
+
   test("filter dialog can be cancelled without applying the filter", async ({
     indexPage,
     ykiSuorituksetPage,

@@ -276,6 +276,17 @@ class YkiSuoritusRepository(
             .filter { it.lukumaara > 0 }
     }
 
+    @WithSpan
+    fun findVarhaisinTutkintopaiva(): LocalDate? =
+        jdbcNamedParameterTemplate.queryForObject(
+            buildSql(
+                withCtes("suoritus" to selectSuorituksetRoot(viimeisin = true)),
+                "SELECT MIN(tutkintopaiva) FROM suoritus",
+            ),
+            emptyMap<String, Any>(),
+            LocalDate::class.java,
+        )
+
     // received_at asetetaan vain ulkoisesta importista (YkiSuoritusEntity.from) ja
     // säilyy ennallaan sisäisten versiokirjoitusten yli (data class .copy() preservoi sen
     // hyvaksyTarkistusarvioinnit-kutsussa). Siksi tämä kysely vastaa "Viimeisin saapunut suoritus"

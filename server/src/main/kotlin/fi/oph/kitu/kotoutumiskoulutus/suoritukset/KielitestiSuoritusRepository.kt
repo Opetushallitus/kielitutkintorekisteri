@@ -103,6 +103,14 @@ class CustomKielitestiSuoritusRepository(
                 Timestamp::class.java,
             )?.toInstant()
 
+    fun findVarhaisinSuoritusaika(): java.time.Instant? =
+        jdbcNamedParameterTemplate
+            .queryForObject(
+                "SELECT MIN(suoritusaika) FROM koto_suoritus WHERE completed",
+                emptyMap<String, Any>(),
+                Timestamp::class.java,
+            )?.toInstant()
+
     fun deleteAllKeskeneraiset(): Int =
         jdbcNamedParameterTemplate.update(
             "DELETE FROM koto_suoritus WHERE completed = false",

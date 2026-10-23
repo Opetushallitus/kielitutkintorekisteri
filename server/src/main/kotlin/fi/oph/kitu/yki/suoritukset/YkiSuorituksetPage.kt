@@ -19,6 +19,7 @@ import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.testId
+import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
@@ -42,6 +43,7 @@ import kotlinx.html.li
 import kotlinx.html.section
 import kotlinx.html.table
 import org.springframework.security.web.csrf.CsrfToken
+import java.time.LocalDate
 
 object YkiSuorituksetPage {
     fun render(
@@ -51,6 +53,7 @@ object YkiSuorituksetPage {
         pagination: Pagination,
         koskiErrorsCount: Long,
         csrfToken: CsrfToken?,
+        varhaisinTutkintopaiva: LocalDate?,
         warning: ViewMessageData? = null,
     ): String =
         Page.renderHtml(
@@ -63,6 +66,10 @@ object YkiSuorituksetPage {
             h2 { +UiText.Nav.suoritukset }
             koskiErrorsArticle(koskiErrorsCount, Links.Yki.koskiVirheet())
             viewMessage(warning)
+            varhaisinPaiva(
+                UiText.Yki.varhaisinTutkintopaiva,
+                listOfNotNull(varhaisinTutkintopaiva?.let { null to it }),
+            )
 
             ykiSuoritusHakulomake(filterParams, csrfToken)
 

@@ -173,6 +173,7 @@
   "koto.tehtavatyyppi.yksinkertainenLasku": "Yksinkertainen laskutehtävä",
   "koto.tutkinnonTiedot": "Päättötestin tiedot",
   "koto.tyhjaNimi": "(tyhjä nimi)",
+  "koto.varhaisinSuorituspaiva": "Rekisterin varhaisin suorituspäivä",
   "koto.vastausvaihtoehdot": "Vastausvaihtoehdot",
   "koto.versio": "Versio",
   "koto.versioLabel": "versio",
@@ -304,6 +305,7 @@
   "vkt.uusintaoikeus.uusittaviaOsakokeita": "Uusittavia osakokeita",
   "vkt.vainEiPoistettavat": "Vain suoritukset, joita ei ole merkitty poistettavaksi",
   "vkt.vainPoistettavat": "Vain poistettavat suoritukset",
+  "vkt.varhaisinTutkintopaiva": "Rekisterin varhaisin tutkintopäivä",
   "vkt.yhteensa": "Yhteensä",
   "vkt.yksilointi": "Yksilöinti",
   "vkt.yksilointiaYritetty": "Yksilöintiä yritetty",
@@ -572,5 +574,6 @@
   "yki.tutkintopaivaPaattyen": "Tutkintopäivä päättyen",
   "yki.tutkintotoimikunnanKokous": "Tutkintotoimikunnan kokouksen päivämäärä",
   "yki.vanhentuneetPiilotettu": "Vanhentuneet tietokentät piilotettu",
+  "yki.varhaisinTutkintopaiva": "Rekisterin varhaisin tutkintopäivä",
   "yki.viimeksiMuokattu": "Viimeksi muokattu"
 }

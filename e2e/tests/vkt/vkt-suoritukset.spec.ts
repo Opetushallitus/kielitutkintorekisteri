@@ -56,6 +56,29 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
     )
   })
 
+  test("Earliest tutkintopäivä is shown per taitotaso regardless of filters", async ({
+    vktSuorituksetPage,
+  }) => {
+    const odotettu =
+      "Rekisterin varhaisin tutkintopäivä: Erinomainen 24.2.2000, Hyvä ja tyydyttävä 4.1.2000"
+
+    await vktSuorituksetPage.login()
+    await vktSuorituksetPage.openKaikkiSuoritukset()
+    const varhaisin = vktSuorituksetPage
+      .getPageContent()
+      .getByTestId("varhaisin-paiva")
+    await expect(varhaisin).toHaveText(odotettu)
+
+    await vktSuorituksetPage.openHyvaJaTyydyttavaSuoritukset()
+    await expect(varhaisin).toHaveText(odotettu)
+
+    const table = vktSuorituksetPage.table
+    await table.head.getByTestId("Tutkintopaiva").getByRole("link").click()
+    await expect(table.rows.first().getByTestId("Tutkintopaiva")).toHaveText(
+      "4.1.2000",
+    )
+  })
+
   test("Sorting works", async ({ page, vktSuorituksetPage }) => {
     await vktSuorituksetPage.login()
     await vktSuorituksetPage.openErinomainenIlmoittautuneet()

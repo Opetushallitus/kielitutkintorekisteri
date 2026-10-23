@@ -1,6 +1,7 @@
 package fi.oph.kitu.html
 
 import fi.oph.kitu.i18n.LocalizedString
+import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.i18n.unaryPlus
 import kotlinx.html.FlowContent
 import kotlinx.html.FlowOrInteractiveOrPhrasingContent
@@ -10,9 +11,11 @@ import kotlinx.html.InputFormMethod
 import kotlinx.html.InputType
 import kotlinx.html.Tag
 import kotlinx.html.article
+import kotlinx.html.p
 import kotlinx.html.script
 import kotlinx.html.strong
 import kotlinx.html.unsafe
+import java.time.LocalDate
 import kotlinx.html.input as inputBase
 
 fun Tag.data(
@@ -118,5 +121,25 @@ fun FlowContent.labelColon(label: LocalizedString) {
     strong {
         +label
         +": "
+    }
+}
+
+fun FlowContent.varhaisinPaiva(
+    label: LocalizedString,
+    paivat: List<Pair<LocalizedString?, LocalDate>>,
+) {
+    if (paivat.isEmpty()) return
+    p {
+        testId("varhaisin-paiva")
+        +label
+        +": "
+        paivat.forEachIndexed { index, (tarkenne, paiva) ->
+            if (index > 0) +", "
+            tarkenne?.let {
+                +it
+                +" "
+            }
+            +paiva.finnishDate()
+        }
     }
 }

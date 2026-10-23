@@ -124,6 +124,7 @@ class YkiViewController(
                     params.pagination(totalSuoritukset.toInt()),
                 koskiErrorsCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, false).toLong(),
                 csrfToken = csrfToken,
+                varhaisinTutkintopaiva = ykiService.findVarhaisinTutkintopaiva(),
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),
         )
