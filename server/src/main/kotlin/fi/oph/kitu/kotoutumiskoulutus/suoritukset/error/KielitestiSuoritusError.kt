@@ -1,7 +1,9 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset.error
 
+import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.oid.Oid
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 import org.springframework.data.relational.core.mapping.Table
 import java.time.Instant
 
@@ -16,6 +18,8 @@ data class KielitestiSuoritusError(
     val sukunimi: String,
     val kutsumanimi: String?,
     val schoolOid: Oid?,
+    @Transient
+    val organisaatio: LocalizedString? = null,
     val teacherEmail: String?,
     val virheenLuontiaika: Instant,
     val viesti: String,

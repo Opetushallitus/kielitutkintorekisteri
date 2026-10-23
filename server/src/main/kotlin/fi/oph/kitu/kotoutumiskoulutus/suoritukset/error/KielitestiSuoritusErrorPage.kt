@@ -1,11 +1,12 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset.error
 import fi.oph.kitu.html.Page
+import fi.oph.kitu.html.table.ColumnTag
+import fi.oph.kitu.html.table.RenderableDisplayTableEnum
 import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.jdbc.SortDirection
-import fi.oph.kitu.organisaatiot.Organisaatiot
 import fi.oph.kitu.webmvc.Links
 import kotlinx.html.a
 import kotlinx.html.article
@@ -16,14 +17,12 @@ import kotlinx.html.li
 import kotlinx.html.nav
 import kotlinx.html.table
 import kotlinx.html.ul
-import kotlin.enums.enumEntries
 
 object KielitestiSuoritusErrorPage {
     fun render(
         sortColumn: KielitestiSuoritusErrorColumn,
         sortDirection: SortDirection,
         errors: Iterable<KielitestiSuoritusError>,
-        organisaatioidenNimet: Organisaatiot,
     ): String =
         Page.renderHtml(
             wideContent = true,
@@ -50,12 +49,10 @@ object KielitestiSuoritusErrorPage {
                 }
                 table(classes = "compact striped") {
                     val columns =
-                        enumEntries<KielitestiSuoritusErrorColumn>().map {
-                            it.withValue(
-                                it.getValue(organisaatioidenNimet),
-                                it.renderHtml?.invoke(organisaatioidenNimet),
-                            )
-                        }
+                        RenderableDisplayTableEnum
+                            .getByTags<KielitestiSuoritusErrorColumn, KielitestiSuoritusError>(
+                                setOf(ColumnTag.LIST_VIEW),
+                            ).map { it.withValue(it.getValue, it.renderHtml) }
 
                     displayTableHeader(
                         columns = columns,

@@ -86,9 +86,18 @@ class KielitestiCsvTest(
             ByteArrayOutputStream().also { kielitestiApiController.getErrorsAsCsv().body!!.writeTo(it) }
         val expectedCsv =
             """
-            virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;onrEtunimet;onrKutsumanimi;onrSukunimi;virheellinenKentta;virheellinenArvo
-            2024-11-22T10:49:49Z;;010180-9026;Ranja Testi Öhman-Testi;Ranja;Testi Öhman-Testi;Ranja;1.2.246.562.10.14893989377;testi@example.com;Kirjoitusvirhe nimessä tai henkilötunnuksessa;"{""request"": {""etunimet"": ""Ranja"", ""hetu"": ""010180-9026"", ""kutsumanimi"": ""Ranja"", ""sukunimi"": ""Testi Öhman-Testi""}}";Korjaa nimet lähdejärjestelmään näin:;Ranja Testi;Ranja;Öhman-Testi;;
-            2024-11-22T10:49:49Z;1.2.246.562.24.67409348034;010180-9026;Eino Testi Välimaa-Testi;Eino Test;Välimaa-Testi;Eino;1.2.246.562.10.14893989377;testi@example.com;"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";;;;;;puhuminen;virheellinen arvosana
+            Henkilötunnus;Nimi;Organisaatio;Opettajan sähköpostiosoite;Virheen luontiaika;Valmis;Virheviesti;Ratkaisuehdotus
+            010180-9026;"Etunimet: Ranja
+            Kutsumanimi: Ranja
+            Sukunimi: Testi Öhman-Testi";"Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus
+            1.2.246.562.10.14893989377";testi@example.com;22.11.2024 12:49:49+02;Kyllä;Kirjoitusvirhe nimessä tai henkilötunnuksessa;"Korjaa nimet lähdejärjestelmään näin:
+            Etunimet: Ranja Testi
+            Kutsumanimi: Ranja
+            Sukunimi: Öhman-Testi"
+            010180-9026;"Etunimet: Eino Test
+            Kutsumanimi: Eino
+            Sukunimi: Välimaa-Testi";"Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus
+            1.2.246.562.10.14893989377";testi@example.com;22.11.2024 12:49:49+02;Kyllä;"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";
 
             """.trimIndent()
 
