@@ -64,13 +64,6 @@ describe('"Koto Suoritukset" -page', () => {
       toFinnishDateTime(virheFixture.virheenLuontiaika),
     )
     const viestiCell = errors.getByText(virheFixture.viesti!)
-    const virheellinenKenttaCell = errors.getByText(
-      virheFixture.virheellinenKentta!,
-      { exact: true },
-    )
-    const virheellinenArvoCell = errors.getByText(
-      virheFixture.virheellinenArvo!,
-    )
 
     await expect(hetuCell).toHaveAttribute("data-testid", "hetu")
     await expect(nimiCell).toHaveText(
@@ -86,14 +79,6 @@ describe('"Koto Suoritukset" -page', () => {
       "virheenLuontiaika",
     )
     await expect(viestiCell).toHaveAttribute("data-testid", "viesti")
-    await expect(virheellinenKenttaCell).toHaveAttribute(
-      "data-testid",
-      "virheellinenKentta",
-    )
-    await expect(virheellinenArvoCell).toHaveAttribute(
-      "data-testid",
-      "virheellinenArvo",
-    )
   })
 
   test("ratkaisuehdotus column is displayed properly", async ({
@@ -237,16 +222,6 @@ describe('"Koto Suoritukset" -page', () => {
         tableColumnIndex: 7,
         order: ["", ""],
       },
-      {
-        column: "Virheellinen kenttä",
-        tableColumnIndex: 8,
-        order: ["yksi niistä", "puhuminen", "kirjoittaminen"],
-      },
-      {
-        column: "Virheellinen arvo",
-        tableColumnIndex: 9,
-        order: ["virheellinen arvosana", "tyhjää täynnä", "en kerro, arvaa!"],
-      },
     ] as const
     for (const testCase of sortTestCases) {
       const { column, tableColumnIndex, order } = testCase
@@ -295,11 +270,14 @@ describe('"Koto Suoritukset" -page', () => {
     expect(path).not.toBeNull()
 
     const csvContent = await fs.readFile(path!, "utf8")
-    let headers =
-      "virheenLuontiaika;suorittajanOid;hetu;nimi;etunimet;sukunimi;kutsumanimi;schoolOid;teacherEmail;viesti;lisatietoja;onrLisatietoja;onrEtunimet;onrKutsumanimi;onrSukunimi;virheellinenKentta;virheellinenArvo"
-    let ranjaError =
-      '2024-11-22T10:49:49Z;1.2.246.562.24.20281155246;010180-9026;Ranja Testi Öhman-Testi;Ranja Testi;Öhman-Testi;Ranja;1.2.246.562.10.14893989377;opettaja@testi.oph.fi;"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";;;;;;puhuminen;virheellinen arvosana'
+    const headers =
+      "Henkilötunnus;Nimi;Organisaatio;Opettajan sähköpostiosoite;Virheen luontiaika;Valmis;Virheviesti;Ratkaisuehdotus"
+    const ranjaError =
+      '010180-9026;"Etunimet: Ranja Testi\nKutsumanimi: Ranja\nSukunimi: Öhman-Testi";"Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus\n1.2.246.562.10.14893989377";opettaja@testi.oph.fi;' +
+      toFinnishDateTime("2024-11-22T10:49:49Z", true) +
+      ';Kyllä;"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";'
     expect(csvContent).toContain(headers)
     expect(csvContent).toContain(ranjaError)
+    expect(csvContent).not.toContain(fixtureData.suoritusVirhe.suorittajanOid)
   })
 })

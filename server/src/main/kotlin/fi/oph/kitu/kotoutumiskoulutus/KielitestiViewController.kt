@@ -87,7 +87,6 @@ class KielitestiViewController(
                 sortColumn = sortColumn,
                 sortDirection = sortDirection,
                 errors = errorService.getErrors(sortColumn, sortDirection),
-                organisaatioidenNimet = organisaatioService.getOrganisaatiot(),
             ),
         )
 }

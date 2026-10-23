@@ -8,7 +8,6 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusColumn
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiErrorService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorColumn
-import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorCsvColumn
 import fi.oph.kitu.util.TimeService
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
@@ -38,7 +37,7 @@ class KielitestiApiController(
 
     @GetMapping("/suoritukset/virheet", produces = ["text/csv"])
     fun getErrorsAsCsv(): ResponseEntity<StreamingResponseBody> =
-        csvAttachmentResponse<KielitestiSuoritusErrorCsvColumn, _>(
+        csvAttachmentResponse<KielitestiSuoritusErrorColumn, _>(
             filename = "koto-virheet-${timeService.today().isoDate()}.csv",
             data = errorService.getErrors(KielitestiSuoritusErrorColumn.VirheenLuontiaika, SortDirection.DESC),
         )

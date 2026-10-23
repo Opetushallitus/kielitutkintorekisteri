@@ -706,10 +706,6 @@ object UiText {
                 get() = tr("koto.sarake.virheenLuontiaika")
             val virheviesti: LocalizedString get() = tr("koto.sarake.virheviesti")
             val ratkaisuehdotus: LocalizedString get() = tr("koto.sarake.ratkaisuehdotus")
-            val virheellinenKentta: LocalizedString
-                get() = tr("koto.sarake.virheellinenKentta")
-            val virheellinenArvo: LocalizedString
-                get() = tr("koto.sarake.virheellinenArvo")
             val valmis: LocalizedString get() = tr("koto.sarake.valmis")
         }
 
