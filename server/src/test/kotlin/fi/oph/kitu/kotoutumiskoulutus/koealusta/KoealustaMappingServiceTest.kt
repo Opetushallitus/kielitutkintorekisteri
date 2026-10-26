@@ -75,6 +75,25 @@ class KoealustaMappingServiceTest {
     }
 
     @Test
+    fun `aiemmin kirjattu henkilötietovirhe saa kurssin tiedot uudesta tuonnista`() {
+        val onr = LaskevaOnr()
+        val aiempi = tuoVirheet(onr, ensimmainenAjo).single()
+        val uusiSuoritus =
+            antero.completions.single().copy(courseid = 33, coursename = "Uusintatesti", timecompleted = 1730000000)
+
+        val uusi = tuoVirheet(onr, toinenAjo, listOf(aiempi), antero.copy(completions = listOf(uusiSuoritus))).single()
+
+        assertAll(
+            fun() = assertEquals(32, aiempi.kurssiId),
+            fun() = assertEquals("Integraatio testaus", aiempi.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), aiempi.suoritusaika),
+            fun() = assertEquals(33, uusi.kurssiId),
+            fun() = assertEquals("Uusintatesti", uusi.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1730000000), uusi.suoritusaika),
+        )
+    }
+
+    @Test
     fun `henkilötietovirhe tarkistetaan uudelleen, kun nimet muuttuvat koealustalla`() {
         val onr = LaskevaOnr()
         val aiemmat = tuoVirheet(onr, ensimmainenAjo)

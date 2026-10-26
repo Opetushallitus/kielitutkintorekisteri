@@ -79,6 +79,13 @@ describe('"Koto Suoritukset" -page', () => {
       "virheenLuontiaika",
     )
     await expect(viestiCell).toHaveAttribute("data-testid", "viesti")
+    await expect(errors.getByTestId("kurssiId")).toHaveText(
+      String(virheFixture.kurssiId),
+    )
+    await expect(errors.getByTestId("kurssi")).toHaveText(virheFixture.kurssi)
+    await expect(errors.getByTestId("suoritusaika")).toHaveText(
+      toFinnishDateTime(virheFixture.suoritusaika, true),
+    )
   })
 
   test("ratkaisuehdotus column is displayed properly", async ({
@@ -271,11 +278,12 @@ describe('"Koto Suoritukset" -page', () => {
 
     const csvContent = await fs.readFile(path!, "utf8")
     const headers =
-      "Henkilötunnus;Nimi;Organisaatio;Opettajan sähköpostiosoite;Virheen luontiaika;Valmis;Virheviesti;Ratkaisuehdotus"
+      "Henkilötunnus;Nimi;Organisaatio;Opettajan sähköpostiosoite;Virheen luontiaika;Valmis;Virheviesti;Ratkaisuehdotus;Kurssin ID;Testin nimi;Suoritusaika"
     const ranjaError =
       '010180-9026;"Etunimet: Ranja Testi\nKutsumanimi: Ranja\nSukunimi: Öhman-Testi";"Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus\n1.2.246.562.10.14893989377";opettaja@testi.oph.fi;' +
       toFinnishDateTime("2024-11-22T10:49:49Z", true) +
-      ';Kyllä;"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";'
+      ';Kyllä;"Unexpectedly missing quiz grade ""puhuminen"" on course ""Integraatio testaus"" for user ""1""";;32;Integraatio testaus;' +
+      toFinnishDateTime("2024-11-20T08:00:00Z", true)
     expect(csvContent).toContain(headers)
     expect(csvContent).toContain(ranjaError)
     expect(csvContent).not.toContain(fixtureData.suoritusVirhe.suorittajanOid)

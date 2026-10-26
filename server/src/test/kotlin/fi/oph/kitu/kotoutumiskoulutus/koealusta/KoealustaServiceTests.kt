@@ -28,6 +28,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 @SpringBootTest(
     properties = [
@@ -547,6 +548,9 @@ class KoealustaServiceTests(
             fun() = assertEquals("1.2.246.562.24.33342764709", missingPuhuminenError.suorittajanOid),
             fun() = assertEquals("1.2.246.562.10.42923230015", missingPuhuminenError.schoolOid.toString()),
             fun() = assertEquals("opettaja@testi.oph.fi", missingPuhuminenError.teacherEmail),
+            fun() = assertEquals(32, missingPuhuminenError.kurssiId),
+            fun() = assertEquals("Integraatio testaus", missingPuhuminenError.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), missingPuhuminenError.suoritusaika),
             fun() = assertEquals("puhuminen", missingPuhuminenError.virheellinenKentta),
             fun() =
                 assertEquals(
@@ -625,6 +629,9 @@ class KoealustaServiceTests(
         assertAll(
             fun() = assertEquals("1.2.246.562.10.42923230015", oppijaValidationFailure.schoolOid.toString()),
             fun() = assertEquals("opettaja@testi.oph.fi", oppijaValidationFailure.teacherEmail),
+            fun() = assertEquals(32, oppijaValidationFailure.kurssiId),
+            fun() = assertEquals("Integraatio testaus", oppijaValidationFailure.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), oppijaValidationFailure.suoritusaika),
             fun() = assertEquals("Puuttuva kenttä \"SSN\" käyttäjälle \"1\"", oppijaValidationFailure.viesti),
             fun() = assertEquals("SSN", oppijaValidationFailure.virheellinenKentta),
         )
@@ -680,6 +687,9 @@ class KoealustaServiceTests(
             fun() = assertEquals("Testi-Moikka Antero", onrBadRequestFailure.nimi),
             fun() = assertEquals("1.2.246.562.10.42923230015", onrBadRequestFailure.schoolOid.toString()),
             fun() = assertEquals("opettaja@testi.oph.fi", onrBadRequestFailure.teacherEmail),
+            fun() = assertEquals(32, onrBadRequestFailure.kurssiId),
+            fun() = assertEquals("Integraatio testaus", onrBadRequestFailure.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), onrBadRequestFailure.suoritusaika),
         )
     }
 
@@ -806,6 +816,40 @@ class KoealustaServiceTests(
             fun() = assertEquals(aiempi.id, virhe.id),
             fun() = assertEquals(ensimmainenAjo, virhe.virheenLuontiaika),
             fun() = assertEquals(400, virhe.onrStatus),
+            fun() = assertEquals(32, virhe.kurssiId),
+            fun() = assertEquals("Integraatio testaus", virhe.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), virhe.suoritusaika),
+        )
+    }
+
+    @Test
+    fun `ilman kurssitietoja kirjattu virhe saa ne ja säilyttää luontiaikansa`(
+        @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        mockServer.expectValmiit(invalidHetu)
+        mockServer.expectValmiit(invalidHetu)
+
+        timeService.runWithFixedClock(ensimmainenAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+        val aiempi =
+            kielitestiSuoritusErrorRepository.save(
+                kielitestiSuoritusErrorRepository
+                    .findAll()
+                    .single()
+                    .copy(kurssiId = null, kurssi = null, suoritusaika = null),
+            )
+        timeService.runWithFixedClock(toinenAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+
+        mockServer.verify()
+
+        val virhe = kielitestiSuoritusErrorRepository.findAll().single()
+        assertAll(
+            fun() = assertEquals(aiempi.id, virhe.id),
+            fun() = assertEquals(ensimmainenAjo, virhe.virheenLuontiaika),
+            fun() = assertEquals(32, virhe.kurssiId),
+            fun() = assertEquals("Integraatio testaus", virhe.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), virhe.suoritusaika),
         )
     }
 
@@ -1203,6 +1247,9 @@ class KoealustaServiceTests(
             fun() = assertEquals("1.2.246.562.24.33342764709", error.suorittajanOid),
             fun() = assertEquals("1.2.246.562.10.42923230015", error.schoolOid.toString()),
             fun() = assertEquals("opettaja@testi.oph.fi", error.teacherEmail),
+            fun() = assertEquals(32, error.kurssiId),
+            fun() = assertEquals("Integraatio testaus", error.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), error.suoritusaika),
             fun() = assertEquals("lang", error.virheellinenKentta),
             fun() =
                 assertEquals(
@@ -1286,6 +1333,9 @@ class KoealustaServiceTests(
             fun() = assertEquals("1.2.246.562.24.33342764709", error.suorittajanOid),
             fun() = assertEquals("1.2.246.562.10.42923230015", error.schoolOid.toString()),
             fun() = assertEquals("opettaja@testi.oph.fi", error.teacherEmail),
+            fun() = assertEquals(32, error.kurssiId),
+            fun() = assertEquals("Integraatio testaus", error.kurssi),
+            fun() = assertEquals(Instant.ofEpochSecond(1728969131), error.suoritusaika),
             fun() = assertEquals("lang", error.virheellinenKentta),
             fun() =
                 assertEquals(
@@ -1568,6 +1618,9 @@ class KoealustaServiceTests(
             fun() = assertEquals(false, virhe.completed),
             fun() = assertEquals(aiempi.id, virhe.id),
             fun() = assertEquals(keskeneraisetNow, virhe.virheenLuontiaika),
+            fun() = assertEquals(51, virhe.kurssiId),
+            fun() = assertEquals("Kurssi B", virhe.kurssi),
+            fun() = assertNull(virhe.suoritusaika),
         )
     }
 

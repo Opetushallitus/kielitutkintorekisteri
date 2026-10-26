@@ -77,6 +77,9 @@ class KielitestiCsvTest(
                     virheellinenArvo = "virheellinen arvosana",
                     lisatietoja = null,
                     onrLisatietoja = null,
+                    kurssiId = 32,
+                    kurssi = "Testaus",
+                    suoritusaika = Instant.parse("2024-11-20T08:00:00Z"),
                 ),
             )
 
@@ -86,18 +89,18 @@ class KielitestiCsvTest(
             ByteArrayOutputStream().also { kielitestiApiController.getErrorsAsCsv().body!!.writeTo(it) }
         val expectedCsv =
             """
-            Henkilötunnus;Nimi;Organisaatio;Opettajan sähköpostiosoite;Virheen luontiaika;Valmis;Virheviesti;Ratkaisuehdotus
+            Henkilötunnus;Nimi;Organisaatio;Opettajan sähköpostiosoite;Virheen luontiaika;Valmis;Virheviesti;Ratkaisuehdotus;Kurssin ID;Testin nimi;Suoritusaika
             010180-9026;"Etunimet: Ranja
             Kutsumanimi: Ranja
             Sukunimi: Testi Öhman-Testi";"Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus
             1.2.246.562.10.14893989377";testi@example.com;22.11.2024 12:49:49+02;Kyllä;Kirjoitusvirhe nimessä tai henkilötunnuksessa;"Korjaa nimet lähdejärjestelmään näin:
             Etunimet: Ranja Testi
             Kutsumanimi: Ranja
-            Sukunimi: Öhman-Testi"
+            Sukunimi: Öhman-Testi";;;
             010180-9026;"Etunimet: Eino Test
             Kutsumanimi: Eino
             Sukunimi: Välimaa-Testi";"Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus
-            1.2.246.562.10.14893989377";testi@example.com;22.11.2024 12:49:49+02;Kyllä;"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";
+            1.2.246.562.10.14893989377";testi@example.com;22.11.2024 12:49:49+02;Kyllä;"Puuttuva arvosana ""puhuminen"" kurssilla ""Testaus"" käyttäjälle ""1"".";;32;Testaus;20.11.2024 10:00:00+02
 
             """.trimIndent()
 

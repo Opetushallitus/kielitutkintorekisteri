@@ -133,11 +133,8 @@ class KoealustaMappingService(
     ): Either<KoealustaMappingError, Oid> {
         if (aiempiVirhe != null) {
             return KoealustaMappingError
-                .AiemminTarkistettuOppijanumeroFailure(
-                    aiempiVirhe,
-                    Oid.parse(user.completions.first().schoolOID).getOrNull(),
-                    user.completions.first().teacheremail,
-                ).left()
+                .AiemminTarkistettuOppijanumeroFailure(aiempiVirhe, user.firstCourse())
+                .left()
         }
 
         return oppijanumeroService.getMasterOid(oppija).mapLeft {
@@ -147,8 +144,7 @@ class KoealustaMappingService(
 
             KoealustaMappingError.OppijanumeroFailure(
                 "Oppijanumeron haku epäonnistui: ${debugInfo.message() ?: it.oppijanumeroServiceError?.error ?: it.message ?: "ei tarkempia tietoja"}",
-                Oid.parse(user.completions.first().schoolOID).getOrNull(),
-                user.completions.first().teacheremail,
+                user.firstCourse(),
                 debugInfo.toString(),
                 oppija,
                 ratkaisuehdotus,
@@ -190,6 +186,9 @@ class KoealustaMappingService(
                         virheellinenArvo = value,
                         lisatietoja = null,
                         onrLisatietoja = null,
+                        kurssiId = error.course?.courseid,
+                        kurssi = error.course?.coursename,
+                        suoritusaika = error.course?.suoritusaika(),
                     )
                 }
             }
@@ -216,6 +215,9 @@ class KoealustaMappingService(
                         onrKutsumanimi = error.ratkaisuehdotus.korjatutNimet?.kutsumanimi,
                         onrSukunimi = error.ratkaisuehdotus.korjatutNimet?.sukunimi,
                         onrStatus = error.onrStatus,
+                        kurssiId = error.course?.courseid,
+                        kurssi = error.course?.coursename,
+                        suoritusaika = error.course?.suoritusaika(),
                     ),
                 )
             }
@@ -226,6 +228,9 @@ class KoealustaMappingService(
                         id = null,
                         schoolOid = error.schoolOid,
                         teacherEmail = error.teacherEmail,
+                        kurssiId = error.course?.courseid,
+                        kurssi = error.course?.coursename,
+                        suoritusaika = error.course?.suoritusaika(),
                         virheenLuontiaika = now,
                     ),
                 )

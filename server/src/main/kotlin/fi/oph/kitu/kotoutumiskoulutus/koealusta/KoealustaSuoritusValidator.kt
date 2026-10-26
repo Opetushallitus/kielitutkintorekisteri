@@ -11,7 +11,6 @@ import fi.oph.kitu.kotoutumiskoulutus.suoritukset.Testikieli
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.Oppija
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 @Service
 class KoealustaSuoritusValidator {
@@ -28,8 +27,7 @@ class KoealustaSuoritusValidator {
             return KoealustaMappingError
                 .OppijaValidationFailure(
                     "Validation failure on converting user \"${koealustaUser.userid}\" to oppija",
-                    schoolOid = Oid.parse(koealustaUser.schoolOID()).getOrNull(),
-                    teacherEmail = koealustaUser.teacherEmail(),
+                    course = koealustaUser.firstCourse(),
                     koealustaUser,
                     errors,
                 ).left()
@@ -83,8 +81,7 @@ class KoealustaSuoritusValidator {
                         """
                         Validation failure on course completion on "${completion.coursename}" for user "${user.userid}"
                         """.trimIndent(),
-                    schoolOid = Oid.parse(completion.schoolOID).getOrNull(),
-                    teacherEmail = completion.teacheremail,
+                    course = completion,
                     koealustaUser = user,
                     validationErrors = errors,
                     oppijanumero = oppijanumero,
@@ -99,7 +96,7 @@ class KoealustaSuoritusValidator {
             kutsumanimi = user.preferredname.trim(),
             email = user.email,
             oppijanumero = oppijanumero,
-            suoritusaika = Instant.ofEpochSecond(completion.timecompleted),
+            suoritusaika = completion.suoritusaika(),
             oppilaitosOid = schoolOid!!,
             kurssiId = completion.courseid,
             kurssi = completion.coursename,
@@ -224,8 +221,7 @@ class KoealustaSuoritusValidator {
                 """
                 Validation failure on course completion on "${course.coursename}" for user "${user.userid}"
                 """.trimIndent(),
-            schoolOid = Oid.parse(course.schoolOID).getOrNull(),
-            teacherEmail = course.teacheremail,
+            course = course,
             koealustaUser = user,
             validationErrors = errors.toList(),
             oppijanumero = oppijanumero,

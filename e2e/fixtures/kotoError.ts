@@ -20,6 +20,9 @@ export interface KotoError {
   onrEtunimet: string | null
   onrKutsumanimi: string | null
   onrSukunimi: string | null
+  kurssiId: number | null
+  kurssi: string | null
+  suoritusaika: string | null
 }
 
 type CreateErrorArgs = Partial<
@@ -40,6 +43,9 @@ const createError = (
     onrEtunimet = null,
     onrKutsumanimi = null,
     onrSukunimi = null,
+    kurssiId = null,
+    kurssi = null,
+    suoritusaika = null,
   }: CreateErrorArgs,
 ) => {
   const p = peopleFixture[person]
@@ -61,6 +67,9 @@ const createError = (
     onrEtunimet,
     onrKutsumanimi,
     onrSukunimi,
+    kurssiId,
+    kurssi,
+    suoritusaika,
   }
 }
 
@@ -73,6 +82,9 @@ export const fixtureData = {
     virheellinenKentta: "puhuminen",
     virheellinenArvo: "virheellinen arvosana",
     virheenLuontiaika: "2024-11-22T10:49:49Z",
+    kurssiId: 32,
+    kurssi: "Integraatio testaus",
+    suoritusaika: "2024-11-20T08:00:00Z",
   }),
   virhePetro: createError("petro", {
     schoolOid: "1.2.246.562.10.14893989377",
@@ -139,6 +151,9 @@ export const fixtureData = {
     onrEtunimet: null,
     onrKutsumanimi: null,
     onrSukunimi: null,
+    kurssiId: null,
+    kurssi: null,
+    suoritusaika: null,
   },
 } as const
 
@@ -160,7 +175,10 @@ const insertQuery = (virhe: KotoError) => SQL`
       onr_lisatietoja,
       onr_etunimet,
       onr_kutsumanimi,
-      onr_sukunimi)
+      onr_sukunimi,
+      kurssi_id,
+      kurssi,
+      suoritusaika)
   VALUES (
              ${virhe.suorittajanOid},
              ${virhe.hetu},
@@ -178,7 +196,10 @@ const insertQuery = (virhe: KotoError) => SQL`
              ${virhe.onrLisatietoja},
              ${virhe.onrEtunimet},
              ${virhe.onrKutsumanimi},
-             ${virhe.onrSukunimi})
+             ${virhe.onrSukunimi},
+             ${virhe.kurssiId},
+             ${virhe.kurssi},
+             ${virhe.suoritusaika})
 `
 
 export type KotoErrorName = keyof typeof fixtureData
