@@ -111,6 +111,30 @@ enum class KielitestiSuoritusErrorColumn(
             }
         },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    KurssinId(
+        entityName = "kurssiId",
+        uiHeaderValue = UiText.Koto.Sarake.kurssinId,
+        urlParam = "kurssinid",
+        getValue = { it.kurssiId?.toString().orEmpty() },
+    ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    KurssinNimi(
+        entityName = "kurssi",
+        uiHeaderValue = UiText.Koto.Sarake.kurssinNimi,
+        urlParam = "kurssinnimi",
+        getValue = { it.kurssi.orEmpty() },
+    ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    Suoritusaika(
+        entityName = "suoritusaika",
+        uiHeaderValue = UiText.Koto.Sarake.suoritusaika,
+        urlParam = "suoritusaika",
+        getValue = { it.suoritusaika?.finnishDateTime().orEmpty() },
+    ),
 }
 
 private fun nimirivit(

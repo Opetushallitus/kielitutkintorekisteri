@@ -7,50 +7,47 @@ import fi.oph.kitu.oppijanumero.OppijanumeroRatkaisuehdotus
 
 sealed class KoealustaMappingError(
     message: String,
-    val schoolOid: Oid?,
-    val teacherEmail: String?,
+    val course: KoealustaCourse?,
 ) : Exception(message) {
+    val schoolOid: Oid? get() = Oid.parse(course?.schoolOID).getOrNull()
+    val teacherEmail: String? get() = course?.teacheremail
+
     class OppijanumeroFailure(
         override val message: String,
-        schoolOid: Oid?,
-        teacherEmail: String?,
+        course: KoealustaCourse?,
         val debugInfo: String?,
         val oppija: Oppija,
         val ratkaisuehdotus: OppijanumeroRatkaisuehdotus,
         val onrStatus: Int?,
-    ) : KoealustaMappingError(message, schoolOid, teacherEmail)
+    ) : KoealustaMappingError(message, course)
 
     class AiemminTarkistettuOppijanumeroFailure(
         val virhe: KielitestiSuoritusError,
-        schoolOid: Oid?,
-        teacherEmail: String?,
-    ) : KoealustaMappingError(virhe.viesti, schoolOid, teacherEmail)
+        course: KoealustaCourse?,
+    ) : KoealustaMappingError(virhe.viesti, course)
 
     abstract class ValidationFailure(
         message: String,
-        schoolOid: Oid?,
-        teacherEmail: String?,
+        course: KoealustaCourse?,
         val koealustaUser: KoealustaOppija,
         val validationErrors: List<Validation>,
         val oppijanumero: Oid? = null,
-    ) : KoealustaMappingError(message, schoolOid, teacherEmail)
+    ) : KoealustaMappingError(message, course)
 
     class OppijaValidationFailure(
         message: String,
-        schoolOid: Oid?,
-        teacherEmail: String?,
+        course: KoealustaCourse?,
         koealustaUser: KoealustaOppija,
         validationErrors: List<Validation>,
-    ) : ValidationFailure(message, schoolOid, teacherEmail, koealustaUser, validationErrors)
+    ) : ValidationFailure(message, course, koealustaUser, validationErrors)
 
     class SuoritusValidationFailure(
         message: String,
-        schoolOid: Oid?,
-        teacherEmail: String?,
+        course: KoealustaCourse?,
         koealustaUser: KoealustaOppija,
         validationErrors: List<Validation>,
         oppijanumero: Oid?,
-    ) : ValidationFailure(message, schoolOid, teacherEmail, koealustaUser, validationErrors, oppijanumero)
+    ) : ValidationFailure(message, course, koealustaUser, validationErrors, oppijanumero)
 
     sealed class Validation(
         val userId: Int,

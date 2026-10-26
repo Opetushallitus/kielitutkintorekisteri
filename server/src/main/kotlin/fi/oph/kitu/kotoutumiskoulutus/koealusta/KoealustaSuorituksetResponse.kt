@@ -3,6 +3,7 @@ package fi.oph.kitu.kotoutumiskoulutus.koealusta
 import com.fasterxml.jackson.annotation.JsonProperty
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.result.getOrThrow
+import java.time.Instant
 
 interface KoealustaOppija {
     val userid: Int
@@ -12,11 +13,10 @@ interface KoealustaOppija {
     val ssn: String?
     val email: String
 
-    fun schoolOID(): String?
+    fun firstCourse(): KoealustaCourse?
 
-    fun teacherEmail(): String?
-
-    fun mustBeSkipped(): Boolean = Oid.parse(schoolOID()).getOrNull().let { oid -> ignoredSchoolOids.contains(oid) }
+    fun mustBeSkipped(): Boolean =
+        Oid.parse(firstCourse()?.schoolOID).getOrNull().let { oid -> ignoredSchoolOids.contains(oid) }
 
     fun isOnrValidateable(): Boolean =
         listOf(firstnames, lastname, preferredname, ssn).all { it.orEmpty().isNotBlank() }
@@ -27,6 +27,8 @@ interface KoealustaCourse {
     val coursename: String
     val schoolOID: String?
     val teacheremail: String?
+
+    fun suoritusaika(): Instant? = null
 }
 
 data class KoealustaSuorituksetResponse(
@@ -43,9 +45,7 @@ data class KoealustaSuorituksetResponse(
         override val email: String,
         val completions: List<Completion>,
     ) : KoealustaOppija {
-        override fun schoolOID(): String? = completions.firstOrNull()?.schoolOID
-
-        override fun teacherEmail(): String? = completions.firstOrNull()?.teacheremail
+        override fun firstCourse(): KoealustaCourse? = completions.firstOrNull()
 
         data class Completion(
             override val courseid: Int,
@@ -58,6 +58,8 @@ data class KoealustaSuorituksetResponse(
             @param:JsonProperty("questionbank_release")
             val questionbank: String?,
         ) : KoealustaCourse {
+            override fun suoritusaika(): Instant = Instant.ofEpochSecond(timecompleted)
+
             data class Result(
                 val name: String,
                 @param:JsonProperty("quiz_grade")
@@ -80,9 +82,7 @@ data class KoealustaKeskeneraisetResponse(
         override val email: String,
         val courses: List<Course>,
     ) : KoealustaOppija {
-        override fun schoolOID(): String? = courses.firstOrNull()?.schoolOID
-
-        override fun teacherEmail(): String? = courses.firstOrNull()?.teacheremail
+        override fun firstCourse(): KoealustaCourse? = courses.firstOrNull()
 
         data class Course(
             override val courseid: Int,
