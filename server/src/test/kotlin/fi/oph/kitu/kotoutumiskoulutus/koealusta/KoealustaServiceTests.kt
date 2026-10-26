@@ -774,6 +774,70 @@ class KoealustaServiceTests(
         )
     }
 
+    private val valmiitUrl =
+        "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token&wsfunction=local_completion_export_get_completions&moodlewsrestformat=json&from=0"
+
+    private fun MockRestServiceServer.expectValmiit(vararg users: String) {
+        expect(requestTo(valmiitUrl))
+            .andRespond(withSuccess("""{ "users": [${users.joinToString()}] }""", MediaType.APPLICATION_JSON))
+    }
+
+    private val ensimmainenAjo = Instant.parse("2026-10-01T03:00:00Z")
+    private val toinenAjo = Instant.parse("2026-10-02T03:00:00Z")
+    private val kolmasAjo = Instant.parse("2026-10-03T03:00:00Z")
+
+    @Test
+    fun `toistuva tuontivirhe säilyttää luontiaikansa`(
+        @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        mockServer.expectValmiit(invalidHetu)
+        mockServer.expectValmiit(invalidHetu)
+
+        timeService.runWithFixedClock(ensimmainenAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+        val aiempi = kielitestiSuoritusErrorRepository.findAll().single()
+        timeService.runWithFixedClock(toinenAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+
+        mockServer.verify()
+
+        val virhe = kielitestiSuoritusErrorRepository.findAll().single()
+        assertAll(
+            fun() = assertEquals(aiempi.id, virhe.id),
+            fun() = assertEquals(ensimmainenAjo, virhe.virheenLuontiaika),
+            fun() = assertEquals(400, virhe.onrStatus),
+        )
+    }
+
+    @Test
+    fun `tuonti lisää uudet virheet ja poistaa korjaantuneet`(
+        @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        val yksiloimaton =
+            invalidHetu
+                .replace("\"userid\": 2", "\"userid\": 3")
+                .replace("INVALID_HETU", "WRONG_HETU")
+        mockServer.expectValmiit(invalidHetu)
+        mockServer.expectValmiit(invalidHetu, yksiloimaton)
+        mockServer.expectValmiit(validSuoritus)
+
+        timeService.runWithFixedClock(ensimmainenAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+        timeService.runWithFixedClock(toinenAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+        val virheet = kielitestiSuoritusErrorRepository.findAll().associateBy { it.hetu }
+        timeService.runWithFixedClock(kolmasAjo) { koealustaService.importValmiitSuoritukset(Instant.EPOCH) }
+
+        mockServer.verify()
+
+        assertAll(
+            fun() = assertEquals(setOf("INVALID_HETU", "WRONG_HETU"), virheet.keys),
+            fun() = assertEquals(ensimmainenAjo, virheet.getValue("INVALID_HETU").virheenLuontiaika),
+            fun() = assertEquals(toinenAjo, virheet.getValue("WRONG_HETU").virheenLuontiaika),
+            fun() = assertEquals(emptyList(), kielitestiSuoritusErrorRepository.findAll().toList()),
+        )
+    }
+
     @Test
     fun `import removes leading and trailing whitespace from names and ssn`(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
@@ -1449,6 +1513,61 @@ class KoealustaServiceTests(
             fun() = assertEquals(2, suoritukset.size),
             fun() = assertEquals(Oid.parse("1.2.246.562.24.33342764709").getOrThrow(), valmis.oppijanumero),
             fun() = assertEquals(50, keskenerainen.kurssiId),
+        )
+    }
+
+    @Test
+    fun `toistuva keskeneräisen tuontivirhe säilyttää luontiaikansa`(
+        @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        val virheellinenKoulu =
+            """
+            {
+              "users": [
+                {
+                  "userid": 10,
+                  "firstnames": "Kesken Testi",
+                  "lastname": "Öhman-Testi",
+                  "preferredname": "Kesken",
+                  "SSN": "010180-9026",
+                  "email": "kesken.testi@oph.fi",
+                  "courses": [
+                    {
+                      "courseid": 50,
+                      "coursename": "Kurssi A",
+                      "schoolOID": "1.2.246.562.10.42923230015",
+                      "teacheremail": "opettaja@testi.oph.fi"
+                    },
+                    {
+                      "courseid": 51,
+                      "coursename": "Kurssi B",
+                      "schoolOID": "EI-OID",
+                      "teacheremail": "opettaja@testi.oph.fi"
+                    }
+                  ]
+                }
+              ]
+            }
+            """.trimIndent()
+        val seuraavanaPaivana = keskeneraisetNow.plusSeconds(24 * 60 * 60)
+        mockServer.expectKeskeneraiset(virheellinenKoulu)
+        mockServer
+            .expect(requestTo(keskeneraisetUrl(1768737600L + 24 * 60 * 60)))
+            .andRespond(withSuccess(virheellinenKoulu, MediaType.APPLICATION_JSON))
+
+        importKeskeneraiset(koealustaService, timeService)
+        val aiempi = kielitestiSuoritusErrorRepository.findAll().single()
+        timeService.runWithFixedClock(seuraavanaPaivana) { koealustaService.importKeskeneraisetSuoritukset() }
+
+        mockServer.verify()
+
+        val virhe = kielitestiSuoritusErrorRepository.findAll().single()
+        assertAll(
+            fun() = assertEquals(false, virhe.completed),
+            fun() = assertEquals(aiempi.id, virhe.id),
+            fun() = assertEquals(keskeneraisetNow, virhe.virheenLuontiaika),
         )
     }
 

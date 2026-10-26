@@ -3,6 +3,7 @@ package fi.oph.kitu.kotoutumiskoulutus.koealusta
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.CustomKielitestiSuoritusRepository
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritusRepository
+import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiErrorService
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusErrorRepository
 import fi.oph.kitu.observability.PeerService
 import fi.oph.kitu.observability.setAttribute
@@ -28,6 +29,7 @@ class KoealustaService(
     private val mappingService: KoealustaMappingService,
     private val auditLogger: AuditLogger,
     private val kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+    private val kielitestiErrorService: KielitestiErrorService,
     private val timeService: TimeService,
 ) {
     @Value($$"${kitu.kotoutumiskoulutus.koealusta.wstoken}")
@@ -60,12 +62,15 @@ class KoealustaService(
             return from
         }
 
-        val (suoritukset, validationFailure) = mappingService.responseStringToKielitestiSuoritus(response.body!!)
+        val (suoritukset, validationFailure) =
+            mappingService.responseStringToKielitestiSuoritus(
+                response.body!!,
+                kielitestiSuoritusErrorRepository.findAllByCompleted(true),
+            )
 
         val validationErrors = mappingService.convertErrors(validationFailure?.validationErrors.orEmpty())
         val oppijanumeroErrors = mappingService.convertErrors(validationFailure?.oppijanumeroExceptions.orEmpty())
-        kielitestiSuoritusErrorRepository.deleteAllByCompleted(true)
-        kielitestiSuoritusErrorRepository.saveAll(validationErrors + oppijanumeroErrors)
+        kielitestiErrorService.syncErrors(true, validationErrors + oppijanumeroErrors)
 
         val savedSuoritukset =
             suoritukset
@@ -109,12 +114,8 @@ class KoealustaService(
 
         val (suoritukset, validationFailure) = mappingService.responseStringToKeskenerainenSuoritus(body)
 
-        val validationErrors =
-            mappingService
-                .convertErrors(validationFailure?.validationErrors.orEmpty())
-                .map { it.copy(completed = false) }
-        kielitestiSuoritusErrorRepository.deleteAllByCompleted(false)
-        kielitestiSuoritusErrorRepository.saveAll(validationErrors)
+        val validationErrors = mappingService.convertErrors(validationFailure?.validationErrors.orEmpty())
+        kielitestiErrorService.syncErrors(false, validationErrors)
 
         customKielitestiSuoritusRepository.deleteAllKeskeneraiset()
 

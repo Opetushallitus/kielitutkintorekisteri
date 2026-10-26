@@ -30,5 +30,6 @@ data class KielitestiSuoritusError(
     val onrEtunimet: String? = null,
     val onrKutsumanimi: String? = null,
     val onrSukunimi: String? = null,
+    val onrStatus: Int? = null,
     val completed: Boolean = true,
 )
