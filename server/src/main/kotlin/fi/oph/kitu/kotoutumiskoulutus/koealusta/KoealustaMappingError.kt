@@ -1,5 +1,6 @@
 package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
+import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusError
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.Oppija
 import fi.oph.kitu.oppijanumero.OppijanumeroRatkaisuehdotus
@@ -16,7 +17,14 @@ sealed class KoealustaMappingError(
         val debugInfo: String?,
         val oppija: Oppija,
         val ratkaisuehdotus: OppijanumeroRatkaisuehdotus,
+        val onrStatus: Int?,
     ) : KoealustaMappingError(message, schoolOid, teacherEmail)
+
+    class AiemminTarkistettuOppijanumeroFailure(
+        val virhe: KielitestiSuoritusError,
+        schoolOid: Oid?,
+        teacherEmail: String?,
+    ) : KoealustaMappingError(virhe.viesti, schoolOid, teacherEmail)
 
     abstract class ValidationFailure(
         message: String,

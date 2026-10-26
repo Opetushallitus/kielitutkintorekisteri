@@ -1,18 +1,22 @@
 package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
+import arrow.core.Either
+import arrow.core.left
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusError
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.HENKILOTIETOVIRHEEN_TILAT
+import fi.oph.kitu.oppijanumero.Oppija
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.oppijanumero.OppijanumeroTroubleshootingService
 import fi.oph.kitu.oppijanumero.OppijanumerorekisteriDebugInfo
 import fi.oph.kitu.oppijanumero.troubleshootOppijanumero
+import fi.oph.kitu.util.TimeService
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 @Service
 class KoealustaMappingService(
@@ -20,6 +24,7 @@ class KoealustaMappingService(
     private val validator: KoealustaSuoritusValidator,
     private val oppijanumeroService: OppijanumeroService,
     private val oppijanumeroTroubleshootingService: OppijanumeroTroubleshootingService,
+    private val timeService: TimeService,
 ) {
     @WithSpan
     fun responseStringToKeskenerainenSuoritus(body: String) =
@@ -69,13 +74,18 @@ class KoealustaMappingService(
     }
 
     @WithSpan
-    fun responseStringToKielitestiSuoritus(body: String) = convertToKielitestiSuoritus(parser.parseSuoritus(body))
+    fun responseStringToKielitestiSuoritus(
+        body: String,
+        aiemmatVirheet: Collection<KielitestiSuoritusError> = emptyList(),
+    ) = convertToKielitestiSuoritus(parser.parseSuoritus(body), aiemmatVirheet)
 
     fun convertToKielitestiSuoritus(
         suorituksetResponse: KoealustaSuorituksetResponse,
+        aiemmatVirheet: Collection<KielitestiSuoritusError> = emptyList(),
     ): Pair<List<KielitestiSuoritus>, ValidationFailure?> {
         val oppijanumeroExceptions = mutableListOf<KoealustaMappingError>()
         val validationErrors = mutableListOf<KoealustaMappingError>()
+        val tarkistetutOnrVirheet = aiemmatVirheet.tarkistetutOnrVirheet()
 
         val suoritukset =
             suorituksetResponse.users.flatMap { user ->
@@ -89,22 +99,8 @@ class KoealustaMappingService(
 
                 val oppijanumero =
                     oppija
-                        ?.let(oppijanumeroService::getMasterOid)
-                        ?.mapLeft {
-                            val response = if (it is OppijanumeroException.HasResponse) it.response else null
-                            val debugInfo = OppijanumerorekisteriDebugInfo.from(it.request, response)
-                            val ratkaisuehdotus =
-                                oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response)
-
-                            KoealustaMappingError.OppijanumeroFailure(
-                                "Oppijanumeron haku epäonnistui: ${debugInfo.message() ?: it.oppijanumeroServiceError?.error ?: it.message ?: "ei tarkempia tietoja"}",
-                                Oid.parse(user.completions.first().schoolOID).getOrNull(),
-                                user.completions.first().teacheremail,
-                                debugInfo.toString(),
-                                oppija,
-                                ratkaisuehdotus,
-                            )
-                        }?.onLeft { oppijanumeroExceptions.add(it) }
+                        ?.let { haeOppijanumero(user, it, tarkistetutOnrVirheet[it]) }
+                        ?.onLeft { oppijanumeroExceptions.add(it) }
                         ?.getOrNull()
 
                 user.completions.mapNotNull { completion ->
@@ -130,11 +126,50 @@ class KoealustaMappingService(
         return Pair(suoritukset, validationFailure)
     }
 
+    private fun haeOppijanumero(
+        user: KoealustaSuorituksetResponse.User,
+        oppija: Oppija,
+        aiempiVirhe: KielitestiSuoritusError?,
+    ): Either<KoealustaMappingError, Oid> {
+        if (aiempiVirhe != null) {
+            return KoealustaMappingError
+                .AiemminTarkistettuOppijanumeroFailure(
+                    aiempiVirhe,
+                    Oid.parse(user.completions.first().schoolOID).getOrNull(),
+                    user.completions.first().teacheremail,
+                ).left()
+        }
+
+        return oppijanumeroService.getMasterOid(oppija).mapLeft {
+            val response = if (it is OppijanumeroException.HasResponse) it.response else null
+            val debugInfo = OppijanumerorekisteriDebugInfo.from(it.request, response)
+            val ratkaisuehdotus = oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response)
+
+            KoealustaMappingError.OppijanumeroFailure(
+                "Oppijanumeron haku epäonnistui: ${debugInfo.message() ?: it.oppijanumeroServiceError?.error ?: it.message ?: "ei tarkempia tietoja"}",
+                Oid.parse(user.completions.first().schoolOID).getOrNull(),
+                user.completions.first().teacheremail,
+                debugInfo.toString(),
+                oppija,
+                ratkaisuehdotus,
+                response?.statusCode?.value(),
+            )
+        }
+    }
+
+    private fun Collection<KielitestiSuoritusError>.tarkistetutOnrVirheet(): Map<Oppija, KielitestiSuoritusError> =
+        filter { it.onrStatus in HENKILOTIETOVIRHEEN_TILAT }
+            .mapNotNull { virhe ->
+                val hetu = virhe.hetu ?: return@mapNotNull null
+                val kutsumanimi = virhe.kutsumanimi ?: return@mapNotNull null
+                Oppija(virhe.etunimet, hetu, kutsumanimi, virhe.sukunimi) to virhe
+            }.toMap()
+
     fun convertErrors(errors: Iterable<KoealustaMappingError>): Iterable<KielitestiSuoritusError> =
         errors.flatMap(::convertError)
 
     fun convertError(error: KoealustaMappingError): List<KielitestiSuoritusError> {
-        val now = Instant.now()
+        val now = timeService.now()
         return when (error) {
             is KoealustaMappingError.ValidationFailure -> {
                 error.validationErrors.map { validationError ->
@@ -180,6 +215,18 @@ class KoealustaMappingService(
                         onrEtunimet = error.ratkaisuehdotus.korjatutNimet?.etunimet,
                         onrKutsumanimi = error.ratkaisuehdotus.korjatutNimet?.kutsumanimi,
                         onrSukunimi = error.ratkaisuehdotus.korjatutNimet?.sukunimi,
+                        onrStatus = error.onrStatus,
+                    ),
+                )
+            }
+
+            is KoealustaMappingError.AiemminTarkistettuOppijanumeroFailure -> {
+                listOf(
+                    error.virhe.copy(
+                        id = null,
+                        schoolOid = error.schoolOid,
+                        teacherEmail = error.teacherEmail,
+                        virheenLuontiaika = now,
                     ),
                 )
             }

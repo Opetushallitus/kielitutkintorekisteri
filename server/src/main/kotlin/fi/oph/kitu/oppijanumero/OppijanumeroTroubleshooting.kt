@@ -12,12 +12,7 @@ fun OppijanumeroTroubleshootingService.troubleshootOppijanumero(
     oppija: Oppija,
     response: ResponseEntity<String>?,
 ): OppijanumeroRatkaisuehdotus =
-    if (response != null && (
-            response.statusCode == HttpStatus.BAD_REQUEST ||
-                response.statusCode == HttpStatus.NOT_FOUND ||
-                response.statusCode == HttpStatus.CONFLICT
-        )
-    ) {
+    if (response != null && response.statusCode.value() in HENKILOTIETOVIRHEEN_TILAT) {
         troubleshootOppijaNameCombinations(oppija)
             ?.let { OppijanumeroRatkaisuehdotus(NIMIYHDISTELMA_LOYTYI, it) }
             ?: onrNimetHetulla(oppija)
@@ -28,6 +23,9 @@ fun OppijanumeroTroubleshootingService.troubleshootOppijanumero(
             "Oppijanumerorekisterin virhe ei viittaa virheellisiin oppijan nimitietoihin. Tarkista virheviesti.",
         )
     }
+
+val HENKILOTIETOVIRHEEN_TILAT: Set<Int> =
+    setOf(HttpStatus.BAD_REQUEST, HttpStatus.NOT_FOUND, HttpStatus.CONFLICT).map { it.value() }.toSet()
 
 const val EI_LOYTYNYT =
     "Oppijanumerorekisteristä ei löytynyt oppijanumeroa henkilötunnuksella eikä kokeilemalla nimiä " +
