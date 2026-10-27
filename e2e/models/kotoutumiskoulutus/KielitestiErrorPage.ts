@@ -40,7 +40,9 @@ export default class KielitestiErrorPage extends BasePage {
   }
 
   getTableColumnHeaderLink(text: string) {
-    return this.getErrorsTable().getByRole("link", { name: text })
+    return this.getErrorsTable().getByRole("link", {
+      name: new RegExp(`^${text}( [▲▼])?$`),
+    })
   }
 
   getCSVDownloadLink() {
