@@ -8,7 +8,7 @@ Kielitutkintorekisteri (kitu) — OPH's register for language-exam data. Virkail
 
 ## Toolchain
 
-Tool versions live in `.mise.toml` and are installed automatically by `scripts/start_local_env.sh`: Java (corretto), Node, Maven, ktlint, prettier, shellcheck, aws-cli, go, `cdk-notifier` (PR diff comments in `_deploy-env.yml`), humanlog. **Kotlin and the Java release are _not_ in `.mise.toml`** — they live in `server/pom.xml` as `kotlin.version`/`java.version`. Read exact versions from those two files rather than restating them here; Renovate bumps them continuously. `AWS_PROFILE=oph-ktr-dev` and `SPRING_PROFILES_ACTIVE=local` are set by mise.
+Tool versions live in `.mise.toml` and are installed automatically by `scripts/start_local_env.sh`: Java (corretto), Node, Maven, ktlint, prettier, shellcheck, actionlint, aws-cli, go, `cdk-notifier` (PR diff comments in `_deploy-env.yml`), humanlog. **Kotlin and the Java release are _not_ in `.mise.toml`** — they live in `server/pom.xml` as `kotlin.version`/`java.version`. Read exact versions from those two files rather than restating them here; Renovate bumps them continuously. `AWS_PROFILE=oph-ktr-dev` and `SPRING_PROFILES_ACTIVE=local` are set by mise.
 
 ## Common commands
 
@@ -139,5 +139,6 @@ Each domain typically contains its own `*ApiController`, `*ViewController` (serv
 - **CSV exports**: never rename or remove a column without asking, and always append new columns at the end (see "Display tables & CSV export").
 - **Formatting**: ktlint (K2 mode, format-on-save in IDEA) for Kotlin; prettier for TS/JSON/YAML/MD; shellcheck for `scripts/*.sh` and `infra/scripts/*.sh`. `.git-blame-ignore-revs` tracks formatting-only commits — add new bulk-reformat commits there.
 - **Always run `./scripts/format.sh` before reporting a task done** whenever TS/JSON/YAML/MD (or Kotlin) files have been touched. The script runs `prettier --write .` and `ktlint --format`, matching what `check-formatting.sh` enforces in CI.
+- **Workflows**: after editing `.github/workflows/`, run `./scripts/check-workflows.sh` (the CI `lint` job's second step). It bans `pull_request_target` and runs `actionlint`, which also shellchecks every `run:` block and type-checks expressions. That includes `needs.<job>` references: one pointing at a job missing from `needs:` evaluates silently empty in GitHub, not as an error. A freshly `mise install`ed tool only lands on a non-interactive shell's PATH via `mise exec --`.
 - **Banned dependencies**: `pom.xml` enforces exclusions for vulnerable `bouncycastle` and `xmlunit-core` versions; don't let transitive updates reintroduce them.
 - **Keep `infra/README.md` accurate**: any change under `infra/lib/` or `infra/bin/` that affects which stacks exist, what they create, IAM identities, cross-account wiring, manual prerequisites (DNS zones, secrets, KOSKI-side resources), or the Slack/alarms/investigation flow must update `infra/README.md` in the same commit.
