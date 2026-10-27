@@ -27,7 +27,7 @@ infra/
     ├── env.ts                       # getEnv(): fetch required env var or throw
     ├── utility-stage.ts             # Util stage (composes the stacks below)
     ├── container-repository-stack.ts  # ECR repo `kitu` + cross-account pull grants
-    ├── github-actions-stack.ts      # OIDC provider + per-env deploy role
+    ├── github-actions-stack.ts      # OIDC provider + deploy role + PR diff role
     ├── environment-stage.ts         # Composes the stacks below per env
     ├── network-stack.ts             # VPC + subnets
     ├── connections-stack.ts         # Security groups (two-phase: createRules() at end)
@@ -60,8 +60,10 @@ Created once, in the shared util account. Three things live here:
   resolve the image from ECR by `TAG` env var (`bin/infra.ts:23-26`).
 - **`Util/Alarms`** — its own `AlarmsStack` for image-scan findings + Util-level
   Slack notifications.
-- **`Util/GithubActions`** — the OIDC provider and the deployment role assumed by
-  the workflow `Opetushallitus/kielitutkintorekisteri`.
+- **`Util/GithubActions`** — the OIDC provider, the deployment role and the PR
+  diff role (see [GitHub Actions roles](#github-actions-roles)). In Util the
+  deployment role also trusts `ref:refs/heads/main`, because `build_image`
+  pushes to ECR from main without an environment.
 
 ## Environment stages (`lib/environment-stage.ts`)
 
@@ -70,7 +72,8 @@ order (because of dependencies):
 
 1. **`GithubActions`** — per-env CDK deploy role, CloudWatch log-tail permission
    and the read-only `cloudformation:ListStacks` / `lambda:ListFunctions` used by
-   the weekly audit. Trusted via OIDC.
+   the weekly audit, plus the read-only PR diff role. Trusted via OIDC; see
+   [GitHub Actions roles](#github-actions-roles).
 2. **`AlarmsUsEast1`** (region: `us-east-1`) and **`Alarms`** (env region) — see
    the Monitoring section below. The us-east-1 stack is created first so the
    primary stack can subscribe its SNS topics to the single shared Slack
@@ -517,6 +520,51 @@ TAG=$(git rev-parse main) npx cdk deploy --exclusively 'Prod/Alarms' 'Prod/Alarm
 
 CDK bootstrap (`cdk-hnb659fds-*` roles) must already exist in each account; the
 GitHub Actions deploy role assumes those roles to publish artifacts.
+
+### GitHub Actions roles
+
+Each account has two roles that GitHub Actions assumes through OIDC
+(`lib/github-actions-stack.ts`). Both trust exact `sub` claims with
+`StringEquals`, not a wildcard:
+
+| Role                            | Trusted `sub`                                                                    | Can                                                                                                   |
+| ------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `kitu-github-actions-role`      | `repo:Opetushallitus/kielitutkintorekisteri:environment:<Util\|Dev\|Test\|Prod>` | assume the CDK bootstrap roles (deploy), live-tail `KituService`, run the weekly drift audit          |
+|                                 | Util only, additionally `…:ref:refs/heads/main`                                  | push to ECR (`build_image` has no environment)                                                        |
+| `kitu-github-actions-diff-role` | `repo:Opetushallitus/kielitutkintorekisteri:pull_request`                        | `cloudformation:DescribeStacks`/`GetTemplate`/`GetTemplateSummary`/`ListStackResources`, nothing else |
+
+Things to know before changing these:
+
+- **A job that declares `environment:` gets `…:environment:<name>` whatever
+  its trigger.** The `sub` therefore can't tell a main deploy from a PR or a
+  manual dispatch on another branch that declares the same environment. That
+  separation is the job of the GitHub environments' deployment branch policy
+  (Util/Dev/Test/Prod: `main` only).
+- **The environment name in the `sub` is the workflow's spelling** (`Dev`),
+  not the stored environment name (`dev`), and IAM compares it
+  case-sensitively. `GithubActionsStack` takes it from the stage id.
+- **The diff role is deliberately not allowed to assume the CDK lookup role**,
+  whose `ReadOnlyAccess` would let any PR, Renovate's included, read every S3
+  object in the account. `cdk diff --method=template` only reads the deployed
+  templates: context lookups are cached in `cdk.context.json`, and when the
+  lookup role can't be assumed the CLI warns and proceeds with the diff role's
+  own credentials. This was verified against every Dev stack in both regions
+  with exactly these four actions.
+- **The deploy role's trust is deployed by CI with that same role.** A wrong
+  subject therefore surfaces only on the _next_ run, as an
+  `AssumeRoleWithWebIdentity` failure. The fix is a local
+  `TAG=$(git rev-parse main) npx cdk deploy --exclusively '<Env>/GithubActions'`
+  with an admin SSO profile for that account.
+- **To see which subjects really assume the roles**, look at the
+  `userName` of `AssumeRoleWithWebIdentity` events in CloudTrail:
+
+```bash
+aws cloudtrail lookup-events --profile <env> \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=AssumeRoleWithWebIdentity \
+  --max-items 500 --query 'Events[].CloudTrailEvent' --output json \
+  | jq -r '.[] | fromjson | "\(.userIdentity.userName) \(.requestParameters.roleArn) \(.errorCode // "ok")"' \
+  | sort | uniq -c
+```
 
 ## Stack lifecycle and runtime currency
 
