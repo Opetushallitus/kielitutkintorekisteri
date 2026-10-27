@@ -28,6 +28,7 @@ export class EnvironmentStage extends Stage {
 
     new GithubActionsStack(this, "GithubActions", {
       env,
+      githubEnvironment: id,
     })
 
     // us-east-1 must be created first so the primary stack can subscribe its

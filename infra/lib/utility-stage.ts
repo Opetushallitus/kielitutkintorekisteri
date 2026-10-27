@@ -2,7 +2,10 @@ import { Stage, StageProps } from "aws-cdk-lib"
 import { PolicyStatement } from "aws-cdk-lib/aws-iam"
 import { Construct } from "constructs"
 import { ContainerRepositoryStack } from "./container-repository-stack"
-import { GithubActionsStack } from "./github-actions-stack"
+import {
+  GITHUB_REPOSITORY_SUBJECT,
+  GithubActionsStack,
+} from "./github-actions-stack"
 import { AlarmsStack } from "./alarms-stack"
 import { SlackChannel } from "./accounts"
 
@@ -20,6 +23,11 @@ export class UtilityStage extends Stage {
 
     const githubActionsStack = new GithubActionsStack(this, "GithubActions", {
       env: props.env,
+      githubEnvironment: "Util",
+      // build_image pushes to ECR from main without an environment.
+      additionalDeploySubjects: [
+        `${GITHUB_REPOSITORY_SUBJECT}:ref:refs/heads/main`,
+      ],
     })
 
     const alarmsStack = new AlarmsStack(this, "Alarms", {
