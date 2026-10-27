@@ -456,7 +456,10 @@ the queue itself. Per env:
 
 CI (`/.github/workflows/build.yml`) auto-deploys main: builds the image, pushes
 it to Util ECR, then runs `cdk deploy` against Dev → Test → Prod with the new
-`TAG`.
+`TAG`. A PR that touches `infra/` instead runs `cdk diff` against Util, Dev,
+Test and Prod, and `cdk-notifier` posts one comment per environment. Changes
+to the container image tag are suppressed, and nothing is diffed in the merge
+queue.
 
 For local diffs/deploys, the `infra/package.json` scripts cover dev:
 
