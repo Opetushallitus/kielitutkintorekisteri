@@ -25,6 +25,11 @@ import {
 import { LoggingLevel } from "aws-cdk-lib/aws-chatbot"
 import { SlackChannel } from "./accounts"
 
+// scheduledChange-tapahtumat, joihin ei tarvitse reagoida. Fargaten
+// patch-retirement korvaa tehtävät itsestään ECS-palvelun kautta, ja jokainen
+// mainin deploy vaihtaa ne joka tapauksessa uusiin.
+const OHITETTAVAT_HEALTH_TAPAHTUMAT = ["AWS_ECS_TASK_PATCHING_RETIREMENT"]
+
 export interface AlarmsStackSlackProps {
   workspaceId: string
   alarmsChannel: SlackChannel
@@ -128,7 +133,12 @@ export class AlarmsStack extends cdk.Stack {
         detailType: ["AWS Health Event"],
         // Pelkkä scheduledChange: accountNotification toisi mukanaan mm.
         // Shield-tilauksen uusimismuistutukset ja hukuttaisi signaalin.
-        detail: { eventTypeCategory: ["scheduledChange"] },
+        detail: {
+          eventTypeCategory: ["scheduledChange"],
+          eventTypeCode: aws_events.Match.anythingBut(
+            ...OHITETTAVAT_HEALTH_TAPAHTUMAT,
+          ),
+        },
       },
       targets: [new aws_events_targets.SnsTopic(this.alarmSnsTopic)],
     })

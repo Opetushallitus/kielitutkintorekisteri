@@ -268,6 +268,12 @@ Two deliberate choices:
   subscribed in every instance of this stack.
 - **Only `scheduledChange`.** Adding `accountNotification` would pull in things
   like Shield subscription renewal reminders and drown the signal.
+- **Noise codes are excluded by `eventTypeCode`.** `OHITETTAVAT_HEALTH_TAPAHTUMAT`
+  lists the `scheduledChange` events that need no action and are filtered out
+  with `anything-but`. Currently only `AWS_ECS_TASK_PATCHING_RETIREMENT`:
+  the ECS service replaces retired Fargate tasks on its own, and every `main`
+  deploy replaces them anyway. Add a code there instead of widening or dropping
+  the category filter.
 
 Coverage comes for free: `AlarmsStack` is already instantiated in both
 `eu-west-1` and `us-east-1` per env, plus once for `Util`. Health events for
