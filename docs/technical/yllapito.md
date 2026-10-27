@@ -20,7 +20,8 @@ liittyvät käytännöt.
 
 Lokit tulostetaan ECS-formaatissa (Elastic Common Schema) CloudWatch Logsin lokiryhmään
 `KituService`, jossa niitä voi kysellä Logs Insightsilla; `auditlogs/` kirjoittaa auditlokin
-omaan lokiryhmäänsä. Paikallisesti `humanlog` muuntaa ECS-JSON-rivit luettavaksi —
+omaan lokiryhmäänsä. Sovelluksen lokiryhmät on salattu ympäristön omalla KMS-avaimella
+`alias/kitu/logs` (ks. `infra/README.md`). Paikallisesti `humanlog` muuntaa ECS-JSON-rivit luettavaksi —
 `start_local_server.sh` käärii sen automaattisesti `spring-boot:run`in ympärille.
 
 ### Hälytykset
