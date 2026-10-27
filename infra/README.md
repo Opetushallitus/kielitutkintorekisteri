@@ -80,7 +80,9 @@ order (because of dependencies):
    zone. The zone is created manually to avoid CDK ever destroying it.
 4. **`LogGroups`** — `KituService` and `KituServiceAudit` log groups, the
    `KituServiceDataProtectionAudit` group (with a Finnish-SSN data-protection
-   policy applied to the service log group), `LogErrors`/`LogWarnings` metric
+   policy applied to the service log group), the customer-managed KMS key
+   `alias/kitu/logs` that encrypts all three (see
+   [Log group encryption](#log-group-encryption)), `LogErrors`/`LogWarnings` metric
    filters and alarms, CloudWatch Transaction Search wiring for X-Ray spans,
    and the YKI-suoritus Slack notifications (`YkiSuoritusAlarm` + an EventBridge
    rule + the `YkiSuoritusNotifications` Lambda, plus the optional
@@ -435,6 +437,41 @@ aws sns get-topic-attributes --topic-arn <alarm-sns-arn> --region eu-west-1 \
   --profile <env> --query 'Attributes.Policy' --output text | jq .
 aws iam list-attached-role-policies --role-name <role-from-above> --profile <env>
 ```
+
+## Log group encryption
+
+`KituService`, `KituServiceAudit` and `KituServiceDataProtectionAudit` are
+encrypted with a customer-managed KMS key per account, `alias/kitu/logs`
+(`LogsKey` in `log-groups-stack.ts`, automatic rotation, `RETAIN`). It was
+added for OPHKOTO-94 by associating the key with the existing groups. CloudWatch
+Logs encrypts only events ingested after the association with the key. Older
+events stay in the same groups under the default CloudWatch Logs encryption
+until the 731-day retention expires them.
+
+The key policy has two statements besides the default account-root one:
+
+1. **`logs.<region>.amazonaws.com`**, restricted by
+   `kms:EncryptionContext:aws:logs:arn` to the three group ARNs. The ARNs are
+   built from `LOG_GROUP_NAMES`, not from the `LogGroup` constructs, which
+   would be a dependency cycle. A new group encrypted with this key must be
+   added to that list, or the association fails.
+2. **Any principal in this account, via `kms:ViaService` =
+   `logs.<region>.amazonaws.com`**: the same scope as an AWS managed key.
+   AWS documents that callers of `PutLogEvents`, `FilterLogEvents`,
+   `StartQuery` etc. on a CMK-encrypted group may need KMS permissions of their
+   own. This statement keeps the ECS `awslogs` driver, the audit log appender
+   (and with it the KOSKI integration below), the deploy job's
+   `start-live-tail` and read-only developer roles working. Access to a group
+   is still decided by `logs:*` IAM permissions. **Don't remove it.**
+
+Disabling, scheduling deletion of or removing CloudWatch Logs' access to the
+key makes every event encrypted with it unreadable. Check the association
+with `aws logs describe-log-groups --log-group-name-prefix KituService` (the
+`kmsKeyId` field).
+
+`aws/spans` (Transaction Search), `/metrics/kitu` (ADOT EMF) and the Lambdas'
+`/aws/lambda/*` groups are created outside CDK by the services themselves and
+still use the default encryption.
 
 ## KOSKI audit logs integration
 

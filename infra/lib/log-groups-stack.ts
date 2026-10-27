@@ -1,4 +1,10 @@
-import { aws_sns, Duration, Stack, StackProps } from "aws-cdk-lib"
+import {
+  aws_sns,
+  Duration,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+} from "aws-cdk-lib"
 import {
   ComparisonOperator,
   IAlarmAction,
@@ -6,7 +12,8 @@ import {
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch"
 import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions"
-import { ServicePrincipal } from "aws-cdk-lib/aws-iam"
+import { AnyPrincipal, ServicePrincipal } from "aws-cdk-lib/aws-iam"
+import { Key } from "aws-cdk-lib/aws-kms"
 import {
   CfnResourcePolicy,
   CustomDataIdentifier,
@@ -27,6 +34,12 @@ import { Runtime } from "aws-cdk-lib/aws-lambda"
 import { PolicyStatement } from "aws-cdk-lib/aws-iam"
 import path = require("node:path")
 
+const LOG_GROUP_NAMES = {
+  service: "KituService",
+  serviceAudit: "KituServiceAudit",
+  dataProtectionAudit: "KituServiceDataProtectionAudit",
+}
+
 export interface LogGroupsStackProps extends StackProps {
   alarmsSnsTopic: aws_sns.ITopic
   infoSnsTopic: aws_sns.ITopic
@@ -41,11 +54,14 @@ export class LogGroupsStack extends Stack {
   constructor(scope: Construct, id: string, props: LogGroupsStackProps) {
     super(scope, id, props)
 
+    const encryptionKey = this.createLogsKey()
+
     const dataProtectionAuditLogGroup = new LogGroup(
       this,
       "DataProtectionAudit",
       {
-        logGroupName: "KituServiceDataProtectionAudit",
+        logGroupName: LOG_GROUP_NAMES.dataProtectionAudit,
+        encryptionKey,
       },
     )
 
@@ -59,11 +75,13 @@ export class LogGroupsStack extends Stack {
     })
 
     this.serviceLogGroup = new LogGroup(this, "Service", {
-      logGroupName: "KituService",
+      logGroupName: LOG_GROUP_NAMES.service,
       dataProtectionPolicy,
+      encryptionKey,
     })
     this.serviceAuditLogGroup = new LogGroup(this, "ServiceAudit", {
-      logGroupName: "KituServiceAudit",
+      logGroupName: LOG_GROUP_NAMES.serviceAudit,
+      encryptionKey,
     })
 
     this.enableTransactionSearch(
@@ -114,6 +132,78 @@ export class LogGroupsStack extends Stack {
       ...props.investigationActions,
     )
     warningsAlarm.addOkAction(new SnsAction(props.alarmsSnsTopic))
+  }
+
+  /** Customer-managed key for the application log groups (OPHKOTO-94).
+   *
+   * Associating a key with an existing group encrypts only newly ingested
+   * events; older ones stay under CloudWatch Logs' default encryption until
+   * retention expires them. Disabling or deleting the key makes every event
+   * encrypted with it unreadable, hence RETAIN.
+   *
+   * @see https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
+   */
+  private createLogsKey(): Key {
+    const key = new Key(this, "LogsKey", {
+      alias: "kitu/logs",
+      description: "Kitun sovelluslokiryhmien salausavain",
+      enableKeyRotation: true,
+      removalPolicy: RemovalPolicy.RETAIN,
+    })
+
+    const logsService = `logs.${this.region}.amazonaws.com`
+    const actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:Describe*",
+    ]
+
+    // The ARNs are built from the names rather than the LogGroup constructs,
+    // which reference this key: referencing them back would be a cycle. A group
+    // missing from this list fails to associate with the key.
+    key.addToResourcePolicy(
+      new PolicyStatement({
+        principals: [new ServicePrincipal(logsService)],
+        actions,
+        resources: ["*"],
+        conditions: {
+          ArnEquals: {
+            "kms:EncryptionContext:aws:logs:arn": Object.values(
+              LOG_GROUP_NAMES,
+            ).map(
+              (name) =>
+                `arn:${this.partition}:logs:${this.region}:${this.account}:log-group:${name}`,
+            ),
+          },
+        },
+      }),
+    )
+
+    // Callers of PutLogEvents, FilterLogEvents, StartQuery, StartLiveTail etc.
+    // on a CMK-encrypted group may need KMS permissions of their own through
+    // kms:ViaService. Without this statement the ECS awslogs driver, the audit
+    // log appender (and with it the KOSKI audit flow), the deploy job's live
+    // tail and read-only developer roles could lose access. The principal is
+    // "*", but the key is usable only through CloudWatch Logs and only from this
+    // account — the same scope as an AWS managed key — so which groups a role
+    // may read or write is still decided by its logs:* IAM permissions.
+    key.addToResourcePolicy(
+      new PolicyStatement({
+        principals: [new AnyPrincipal()],
+        actions,
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "kms:CallerAccount": this.account,
+            "kms:ViaService": logsService,
+          },
+        },
+      }),
+    )
+
+    return key
   }
 
   /** Enable Transaction Search and build what reads the `aws/spans` log group.
