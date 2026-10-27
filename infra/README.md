@@ -542,7 +542,8 @@ Things to know before changing these:
   its trigger.** The `sub` therefore can't tell a main deploy from a PR or a
   manual dispatch on another branch that declares the same environment. That
   separation is the job of the GitHub environments' deployment branch policy
-  (Util/Dev/Test/Prod: `main` only).
+  (Util/Dev/Test/Prod: `main` only), a repository setting outside this code; see
+  [Manual prerequisites](#manual-prerequisites-that-dont-live-in-cdk).
 - **The environment name in the `sub` is the workflow's spelling** (`Dev`),
   not the stored environment name (`dev`), and IAM compares it
   case-sensitively. `GithubActionsStack` takes it from the stage id.
@@ -664,6 +665,33 @@ Listed here because deploys silently or loudly fail when these don't exist:
   hand before deploying QA; `ensure_aws_secrets.sh` deliberately does not fetch
   it, because local dev never syncs translations. Until it exists the sync is
   simply off, so the change is safe to merge and deploy ahead of the key.
+- **"Main only" deployment branch policy on the GitHub environments `Util`,
+  `dev`, `test` and `prod`** (Settings → Environments → Deployment branches and
+  tags → Selected branches: `main`). It is what keeps PRs and other branches off
+  the deploy role, because the OIDC subject of a job that declares
+  `environment:` doesn't depend on its trigger (see
+  [GitHub Actions roles](#github-actions-roles)). **Unlike everything else
+  here, nothing fails when it's missing: the protection silently disappears.**
+  Set on 27.10.2026. To restore it:
+
+  ```bash
+  for e in Util dev test prod; do
+    gh api -X PUT repos/Opetushallitus/kielitutkintorekisteri/environments/$e \
+      --input - <<<'{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}'
+    gh api -X POST repos/Opetushallitus/kielitutkintorekisteri/environments/$e/deployment-branch-policies \
+      -f name=main -f type=branch
+  done
+  ```
+
+  The `PUT` replaces the environment settings it doesn't mention, so check
+  `gh api repos/Opetushallitus/kielitutkintorekisteri/environments/<env>` first
+  if reviewers or a wait timer have been added since. Verify with the
+  read-only `aws-audit.yml`: dispatched from `main` every job must run, and
+  dispatched from any other branch every job must fail with "is not allowed to
+  deploy to … due to environment protection rules". Use a throwaway branch for
+  the latter: a dispatch attaches its failing check runs to that branch's head
+  commit, so on a PR branch they show up on the PR.
+
 - **KOSKI account-side resources**: IAM role `kitu-sqs-sender` (with trust
   policy for the kitu Lambda role) and SQS queue
   `oma-opintopolku-loki-audit-queue`. Owned by the KOSKI team.
