@@ -498,10 +498,13 @@ the queue itself. Per env:
 
 CI (`/.github/workflows/build.yml`) auto-deploys main: builds the image, pushes
 it to Util ECR, then runs `cdk deploy` against Dev → Test → Prod with the new
-`TAG`. A PR that touches `infra/` instead runs `cdk diff` against Util, Dev,
-Test and Prod, and `cdk-notifier` posts one comment per environment. Changes
-to the container image tag are suppressed, and nothing is diffed in the merge
-queue.
+`TAG`. A PR that touches `infra/` instead runs `cdk diff --method=template`
+against Util, Dev, Test and Prod, and `cdk-notifier` posts one comment per
+environment. Changes to the container image tag are suppressed, and nothing is
+diffed in the merge queue. PR diffs run **without a GitHub environment**, as
+`kitu-github-actions-diff-role`, which can only read CloudFormation templates.
+Only main uses the environments and the deploy role; see
+[GitHub Actions roles](#github-actions-roles).
 
 For local diffs/deploys, the `infra/package.json` scripts cover dev:
 
