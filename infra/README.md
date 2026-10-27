@@ -457,12 +457,14 @@ The key policy has two statements besides the default account-root one:
    added to that list, or the association fails.
 2. **Any principal in this account, via `kms:ViaService` =
    `logs.<region>.amazonaws.com`**: the same scope as an AWS managed key.
-   AWS documents that callers of `PutLogEvents`, `FilterLogEvents`,
-   `StartQuery` etc. on a CMK-encrypted group may need KMS permissions of their
-   own. This statement keeps the ECS `awslogs` driver, the audit log appender
-   (and with it the KOSKI integration below), the deploy job's
-   `start-live-tail` and read-only developer roles working. Access to a group
-   is still decided by `logs:*` IAM permissions. **Don't remove it.**
+   CloudTrail in dev (27.10.2026) shows that writes (the ECS `awslogs` driver,
+   the audit log appender, data-protection findings) call KMS as the
+   CloudWatch Logs service and need only statement 1. Reads such as
+   `FilterLogEvents` and `StartLiveTail` instead make a KMS `Decrypt` call
+   **as the calling role**. Without this statement the deploy job's
+   `start-live-tail` and any role without `kms:Decrypt` in IAM (e.g. read-only
+   developer roles) could no longer read the logs. Which groups a role may read
+   is still decided by its `logs:*` IAM permissions. **Don't remove it.**
 
 Disabling, scheduling deletion of or removing CloudWatch Logs' access to the
 key makes every event encrypted with it unreadable. Check the association

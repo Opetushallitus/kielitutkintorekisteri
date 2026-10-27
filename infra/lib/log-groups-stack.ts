@@ -181,14 +181,15 @@ export class LogGroupsStack extends Stack {
       }),
     )
 
-    // Callers of PutLogEvents, FilterLogEvents, StartQuery, StartLiveTail etc.
-    // on a CMK-encrypted group may need KMS permissions of their own through
-    // kms:ViaService. Without this statement the ECS awslogs driver, the audit
-    // log appender (and with it the KOSKI audit flow), the deploy job's live
-    // tail and read-only developer roles could lose access. The principal is
-    // "*", but the key is usable only through CloudWatch Logs and only from this
-    // account — the same scope as an AWS managed key — so which groups a role
-    // may read or write is still decided by its logs:* IAM permissions.
+    // Writes encrypt as the CloudWatch Logs service (the statement above), but
+    // reads such as FilterLogEvents and StartLiveTail make a KMS Decrypt call
+    // as the calling role through kms:ViaService (seen in CloudTrail). Without
+    // this statement the deploy job's live tail and any role without
+    // kms:Decrypt in IAM, such as read-only developer roles, could no longer
+    // read the logs. The principal is "*", but the key is usable only through
+    // CloudWatch Logs and only from this account — the same scope as an AWS
+    // managed key — so which groups a role may read or write is still decided
+    // by its logs:* IAM permissions.
     key.addToResourcePolicy(
       new PolicyStatement({
         principals: [new AnyPrincipal()],
