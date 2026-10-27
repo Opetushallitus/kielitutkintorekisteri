@@ -325,6 +325,7 @@ jobs:
   deploy_dev:
     name: Dev
     needs:
+      - list_changes
       - build_image
       - determine_action
       - deploy_util
@@ -335,7 +336,16 @@ jobs:
     uses: ./.github/workflows/_deploy-env.yml
     # Testit voivat olla ohitettuja (jonon varmistama SHA tai polkusuodatin),
     # ja ohitettu riippuvuus ohittaisi muuten koko deploy-ketjun.
-    if: ${{ !failure() && !cancelled() && needs.build_image.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
+    #
+    # Mainissa deploy vaatii imagen. PR:ssä infra-muutos ajaa diffin
+    # (cdk-notifier-kommentti) ilman imagea; jonossa diffiä ei ajeta.
+    # list_changes on oltava needs-listalla: needs-listalta puuttuvan työn
+    # tulos on tyhjä, joten ehto ei toteutuisi koskaan (näin PR-diffit
+    # olivat pois päältä 11/2024–10/2026).
+    if: >-
+      !failure() && !cancelled() && (
+      (needs.determine_action.outputs.action == 'deploy' && needs.build_image.result == 'success') ||
+      (github.event_name == 'pull_request' && needs.list_changes.outputs.infra == 'true'))
     with:
       environment: Dev
       action: ${{ needs.determine_action.outputs.action }}
@@ -346,7 +356,7 @@ jobs:
       - determine_action
       - deploy_dev
     uses: ./.github/workflows/_deploy-env.yml
-    if: ${{ !cancelled() && needs.deploy_dev.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
+    if: ${{ !cancelled() && needs.deploy_dev.result == 'success' }}
     with:
       environment: Test
       action: ${{ needs.determine_action.outputs.action }}
@@ -357,7 +367,7 @@ jobs:
       - determine_action
       - deploy_test
     uses: ./.github/workflows/_deploy-env.yml
-    if: ${{ !cancelled() && needs.deploy_test.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
+    if: ${{ !cancelled() && needs.deploy_test.result == 'success' }}
     with:
       environment: Prod
       action: ${{ needs.determine_action.outputs.action }}
@@ -367,8 +377,10 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - update_tools_cache
+      - determine_action
       - deploy_prod
-    if: ${{ !cancelled() && needs.deploy_prod.result == 'success' }}
+    # deploy_prod onnistuu myös PR:n diffinä, joten julkaisu rajataan deployhin.
+    if: ${{ !cancelled() && needs.deploy_prod.result == 'success' && needs.determine_action.outputs.action == 'deploy' }}
     permissions:
       id-token: write
       pages: write
