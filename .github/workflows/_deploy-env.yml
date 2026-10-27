@@ -22,9 +22,10 @@ on:
         description: Target environment
       action:
         type: choice
+        # Ei diffiä: dispatchin OIDC-subject on ref:refs/heads/<haara>, johon
+        # diff-rooli ei luota. Diff ajetaan PR:ssä.
         options:
           - deploy
-          - diff
         description: Action to perform
       stacks:
         type: string
@@ -42,13 +43,13 @@ env:
   MISE_ENV: ci
 
 jobs:
-  run:
-    name: ${{ inputs.action }}
+  deploy:
+    name: deploy
+    if: inputs.action == 'deploy'
     runs-on: ubuntu-24.04
     permissions:
       id-token: write
       contents: read
-      pull-requests: write
     environment:
       name: ${{ inputs.environment }}
       url: ${{ vars.environment_url }}
@@ -71,21 +72,57 @@ jobs:
       - name: Verify npm registry signatures
         run: npm audit signatures
         working-directory: infra
+      - name: deploy
+        working-directory: infra
+        run: |
+          aws logs start-live-tail --log-group-identifiers arn:aws:logs:eu-west-1:${{ vars.account_id }}:log-group:KituService &
+          npx cdk deploy --require-approval=never --exclusively '${{ inputs.environment }}/${{ inputs.stacks }}'
+
+  # Ilman environmentia PR-työn OIDC-subject on <repo>:pull_request, johon
+  # luottaa vain kitu-github-actions-diff-role (pelkät CloudFormation-pohjien
+  # lukuoikeudet). Ympäristöjen "vain main" -haarasääntö estää PR:ää
+  # käyttämästä ympäristöjä ja niiden deployroolia. Ilman ympäristöä ei ole
+  # myöskään vars.account_id:tä, joten tilit ovat tässä (ks. infra/lib/accounts.ts).
+  diff:
+    name: diff
+    if: inputs.action == 'diff'
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    env:
+      ACCOUNT_ID: ${{ fromJSON('{"Util":"961341524988","Dev":"682033502734","Test":"961341546901","Prod":"515966535475"}')[inputs.environment] }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install tools
+        uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5
+        with:
+          experimental: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to ${{ inputs.environment }} (read only)
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/kitu-github-actions-diff-role
+      - name: Install dependencies
+        run: npm ci
+        working-directory: infra
+      - name: Verify npm registry signatures
+        run: npm audit signatures
+        working-directory: infra
       - name: diff
         working-directory: infra
-        if: inputs.action == 'diff'
+        # --method=template lukee vain deployatut pohjat; change set vaatisi
+        # deployroolin. CDK varoittaa, ettei lookup-roolia voi ottaa, ja
+        # jatkaa diff-roolin tunnuksilla (konteksti on cdk.context.json:ssa).
         run: |
-          npx cdk ${{ inputs.action }} --require-approval=never --exclusively '${{ inputs.environment }}/${{ inputs.stacks }}' --progress=events &> >(tee cdk.log)
+          npx cdk diff --method=template --exclusively '${{ inputs.environment }}/${{ inputs.stacks }}' &> >(tee cdk.log)
           if [ -n "${{ github.event.number }}" ]; then
             cdk-notifier --log-file cdk.log --vcs github --repo kielitutkintorekisteri --owner ${{ github.repository_owner }} --pull-request-id ${{ github.event.number }} --template extendedWithResources --tag-id ${{ inputs.environment }} --suppress-hash-changes --suppress-hash-changes-regex '[+-].*?[a-fA-F0-9]{40}'
           else
-            echo "::notice::Skipping cdk-notifier PR comment — no PR associated with this run (workflow_dispatch). Diff output is in the job log above."
+            echo "::notice::Skipping cdk-notifier PR comment — no PR associated with this run. Diff output is in the job log above."
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: deploy
-        working-directory: infra
-        if: inputs.action == 'deploy'
-        run: |
-          aws logs start-live-tail --log-group-identifiers arn:aws:logs:eu-west-1:${{ vars.account_id }}:log-group:KituService &
-          npx cdk ${{ inputs.action }} --require-approval=never --exclusively '${{ inputs.environment }}/${{ inputs.stacks }}'
