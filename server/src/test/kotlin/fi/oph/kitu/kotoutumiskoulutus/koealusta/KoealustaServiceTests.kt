@@ -242,9 +242,9 @@ class KoealustaServiceTests(
         mockServer.verify()
 
         assertEquals(
-            expected = Instant.parse("1970-01-01T00:00:00Z"),
+            expected = Instant.ofEpochSecond(1728969130),
             actual = lastSeen,
-            message = "since an error was encountered, use the previous `from` parameter as the last seen date",
+            message = "the failed suoritus must stay inside the next import's window",
         )
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -327,9 +327,9 @@ class KoealustaServiceTests(
         mockServer.verify()
 
         assertEquals(
-            expected = Instant.parse("1970-01-01T00:00:00Z"),
+            expected = Instant.ofEpochSecond(1728969130),
             actual = lastSeen,
-            message = "since an error was encountered, use the previous `from` parameter as the last seen date",
+            message = "the failed suoritus must stay inside the next import's window",
         )
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -439,9 +439,9 @@ class KoealustaServiceTests(
         mockServer.verify()
 
         assertEquals(
-            expected = Instant.parse("1970-01-01T00:00:00Z"),
+            expected = Instant.ofEpochSecond(1728969130),
             actual = lastSeen,
-            message = "since an error was encountered, use the previous `from` parameter as the last seen date",
+            message = "the failed suoritus must stay inside the next import's window",
         )
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -663,9 +663,9 @@ class KoealustaServiceTests(
         mockServer.verify()
 
         assertEquals(
-            expected = Instant.parse("1970-01-01T00:00:00Z"),
+            expected = Instant.ofEpochSecond(1728969130),
             actual = lastSeen,
-            message = "since an error was encountered, use the previous `from` parameter as the last seen date",
+            message = "the failed suoritus must stay inside the next import's window",
         )
 
         val errors = kielitestiSuoritusErrorRepository.findAll().toList()
@@ -694,7 +694,7 @@ class KoealustaServiceTests(
     }
 
     @Test
-    fun `import with valid and invalid suoritus should return original from-timestamp and save the suoritus and error`(
+    fun `import with valid and invalid suoritus stops before the failed suoritus and saves both`(
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
@@ -725,9 +725,9 @@ class KoealustaServiceTests(
         assertAll(
             fun() =
                 assertEquals(
-                    expected = Instant.EPOCH,
+                    expected = Instant.ofEpochSecond(1728969130),
                     actual = lastSeen,
-                    message = "Since an error was encountered, the previous `from` parameter should have been returned",
+                    message = "The failed suoritus must stay inside the next import's window",
                 ),
             fun () = assertEquals(1, errors.count(), "There should be one saved error"),
             fun () = assertEquals(1, suoritukset.count(), "There should be one saved suoritus"),
@@ -740,21 +740,11 @@ class KoealustaServiceTests(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
     ) {
+        mockServer.expectValmiit(validSuoritus, invalidHetu)
         mockServer
-            .expect(
-                ExpectedCount.manyTimes(),
-                requestTo(
-                    "https://localhost:8080/dev/koto/webservice/rest/server.php?wstoken=token&wsfunction=local_completion_export_get_completions&moodlewsrestformat=json&from=0",
-                ),
-            ).andRespond(
-                withSuccess(
-                    """
-                    {
-                      "users": [$validSuoritus, $invalidHetu]
-                    }
-                    """.trimIndent(),
-                    MediaType.APPLICATION_JSON,
-                ),
+            .expect(requestTo(valmiitUrl.replace("from=0", "from=1728969130")))
+            .andRespond(
+                withSuccess("""{ "users": [$validSuoritus, $invalidHetu] }""", MediaType.APPLICATION_JSON),
             )
 
         val lastSeen = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
@@ -765,9 +755,9 @@ class KoealustaServiceTests(
         assertAll(
             fun() =
                 assertEquals(
-                    expected = Instant.EPOCH,
+                    expected = Instant.ofEpochSecond(1728969130),
                     actual = lastSeen,
-                    message = "Since an error was encountered, the previous `from` parameter should have been returned",
+                    message = "The failed suoritus must stay inside the next import's window",
                 ),
             fun () = assertEquals(1, errors.count(), "There should be one saved error"),
             fun () = assertEquals(1, suoritukset.count(), "There should be one saved suoritus"),
@@ -880,6 +870,29 @@ class KoealustaServiceTests(
             fun() = assertEquals(toinenAjo, virheet.getValue("WRONG_HETU").virheenLuontiaika),
             fun() = assertEquals(emptyList(), kielitestiSuoritusErrorRepository.findAll().toList()),
         )
+    }
+
+    @Test
+    fun `vesileima pysähtyy varhaisimpaan epäonnistuneeseen suoritukseen eikä aiempaan from-arvoon`() {
+        mockServer.expectValmiit(validSuoritus, invalidHetu.replace("1728969131", "1730000000"))
+
+        val vesileima = koealustaService.importValmiitSuoritukset(Instant.EPOCH)
+
+        mockServer.verify()
+        assertEquals(Instant.ofEpochSecond(1729999999), vesileima)
+    }
+
+    @Test
+    fun `vesileima ei siirry taaksepäin, kun epäonnistunut suoritus on from-hetkellä`() {
+        val from = Instant.ofEpochSecond(1728969131)
+        mockServer
+            .expect(requestTo(valmiitUrl.replace("from=0", "from=${from.epochSecond}")))
+            .andRespond(withSuccess("""{ "users": [$invalidHetu] }""", MediaType.APPLICATION_JSON))
+
+        val vesileima = koealustaService.importValmiitSuoritukset(from)
+
+        mockServer.verify()
+        assertEquals(from, vesileima)
     }
 
     @Test

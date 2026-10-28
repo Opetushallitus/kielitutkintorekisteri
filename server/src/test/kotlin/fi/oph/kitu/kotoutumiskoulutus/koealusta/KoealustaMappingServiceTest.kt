@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class KoealustaMappingServiceTest {
@@ -162,6 +163,58 @@ class KoealustaMappingServiceTest {
     }
 
     @Test
+    fun `tietueen kaikki suoritukset epäonnistuvat, kun oppijanumeron haku epäonnistuu`() {
+        val myohempi = antero.completions.single().copy(courseid = 33, timecompleted = 1730000000)
+
+        val (_, virhe) =
+            muunna(
+                LaskevaOnr(),
+                ensimmainenAjo,
+                user = antero.copy(completions = listOf(myohempi) + antero.completions),
+            )
+
+        assertEquals(Instant.ofEpochSecond(1728969131), virhe?.varhaisinEpaonnistunutSuoritus)
+    }
+
+    @Test
+    fun `tietueen kaikki suoritukset epäonnistuvat, kun hetu puuttuu`() {
+        val myohempi = antero.completions.single().copy(courseid = 33, timecompleted = 1730000000)
+
+        val (_, virhe) =
+            muunna(
+                LaskevaOnr(),
+                ensimmainenAjo,
+                user = antero.copy(ssn = null, completions = listOf(myohempi) + antero.completions),
+            )
+
+        assertEquals(Instant.ofEpochSecond(1728969131), virhe?.varhaisinEpaonnistunutSuoritus)
+    }
+
+    @Test
+    fun `vain virheellinen suoritus epäonnistuu, kun oppijanumero löytyy`() {
+        val onr = LaskevaOnr().apply { oppijanumero = anteronOppijanumero }
+        val arvosanaton =
+            antero.completions.single().copy(courseid = 33, results = emptyList(), timecompleted = 1730000000)
+
+        val (suoritukset, virhe) =
+            muunna(onr, ensimmainenAjo, user = antero.copy(completions = antero.completions + arvosanaton))
+
+        assertAll(
+            fun() = assertEquals(1, suoritukset.size),
+            fun() = assertEquals(Instant.ofEpochSecond(1730000000), virhe?.varhaisinEpaonnistunutSuoritus),
+        )
+    }
+
+    @Test
+    fun `ohitettu virhe ei pidätä vesileimaa`() {
+        val onr = LaskevaOnr().apply { henkiloHetulla = henkilo(anteronOppijanumero) }
+
+        val (_, virhe) = muunna(onr, ensimmainenAjo, tallennetut = tallennettu(32, anteronOppijanumero))
+
+        assertNull(virhe)
+    }
+
+    @Test
     fun `vianetsintä ajetaan uudelleen, kun nimet muuttuvat koealustalla`() {
         val onr = LaskevaOnr()
         val aiemmat = tuoVirheet(onr, ensimmainenAjo)
@@ -210,24 +263,34 @@ class KoealustaMappingServiceTest {
         user: User = antero,
         tallennetut: (Int, Instant) -> Set<Oid> = { _, _ -> emptySet() },
     ): List<KielitestiSuoritusError> {
-        val palvelu =
-            KoealustaMappingService(
-                KoealustaResponseParser(defaultObjectMapper),
-                KoealustaSuoritusValidator(),
-                onr,
-                OppijanumeroTroubleshootingService(onr),
-                object : TimeService {
-                    override fun now(): Instant = nyt
-                },
-            )
-        val (_, virheet) =
-            palvelu.convertToKielitestiSuoritus(
-                KoealustaSuorituksetResponse(listOf(user)),
-                aiemmatVirheet,
-                tallennetut,
-            )
-        return palvelu.convertErrors(virheet?.oppijanumeroExceptions.orEmpty()).toList()
+        val (_, virheet) = muunna(onr, nyt, aiemmatVirheet, user, tallennetut)
+        return palvelu(onr, nyt).convertErrors(virheet?.oppijanumeroExceptions.orEmpty()).toList()
     }
+
+    private fun muunna(
+        onr: OppijanumeroService,
+        nyt: Instant,
+        aiemmatVirheet: List<KielitestiSuoritusError> = emptyList(),
+        user: User = antero,
+        tallennetut: (Int, Instant) -> Set<Oid> = { _, _ -> emptySet() },
+    ) = palvelu(onr, nyt).convertToKielitestiSuoritus(
+        KoealustaSuorituksetResponse(listOf(user)),
+        aiemmatVirheet,
+        tallennetut,
+    )
+
+    private fun palvelu(
+        onr: OppijanumeroService,
+        nyt: Instant,
+    ) = KoealustaMappingService(
+        KoealustaResponseParser(defaultObjectMapper),
+        KoealustaSuoritusValidator(),
+        onr,
+        OppijanumeroTroubleshootingService(onr),
+        object : TimeService {
+            override fun now(): Instant = nyt
+        },
+    )
 
     private val anteronOppijanumero = Oid.parse("1.2.246.562.24.33342764709").getOrThrow()
 
