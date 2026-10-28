@@ -2,6 +2,7 @@ package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.right
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.KielitestiSuoritus
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusError
 import fi.oph.kitu.oid.Oid
@@ -17,6 +18,7 @@ import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class KoealustaMappingService(
@@ -77,11 +79,13 @@ class KoealustaMappingService(
     fun responseStringToKielitestiSuoritus(
         body: String,
         aiemmatVirheet: Collection<KielitestiSuoritusError> = emptyList(),
-    ) = convertToKielitestiSuoritus(parser.parseSuoritus(body), aiemmatVirheet)
+        tallennetutOppijanumerot: (kurssiId: Int, suoritusaika: Instant) -> Set<Oid> = { _, _ -> emptySet() },
+    ) = convertToKielitestiSuoritus(parser.parseSuoritus(body), aiemmatVirheet, tallennetutOppijanumerot)
 
     fun convertToKielitestiSuoritus(
         suorituksetResponse: KoealustaSuorituksetResponse,
         aiemmatVirheet: Collection<KielitestiSuoritusError> = emptyList(),
+        tallennetutOppijanumerot: (kurssiId: Int, suoritusaika: Instant) -> Set<Oid> = { _, _ -> emptySet() },
     ): Pair<List<KielitestiSuoritus>, ValidationFailure?> {
         val oppijanumeroExceptions = mutableListOf<KoealustaMappingError>()
         val validationErrors = mutableListOf<KoealustaMappingError>()
@@ -99,7 +103,7 @@ class KoealustaMappingService(
 
                 val oppijanumero =
                     oppija
-                        ?.let { haeOppijanumero(user, it, tarkistetutOnrVirheet[it]) }
+                        ?.let { haeOppijanumero(user, it, tarkistetutOnrVirheet[it], tallennetutOppijanumerot) }
                         ?.onLeft { oppijanumeroExceptions.add(it) }
                         ?.getOrNull()
 
@@ -130,25 +134,53 @@ class KoealustaMappingService(
         user: KoealustaSuorituksetResponse.User,
         oppija: Oppija,
         aiempiVirhe: KielitestiSuoritusError?,
-    ): Either<KoealustaMappingError, Oid> {
-        if (aiempiVirhe != null) {
-            return KoealustaMappingError
-                .AiemminTarkistettuOppijanumeroFailure(aiempiVirhe, user.firstCourse())
-                .left()
-        }
+        tallennetutOppijanumerot: (kurssiId: Int, suoritusaika: Instant) -> Set<Oid>,
+    ): Either<KoealustaMappingError, Oid>? =
+        oppijanumeroService.getMasterOid(oppija).fold(
+            ifLeft = { virhe ->
+                if (user.suorituksetOnTallennettuHetulle(oppija.hetu, tallennetutOppijanumerot)) {
+                    null
+                } else {
+                    oppijanumeroFailure(user, oppija, aiempiVirhe, virhe).left()
+                }
+            },
+            ifRight = { it.right() },
+        )
 
-        return oppijanumeroService.getMasterOid(oppija).mapLeft {
-            val response = if (it is OppijanumeroException.HasResponse) it.response else null
-            val debugInfo = OppijanumerorekisteriDebugInfo.from(it.request, response)
-            val ratkaisuehdotus = oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response)
+    private fun KoealustaSuorituksetResponse.User.suorituksetOnTallennettuHetulle(
+        hetu: String,
+        tallennetutOppijanumerot: (kurssiId: Int, suoritusaika: Instant) -> Set<Oid>,
+    ): Boolean {
+        val tallennetut = completions.map { tallennetutOppijanumerot(it.courseid, it.suoritusaika()) }
+        if (tallennetut.isEmpty() || tallennetut.any { it.isEmpty() }) return false
 
+        val henkilo = oppijanumeroService.getHenkiloByHetu(hetu).getOrNull() ?: return false
+        val henkilonOidit = setOfNotNull(henkilo.oppijanumero, henkilo.oidHenkilo)
+        return tallennetut.all { oidit -> oidit.any { it.toString() in henkilonOidit } }
+    }
+
+    private fun oppijanumeroFailure(
+        user: KoealustaSuorituksetResponse.User,
+        oppija: Oppija,
+        aiempiVirhe: KielitestiSuoritusError?,
+        virhe: OppijanumeroException,
+    ): KoealustaMappingError {
+        val response = if (virhe is OppijanumeroException.HasResponse) virhe.response else null
+        val debugInfo = OppijanumerorekisteriDebugInfo.from(virhe.request, response)
+        val viesti =
+            "Oppijanumeron haku epäonnistui: ${debugInfo.message() ?: virhe.oppijanumeroServiceError?.error ?: virhe.message ?: "ei tarkempia tietoja"}"
+        val onrStatus = response?.statusCode?.value()
+
+        return if (aiempiVirhe != null && aiempiVirhe.onrStatus == onrStatus && aiempiVirhe.viesti == viesti) {
+            KoealustaMappingError.AiemminTarkistettuOppijanumeroFailure(aiempiVirhe, user.firstCourse())
+        } else {
             KoealustaMappingError.OppijanumeroFailure(
-                "Oppijanumeron haku epäonnistui: ${debugInfo.message() ?: it.oppijanumeroServiceError?.error ?: it.message ?: "ei tarkempia tietoja"}",
+                viesti,
                 user.firstCourse(),
                 debugInfo.toString(),
                 oppija,
-                ratkaisuehdotus,
-                response?.statusCode?.value(),
+                oppijanumeroTroubleshootingService.troubleshootOppijanumero(oppija, response),
+                onrStatus,
             )
         }
     }

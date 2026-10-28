@@ -2,6 +2,7 @@ package fi.oph.kitu.kotoutumiskoulutus.koealusta
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.right
 import fi.oph.kitu.kotoutumiskoulutus.koealusta.KoealustaSuorituksetResponse.User
 import fi.oph.kitu.kotoutumiskoulutus.koealusta.KoealustaSuorituksetResponse.User.Completion
 import fi.oph.kitu.kotoutumiskoulutus.suoritukset.error.KielitestiSuoritusError
@@ -15,6 +16,7 @@ import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
 import fi.oph.kitu.oppijanumero.YleistunnisteHaeRequest
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.assertAll
 import org.springframework.http.ResponseEntity
 import java.time.Instant
@@ -53,7 +55,7 @@ class KoealustaMappingServiceTest {
         )
 
     @Test
-    fun `aiemmin kirjattua henkilötietovirhettä ei tarkisteta oppijanumerorekisteristä uudelleen`() {
+    fun `toistuvalle henkilötietovirheelle tehdään vain oppijanumeron haku ilman vianetsintää`() {
         val onr = LaskevaOnr()
         val aiemmat = tuoVirheet(onr, ensimmainenAjo)
         val haututEnsimmaisellaAjolla = onr.haut
@@ -63,9 +65,9 @@ class KoealustaMappingServiceTest {
         val aiempi = aiemmat.single()
         val uusi = uudet.single()
         assertAll(
-            fun() = assertTrue(haututEnsimmaisellaAjolla > 0),
+            fun() = assertTrue(haututEnsimmaisellaAjolla > 1),
             fun() =
-                assertEquals(haututEnsimmaisellaAjolla, onr.haut, "Toinen ajo ei saa kysyä oppijanumerorekisteriltä"),
+                assertEquals(haututEnsimmaisellaAjolla + 1, onr.haut, "Toinen ajo saa tehdä vain oppijanumeron haun"),
             fun() = assertEquals(400, aiempi.onrStatus),
             fun() = assertEquals(aiempi.viesti, uusi.viesti),
             fun() = assertEquals(aiempi.lisatietoja, uusi.lisatietoja),
@@ -94,27 +96,108 @@ class KoealustaMappingServiceTest {
     }
 
     @Test
-    fun `henkilötietovirhe tarkistetaan uudelleen, kun nimet muuttuvat koealustalla`() {
+    fun `oppijanumerorekisterissä korjattu henkilötietovirhe poistuu, vaikka nimet koealustalla eivät muutu`() {
+        val onr = LaskevaOnr()
+        val aiemmat = tuoVirheet(onr, ensimmainenAjo)
+        onr.oppijanumero = Oid.parse("1.2.246.562.24.33342764709").getOrThrow()
+
+        val uudet = tuoVirheet(onr, toinenAjo, aiemmat)
+
+        assertAll(
+            fun() = assertEquals(1, aiemmat.size),
+            fun() = assertEquals(emptyList(), uudet),
+        )
+    }
+
+    @Test
+    fun `hylätystä tietueesta ei kirjata virhettä, kun sen suoritukset on jo tallennettu hetun henkilölle`() {
+        val onr = LaskevaOnr().apply { henkiloHetulla = henkilo(anteronOppijanumero) }
+
+        val virheet = tuoVirheet(onr, ensimmainenAjo, tallennetut = tallennettu(32, anteronOppijanumero))
+
+        assertAll(
+            fun() = assertEquals(emptyList(), virheet),
+            fun() = assertEquals(2, onr.haut, "Vianetsintää ei saa ajaa"),
+        )
+    }
+
+    @Test
+    fun `aiemmin kirjattu virhe poistuu, kun suoritus on jo tallennettu hetun henkilölle`() {
+        val onr = LaskevaOnr()
+        val aiemmat = tuoVirheet(onr, ensimmainenAjo)
+        onr.henkiloHetulla = henkilo(anteronOppijanumero)
+
+        val uudet = tuoVirheet(onr, toinenAjo, aiemmat, tallennetut = tallennettu(32, anteronOppijanumero))
+
+        assertAll(
+            fun() = assertEquals(1, aiemmat.size),
+            fun() = assertEquals(emptyList(), uudet),
+        )
+    }
+
+    @Test
+    fun `virhe kirjataan, kun suoritus on tallennettu toiselle henkilölle`() {
+        val onr = LaskevaOnr().apply { henkiloHetulla = henkilo(anteronOppijanumero) }
+        val toinenHenkilo = Oid.parse("1.2.246.562.24.10000000008").getOrThrow()
+
+        val virheet = tuoVirheet(onr, ensimmainenAjo, tallennetut = tallennettu(32, toinenHenkilo))
+
+        assertEquals(1, virheet.size)
+    }
+
+    @Test
+    fun `virhe kirjataan, kun kaikkia tietueen suorituksia ei ole tallennettu`() {
+        val onr = LaskevaOnr().apply { henkiloHetulla = henkilo(anteronOppijanumero) }
+        val toinenSuoritus = antero.completions.single().copy(courseid = 33, timecompleted = 1730000000)
+
+        val virheet =
+            tuoVirheet(
+                onr,
+                ensimmainenAjo,
+                user = antero.copy(completions = antero.completions + toinenSuoritus),
+                tallennetut = tallennettu(32, anteronOppijanumero),
+            )
+
+        assertEquals(1, virheet.size)
+    }
+
+    @Test
+    fun `vianetsintä ajetaan uudelleen, kun nimet muuttuvat koealustalla`() {
         val onr = LaskevaOnr()
         val aiemmat = tuoVirheet(onr, ensimmainenAjo)
         val haututEnsimmaisellaAjolla = onr.haut
 
         tuoVirheet(onr, toinenAjo, aiemmat, antero.copy(lastname = "Testi-Moikkanen"))
 
-        assertTrue(onr.haut > haututEnsimmaisellaAjolla)
+        assertTrue(onr.haut > haututEnsimmaisellaAjolla + 1)
     }
 
     @Test
-    fun `muu kuin henkilötietovirhe tarkistetaan uudelleen`() {
+    fun `vianetsintä ajetaan uudelleen, kun oppijanumerorekisterin virheviesti muuttuu`() {
+        val onr = LaskevaOnr()
+        val aiempi = tuoVirheet(onr, ensimmainenAjo).single()
+        val haututEnsimmaisellaAjolla = onr.haut
+
+        val uusi =
+            tuoVirheet(onr, toinenAjo, listOf(aiempi.copy(viesti = "Oppijanumeron haku epäonnistui: muu syy"))).single()
+
+        assertAll(
+            fun() = assertTrue(onr.haut > haututEnsimmaisellaAjolla + 1),
+            fun() = assertEquals(aiempi.viesti, uusi.viesti),
+        )
+    }
+
+    @Test
+    fun `vianetsintä ajetaan uudelleen, kun oppijanumerorekisteri vastaa eri tilalla kuin aiemmin`() {
         val onr = LaskevaOnr()
         val aiempi = tuoVirheet(onr, ensimmainenAjo).single()
 
         assertAll(
-            listOf(null, 401, 500).map { status ->
+            listOf(null, 401, 404, 500).map { status ->
                 fun() {
                     val haututEnnen = onr.haut
                     tuoVirheet(onr, toinenAjo, listOf(aiempi.copy(onrStatus = status)))
-                    assertTrue(onr.haut > haututEnnen, "Virhe tilalla $status pitää tarkistaa uudelleen")
+                    assertTrue(onr.haut > haututEnnen + 1, "Virheelle tilalla $status pitää ajaa vianetsintä")
                 }
             },
         )
@@ -125,6 +208,7 @@ class KoealustaMappingServiceTest {
         nyt: Instant,
         aiemmatVirheet: List<KielitestiSuoritusError> = emptyList(),
         user: User = antero,
+        tallennetut: (Int, Instant) -> Set<Oid> = { _, _ -> emptySet() },
     ): List<KielitestiSuoritusError> {
         val palvelu =
             KoealustaMappingService(
@@ -140,15 +224,41 @@ class KoealustaMappingServiceTest {
             palvelu.convertToKielitestiSuoritus(
                 KoealustaSuorituksetResponse(listOf(user)),
                 aiemmatVirheet,
+                tallennetut,
             )
         return palvelu.convertErrors(virheet?.oppijanumeroExceptions.orEmpty()).toList()
     }
 
+    private val anteronOppijanumero = Oid.parse("1.2.246.562.24.33342764709").getOrThrow()
+
+    private fun tallennettu(
+        kurssiId: Int,
+        oppijanumero: Oid,
+    ): (Int, Instant) -> Set<Oid> =
+        { kurssi, suoritusaika ->
+            if (kurssi == kurssiId &&
+                suoritusaika == Instant.ofEpochSecond(1728969131)
+            ) {
+                setOf(oppijanumero)
+            } else {
+                emptySet()
+            }
+        }
+
+    private fun henkilo(oppijanumero: Oid): OppijanumerorekisteriHenkilo =
+        defaultObjectMapper.readValue(
+            """{ "oidHenkilo": "$oppijanumero", "oppijanumero": "$oppijanumero" }""",
+            OppijanumerorekisteriHenkilo::class.java,
+        )
+
     private class LaskevaOnr : OppijanumeroService {
         var haut = 0
+        var oppijanumero: Oid? = null
+        var henkiloHetulla: OppijanumerorekisteriHenkilo? = null
 
         override fun getMasterOid(oppija: Oppija): Either<OppijanumeroException, Oid> {
             haut++
+            oppijanumero?.let { return it.right() }
             return OppijanumeroException
                 .BadRequest(
                     YleistunnisteHaeRequest(oppija.etunimet, oppija.hetu, oppija.kutsumanimi, oppija.sukunimi),
@@ -158,6 +268,7 @@ class KoealustaMappingServiceTest {
 
         override fun getHenkiloByHetu(hetu: String): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> {
             haut++
+            henkiloHetulla?.let { return it.right() }
             return OppijanumeroException
                 .OppijaNotFoundException(
                     EmptyRequest(),

@@ -883,6 +883,30 @@ class KoealustaServiceTests(
     }
 
     @Test
+    fun `tallennetun suorituksen oppijanumerot haetaan kurssin ja suoritusajan perusteella`(
+        @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
+    ) {
+        mockServer.expectValmiit(validSuoritus)
+        koealustaService.importValmiitSuoritukset(Instant.EPOCH)
+        mockServer.verify()
+
+        val suoritusaika = Instant.ofEpochSecond(1728969131)
+        assertAll(
+            fun() =
+                assertEquals(
+                    setOf(Oid.parse("1.2.246.562.24.33342764709").getOrThrow()),
+                    customKielitestiSuoritusRepository.findOppijanumerot(32, suoritusaika),
+                ),
+            fun() = assertEquals(emptySet(), customKielitestiSuoritusRepository.findOppijanumerot(33, suoritusaika)),
+            fun() =
+                assertEquals(
+                    emptySet(),
+                    customKielitestiSuoritusRepository.findOppijanumerot(32, suoritusaika.plusSeconds(1)),
+                ),
+        )
+    }
+
+    @Test
     fun `import removes leading and trailing whitespace from names and ssn`(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
