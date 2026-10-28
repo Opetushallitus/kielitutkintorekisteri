@@ -1,6 +1,7 @@
 import { Stage, StageProps } from "aws-cdk-lib"
 import { PolicyStatement } from "aws-cdk-lib/aws-iam"
 import { Construct } from "constructs"
+import { AccountSettingsStack } from "./account-settings-stack"
 import { ContainerRepositoryStack } from "./container-repository-stack"
 import {
   GITHUB_REPOSITORY_SUBJECT,
@@ -20,6 +21,8 @@ export class UtilityStage extends Stage {
 
   constructor(scope: Construct, id: string, props: UtilityStageProps) {
     super(scope, id, props)
+
+    new AccountSettingsStack(this, "AccountSettings", { env: props.env })
 
     const githubActionsStack = new GithubActionsStack(this, "GithubActions", {
       env: props.env,
