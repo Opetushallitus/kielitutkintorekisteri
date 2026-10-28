@@ -146,9 +146,10 @@ the `enforceSSL` statement as a separate `AWS::S3::BucketPolicy` whose removal
 policy defaults to `DESTROY`, independent of the bucket's own `RETAIN`.
 Versioning, encryption, the public access block and the lifecycle rule are
 bucket properties and stayed; the policy is its own resource and went with the
-stack, so the bucket fails Security Hub S3.5 until the policy is put back by
-hand (prod credentials; check `get-bucket-policy` first and merge rather than
-overwrite if some other policy has appeared):
+stack. The bucket had no policy at all (Security Hub S3.5 failing) until
+28.10.2026, when the policy below was put back by hand. If it ever goes missing
+again, re-apply it with prod credentials; check `get-bucket-policy` first and
+merge rather than overwrite if some other policy has appeared:
 
 ```bash
 aws s3api get-bucket-policy --bucket kitu-yki-historia-upload-prod
