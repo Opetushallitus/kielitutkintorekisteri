@@ -66,6 +66,7 @@ class KoealustaService(
             mappingService.responseStringToKielitestiSuoritus(
                 response.body!!,
                 kielitestiSuoritusErrorRepository.findAllByCompleted(true),
+                customKielitestiSuoritusRepository::findOppijanumerot,
             )
 
         val validationErrors = mappingService.convertErrors(validationFailure?.validationErrors.orEmpty())

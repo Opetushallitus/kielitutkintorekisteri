@@ -10,6 +10,7 @@ import fi.oph.kitu.jdbc.orderSql
 import fi.oph.kitu.jdbc.pageSql
 import fi.oph.kitu.jdbc.searchTermsCondition
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oid.getOid
 import fi.oph.kitu.organisaatiot.OrganisaatioService
 import fi.oph.kitu.util.equalsIgnoringAnnotated
 import fi.oph.kitu.util.searchTerms
@@ -121,6 +122,22 @@ class CustomKielitestiSuoritusRepository(
         val existing = findLatestSuoritusVersion(suoritus) ?: return false
         return existing.equalsIgnoringAnnotated(suoritus, "KOTO")
     }
+
+    fun findOppijanumerot(
+        kurssiId: Int,
+        suoritusaika: java.time.Instant,
+    ): Set<Oid> =
+        jdbcNamedParameterTemplate
+            .query(
+                """
+                SELECT DISTINCT oppijanumero FROM koto_suoritus
+                WHERE completed AND oppijanumero IS NOT NULL
+                AND kurssi_id = :kurssiId
+                AND suoritusaika = :suoritusaika
+                """.trimIndent(),
+                mapOf("kurssiId" to kurssiId, "suoritusaika" to Timestamp.from(suoritusaika)),
+            ) { rs, _ -> rs.getOid("oppijanumero") }
+            .toSet()
 
     private fun findLatestSuoritusVersion(suoritus: KielitestiSuoritus): KielitestiSuoritus? {
         val sql =
