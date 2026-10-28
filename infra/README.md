@@ -141,6 +141,37 @@ explicitly whether the bucket and its versions should be emptied and deleted,
 and do that deliberately rather than leaving an unmanaged bucket of personal
 data behind. See _Stack lifecycle_ for why an orphaned stack is a hazard.
 
+**Deleting the stack also deleted the bucket's TLS-only policy.** CDK creates
+the `enforceSSL` statement as a separate `AWS::S3::BucketPolicy` whose removal
+policy defaults to `DESTROY`, independent of the bucket's own `RETAIN`.
+Versioning, encryption, the public access block and the lifecycle rule are
+bucket properties and stayed; the policy is its own resource and went with the
+stack, so the bucket fails Security Hub S3.5 until the policy is put back by
+hand (prod credentials; check `get-bucket-policy` first and merge rather than
+overwrite if some other policy has appeared):
+
+```bash
+aws s3api get-bucket-policy --bucket kitu-yki-historia-upload-prod
+aws s3api put-bucket-policy --bucket kitu-yki-historia-upload-prod --policy '{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "AllowSSLRequestsOnly",
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": "s3:*",
+    "Resource": [
+      "arn:aws:s3:::kitu-yki-historia-upload-prod",
+      "arn:aws:s3:::kitu-yki-historia-upload-prod/*"
+    ],
+    "Condition": { "Bool": { "aws:SecureTransport": "false" } }
+  }]
+}'
+```
+
+`presign-yki-historia-upload.mjs` mints `https` URLs, so uploads keep working.
+The same trap applies to any retained bucket: when a stack that owns one is
+deleted, re-check its bucket policy.
+
 ## Account settings
 
 `AccountSettings` (`lib/account-settings-stack.ts`) is instantiated once per
@@ -192,9 +223,25 @@ other CDK-provided Lambda, see _Stack lifecycle_.
 - Alarms attached: 5xx count ≥ 4 over the period; CPU > 50%; memory > 50%.
   All three trigger SNS, plus an investigation when `automaticInvestigations`
   is on for the env.
-- An S3 bucket for `tehtavapankki` is created and the task role gets
-  read+write access to it (write for the Koealusta-import scheduled task,
-  read for the virkailija-facing listing page and signed download URLs).
+- An S3 bucket for `tehtavapankki` (`kitu-bucket-<env>`) is created and the
+  task role gets read, put and `s3:DeleteObject` on it (write for the
+  Koealusta-import scheduled task, read for the virkailija-facing listing page
+  and signed download URLs). The bucket blocks public access, denies non-TLS
+  requests (`enforceSSL`, Security Hub S3.5) and is versioned with a lifecycle
+  rule that expires noncurrent versions after 30 days, cleans up expired
+  delete markers and aborts incomplete multipart uploads after a day.
+- **MFA Delete is deliberately not used (OPHKOTO-92, Security Hub S3.20).**
+  Only the account's root user can enable it, only through the CLI, and S3
+  doesn't allow it on a bucket that has a lifecycle configuration. The nightly
+  import deletes same-content re-downloads (`removeDuplicates`) and overwrites
+  assets, so without lifecycle every old version would be kept forever. The
+  compensating control: versioning makes every delete and overwrite
+  recoverable for 30 days, and the task role is granted `s3:DeleteObject`
+  rather than `s3:DeleteObject*`, so the application identity can't
+  permanently delete a version — only the lifecycle rule does that. S3.20
+  doesn't evaluate buckets that have a lifecycle configuration, by AWS's own
+  design. Don't widen the grant back to `grantReadWrite`/`grantDelete`: both
+  include `s3:DeleteObjectVersion`.
 
 ## Monitoring, alarms, investigations, Slack
 
