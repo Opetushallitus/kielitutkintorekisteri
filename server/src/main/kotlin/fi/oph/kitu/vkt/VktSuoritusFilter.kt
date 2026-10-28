@@ -48,9 +48,9 @@ data class VktSuoritusFilter(
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             aikarajausDescription(alkupaiva, loppupaiva),
-            valintaDescription(UiText.Vkt.Sarake.tutkintokieli, tutkintokieli) { it.nimi.toString() },
-            valintaDescription(UiText.Vkt.Sarake.taitotaso, taitotaso) { it.nimi.toString() },
-            valintaDescription(UiText.Vkt.arvioinninTila, arvioitu) { it.nimi.toString() },
+            valintaDescription(UiText.Vkt.Sarake.tutkintokieli, tutkintokieli),
+            valintaDescription(UiText.Vkt.Sarake.taitotaso, taitotaso),
+            valintaDescription(UiText.Vkt.arvioinninTila, arvioitu),
             merkittyPoistettavaksi?.let {
                 if (it) UiText.Vkt.vainPoistettavat.toString() else UiText.Vkt.vainEiPoistettavat.toString()
             },

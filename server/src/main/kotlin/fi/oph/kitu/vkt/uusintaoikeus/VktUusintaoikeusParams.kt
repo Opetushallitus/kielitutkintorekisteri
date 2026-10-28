@@ -33,8 +33,8 @@ data class VktUusintaoikeusParams(
 
     fun filterDescriptions(): List<String> =
         listOfNotNull(
-            valintaDescription(UiText.Vkt.Sarake.tutkintokieli, tutkintokieli) { it.nimi.toString() },
-            valintaDescription(UiText.Vkt.Sarake.taitotaso, taitotaso) { it.nimi.toString() },
+            valintaDescription(UiText.Vkt.Sarake.tutkintokieli, tutkintokieli),
+            valintaDescription(UiText.Vkt.Sarake.taitotaso, taitotaso),
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
         )
 

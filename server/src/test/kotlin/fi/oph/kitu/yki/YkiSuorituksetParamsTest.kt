@@ -115,17 +115,24 @@ class YkiSuorituksetParamsTest {
     }
 
     @Test
-    fun `usean arvon valinta viedään urliin pilkuilla eroteltuna ja kuvataan luettelona`() {
+    fun `usean arvon valinta viedään urliin koodeina ja kuvataan valikon niminä`() {
         val params =
             YkiSuorituksetParams(
                 tutkintokieli = listOf(Tutkintokieli.SWE, Tutkintokieli.FIN),
+                tutkintotaso = listOf(Tutkintotaso.YT, Tutkintotaso.PT),
                 arviointitila = listOf(Arviointitila.ARVIOITU, Arviointitila.ARVIOITAVA),
             )
 
         assertEquals("FIN,SWE", params.toMap()["tutkintokieli"])
         assertEquals("ARVIOITAVA,ARVIOITU", params.toMap()["arviointitila"])
-        assertNull(params.toMap()["tutkintotaso"])
-        assertContains(params.filterDescriptions(), "${UiText.Yki.Sarake.tutkintokieli}: FIN, SWE")
-        assertContains(params.csvFileName(), "_FIN-SWE_")
+        assertContains(
+            params.filterDescriptions(),
+            "${UiText.Yki.Sarake.tutkintokieli}: ${UiText.Yki.Kieli.suomi}, ${UiText.Yki.Kieli.ruotsi}",
+        )
+        assertContains(
+            params.filterDescriptions(),
+            "${UiText.Yki.Sarake.tutkintotaso}: ${UiText.Yki.Taso.perustaso}, ${UiText.Yki.Taso.ylinTaso}",
+        )
+        assertContains(params.csvFileName(), "_FIN-SWE_PT-YT_")
     }
 }

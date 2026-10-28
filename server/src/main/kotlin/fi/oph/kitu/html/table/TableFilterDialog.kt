@@ -130,7 +130,7 @@ inline fun <reified E : Enum<E>> tableFilterOptions(): List<E> =
         E::class.java.getField(it.name).isAnnotationPresent(HideInTableFilter::class.java)
     }
 
-inline fun <reified E : Enum<E>> enumValueName(value: E): String =
+fun enumValueName(value: Enum<*>): String =
     when (value) {
         is Koodisto.KoodiviiteNimella -> value.nimi.toString()
         is Nimetty -> value.nimi.toString()
