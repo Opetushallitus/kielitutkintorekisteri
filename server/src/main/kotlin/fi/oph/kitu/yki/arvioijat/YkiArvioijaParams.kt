@@ -69,7 +69,7 @@ data class YkiArvioijaParams(
         listOfNotNull(
             search.trim().takeIf { it.isNotEmpty() }?.let { "${UiText.Yki.hakusanaArvioija}: $it" },
             valintaDescription(UiText.Yki.Sarake.tila, tila),
-            valintaDescription(UiText.Yki.Sarake.kieli, kieli) { it.solkiCode },
+            valintaDescription(UiText.Yki.Sarake.kieli, kieli),
             valintaDescription(UiText.Yki.Sarake.taso, taso),
             kausiPaattyyEnnen?.let { "${UiText.Yki.Sarake.kaudenPaattymispaiva} < $it" },
             if (vainSolkiVirheet) UiText.Yki.solkiLahetystenVirheet.toString() else null,

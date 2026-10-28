@@ -30,6 +30,13 @@ fun PaginatedListViewParams.pagination(
 fun <E : Enum<E>> valintaDescription(
     otsikko: LocalizedString,
     valitut: List<E>,
-    nimi: (E) -> String = { it.toString() },
 ): String? =
-    if (valitut.isEmpty()) null else valitut.sorted().joinToString(", ", prefix = "$otsikko: ", transform = nimi)
+    if (valitut.isEmpty()) {
+        null
+    } else {
+        valitut.sorted().joinToString(
+            ", ",
+            prefix = "$otsikko: ",
+            transform = ::enumValueName,
+        )
+    }

@@ -166,7 +166,7 @@ data class YkiSuorituksetParams(
             aikarajausDescription(tuontialku, tuontiloppu, prefix = UiText.Filter.rekisteriintuontiaikaPrefix),
             valintaDescription(UiText.Yki.Sarake.tutkintokieli, tutkintokieli),
             valintaDescription(UiText.Yki.Sarake.tutkintotaso, tutkintotaso),
-            valintaDescription(UiText.Yki.Sarake.arviointitila, arviointitila) { it.viewText },
+            valintaDescription(UiText.Yki.Sarake.arviointitila, arviointitila),
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
             if (piilotaVanhentuneetTiedot) UiText.Yki.vanhentuneetPiilotettu.toString() else null,
             if (versionHistory) UiText.Yki.naytaVersiohistoria.toString() else null,

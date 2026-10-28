@@ -318,7 +318,9 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
       await kielitestiSuorituksetPage.search("laasonen")
 
       await expect(
-        kielitestiSuorituksetPage.getPageContent().getByText("Testikieli: FIN"),
+        kielitestiSuorituksetPage
+          .getPageContent()
+          .getByText("Testikieli: suomi"),
       ).toBeVisible()
       await expect(
         kielitestiSuorituksetPage

@@ -72,12 +72,12 @@ describe('"YKI Suoritukset" -page', () => {
 
     await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(1)
     await expect(ykiSuorituksetPage.getPageContent()).toContainText(
-      "Tutkintokieli: DEU, SWE",
+      "Tutkintokieli: saksa, ruotsi",
     )
 
     const tilastot = await ykiSuorituksetPage.openTilastot()
     await expect(tilastot.getPageContent()).toContainText(
-      "Tutkintokieli: DEU, SWE",
+      "Tutkintokieli: saksa, ruotsi",
     )
     await expect(tilastot.getYhteensa()).toHaveText("1")
 
@@ -102,7 +102,9 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(2)
 
     const tilastot = await ykiSuorituksetPage.openTilastot()
-    await expect(tilastot.getPageContent()).toContainText("Tutkintokieli: FIN")
+    await expect(tilastot.getPageContent()).toContainText(
+      "Tutkintokieli: suomi",
+    )
     await expect(tilastot.getSuoritusRow()).toHaveCount(2)
     await expect(tilastot.getYhteensa()).toHaveText("2")
 
