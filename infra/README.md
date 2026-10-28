@@ -25,6 +25,7 @@ infra/
 └── lib/
     ├── accounts.ts                  # Account IDs, CIDR blocks, Slack channels, KOSKI accounts
     ├── env.ts                       # getEnv(): fetch required env var or throw
+    ├── account-settings-stack.ts    # Account-wide S3 Block Public Access (Util + every env)
     ├── utility-stage.ts             # Util stage (composes the stacks below)
     ├── container-repository-stack.ts  # ECR repo `kitu` + cross-account pull grants
     ├── github-actions-stack.ts      # OIDC provider + deploy role + PR diff role
@@ -52,8 +53,10 @@ the retained YKI-historia bucket (see _Prod-only stacks_ below).
 
 ## Util stage (`bin/infra.ts`, `lib/utility-stage.ts`)
 
-Created once, in the shared util account. Three things live here:
+Created once, in the shared util account. Four things live here:
 
+- **`Util/AccountSettings`** — account-wide S3 Block Public Access, the same
+  stack every env account gets (see [Account settings](#account-settings)).
 - **`Util/ImageBuilds`** — ECR repo `kitu` with `IMMUTABLE` tags and scan-on-push.
   The repo grants pull to each env account principal and pull+push to the GitHub
   Actions deployment role. CI builds an image, pushes it here, then env deploys
@@ -70,18 +73,20 @@ Created once, in the shared util account. Three things live here:
 Each of `Dev`, `Test`, `Prod` instantiates the same set of stacks in roughly this
 order (because of dependencies):
 
-1. **`GithubActions`** — per-env CDK deploy role, CloudWatch log-tail permission
+1. **`AccountSettings`** — account-wide S3 Block Public Access, see
+   [Account settings](#account-settings). No dependencies on anything else.
+2. **`GithubActions`** — per-env CDK deploy role, CloudWatch log-tail permission
    and the read-only `cloudformation:ListStacks` / `lambda:ListFunctions` used by
    the weekly audit, plus the read-only PR diff role. Trusted via OIDC; see
    [GitHub Actions roles](#github-actions-roles).
-2. **`AlarmsUsEast1`** (region: `us-east-1`) and **`Alarms`** (env region) — see
+3. **`AlarmsUsEast1`** (region: `us-east-1`) and **`Alarms`** (env region) — see
    the Monitoring section below. The us-east-1 stack is created first so the
    primary stack can subscribe its SNS topics to the single shared Slack
    `SlackChannelConfiguration` (Chatbot allows only one per Slack channel per
    account).
-3. **`Dns`** — `HostedZone.fromLookup(...)` against a **pre-existing** Route53
+4. **`Dns`** — `HostedZone.fromLookup(...)` against a **pre-existing** Route53
    zone. The zone is created manually to avoid CDK ever destroying it.
-4. **`LogGroups`** — `KituService` and `KituServiceAudit` log groups, the
+5. **`LogGroups`** — `KituService` and `KituServiceAudit` log groups, the
    `KituServiceDataProtectionAudit` group (with a Finnish-SSN data-protection
    policy applied to the service log group), the customer-managed KMS key
    `alias/kitu/logs` that encrypts all three (see
@@ -90,13 +95,13 @@ order (because of dependencies):
    and the YKI-suoritus Slack notifications (`YkiSuoritusAlarm` + an EventBridge
    rule + the `YkiSuoritusNotifications` Lambda, plus the optional
    `YkiSuoritusEmailTopic` for emailed summaries).
-5. **`Network`** — VPC with the per-env CIDR (Dev `10.15.0.0/18`, Test
+6. **`Network`** — VPC with the per-env CIDR (Dev `10.15.0.0/18`, Test
    `10.15.64.0/18`, Prod `10.15.128.0/18`) and 2 AZs in dev / 3 AZs in test+prod.
-6. **`Connections`** — three empty SGs (`serviceSG`, `loadBalancerSG`,
+7. **`Connections`** — three empty SGs (`serviceSG`, `loadBalancerSG`,
    `databaseSG`). Rules are added in `createRules()` at the very end of the
    stage, after the DB is created and `databaseSG` is populated. This deferred
    wiring avoids a circular dependency between stacks.
-7. **`Database`** — Aurora Postgres ServerlessV2. Always one writer; prod
+8. **`Database`** — Aurora Postgres ServerlessV2. Always one writer; prod
    additionally gets a reader replica with auto-scaling, deletion protection,
    and Performance Insights. The cluster is in private subnets and only the
    Service stack's task security group is granted ingress on `5432`. No
@@ -108,12 +113,12 @@ order (because of dependencies):
    how the YKI historia karanteenitaulu was populated during the 2011–2016
    migration (`scripts/load_yki_historia_siirtymattomat.py`); it is IAM-gated, audited in
    CloudTrail, and deliberately not used for anything in the register itself.
-8. **`Service`** — the application Fargate service, see below.
-9. **`Route53HealthChecks`** (region: `us-east-1`) — HTTPS check against the
-   public domain; alarm wired to `usEastAlarmsStack.investigationActions`.
-10. **`Backups`** — AWS Backup plan that protects the Aurora cluster; backup-job
+9. **`Service`** — the application Fargate service, see below.
+10. **`Route53HealthChecks`** (region: `us-east-1`) — HTTPS check against the
+    public domain; alarm wired to `usEastAlarmsStack.investigationActions`.
+11. **`Backups`** — AWS Backup plan that protects the Aurora cluster; backup-job
     state changes go to the alarm SNS topic.
-11. **`KoskiAuditLogsIntegration`** — a CloudWatch Logs subscription filter on
+12. **`KoskiAuditLogsIntegration`** — a CloudWatch Logs subscription filter on
     the audit log group → Lambda → SQS in the KOSKI account. The Lambda assumes
     a role (`kitu-sqs-sender`) that the KOSKI account creates with a matching
     trust policy.
@@ -135,6 +140,28 @@ names and addresses.** Deleting the stack is therefore not enough: decide
 explicitly whether the bucket and its versions should be emptied and deleted,
 and do that deliberately rather than leaving an unmanaged bucket of personal
 data behind. See _Stack lifecycle_ for why an orphaned stack is a hazard.
+
+## Account settings
+
+`AccountSettings` (`lib/account-settings-stack.ts`) is instantiated once per
+account — in Util and in each env stage — in the stage's primary region. It
+holds settings that are account-wide rather than regional, so they must never
+go into a stack that exists in both `eu-west-1` and `us-east-1` (such as
+`AlarmsStack`).
+
+- **S3 Block Public Access at account level** (Security Hub control S3.1,
+  `s3-account-level-public-access-blocks-periodic`; OPHKOTO-92): all four
+  settings on. CloudFormation has no resource type for this setting, so it is
+  an `AwsCustomResource` calling `S3Control.PutPublicAccessBlock`. It has no
+  `onDelete`, so removing the stack leaves the protection on. It runs only when
+  the resource is created or its parameters change — a manual change in the
+  console is not undone by the next deploy, the Config rule is what catches
+  that. Presigned URLs keep working: they are signed requests, not public
+  access. Check with
+  `aws s3control get-public-access-block --account-id <account>`.
+
+The custom resource's singleton Lambda takes its runtime from CDK like every
+other CDK-provided Lambda, see _Stack lifecycle_.
 
 ## Service stack details (`lib/service-stack.ts`)
 

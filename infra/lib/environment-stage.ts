@@ -1,6 +1,7 @@
 import { Stage, StageProps } from "aws-cdk-lib"
 import { ContainerImage } from "aws-cdk-lib/aws-ecs"
 import { Construct } from "constructs"
+import { AccountSettingsStack } from "./account-settings-stack"
 import { EnvironmentConfig } from "./accounts"
 import { AlarmsStack } from "./alarms-stack"
 import { ConnectionsStack } from "./connections-stack"
@@ -25,6 +26,8 @@ export class EnvironmentStage extends Stage {
     super(scope, id, props)
 
     const { env, environmentConfig } = props
+
+    new AccountSettingsStack(this, "AccountSettings", { env })
 
     new GithubActionsStack(this, "GithubActions", {
       env,
