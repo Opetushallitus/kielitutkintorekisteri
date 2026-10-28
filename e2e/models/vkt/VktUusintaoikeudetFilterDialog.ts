@@ -1,4 +1,5 @@
 import { Locator } from "@playwright/test"
+import MultiSelectDropdown from "../components/MultiSelectDropdown"
 
 export class VktUusintaoikeudetFilterDialog {
   modal: Locator
@@ -11,12 +12,12 @@ export class VktUusintaoikeudetFilterDialog {
     await this.modal.getByLabel("Tarkastelupäivä").fill(date)
   }
 
-  async setTutkintokieli(value: string) {
-    await this.setEnum("tutkintokieli", value)
+  async setTutkintokieli(values: string[]) {
+    await this.setEnum("tutkintokieli", values)
   }
 
-  async setTaitotaso(value: string) {
-    await this.setEnum("taitotaso", value)
+  async setTaitotaso(values: string[]) {
+    await this.setEnum("taitotaso", values)
   }
 
   async hideHenkilotiedot(state: boolean) {
@@ -30,9 +31,7 @@ export class VktUusintaoikeudetFilterDialog {
     await this.modal.page().waitForLoadState("networkidle")
   }
 
-  private async setEnum(name: string, value: string) {
-    await this.modal
-      .locator(`input[type="radio"][name="${name}"][value="${value}"]`)
-      .check()
+  private async setEnum(name: string, values: string[]) {
+    await new MultiSelectDropdown(this.modal, name).select(values)
   }
 }

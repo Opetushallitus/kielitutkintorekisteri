@@ -13,6 +13,7 @@ import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.enumFilter
+import fi.oph.kitu.html.table.enumRadioFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.tableFilterDialog
@@ -114,11 +115,10 @@ fun FlowContent.kielitestiSuoritusFilterButton(params: KielitestiSuorituksetPara
             piilotaHenkilotiedotFilter(params.piilotaHenkilotiedot)
         }
         fieldSet {
-            enumFilter<NaytettavatSuoritukset>(
+            enumRadioFilter(
                 "naytettavatSuoritukset",
                 UiText.Filter.naytettavatSuoritukset.toString(),
                 params.naytettavatSuoritukset,
-                kaikkiOption = false,
             )
         }
     }

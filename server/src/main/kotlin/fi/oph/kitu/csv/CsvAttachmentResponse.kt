@@ -19,6 +19,9 @@ fun buildCsvFilename(
         .filterNotNull()
         .joinToString("_", postfix = ".csv")
 
+fun <E : Enum<E>> List<E>.toCsvFilenameSegment(transform: (E) -> String = { it.toString() }): String? =
+    if (isEmpty()) null else sorted().joinToString("-", transform = transform)
+
 inline fun <reified C : Enum<C>, T> csvAttachmentResponse(
     filename: String,
     data: Iterable<T>,

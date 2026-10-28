@@ -192,7 +192,7 @@ class KielitestiSuoritusRepositoryTest(
 
     @Test
     fun `suoritusten rajaus testikielen perusteella`() {
-        val filter = KielitestiSuoritusFilter(testikieli = Testikieli.SWE)
+        val filter = KielitestiSuoritusFilter(testikieli = listOf(Testikieli.SWE))
         val suoritukset = customKielitestiSuoritusRepository.findSuoritukset(filter)
         assertAll(
             fun () = assertEquals(1, suoritukset.size),

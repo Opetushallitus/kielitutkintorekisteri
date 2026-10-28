@@ -1,11 +1,14 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 import fi.oph.kitu.csv.buildCsvFilename
+import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.table.PaginatedListViewParams
+import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.webmvc.toTrueOrNull
+import fi.oph.kitu.webmvc.toUrlParam
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 
@@ -20,7 +23,7 @@ data class KielitestiSuorituksetParams(
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var suoritusloppu: LocalDate? = null,
     override val piilotaHenkilotiedot: Boolean = false,
-    val testikieli: Testikieli? = null,
+    val testikieli: List<Testikieli> = emptyList(),
     val naytettavatSuoritukset: NaytettavatSuoritukset = NaytettavatSuoritukset.VALMIIT,
 ) : PaginatedListViewParams {
     fun toFilter(): KielitestiSuoritusFilter =
@@ -47,7 +50,7 @@ data class KielitestiSuorituksetParams(
             "sortDirection" to sortDirection.name,
             "suoritusalku" to suoritusalku?.toString(),
             "suoritusloppu" to suoritusloppu?.toString(),
-            "testikieli" to testikieli?.toString(),
+            "testikieli" to testikieli.toUrlParam(),
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
             "naytettavatSuoritukset" to naytettavatSuoritukset.name,
         )
@@ -56,7 +59,7 @@ data class KielitestiSuorituksetParams(
         buildCsvFilename(
             "koto",
             piilotaHenkilotiedot,
-            testikieli?.toString(),
+            testikieli.toCsvFilenameSegment(),
             suoritusalku?.toString(),
             suoritusloppu?.toString(),
         )
@@ -64,7 +67,7 @@ data class KielitestiSuorituksetParams(
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             aikarajausDescription(suoritusalku, suoritusloppu),
-            testikieli?.let { "${UiText.Koto.Sarake.testikieli}: $it" },
+            valintaDescription(UiText.Koto.Sarake.testikieli, testikieli),
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
             naytettavatSuoritukset
                 .takeIf { it != NaytettavatSuoritukset.VALMIIT }

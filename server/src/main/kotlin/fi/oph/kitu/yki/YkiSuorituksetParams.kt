@@ -1,12 +1,15 @@
 package fi.oph.kitu.yki
 import fi.oph.kitu.csv.buildCsvFilename
+import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.PaginatedListViewParams
+import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.util.SearchTerms
 import fi.oph.kitu.webmvc.toTrueOrNull
+import fi.oph.kitu.webmvc.toUrlParam
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
@@ -27,11 +30,11 @@ data class YkiSuorituksetParams(
     var tutkintoalku: LocalDate? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var tutkintoloppu: LocalDate? = null,
-    var tutkintokieli: Tutkintokieli? = null,
-    var tutkintotaso: Tutkintotaso? = null,
+    var tutkintokieli: List<Tutkintokieli> = emptyList(),
+    var tutkintotaso: List<Tutkintotaso> = emptyList(),
     override var piilotaHenkilotiedot: Boolean = false,
     val piilotaVanhentuneetTiedot: Boolean = false,
-    val arviointitila: Arviointitila? = null,
+    val arviointitila: List<Arviointitila> = emptyList(),
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var tuontialku: LocalDate? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -50,11 +53,11 @@ data class YkiSuorituksetParams(
             "sortDirection" to sortDirection.name,
             "tutkintoalku" to tutkintoalku?.toString(),
             "tutkintoloppu" to tutkintoloppu?.toString(),
-            "tutkintokieli" to tutkintokieli?.toString(),
-            "tutkintotaso" to tutkintotaso?.toString(),
+            "tutkintokieli" to tutkintokieli.toUrlParam(),
+            "tutkintotaso" to tutkintotaso.toUrlParam(),
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
             "piilotaVanhentuneetTiedot" to piilotaVanhentuneetTiedot.toTrueOrNull(),
-            "arviointitila" to arviointitila?.toString(),
+            "arviointitila" to arviointitila.toUrlParam(),
             "tuontialku" to tuontialku?.toString(),
             "tuontiloppu" to tuontiloppu?.toString(),
             "tilastoSortColumn" to
@@ -132,9 +135,9 @@ data class YkiSuorituksetParams(
         buildCsvFilename(
             "yki_suoritukset",
             piilotaHenkilotiedot,
-            tutkintokieli?.toString(),
-            tutkintotaso?.toString(),
-            arviointitila?.toString(),
+            tutkintokieli.toCsvFilenameSegment(),
+            tutkintotaso.toCsvFilenameSegment(),
+            arviointitila.toCsvFilenameSegment(),
             tutkintoalku?.toString(),
             tutkintoloppu?.toString(),
             tuontialku?.let { "tuonti_$it" },
@@ -148,9 +151,9 @@ data class YkiSuorituksetParams(
             valittuRyhmittely()
                 .takeUnless { onOletusryhmittely() }
                 ?.let { ryhmat -> "ryhmittely_" + ryhmat.joinToString("-") { it.urlParam }.ifEmpty { "ei" } },
-            tutkintokieli?.toString(),
-            tutkintotaso?.toString(),
-            arviointitila?.toString(),
+            tutkintokieli.toCsvFilenameSegment(),
+            tutkintotaso.toCsvFilenameSegment(),
+            arviointitila.toCsvFilenameSegment(),
             tutkintoalku?.toString(),
             tutkintoloppu?.toString(),
             tuontialku?.let { "tuonti_$it" },
@@ -161,9 +164,9 @@ data class YkiSuorituksetParams(
         listOfNotNull(
             aikarajausDescription(tutkintoalku, tutkintoloppu),
             aikarajausDescription(tuontialku, tuontiloppu, prefix = UiText.Filter.rekisteriintuontiaikaPrefix),
-            tutkintokieli?.let { "${UiText.Yki.Sarake.tutkintokieli}: $it" },
-            tutkintotaso?.let { "${UiText.Yki.Sarake.tutkintotaso}: $it" },
-            arviointitila?.let { "${UiText.Yki.Sarake.arviointitila}: ${it.viewText}" },
+            valintaDescription(UiText.Yki.Sarake.tutkintokieli, tutkintokieli),
+            valintaDescription(UiText.Yki.Sarake.tutkintotaso, tutkintotaso),
+            valintaDescription(UiText.Yki.Sarake.arviointitila, arviointitila) { it.viewText },
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
             if (piilotaVanhentuneetTiedot) UiText.Yki.vanhentuneetPiilotettu.toString() else null,
             if (versionHistory) UiText.Yki.naytaVersiohistoria.toString() else null,

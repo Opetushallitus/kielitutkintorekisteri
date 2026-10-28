@@ -77,14 +77,14 @@ class YkiArvioijaTilaSqlTest(
             assertEquals(
                 odotetut,
                 repository
-                    .findForListView(YkiArvioijaParams(tila = tila, limit = tapaukset.size), tanaan)
+                    .findForListView(YkiArvioijaParams(tila = listOf(tila), limit = tapaukset.size), tanaan)
                     .map { it.sukunimi }
                     .sorted(),
                 "suodatin $tila",
             )
             assertEquals(
                 odotetut.size,
-                repository.countForListView(YkiArvioijaParams(tila = tila), tanaan),
+                repository.countForListView(YkiArvioijaParams(tila = listOf(tila)), tanaan),
                 "laskuri $tila",
             )
         }

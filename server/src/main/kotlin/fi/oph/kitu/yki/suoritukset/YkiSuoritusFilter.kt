@@ -7,6 +7,7 @@ import arrow.core.toNonEmptySetOrNull
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
+import fi.oph.kitu.jdbc.addAnyOf
 import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
@@ -21,13 +22,13 @@ data class YkiSuoritusFilter(
     val search: SearchTerms? = null,
     val alkupaiva: LocalDate? = null,
     val loppupaiva: LocalDate? = null,
-    val tutkintokieli: Tutkintokieli? = null,
-    val tutkintotaso: Tutkintotaso? = null,
-    val arviointitila: Arviointitila? = null,
+    val tutkintokieli: List<Tutkintokieli> = emptyList(),
+    val tutkintotaso: List<Tutkintotaso> = emptyList(),
+    val arviointitila: List<Arviointitila> = emptyList(),
     val tuontialku: LocalDate? = null,
     val tuontiloppu: LocalDate? = null,
 ) : SqlFilter() {
-    fun requiresSubTables(): Boolean = tutkintokieli != null || tutkintotaso != null
+    fun requiresSubTables(): Boolean = tutkintokieli.isNotEmpty() || tutkintotaso.isNotEmpty()
 
     fun extendHenkiloOids(onr: OppijanumeroService): Either<OppijanumeroException, YkiSuoritusFilter> =
         either {
@@ -61,12 +62,9 @@ data class YkiSuoritusFilter(
         }
         add(alkupaiva?.let { "tutkintopaiva >= :filter_alkupaiva" }, "filter_alkupaiva" to alkupaiva)
         add(loppupaiva?.let { "tutkintopaiva <= :filter_loppupaiva" }, "filter_loppupaiva" to loppupaiva)
-        add(tutkintokieli?.let { "tutkintokieli = :filter_kieli" }, "filter_kieli" to tutkintokieli?.name)
-        add(tutkintotaso?.let { "tutkintotaso = :filter_taso" }, "filter_taso" to tutkintotaso?.name)
-        add(
-            arviointitila?.let { "arviointitila = :filter_arviointitila" },
-            "filter_arviointitila" to arviointitila?.name,
-        )
+        addAnyOf("tutkintokieli", "filter_kieli", tutkintokieli)
+        addAnyOf("tutkintotaso", "filter_taso", tutkintotaso)
+        addAnyOf("arviointitila", "filter_arviointitila", arviointitila)
         val tuontiAlkuhetki = tuontialku?.atStartOfDay(TimeService.zoneId)?.toOffsetDateTime()
         add(tuontiAlkuhetki?.let { "received_at >= :filter_tuonti_alku" }, "filter_tuonti_alku" to tuontiAlkuhetki)
         val tuontiLoppuhetki = tuontiloppu?.plusDays(1)?.atStartOfDay(TimeService.zoneId)?.toOffsetDateTime()
