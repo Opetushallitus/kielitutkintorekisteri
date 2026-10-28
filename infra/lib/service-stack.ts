@@ -34,7 +34,7 @@ import { DatabaseCluster } from "aws-cdk-lib/aws-rds"
 import { HostedZone } from "aws-cdk-lib/aws-route53"
 import { ITopic } from "aws-cdk-lib/aws-sns"
 import { Construct } from "constructs"
-import { ManagedPolicy } from "aws-cdk-lib/aws-iam"
+import { ManagedPolicy, PolicyStatement } from "aws-cdk-lib/aws-iam"
 import * as s3 from "aws-cdk-lib/aws-s3"
 import { StringParameter } from "aws-cdk-lib/aws-ssm"
 
@@ -80,7 +80,16 @@ export class ServiceStack extends Stack {
 
     const tehtavapankkiBucket = new s3.Bucket(this, "Kitu-Bucket", {
       bucketName: `kitu-bucket-${props.name}`,
-      publicReadAccess: false,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      enforceSSL: true,
+      versioned: true,
+      lifecycleRules: [
+        {
+          noncurrentVersionExpiration: cdk.Duration.days(30),
+          expiredObjectDeleteMarker: true,
+          abortIncompleteMultipartUploadAfter: cdk.Duration.days(1),
+        },
+      ],
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     })
 
@@ -340,6 +349,14 @@ service:
       })
     memoryAlarm.addAlarmAction(snsAction, ...props.investigationActions)
 
-    tehtavapankkiBucket.grantReadWrite(this.service.taskDefinition.taskRole)
+    const taskRole = this.service.taskDefinition.taskRole
+    tehtavapankkiBucket.grantRead(taskRole)
+    tehtavapankkiBucket.grantPut(taskRole)
+    taskRole.addToPrincipalPolicy(
+      new PolicyStatement({
+        actions: ["s3:DeleteObject"],
+        resources: [tehtavapankkiBucket.arnForObjects("*")],
+      }),
+    )
   }
 }
