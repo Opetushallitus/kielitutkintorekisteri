@@ -96,7 +96,9 @@ class KoealustaService(
         if (validationFailure?.isNotEmpty() == true) {
             span.setAttribute("db.saved.error.validation", validationErrors.count())
             span.setAttribute("db.saved.error.onr", oppijanumeroErrors.count())
-            return from
+            return validationFailure.varhaisinEpaonnistunutSuoritus
+                ?.let { maxOf(from, it.minusSeconds(1)) }
+                ?: from
         }
 
         return suoritukset.mapNotNull { it.suoritusaika }.maxOrNull() ?: from

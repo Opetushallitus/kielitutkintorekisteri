@@ -90,6 +90,7 @@ class KoealustaMappingService(
         val oppijanumeroExceptions = mutableListOf<KoealustaMappingError>()
         val validationErrors = mutableListOf<KoealustaMappingError>()
         val tarkistetutOnrVirheet = aiemmatVirheet.tarkistetutOnrVirheet()
+        val epaonnistuneet = mutableListOf<Instant>()
 
         val suoritukset =
             suorituksetResponse.users.flatMap { user ->
@@ -101,17 +102,22 @@ class KoealustaMappingService(
                         .onLeft(validationErrors::add)
                         .getOrNull()
 
-                val oppijanumero =
+                val oppijanumeronHaku =
                     oppija
                         ?.let { haeOppijanumero(user, it, tarkistetutOnrVirheet[it], tallennetutOppijanumerot) }
                         ?.onLeft { oppijanumeroExceptions.add(it) }
-                        ?.getOrNull()
+                if (oppija == null || oppijanumeronHaku?.isLeft() == true) {
+                    epaonnistuneet += user.completions.map { it.suoritusaika() }
+                }
+                val oppijanumero = oppijanumeronHaku?.getOrNull()
 
                 user.completions.mapNotNull { completion ->
                     validator
                         .completionToEntity(user, oppijanumero, completion)
-                        ?.onLeft { validationErrors.add(it) }
-                        ?.getOrNull()
+                        ?.onLeft {
+                            validationErrors.add(it)
+                            epaonnistuneet += completion.suoritusaika()
+                        }?.getOrNull()
                 }
             }
 
@@ -122,6 +128,7 @@ class KoealustaMappingService(
                         "Parsing KielitestiSuoritus failed: There were ${validationErrors.size} validation errors and ${oppijanumeroExceptions.size} oppijanumero failures.",
                     oppijanumeroExceptions = oppijanumeroExceptions,
                     validationErrors = validationErrors,
+                    varhaisinEpaonnistunutSuoritus = epaonnistuneet.minOrNull(),
                 )
             } else {
                 null
@@ -297,6 +304,7 @@ class KoealustaMappingService(
         message: String,
         val oppijanumeroExceptions: List<KoealustaMappingError>,
         val validationErrors: List<KoealustaMappingError>,
+        val varhaisinEpaonnistunutSuoritus: Instant? = null,
     ) : Exception(message) {
         fun isEmpty(): Boolean = oppijanumeroExceptions.isEmpty() && validationErrors.isEmpty()
 
