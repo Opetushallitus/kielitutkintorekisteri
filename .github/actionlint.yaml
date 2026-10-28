@@ -1,0 +1,6 @@
+# actionlint tuntee GitHubin isännöimät runner-labelit omasta sisäänrakennetusta
+# listastaan. Labelit, joita kiinnitetty versio (.mise.toml) ei vielä tunne,
+# luetellaan tässä. Poista rivi, kun actionlint tuntee labelin itse.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
