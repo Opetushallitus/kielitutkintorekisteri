@@ -1,15 +1,19 @@
 package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.csv.buildCsvFilename
+import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.table.PaginatedListViewParams
+import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.jdbc.PAGINATED_DEFAULT_PAGE_SIZE
 import fi.oph.kitu.jdbc.PaginatedSortOrder
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
+import fi.oph.kitu.jdbc.addAnyOf
 import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.util.searchTerms
+import fi.oph.kitu.webmvc.toUrlParam
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import org.springframework.format.annotation.DateTimeFormat
@@ -17,9 +21,9 @@ import java.time.LocalDate
 
 data class YkiArvioijaParams(
     var search: String = "",
-    var tila: Rekisterointitila? = null,
-    var kieli: Tutkintokieli? = null,
-    var taso: Tutkintotaso? = null,
+    var tila: List<Rekisterointitila> = emptyList(),
+    var kieli: List<Tutkintokieli> = emptyList(),
+    var taso: List<Tutkintotaso> = emptyList(),
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var kausiPaattyyEnnen: LocalDate? = null,
     var vainSolkiVirheet: Boolean = false,
@@ -33,9 +37,9 @@ data class YkiArvioijaParams(
     override fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search.ifEmpty { null },
-            "tila" to tila?.name,
-            "kieli" to kieli?.name,
-            "taso" to taso?.name,
+            "tila" to tila.toUrlParam(),
+            "kieli" to kieli.toUrlParam(),
+            "taso" to taso.toUrlParam(),
             "kausiPaattyyEnnen" to kausiPaattyyEnnen?.toString(),
             "vainSolkiVirheet" to if (vainSolkiVirheet) "true" else null,
             "piilotaHenkilotiedot" to if (piilotaHenkilotiedot) "true" else null,
@@ -56,17 +60,17 @@ data class YkiArvioijaParams(
         buildCsvFilename(
             "yki_arvioijat",
             piilotaHenkilotiedot,
-            tila?.name,
-            kieli?.name,
-            taso?.name,
+            tila.toCsvFilenameSegment(),
+            kieli.toCsvFilenameSegment(),
+            taso.toCsvFilenameSegment(),
         )
 
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             search.trim().takeIf { it.isNotEmpty() }?.let { "${UiText.Yki.hakusanaArvioija}: $it" },
-            tila?.let { "${UiText.Yki.Sarake.tila}: $it" },
-            kieli?.let { "${UiText.Yki.Sarake.kieli}: ${it.solkiCode}" },
-            taso?.let { "${UiText.Yki.Sarake.taso}: $it" },
+            valintaDescription(UiText.Yki.Sarake.tila, tila),
+            valintaDescription(UiText.Yki.Sarake.kieli, kieli) { it.solkiCode },
+            valintaDescription(UiText.Yki.Sarake.taso, taso),
             kausiPaattyyEnnen?.let { "${UiText.Yki.Sarake.kaudenPaattymispaiva} < $it" },
             if (vainSolkiVirheet) UiText.Yki.solkiLahetystenVirheet.toString() else null,
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
@@ -78,10 +82,9 @@ data class YkiArvioijaParams(
             listOf("sukunimi", "etunimet", "arvioija_oid", "sahkopostiosoite", "asha_numero"),
             "hakusana",
         )
-        // Alikyselyn laskettu tekstisarake: ei enum-castia.
-        tila?.let { add("tila = :tila", "tila" to it.name) }
-        kieli?.let { add("kieli = :kieli::yki_tutkintokieli", "kieli" to it.name) }
-        taso?.let { add("tasot @> ARRAY[:taso]::text[]", "taso" to it.name) }
+        addAnyOf("tila", "tila", tila)
+        addAnyOf("kieli", "kieli", kieli)
+        if (taso.isNotEmpty()) add("tasot && ARRAY[:taso]::text[]", "taso" to taso.map { it.name })
         kausiPaattyyEnnen?.let {
             add("kauden_paattymispaiva IS NOT NULL AND kauden_paattymispaiva < :kausiLoppuu", "kausiLoppuu" to it)
         }

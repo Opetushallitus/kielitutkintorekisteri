@@ -1,4 +1,5 @@
 import { Locator } from "@playwright/test"
+import MultiSelectDropdown from "../components/MultiSelectDropdown"
 
 export class KielitutkintoSuorituksetFilterDialog {
   modal: Locator
@@ -15,14 +16,18 @@ export class KielitutkintoSuorituksetFilterDialog {
     await this.modal.getByLabel("Päättyen").fill(date)
   }
 
-  async setTestikieli(value: string) {
-    await this.setEnum("testikieli", value)
+  async setTestikieli(values: string[]) {
+    await new MultiSelectDropdown(this.modal, "testikieli").select(values)
   }
 
   async setNaytettavatSuoritukset(
     value: "VALMIIT" | "KESKENERAISET" | "KAIKKI",
   ) {
-    await this.setEnum("naytettavatSuoritukset", value)
+    await this.modal
+      .locator(
+        `input[type="radio"][name="naytettavatSuoritukset"][value="${value}"]`,
+      )
+      .check()
   }
 
   async hideHenkilotiedot(state: boolean) {
@@ -33,16 +38,5 @@ export class KielitutkintoSuorituksetFilterDialog {
 
   async submit() {
     await this.modal.getByRole("button", { name: "Rajaa" }).click()
-  }
-
-  private async setEnum(name: string, value: string) {
-    const radio = this.modal.locator(
-      `input[type="radio"][name="${name}"][value="${value}"]`,
-    )
-    if ((await radio.count()) > 0) {
-      await radio.check()
-    } else {
-      await this.modal.locator(`select[name="${name}"]`).selectOption(value)
-    }
   }
 }

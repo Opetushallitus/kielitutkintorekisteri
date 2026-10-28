@@ -384,7 +384,7 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       vktSuorituksetPage,
     }) => {
       await testFiltering(vktSuorituksetPage, async (dialog) => {
-        await dialog.setTutkintokieli("FIN")
+        await dialog.setTutkintokieli(["FIN"])
       })
     })
 
@@ -392,7 +392,7 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       vktSuorituksetPage,
     }) => {
       await testFiltering(vktSuorituksetPage, async (dialog) => {
-        await dialog.setTaitotaso("Erinomainen")
+        await dialog.setTaitotaso(["Erinomainen"])
       })
     })
 
@@ -400,7 +400,7 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       vktSuorituksetPage,
     }) => {
       await testFiltering(vktSuorituksetPage, async (dialog) => {
-        await dialog.setArvioitu("ArvioituOsittainTaiKokonaan")
+        await dialog.setArvioitu(["ArvioituOsittainTaiKokonaan"])
       })
     })
 
@@ -419,8 +419,8 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       await vktSuorituksetPage.openKaikkiSuoritukset()
 
       const dialog = await vktSuorituksetPage.openFilterDialog()
-      await dialog.setTutkintokieli("FIN")
-      await dialog.setTaitotaso("Erinomainen")
+      await dialog.setTutkintokieli(["FIN"])
+      await dialog.setTaitotaso(["Erinomainen"])
       await dialog.submit()
 
       await vktSuorituksetPage.search("eriksson")
@@ -442,7 +442,7 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       await vktSuorituksetPage.search("eriksson")
 
       const dialog = await vktSuorituksetPage.openFilterDialog()
-      await dialog.setTaitotaso("Erinomainen")
+      await dialog.setTaitotaso(["Erinomainen"])
       await dialog.submit()
 
       await expect(vktSuorituksetPage.searchField).toHaveValue("eriksson")
@@ -455,8 +455,8 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       await vktSuorituksetPage.openKaikkiSuoritukset()
 
       const dialog = await vktSuorituksetPage.openFilterDialog()
-      await dialog.setTutkintokieli("FIN")
-      await dialog.setTaitotaso("Erinomainen")
+      await dialog.setTutkintokieli(["FIN"])
+      await dialog.setTaitotaso(["Erinomainen"])
       await dialog.submit()
 
       await vktSuorituksetPage.table.head
@@ -479,7 +479,7 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       await vktSuorituksetPage.openKaikkiSuoritukset()
 
       const dialog = await vktSuorituksetPage.openFilterDialog()
-      await dialog.setTutkintokieli("FIN")
+      await dialog.setTutkintokieli(["FIN"])
       await dialog.submit()
 
       await vktSuorituksetPage.pagination.goToNextPage()
@@ -695,7 +695,7 @@ describe("Valtionkielitutkinnon suoritukset csv download filtering", () => {
     vktSuorituksetPage,
   }) => {
     await testFilteredCsv(page, vktSuorituksetPage, (dialog) =>
-      dialog.setTutkintokieli("FIN"),
+      dialog.setTutkintokieli(["FIN"]),
     )
   })
 
@@ -704,7 +704,7 @@ describe("Valtionkielitutkinnon suoritukset csv download filtering", () => {
     vktSuorituksetPage,
   }) => {
     await testFilteredCsv(page, vktSuorituksetPage, (dialog) =>
-      dialog.setTaitotaso("Erinomainen"),
+      dialog.setTaitotaso(["Erinomainen"]),
     )
   })
 
@@ -713,7 +713,7 @@ describe("Valtionkielitutkinnon suoritukset csv download filtering", () => {
     vktSuorituksetPage,
   }) => {
     await testFilteredCsv(page, vktSuorituksetPage, (dialog) =>
-      dialog.setArvioitu("ArvioituOsittainTaiKokonaan"),
+      dialog.setArvioitu(["ArvioituOsittainTaiKokonaan"]),
     )
   })
 

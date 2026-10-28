@@ -1,4 +1,5 @@
 import { Locator } from "@playwright/test"
+import MultiSelectDropdown from "../components/MultiSelectDropdown"
 
 export class VktSuorituksetFilterDialog {
   modal: Locator
@@ -15,16 +16,16 @@ export class VktSuorituksetFilterDialog {
     await this.modal.getByLabel("Päättyen").fill(date)
   }
 
-  async setTutkintokieli(value: string) {
-    await this.setEnum("tutkintokieli", value)
+  async setTutkintokieli(values: string[]) {
+    await this.setEnum("tutkintokieli", values)
   }
 
-  async setTaitotaso(value: string) {
-    await this.setEnum("taitotaso", value)
+  async setTaitotaso(values: string[]) {
+    await this.setEnum("taitotaso", values)
   }
 
-  async setArvioitu(value: string) {
-    await this.setEnum("arvioitu", value)
+  async setArvioitu(values: string[]) {
+    await this.setEnum("arvioitu", values)
   }
 
   async setMerkittyPoistettavaksi(value: boolean | null) {
@@ -45,14 +46,7 @@ export class VktSuorituksetFilterDialog {
     await this.modal.page().waitForLoadState("networkidle")
   }
 
-  private async setEnum(name: string, value: string) {
-    const radio = this.modal.locator(
-      `input[type="radio"][name="${name}"][value="${value}"]`,
-    )
-    if ((await radio.count()) > 0) {
-      await radio.check()
-    } else {
-      await this.modal.locator(`select[name="${name}"]`).selectOption(value)
-    }
+  private async setEnum(name: string, values: string[]) {
+    await new MultiSelectDropdown(this.modal, name).select(values)
   }
 }

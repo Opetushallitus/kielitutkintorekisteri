@@ -171,7 +171,7 @@ class VktUusintaoikeudetControllerTest(
                 apiController.getUusintaoikeudetCsv(
                     VktUusintaoikeusParams(
                         tarkastelupaiva = LocalDate.of(2028, 1, 1),
-                        taitotaso = Koodisto.VktTaitotaso.Erinomainen,
+                        taitotaso = listOf(Koodisto.VktTaitotaso.Erinomainen),
                     ),
                 )
             }

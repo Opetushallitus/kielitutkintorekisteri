@@ -1,4 +1,5 @@
 import { Locator } from "@playwright/test"
+import MultiSelectDropdown from "../components/MultiSelectDropdown"
 
 export class YkiSuorituksetFilterDialog {
   modal: Locator
@@ -24,8 +25,12 @@ export class YkiSuorituksetFilterDialog {
     await this.modal.getByLabel("Rekisteriintuontiaika päättyen").fill(loppu)
   }
 
-  async setTutkintokieli(value: string) {
-    await this.modal.locator(`select[name="tutkintokieli"]`).selectOption(value)
+  tutkintokieli() {
+    return new MultiSelectDropdown(this.modal, "tutkintokieli")
+  }
+
+  async setTutkintokieli(values: string[]) {
+    await this.tutkintokieli().select(values)
   }
 
   async submit() {

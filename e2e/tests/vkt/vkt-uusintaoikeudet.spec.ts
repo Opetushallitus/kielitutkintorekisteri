@@ -95,7 +95,7 @@ describe("VKT:n uusintaan oikeutetut", () => {
     await vktUusintaoikeudetPage.open()
 
     let dialog = await vktUusintaoikeudetPage.openFilterDialog()
-    await dialog.setTaitotaso("Erinomainen")
+    await dialog.setTaitotaso(["Erinomainen"])
     await dialog.submit()
     await expect(
       vktUusintaoikeudetPage
@@ -105,11 +105,22 @@ describe("VKT:n uusintaan oikeutetut", () => {
     await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("0")
 
     dialog = await vktUusintaoikeudetPage.openFilterDialog()
-    await dialog.setTaitotaso("")
-    await dialog.setTutkintokieli("FIN")
+    await dialog.setTaitotaso([])
+    await dialog.setTutkintokieli(["FIN"])
     await dialog.submit()
     await expect(
       vktUusintaoikeudetPage.getPageContent().getByText("Tutkintokieli: Suomi"),
+    ).toBeVisible()
+    await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("1")
+
+    dialog = await vktUusintaoikeudetPage.openFilterDialog()
+    await dialog.setTutkintokieli([])
+    await dialog.setTaitotaso(["Erinomainen", "HyväJaTyydyttävä"])
+    await dialog.submit()
+    await expect(
+      vktUusintaoikeudetPage
+        .getPageContent()
+        .getByText("Taitotaso: Erinomainen, Hyvä ja tyydyttävä"),
     ).toBeVisible()
     await expect(vktUusintaoikeudetPage.getNumberOfRows()).toHaveText("1")
   })

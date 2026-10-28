@@ -244,7 +244,7 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
     }) => {
       await kielitestiSuorituksetPage.open()
       const dialog = await kielitestiSuorituksetPage.openFilterDialog()
-      await dialog.setTestikieli("SWE")
+      await dialog.setTestikieli(["SWE"])
       await dialog.submit()
 
       const suoritukset = kielitestiSuorituksetPage.getSuoritusRow()
@@ -311,7 +311,7 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
       await kielitestiSuorituksetPage.open()
 
       const dialog = await kielitestiSuorituksetPage.openFilterDialog()
-      await dialog.setTestikieli("FIN")
+      await dialog.setTestikieli(["FIN"])
       await dialog.hideHenkilotiedot(true)
       await dialog.submit()
 
@@ -422,7 +422,7 @@ describe("Kotoutumiskoulutuksen kielitesti -page", () => {
       await kielitestiSuorituksetPage.search("laasonen")
 
       const dialog = await kielitestiSuorituksetPage.openFilterDialog()
-      await dialog.setTestikieli("SWE")
+      await dialog.setTestikieli(["SWE"])
       await dialog.submit()
 
       await expect(kielitestiSuorituksetPage.searchField).toHaveValue(

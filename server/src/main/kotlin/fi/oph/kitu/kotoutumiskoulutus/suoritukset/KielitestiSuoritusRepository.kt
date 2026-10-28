@@ -6,6 +6,7 @@ import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.jdbc.SqlCondition
 import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
+import fi.oph.kitu.jdbc.addAnyOf
 import fi.oph.kitu.jdbc.orderSql
 import fi.oph.kitu.jdbc.pageSql
 import fi.oph.kitu.jdbc.searchTermsCondition
@@ -162,7 +163,7 @@ data class KielitestiSuoritusFilter(
     val search: String? = null,
     val suoritusalku: LocalDate? = null,
     val suoritusloppu: LocalDate? = null,
-    val testikieli: Testikieli? = null,
+    val testikieli: List<Testikieli> = emptyList(),
     val orgOids: List<Oid> = emptyList(),
     val naytettavatSuoritukset: NaytettavatSuoritukset = NaytettavatSuoritukset.VALMIIT,
 ) : SqlFilter() {
@@ -183,7 +184,7 @@ data class KielitestiSuoritusFilter(
                 },
             )
         }
-        add(testikieli?.let { "testikieli = :filter_kieli" }, "filter_kieli" to testikieli?.name)
+        addAnyOf("testikieli", "filter_kieli", testikieli)
         add(suoritusalku?.let { "suoritusaika >= :filter_alkupaiva" }, "filter_alkupaiva" to suoritusalku)
         add(
             suoritusloppu?.let { "suoritusaika <= :filter_loppupaiva" },

@@ -602,12 +602,16 @@ class YkiSuoritusRepositoryTest(
         val fin2 = generateRandomYkiSuoritusEntity().copy(tutkintokieli = Tutkintokieli.FIN)
         ykiSuoritusRepository.saveAllNewEntities(listOf(fin, swe, fin2))
 
-        val filter = YkiSuoritusFilter(tutkintokieli = Tutkintokieli.FIN)
+        val filter = YkiSuoritusFilter(tutkintokieli = listOf(Tutkintokieli.FIN))
         val count = ykiSuoritusRepository.countSuoritukset(filter)
         val found = ykiSuoritusRepository.find(filter).count().toLong()
 
         assertEquals(found, count, "count ja find tuloksen koko poikkesivat alitauluhaarassa")
         assertEquals(2L, count)
+
+        val molemmat = YkiSuoritusFilter(tutkintokieli = listOf(Tutkintokieli.FIN, Tutkintokieli.SWE))
+        assertEquals(3L, ykiSuoritusRepository.countSuoritukset(molemmat))
+        assertEquals(3, ykiSuoritusRepository.find(molemmat).count())
     }
 
     @Test
@@ -624,8 +628,8 @@ class YkiSuoritusRepositoryTest(
             pvm = kasittelyPvm,
         )
 
-        val tarkistusarvioituFilter = YkiSuoritusFilter(arviointitila = Arviointitila.TARKISTUSARVIOITU)
-        val hyvaksyttyFilter = YkiSuoritusFilter(arviointitila = Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY)
+        val tarkistusarvioituFilter = YkiSuoritusFilter(arviointitila = listOf(Arviointitila.TARKISTUSARVIOITU))
+        val hyvaksyttyFilter = YkiSuoritusFilter(arviointitila = listOf(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY))
 
         assertAll(
             {
@@ -731,8 +735,8 @@ class YkiSuoritusRepositoryTest(
                     ykiSuoritusRepository
                         .countSuorituksetRyhmittain(
                             YkiSuoritusFilter(
-                                arviointitila = Arviointitila.ARVIOITU,
-                                tutkintokieli = Tutkintokieli.FIN,
+                                arviointitila = listOf(Arviointitila.ARVIOITU),
+                                tutkintokieli = listOf(Tutkintokieli.FIN),
                             ),
                             distinct = false,
                         ).map { it.avain() }
@@ -744,7 +748,7 @@ class YkiSuoritusRepositoryTest(
                 assertEquals(
                     setOf(Triple(Tutkintokieli.FIN, Arviointitila.ARVIOITAVA, 1L)),
                     ykiSuoritusRepository
-                        .countSuorituksetRyhmittain(YkiSuoritusFilter(arviointitila = Arviointitila.ARVIOITAVA))
+                        .countSuorituksetRyhmittain(YkiSuoritusFilter(arviointitila = listOf(Arviointitila.ARVIOITAVA)))
                         .map { it.avain() }
                         .toSet(),
                 )

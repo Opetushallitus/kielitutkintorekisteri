@@ -90,14 +90,16 @@ class VktSuoritusRepositoryTest(
 
         val taitotasot =
             listOf(
-                Koodisto.VktTaitotaso.Erinomainen,
-                Koodisto.VktTaitotaso.HyväJaTyydyttävä,
+                listOf(Koodisto.VktTaitotaso.Erinomainen),
+                listOf(Koodisto.VktTaitotaso.HyväJaTyydyttävä),
+                listOf(Koodisto.VktTaitotaso.Erinomainen, Koodisto.VktTaitotaso.HyväJaTyydyttävä),
             )
         val arvioidut =
             listOf(
-                VktArvioinninTila.ArvioituOsittainTaiKokonaan,
-                VktArvioinninTila.ArviointejaPuuttuu,
-                null,
+                listOf(VktArvioinninTila.ArvioituOsittainTaiKokonaan),
+                listOf(VktArvioinninTila.ArviointejaPuuttuu),
+                listOf(VktArvioinninTila.ArvioituOsittainTaiKokonaan, VktArvioinninTila.ArviointejaPuuttuu),
+                emptyList(),
             )
         val searchQuerys =
             listOf(
@@ -415,7 +417,7 @@ class VktSuoritusRepositoryTest(
 
         val suoritukset =
             customRepository.find(
-                VktSuoritusFilter(arvioitu = VktArvioinninTila.ArviointejaPuuttuu),
+                VktSuoritusFilter(arvioitu = listOf(VktArvioinninTila.ArviointejaPuuttuu)),
                 VktSuoritusOrder(),
             )
         assertEquals(0, suoritukset.count())
@@ -425,7 +427,7 @@ class VktSuoritusRepositoryTest(
         customRepository.find(
             VktSuoritusFilter(
                 merkittyPoistettavaksi = false,
-                arvioitu = VktArvioinninTila.ArvioituOsittainTaiKokonaan,
+                arvioitu = listOf(VktArvioinninTila.ArvioituOsittainTaiKokonaan),
             ),
             VktSuoritusOrder(),
         )

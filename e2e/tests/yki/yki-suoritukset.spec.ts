@@ -60,12 +60,44 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(suoritukset).toHaveCount(4)
   })
 
+  test("tutkintokieli filter accepts several languages and the selection survives the tilastot page", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+    let dialog = await ykiSuorituksetPage.openFilterDialog()
+    await expect(dialog.tutkintokieli().summary).toHaveText("Kaikki")
+    await dialog.setTutkintokieli(["DEU", "SWE"])
+    await expect(dialog.tutkintokieli().summary).toHaveText("saksa, ruotsi")
+    await dialog.submit()
+
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(1)
+    await expect(ykiSuorituksetPage.getPageContent()).toContainText(
+      "Tutkintokieli: DEU, SWE",
+    )
+
+    const tilastot = await ykiSuorituksetPage.openTilastot()
+    await expect(tilastot.getPageContent()).toContainText(
+      "Tutkintokieli: DEU, SWE",
+    )
+    await expect(tilastot.getYhteensa()).toHaveText("1")
+
+    await tilastot.backToSuoritukset()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(1)
+
+    dialog = await ykiSuorituksetPage.openFilterDialog()
+    await expect(dialog.tutkintokieli().summary).toHaveText("saksa, ruotsi")
+    await dialog.setTutkintokieli([])
+    await expect(dialog.tutkintokieli().summary).toHaveText("Kaikki")
+    await dialog.submit()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(3)
+  })
+
   test("tilastot page keeps the active filters of the list view", async ({
     ykiSuorituksetPage,
   }) => {
     await ykiSuorituksetPage.open()
     const dialog = await ykiSuorituksetPage.openFilterDialog()
-    await dialog.setTutkintokieli("FIN")
+    await dialog.setTutkintokieli(["FIN"])
     await dialog.submit()
     await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(2)
 
@@ -126,7 +158,7 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(tilastot.getSuoritusColumn(1, 1)).toHaveText("2")
 
     const dialog = await tilastot.openFilterDialog()
-    await dialog.setTutkintokieli("SWE")
+    await dialog.setTutkintokieli(["SWE"])
     await dialog.submit()
     await expect(tilastot.getColumnHeaders()).toHaveCount(2)
     await expect(tilastot.getSuoritusRow()).toHaveCount(1)

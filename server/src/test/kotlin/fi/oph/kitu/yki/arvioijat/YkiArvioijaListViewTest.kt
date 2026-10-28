@@ -119,15 +119,42 @@ class YkiArvioijaListViewTest(
         assertEquals(
             listOf("Kivinen-Testi"),
             repository
-                .findForListView(YkiArvioijaParams(tila = Rekisterointitila.PASSIVOITU), tanaan)
+                .findForListView(YkiArvioijaParams(tila = listOf(Rekisterointitila.PASSIVOITU)), tanaan)
                 .map { it.sukunimi },
         )
         assertEquals(
             listOf("Öhman-Testi"),
-            repository.findForListView(YkiArvioijaParams(kieli = Tutkintokieli.FIN), tanaan).map { it.sukunimi },
+            repository
+                .findForListView(
+                    YkiArvioijaParams(kieli = listOf(Tutkintokieli.FIN)),
+                    tanaan,
+                ).map { it.sukunimi },
         )
-        assertEquals(3, repository.findForListView(YkiArvioijaParams(taso = Tutkintotaso.PT), tanaan).size)
-        assertEquals(0, repository.findForListView(YkiArvioijaParams(taso = Tutkintotaso.YT), tanaan).size)
+        assertEquals(3, repository.findForListView(YkiArvioijaParams(taso = listOf(Tutkintotaso.PT)), tanaan).size)
+        assertEquals(0, repository.findForListView(YkiArvioijaParams(taso = listOf(Tutkintotaso.YT)), tanaan).size)
+    }
+
+    @Test
+    fun `usean arvon valinta rajaa mihin tahansa valituista osuviin`() {
+        assertEquals(
+            listOf("Andersson-Testi", "Öhman-Testi"),
+            repository
+                .findForListView(YkiArvioijaParams(kieli = listOf(Tutkintokieli.FIN, Tutkintokieli.SWE)), tanaan)
+                .map { it.sukunimi },
+        )
+        assertEquals(
+            3,
+            repository
+                .findForListView(YkiArvioijaParams(taso = listOf(Tutkintotaso.PT, Tutkintotaso.YT)), tanaan)
+                .size,
+        )
+        assertEquals(
+            3,
+            repository.countForListView(
+                YkiArvioijaParams(tila = listOf(Rekisterointitila.AKTIIVINEN, Rekisterointitila.PASSIVOITU)),
+                tanaan,
+            ),
+        )
     }
 
     @Test

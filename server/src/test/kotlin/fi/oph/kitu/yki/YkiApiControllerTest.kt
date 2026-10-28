@@ -833,7 +833,7 @@ class YkiApiControllerTest(
         val response =
             ykiApiController.getSuoritustilastotAsCsv(
                 YkiSuorituksetParams(
-                    tutkintokieli = Tutkintokieli.FIN,
+                    tutkintokieli = listOf(Tutkintokieli.FIN),
                     tuontialku = LocalDate.of(2026, 3, 1),
                     tuontiloppu = LocalDate.of(2026, 3, 31),
                 ),

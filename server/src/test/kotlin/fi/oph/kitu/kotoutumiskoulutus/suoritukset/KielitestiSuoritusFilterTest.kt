@@ -71,4 +71,16 @@ class KielitestiSuoritusFilterTest {
         val filter = KielitestiSuoritusFilter(naytettavatSuoritukset = NaytettavatSuoritukset.KAIKKI)
         assertNull(filter.whereSql())
     }
+
+    @Test
+    fun `usean testikielen valinta rajaa mihin tahansa valituista`() {
+        val filter =
+            KielitestiSuoritusFilter(
+                testikieli = listOf(Testikieli.FIN, Testikieli.SWE),
+                naytettavatSuoritukset = NaytettavatSuoritukset.KAIKKI,
+            )
+
+        assertEquals("WHERE (testikieli IN (:filter_kieli))", filter.whereSql())
+        assertEquals(listOf("FIN", "SWE"), filter.params()["filter_kieli"])
+    }
 }

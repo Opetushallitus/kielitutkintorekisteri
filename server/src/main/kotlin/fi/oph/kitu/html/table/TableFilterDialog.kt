@@ -4,9 +4,11 @@ package fi.oph.kitu.html.table
 
 import fi.oph.kitu.html.DisplayEnum
 import fi.oph.kitu.html.ModalCommand
+import fi.oph.kitu.html.MultiSelectOption
 import fi.oph.kitu.html.input
 import fi.oph.kitu.html.modal
 import fi.oph.kitu.html.modalCommandButton
+import fi.oph.kitu.html.multiSelectDropdown
 import fi.oph.kitu.html.submitButton
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.LocalizedString
@@ -100,52 +102,39 @@ fun FlowContent.trueFalseOrAllFilter(
 inline fun <reified E : Enum<E>> FlowContent.enumFilter(
     id: String,
     labelText: String,
-    value: E?,
-    kaikkiOption: Boolean = true,
+    values: List<E>,
 ) {
-    val options =
-        (if (kaikkiOption) listOf(null) else emptyList()) +
-            enumValues<E>().filterNot {
-                E::class.java.getField(it.name).isAnnotationPresent(HideInTableFilter::class.java)
-            }
+    multiSelectDropdown(
+        id,
+        labelText,
+        tableFilterOptions<E>().map { MultiSelectOption(it.name, enumValueName(it), it in values) },
+    )
+}
 
-    if (options.size <= 5) {
-        p { +labelText }
-        options.forEach { option ->
-            label {
-                input(type = InputType.radio, name = id, value = option?.name.orEmpty()) {
-                    if (option == value) {
-                        attributes["checked"] = "checked"
-                    }
-                }
-                +enumValueName(option)
-            }
-        }
-    } else {
+inline fun <reified E : Enum<E>> FlowContent.enumRadioFilter(
+    id: String,
+    labelText: String,
+    value: E,
+) {
+    p { +labelText }
+    tableFilterOptions<E>().forEach { option ->
         label {
-            +labelText
-            select {
-                attributes["name"] = id
-                options.forEach { option ->
-                    option {
-                        attributes["value"] = option?.name.orEmpty()
-                        if (option == value) {
-                            attributes["selected"] = "selected"
-                        }
-                        +enumValueName(option)
-                    }
-                }
-            }
+            input(type = InputType.radio, name = id, value = option.name, checked = option == value)
+            +enumValueName(option)
         }
     }
 }
 
-inline fun <reified E : Enum<E>> enumValueName(value: E?): String =
+inline fun <reified E : Enum<E>> tableFilterOptions(): List<E> =
+    enumValues<E>().filterNot {
+        E::class.java.getField(it.name).isAnnotationPresent(HideInTableFilter::class.java)
+    }
+
+inline fun <reified E : Enum<E>> enumValueName(value: E): String =
     when (value) {
         is Koodisto.KoodiviiteNimella -> value.nimi.toString()
         is Nimetty -> value.nimi.toString()
         is DisplayEnum -> value.displayText()
-        null -> UiText.Filter.kaikki.toString()
         else -> value.name
     }
 

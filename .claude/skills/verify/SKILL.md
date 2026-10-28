@@ -51,3 +51,7 @@ SPRING_PROFILES_ACTIVE=e2e TEST_PARALLEL_INDEX=1 TEST_WORKER_PORT=8331 ./mvnw sp
   now opt-in via `kitu.yki.convertLegacyArviointitila.enabled`, off outside prod.)
 - Anything owning port 8331/8080 or the e2e DBs: prior Playwright runs use the same
   databases (`TEST_PARALLEL_INDEX` 0-3).
+- Screenshots: browse via `http://127.0.0.1:8331`, **not** `localhost`. The `e2e` profile's
+  `kitu.appUrl` is `http://127.0.0.1:…`, so `pico.min.css`/`style.css` are linked by absolute
+  127.0.0.1 URLs; a session started on `localhost` renders the pages completely unstyled, which
+  makes any layout/CSS check meaningless (and Pico's dropdown overlay simply absent).

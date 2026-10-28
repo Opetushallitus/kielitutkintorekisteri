@@ -40,3 +40,11 @@ fun SqlFilterBuilder.addSearchTerms(
 ) {
     searchTermsCondition(terms, columns, paramPrefix)?.let { add(it.sql, it.params) }
 }
+
+fun SqlFilterBuilder.addAnyOf(
+    column: String,
+    param: String,
+    values: Collection<Enum<*>>,
+) {
+    if (values.isNotEmpty()) add("$column IN (:$param)", param to values.map { it.name })
+}

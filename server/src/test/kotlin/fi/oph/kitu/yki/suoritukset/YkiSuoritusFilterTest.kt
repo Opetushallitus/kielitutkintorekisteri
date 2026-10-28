@@ -10,6 +10,9 @@ import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.Arviointitila
+import fi.oph.kitu.yki.Tutkintokieli
+import fi.oph.kitu.yki.Tutkintotaso
 import org.junit.jupiter.api.Test
 import org.springframework.http.ResponseEntity
 import java.time.Instant
@@ -200,4 +203,30 @@ class YkiSuoritusFilterTest {
             override fun getHenkiloByHetu(hetu: String): Either<OppijanumeroException, OppijanumerorekisteriHenkilo> =
                 throw NotImplementedError()
         }
+
+    @Test
+    fun `usean arvon valinta rajaa mihin tahansa valituista`() {
+        val filter =
+            YkiSuoritusFilter(
+                tutkintokieli = listOf(Tutkintokieli.FIN, Tutkintokieli.SWE),
+                tutkintotaso = listOf(Tutkintotaso.PT),
+                arviointitila = listOf(Arviointitila.ARVIOITU, Arviointitila.TARKISTUSARVIOITU),
+            )
+        val where = filter.whereSql()!!
+
+        assertTrue(where.contains("(tutkintokieli IN (:filter_kieli))"), "Got: $where")
+        assertTrue(where.contains("(tutkintotaso IN (:filter_taso))"), "Got: $where")
+        assertTrue(where.contains("(arviointitila IN (:filter_arviointitila))"), "Got: $where")
+        assertEquals(listOf("FIN", "SWE"), filter.params()["filter_kieli"])
+        assertEquals(listOf("ARVIOITU", "TARKISTUSARVIOITU"), filter.params()["filter_arviointitila"])
+        assertTrue(filter.requiresSubTables())
+    }
+
+    @Test
+    fun `tyhjä valinta ei rajaa`() {
+        val filter = YkiSuoritusFilter(tutkintokieli = emptyList(), arviointitila = emptyList())
+
+        assertNull(filter.whereSql())
+        assertFalse(filter.requiresSubTables())
+    }
 }

@@ -341,26 +341,30 @@ th {
   vertical-align: top;
 }
 
-th > details.dropdown {
-  display: block;
-  margin: 0;
-  vertical-align: middle;
+dialog details.dropdown[open] > summary::before {
+  width: auto;
+  height: auto;
 }
 
-th > details.dropdown > summary {
-  font-weight: normal;
-  font-size: 0.85em;
-  padding: 0.2em 0.6em;
-  margin: 0;
+details.monivalinta > summary {
+  display: flex;
+  align-items: center;
 }
 
-th > details.dropdown label {
-  font-weight: normal;
+details.monivalinta > summary > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-article.overflow-auto:has(details.dropdown[open]) {
-  overflow: visible;
+details.monivalinta > summary::after {
+  flex-shrink: 0;
+}
+
+details.monivalinta:has(input:checked) > summary {
+  color: var(--pico-form-element-color);
 }
 
 .dashboard-grid {
