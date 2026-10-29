@@ -40,7 +40,7 @@ jobs:
   deploy:
     name: deploy
     if: inputs.action == 'deploy'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Kaikki saman ympäristön deployt (main-push ja käsin dispatch mistä
     # tahansa haarasta) jonoutuvat yhteen ryhmään eikä niitä peruta, koska
     # kaksi samanaikaista deployta päivittäisi samoja CloudFormation-pinoja.
@@ -87,7 +87,7 @@ jobs:
   diff:
     name: diff
     if: inputs.action == 'diff'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Saman PR:n uusi push peruu vanhan diffin.
     concurrency:
       group: diff-${{ github.ref_name }}-${{ inputs.environment }}
