@@ -2,7 +2,9 @@ package fi.oph.kitu.webmvc
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.ByteArrayHttpMessageConverter
+import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.converter.HttpMessageConverters
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 /**
@@ -18,7 +20,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class MessageConverterConfig : WebMvcConfigurer {
     override fun configureMessageConverters(builder: HttpMessageConverters.ServerBuilder) {
         builder.configureMessageConvertersList { list ->
+            list.replaceAll { it.strictUtf8() }
             list.add(0, ByteArrayHttpMessageConverter())
         }
     }
+
+    private fun HttpMessageConverter<*>.strictUtf8(): HttpMessageConverter<*> =
+        if (this is JacksonJsonHttpMessageConverter && this !is StrictUtf8JsonHttpMessageConverter) {
+            StrictUtf8JsonHttpMessageConverter(mapper).also { it.supportedMediaTypes = supportedMediaTypes }
+        } else {
+            this
+        }
 }

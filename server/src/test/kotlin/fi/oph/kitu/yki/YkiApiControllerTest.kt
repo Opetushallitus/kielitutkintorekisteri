@@ -404,6 +404,46 @@ class YkiApiControllerTest(
     }
 
     @Test
+    fun `YKI-suoritus ylipitkällä UTF-8-koodauksella palauttaa virheen`() {
+        val (alku, loppu) = suoritusJsonEtunimienKohdalta()
+
+        post("/yki/api/suoritus", alku + byteArrayOf(0xC0.toByte(), 0xBC.toByte()) + loppu) {
+            isBadRequest("JSON parse error: Pyynnön runko ei ole kelvollista UTF-8:aa (tavu ${alku.size})")
+        }
+    }
+
+    @Test
+    fun `YKI-suoritus NUL-merkillä palauttaa virheen`() {
+        val (alku, loppu) = suoritusJsonEtunimienKohdalta()
+
+        post("/yki/api/suoritus", alku + "Ranja\\u0000".toByteArray() + loppu) {
+            isBadRequest("JSON parse error: Merkkijono ei saa sisältää NUL-merkkiä (\\u0000)")
+        }
+    }
+
+    @Test
+    fun `YKI-suoritus monitavuisilla UTF-8-merkeillä tallentuu`() {
+        val (alku, loppu) = suoritusJsonEtunimienKohdalta()
+
+        post("/yki/api/suoritus", alku + "Äijä 😀".toByteArray() + loppu) { isOk() }
+
+        assertEquals(
+            listOf("Äijä 😀"),
+            jdbcTemplate.queryForList(
+                "SELECT DISTINCT etunimet FROM yki_suoritus WHERE etunimet LIKE 'Äijä%'",
+                String::class.java,
+            ),
+        )
+    }
+
+    private fun suoritusJsonEtunimienKohdalta(): Pair<ByteArray, ByteArray> {
+        val json = ClassPathResource("./yki-suoritus-without-todistuskieli.json").file
+        val (alku, loppu) =
+            defaultObjectMapper.readValue(json, JsonNode::class.java).toString().split("Ranja Testi")
+        return alku.toByteArray() to loppu.toByteArray()
+    }
+
+    @Test
     fun `Suoritus virheellisellä todistuskielellä palauttaa virheen`() {
         val data =
             defaultObjectMapper
@@ -1004,14 +1044,14 @@ class YkiApiControllerTest(
 
     private fun post(
         url: String,
-        suoritusJson: String,
+        body: Any,
         block: MockMvcResultMatchersDsl.() -> Unit,
     ): MockHttpServletResponse =
         mockMvc!!
             .post(url) {
                 contentType = MediaType.APPLICATION_JSON
                 accept = MediaType.APPLICATION_JSON
-                content = suoritusJson
+                content = body
             }.andExpect {
                 content { contentType(MediaType.APPLICATION_JSON) }
                 block()
