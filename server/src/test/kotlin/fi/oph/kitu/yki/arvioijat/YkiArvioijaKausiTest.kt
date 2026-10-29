@@ -126,6 +126,27 @@ class YkiArvioijaKausiTest(
     }
 
     @Test
+    fun `NUL-merkki lomakkeen kentassa palauttaa 400 eika tallenna mitaan`() {
+        val id = idOf(petro)
+
+        timeService.runWithFixedClock(HETKI) {
+            val ennen = kausiRepository.findKaudet(id).single()
+
+            mockMvc
+                .perform(
+                    post("/yki/arvioijat/$id/kaudet/${ennen.id}")
+                        .session(session())
+                        .with(csrf())
+                        .param("alkupaiva", "2022-03-01")
+                        .param("arviointioikeus", "FIN:PT")
+                        .param("ashaNumero", "OPH-1\u0000"),
+                ).andExpect(status().isBadRequest)
+
+            assertEquals(ennen, kausiRepository.findKaudet(id).single())
+        }
+    }
+
+    @Test
     fun `passivointi paattaa kauden tahan paivaan`() {
         val id = idOf(petro)
 
