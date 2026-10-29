@@ -127,7 +127,9 @@ class WebSecurityConfig {
                 // (oauth2SecurityFilterChain käsittelee ne ja CSRF on siellä jo pois). Mitkään
                 // appin omat lomakkeet/JS eivät kutsu näitä, joten CSRF-suojaus ei tuo lisäarvoa
                 // mutta rikkoo Swagger UI:n "Try it out":n session-pohjaisena kutsuna.
+                // CAS lähettää single logoutin palvelupolkuun POST-pyyntönä ilman CSRF-tokenia.
                 ignoringRequestMatchers(
+                    "/j_spring_cas_security_check",
                     "/api/**",
                     "/yki/api/**",
                     "/koto-kielitesti/api/**",
