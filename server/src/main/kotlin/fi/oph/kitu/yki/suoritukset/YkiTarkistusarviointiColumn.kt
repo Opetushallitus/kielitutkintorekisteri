@@ -1,4 +1,5 @@
 package fi.oph.kitu.yki.suoritukset
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.labelColon
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
@@ -79,6 +80,7 @@ enum class YkiTarkistusarviointiColumn(
         uiHeaderValue = UiText.Yki.Sarake.asiatunnus,
         urlParam = "asiatunnus",
         getValue = { it.tarkistusarvioinninAsiatunnus.orEmpty() },
+        renderHtml = { it.tarkistusarvioinninAsiatunnus?.let { asiatunnus -> copyable(asiatunnus) } },
     ),
     Muutokset(
         entityName = "arviointi",

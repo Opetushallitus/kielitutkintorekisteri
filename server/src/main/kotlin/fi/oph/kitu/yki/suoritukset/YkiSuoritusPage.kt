@@ -171,7 +171,7 @@ object YkiSuoritusPage {
                     UiText.Yki.tarkistusarvioinninKasittelypaiva to
                         { +it.kasittelypaiva?.finnishDate().orDash() }
                 },
-                tarkistusarviointi?.let { UiText.Yki.tarkistusarvioinninAsiatunnus to { +it.asiatunnus } },
+                tarkistusarviointi?.let { UiText.Yki.tarkistusarvioinninAsiatunnus to { copyable(it.asiatunnus) } },
                 tarkistusarviointi?.let { arviointi ->
                     UiText.Yki.tarkistusarvioidutOsakokeet to
                         { +arviointi.tarkistusarvioidutOsakokeet?.joinToString(", ") { it.viewText }.orDash() }
@@ -218,7 +218,7 @@ object YkiSuoritusPage {
     ) {
         h3 { +UiText.Yki.integraatiot }
         infoTable(
-            UiText.Yki.Sarake.solkiTunniste to { +"${suoritus.solkiId}" },
+            UiText.Yki.Sarake.solkiTunniste to { copyable(suoritus.solkiId.toString()) },
             UiText.Yki.viimeksiMuokattu to {
                 finnishDateTime(suoritus.lastModified)
             },
