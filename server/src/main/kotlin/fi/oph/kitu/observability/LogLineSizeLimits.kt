@@ -3,9 +3,9 @@ package fi.oph.kitu.observability
 import org.springframework.boot.json.JsonWriter
 import org.springframework.boot.logging.structured.StructuredLoggingJsonMembersCustomizer
 
-const val LOG_MESSAGE_MAX_BYTES = 4096
+const val LOG_MESSAGE_MAX_BYTES = 3072
 const val LOG_ERROR_MESSAGE_MAX_BYTES = 1024
-const val LOG_STACK_TRACE_MAX_BYTES = 6144
+const val LOG_STACK_TRACE_MAX_BYTES = 8192
 const val LOG_VALUE_MAX_BYTES = 512
 
 class LogLineSizeLimits : StructuredLoggingJsonMembersCustomizer<Any> {
