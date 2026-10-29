@@ -7,6 +7,7 @@ import fi.oph.kitu.html.buttonGroup
 import fi.oph.kitu.html.buttonLink
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.cardContent
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.errorMessage
 import fi.oph.kitu.html.formPost
 import fi.oph.kitu.html.infoTable
@@ -79,8 +80,10 @@ object YkiArvioijaTiedotPage {
                     h2 { +UiText.Yki.henkilotiedot }
                     infoTable(
                         UiText.Yki.Arvioija.oppijanumero to {
-                            a(href = Links.Opintopolku.onr(arvioija.arvioijaOid)) {
-                                +arvioija.arvioijaOid.toString()
+                            copyable(arvioija.arvioijaOid.toString()) {
+                                a(href = Links.Opintopolku.onr(arvioija.arvioijaOid)) {
+                                    +arvioija.arvioijaOid.toString()
+                                }
                             }
                         },
                         UiText.Yki.Arvioija.sukunimi to { +arvioija.sukunimi },
@@ -354,7 +357,9 @@ private fun FlowContent.kausihistoriaTaulukko(
                 testId = "kausiKirjaaja",
             ) { kausi ->
                 kausi.kirjaajaOid
-                    ?.let { oid -> a(href = Links.Opintopolku.onr(oid)) { +oid.toString() } }
+                    ?.let { oid ->
+                        copyable(oid.toString()) { a(href = Links.Opintopolku.onr(oid)) { +oid.toString() } }
+                    }
                     ?: +UiText.Yki.Arvioija.jarjestelma
             },
         ),

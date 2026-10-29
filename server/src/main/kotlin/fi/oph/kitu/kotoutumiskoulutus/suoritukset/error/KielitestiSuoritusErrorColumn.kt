@@ -1,5 +1,6 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset.error
 import fi.oph.kitu.html.ModalCommand
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.json
 import fi.oph.kitu.html.modal
 import fi.oph.kitu.html.modalCommandButton
@@ -31,6 +32,7 @@ enum class KielitestiSuoritusErrorColumn(
         uiHeaderValue = UiText.Koto.Sarake.henkilotunnus,
         urlParam = "henkilötunnus",
         getValue = { it.hetu.orEmpty() },
+        renderHtml = { it.hetu?.let { hetu -> copyable(hetu) } },
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
@@ -51,9 +53,11 @@ enum class KielitestiSuoritusErrorColumn(
         renderHtml = {
             it.schoolOid?.let { oid ->
                 it.organisaatio?.let { nimi -> div { +nimi } }
-                small {
-                    testId("schoolOid")
-                    +oid.toString()
+                copyable(oid.toString()) {
+                    small {
+                        testId("schoolOid")
+                        +oid.toString()
+                    }
                 }
             }
         },

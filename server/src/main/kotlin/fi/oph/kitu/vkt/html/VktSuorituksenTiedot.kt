@@ -1,5 +1,6 @@
 package fi.oph.kitu.vkt.html
 import fi.oph.kitu.html.card
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.html.table.displayTable
@@ -57,8 +58,10 @@ fun FlowContent.vktSuorituksenTiedot(
                     +" "
                     +UiText.Vkt.opiskeluoikeudenOid
                     +": "
-                    a(href = "/koski/oppija/${data.henkilo.oid}?opiskeluoikeudenTyyppi=kielitutkinto") {
-                        +data.suoritus.koskiOpiskeluoikeusOid.toString()
+                    copyable(data.suoritus.koskiOpiskeluoikeusOid.toString()) {
+                        a(href = "/koski/oppija/${data.henkilo.oid}?opiskeluoikeudenTyyppi=kielitutkinto") {
+                            +data.suoritus.koskiOpiskeluoikeusOid.toString()
+                        }
                     }
                 }
             },

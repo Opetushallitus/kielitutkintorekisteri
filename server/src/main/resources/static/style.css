@@ -537,6 +537,53 @@ button.tight {
   padding: 0.25rem 0.75rem;
 }
 
+.copyable {
+  white-space: nowrap;
+}
+
+button.copy-button,
+button.copy-button:is(:hover, :active, :focus) {
+  display: inline-flex;
+  width: auto;
+  margin: 0 0 0 0.25rem;
+  padding: 0.125rem;
+  border: none;
+  border-radius: var(--pico-border-radius);
+  background: none;
+  box-shadow: none;
+  color: var(--oph-grey500);
+  line-height: 1;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+button.copy-button:hover {
+  color: var(--pico-primary);
+}
+
+button.copy-button.copied {
+  color: var(--oph-green2);
+}
+
+button.copy-button:focus-visible {
+  outline: 2px solid var(--pico-primary);
+  outline-offset: 1px;
+}
+
+button.copy-button svg {
+  width: 1em;
+  height: 1em;
+}
+
+button.copy-button .copied-icon,
+button.copy-button.copied .copy-icon {
+  display: none;
+}
+
+button.copy-button.copied .copied-icon {
+  display: block;
+}
+
 a[role="button"][aria-disabled="true"] {
   opacity: var(--pico-form-element-disabled-opacity);
 }

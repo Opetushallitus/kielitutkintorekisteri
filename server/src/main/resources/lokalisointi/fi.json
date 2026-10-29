@@ -222,6 +222,8 @@
   "time.minuuttiaSitten": "{count} min sitten",
   "time.paivaaSitten": "{count} pv sitten",
   "time.tuntiaSitten": "{count} t sitten",
+  "toiminto.kopioi": "Kopioi leikepöydälle",
+  "toiminto.kopioitu": "Kopioitu",
   "toiminto.nayta": "Näytä",
   "toiminto.palauta": "Palauta",
   "toiminto.piilota": "Piilota",

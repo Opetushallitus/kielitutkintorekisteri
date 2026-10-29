@@ -2,6 +2,7 @@ package fi.oph.kitu.vkt.html
 import arrow.core.Either
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.cardContent
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.errorMessage
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.i18n.UiText
@@ -20,8 +21,13 @@ fun FlowContent.vktHenkilonTiedot(
         .onRight { hlo ->
             card(compact = true) {
                 infoTable(
-                    UiText.Vkt.henkilotunnus to { +hlo.hetut().joinToString(", ") },
-                    UiText.Vkt.henkiloOid to { +data.henkilo.oid.toString() },
+                    UiText.Vkt.henkilotunnus to {
+                        hlo.hetut().forEachIndexed { index, hetu ->
+                            if (index > 0) +", "
+                            copyable(hetu)
+                        }
+                    },
+                    UiText.Vkt.henkiloOid to { copyable(data.henkilo.oid.toString()) },
                     UiText.Vkt.syntymaaika to { hlo.syntymaaika?.finnishDate()?.let { +it } },
                     UiText.Vkt.yksilointi to {
                         if (hlo.yksiloityVTJ == true || hlo.yksiloity == true) {
@@ -37,7 +43,7 @@ fun FlowContent.vktHenkilonTiedot(
         }.onLeft {
             card(compact = true) {
                 infoTable(
-                    UiText.Vkt.Sarake.oppijanumero to { +data.henkilo.oid.toString() },
+                    UiText.Vkt.Sarake.oppijanumero to { copyable(data.henkilo.oid.toString()) },
                 )
                 cardContent {
                     errorMessage(

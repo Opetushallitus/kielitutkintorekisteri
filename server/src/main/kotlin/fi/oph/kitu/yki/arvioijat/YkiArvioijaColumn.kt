@@ -1,5 +1,6 @@
 package fi.oph.kitu.yki.arvioijat
 
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.ColumnTags
 import fi.oph.kitu.html.table.RenderableDisplayTableEnum
@@ -36,6 +37,7 @@ enum class YkiArvioijaColumn(
         uiHeaderValue = UiText.Yki.Sarake.oppijanumero,
         urlParam = "oppijanumero",
         getValue = { it.arvioijaOid.toString() },
+        renderHtml = { copyable(it.arvioijaOid.toString()) },
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)

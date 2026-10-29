@@ -71,6 +71,18 @@ data class Comparison(
             renderSecond = { +second.orDash() },
             ignoreDiff = ignoreDiff,
         )
+
+        fun ofCopyable(
+            name: Any,
+            first: String?,
+            second: String?,
+            ignoreDiff: Boolean = false,
+        ) = Comparison(
+            name = name,
+            renderFirst = { copyableOrDash(first) },
+            renderSecond = { copyableOrDash(second) },
+            ignoreDiff = ignoreDiff,
+        )
     }
 }
 

@@ -83,6 +83,7 @@ object Page {
                         renderBody()
                     }
                 }
+                copyButtonScript()
             }
         }
 }

@@ -1,4 +1,5 @@
 package fi.oph.kitu.yki.suoritukset.error
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
@@ -41,10 +42,18 @@ object YkiKoskiErrors {
                     Column.Oppijanumero.withHtml { error ->
                         val suoritus = errorIdToSuoritusMap[error.id]
                         val oppijanumero = suoritus?.suorittajanOID?.toString()
-                        if (suoritus?.id != null && oppijanumero != null) {
-                            a(href = Links.Yki.suoritus(suoritus.id)) { +oppijanumero }
-                        } else {
-                            +(oppijanumero ?: "???")
+                        when {
+                            oppijanumero == null -> {
+                                +"???"
+                            }
+
+                            suoritus?.id != null -> {
+                                copyable(oppijanumero) { a(href = Links.Yki.suoritus(suoritus.id)) { +oppijanumero } }
+                            }
+
+                            else -> {
+                                copyable(oppijanumero)
+                            }
                         }
                     },
                     Column.SuorituksenTunniste.withHtml { error ->
