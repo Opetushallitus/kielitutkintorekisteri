@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   determine_action:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       action: ${{ github.ref_name == 'main' && 'deploy' || 'diff' }}
     steps:
@@ -26,7 +26,7 @@ jobs:
 
   list_changes:
     name: List changes
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       # Jonossa image ja infra pakotetaan päälle: jono on ainoa paikka, jossa
       # image rakennetaan ennen mergeä.
@@ -66,7 +66,7 @@ jobs:
   # saman SHA:n. Suora push mainiin ei ole jonon varmistama ja ajaa kaiken.
   verified_in_queue:
     name: Verified in merge queue
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       checks: read
     outputs:
@@ -88,7 +88,7 @@ jobs:
 
   update_tools_cache:
     name: Update tools cache if changed
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: list_changes
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -102,7 +102,7 @@ jobs:
 
   submit_dependencies:
     name: Submit dependencies
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.ref_name == 'main'
     permissions:
       contents: write
@@ -154,7 +154,7 @@ jobs:
 
   server_tests:
     name: Server tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - update_tools_cache
       - list_changes
@@ -181,7 +181,7 @@ jobs:
   frontend_tests:
     name: Frontend tests
     timeout-minutes: 60
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - update_tools_cache
       - list_changes
@@ -225,7 +225,7 @@ jobs:
 
   infra_lockfile:
     name: Infra lockfile in sync
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - update_tools_cache
       - verified_in_queue
@@ -244,7 +244,7 @@ jobs:
 
   lint:
     name: Check code formatting
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - update_tools_cache
       - verified_in_queue
@@ -264,7 +264,7 @@ jobs:
 
   build_image:
     name: Build image
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Ei odota testejä: image on SHA-tagattu, ja deploy_dev odottaa testit
     # ennen kuin sitä käytetään.
     needs:
@@ -374,7 +374,7 @@ jobs:
 
   build_docs:
     name: Build documentation page
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs:
       - update_tools_cache
       - determine_action
