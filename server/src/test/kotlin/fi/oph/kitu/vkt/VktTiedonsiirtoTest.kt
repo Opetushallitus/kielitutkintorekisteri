@@ -77,6 +77,19 @@ class VktTiedonsiirtoTest {
     }
 
     @Test
+    fun `suoritus ylipitkällä UTF-8-koodauksella palauttaa virheen`() {
+        val (alku, loppu) =
+            defaultObjectMapper
+                .writeValueAsString(SchemaTests.vktHenkilosuoritus)
+                .split("Kalle", limit = 2)
+                .map { it.toByteArray() }
+
+        putSuoritus(alku + byteArrayOf(0xE0.toByte(), 0x80.toByte(), 0xBC.toByte()) + loppu) {
+            isBadRequest("JSON parse error: Pyynnön runko ei ole kelvollista UTF-8:aa (tavu ${alku.size})")
+        }
+    }
+
+    @Test
     fun `saving suoritus with missing fields does not work`() {
         val json =
             """
@@ -286,14 +299,14 @@ class VktTiedonsiirtoTest {
     }
 
     private fun putSuoritus(
-        suoritusJson: String,
+        body: Any,
         block: MockMvcResultMatchersDsl.() -> Unit,
     ): MockHttpServletResponse =
         mockMvc!!
             .put("/api/vkt/kios") {
                 contentType = MediaType.APPLICATION_JSON
                 accept = MediaType.APPLICATION_JSON
-                content = suoritusJson
+                content = body
             }.andExpect {
                 content { contentType(MediaType.APPLICATION_JSON) }
                 block()
