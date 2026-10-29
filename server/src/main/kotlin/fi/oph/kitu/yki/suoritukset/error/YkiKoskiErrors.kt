@@ -58,11 +58,13 @@ object YkiKoskiErrors {
                     },
                     Column.SuorituksenTunniste.withHtml { error ->
                         val suoritus = errorIdToSuoritusMap[error.id]
-                        val tunniste = suoritus?.solkiId?.toString() ?: "#${error.id}"
-                        if (suoritus?.id != null) {
-                            a(href = Links.Yki.suoritus(suoritus.id)) { +tunniste }
+                        if (suoritus == null) {
+                            +"#${error.id}"
                         } else {
-                            +tunniste
+                            val solkiId = suoritus.solkiId.toString()
+                            copyable(solkiId) {
+                                suoritus.id?.let { id -> a(href = Links.Yki.suoritus(id)) { +solkiId } } ?: +solkiId
+                            }
                         }
                     },
                     Column.Aikaleima.withHtml { finnishDateTime(it.timestamp) },

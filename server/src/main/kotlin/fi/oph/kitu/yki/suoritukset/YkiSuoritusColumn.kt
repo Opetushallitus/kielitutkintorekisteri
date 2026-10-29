@@ -305,6 +305,7 @@ enum class YkiSuoritusColumn(
         uiHeaderValue = UiText.Yki.Sarake.solkiTunniste,
         urlParam = "solkiId",
         getValue = { it.solkiId.toString() },
+        renderHtml = { copyable(it.solkiId.toString()) },
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.VERSION_HISTORY_ONLY)
