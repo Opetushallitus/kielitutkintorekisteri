@@ -1,4 +1,5 @@
 package fi.oph.kitu.vkt.html
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.Translations
@@ -29,19 +30,21 @@ object VktKoskiErrors {
                 listOf(
                     Column.Tutkintoryhma.withHtml { ryhma ->
                         VktMappingId.parse(ryhma.id)?.let {
-                            a(
-                                href =
-                                    Links.Vkt.ilmoittautuneenArviointi(
-                                        oppijanumero = it.ryhma.oppijanumero,
-                                        kieli = it.ryhma.tutkintokieli,
-                                        taso = it.ryhma.taitotaso,
-                                    ),
-                            ) {
-                                +it.ryhma.oppijanumero
-                                +" / "
-                                +t.get(it.ryhma.tutkintokieli)
-                                +" / "
-                                +t.get(it.ryhma.taitotaso)
+                            copyable(it.ryhma.oppijanumero) {
+                                a(
+                                    href =
+                                        Links.Vkt.ilmoittautuneenArviointi(
+                                            oppijanumero = it.ryhma.oppijanumero,
+                                            kieli = it.ryhma.tutkintokieli,
+                                            taso = it.ryhma.taitotaso,
+                                        ),
+                                ) {
+                                    +it.ryhma.oppijanumero
+                                    +" / "
+                                    +t.get(it.ryhma.tutkintokieli)
+                                    +" / "
+                                    +t.get(it.ryhma.taitotaso)
+                                }
                             }
                         } ?: +ryhma.id
                     },

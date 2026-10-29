@@ -6,6 +6,7 @@ import fi.oph.kitu.html.Comparison
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.comparisonTable
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.errorMessage
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.html.json
@@ -96,7 +97,7 @@ object YkiSuoritusPage {
                     suoritus.etunimet,
                     hlo?.etunimet,
                 ),
-                Comparison.of(
+                Comparison.ofCopyable(
                     UiText.Yki.Sarake.henkilotunnus,
                     suoritus.hetu,
                     hlo?.hetu,
@@ -143,8 +144,10 @@ object YkiSuoritusPage {
         h3 { +UiText.Yki.tutkinnonTiedot }
         card(compact = true) {
             infoTable(
-                UiText.Yki.jarjestaja to
-                    { +"${suoritus.jarjestajanNimi} (${suoritus.jarjestajanTunnusOid})" },
+                UiText.Yki.jarjestaja to {
+                    +"${suoritus.jarjestajanNimi} "
+                    copyable(suoritus.jarjestajanTunnusOid.toString()) { +"(${suoritus.jarjestajanTunnusOid})" }
+                },
                 UiText.Yki.Sarake.tutkintopaiva to { +suoritus.tutkintopaiva.finnishDate() },
                 UiText.Yki.Sarake.tutkintokieli to { +suoritus.tutkintokieli.toString() },
                 UiText.Yki.Sarake.tutkintotaso to { +suoritus.tutkintotaso.toString() },
@@ -238,8 +241,10 @@ object YkiSuoritusPage {
                 UiText.Yki.Sarake.opiskeluoikeusOid to {
                     +UiText.Yki.opiskeluoikeudenOid
                     +": "
-                    a(href = "/koski/oppija/$oid?opiskeluoikeudenTyyppi=kielitutkinto") {
-                        +oid.toString()
+                    copyable(oid.toString()) {
+                        a(href = "/koski/oppija/$oid?opiskeluoikeudenTyyppi=kielitutkinto") {
+                            +oid.toString()
+                        }
                     }
                 }
             },
@@ -280,14 +285,14 @@ object YkiSuoritusPage {
             hlo?.oppijanumero != null -> {
                 Comparison(
                     UiText.Yki.Sarake.oppijanumero,
-                    { +hlo.oppijanumero },
-                    { +hlo.oppijanumero },
+                    { copyable(hlo.oppijanumero) },
+                    { copyable(hlo.oppijanumero) },
                 )
             }
 
             else -> {
                 Comparison(UiText.Yki.henkiloOid, {
-                    +suorittajanOID.toString()
+                    copyable(suorittajanOID.toString())
                 }, {
                     a(
                         href = Links.Opintopolku.onr(suorittajanOID),

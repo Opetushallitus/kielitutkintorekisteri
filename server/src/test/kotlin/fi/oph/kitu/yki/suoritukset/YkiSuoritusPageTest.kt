@@ -2,6 +2,7 @@ package fi.oph.kitu.yki.suoritukset
 
 import arrow.core.Either
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.i18n.Language
 import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
@@ -11,6 +12,7 @@ import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.TutkinnonOsa
 import kotlinx.html.div
 import kotlinx.html.stream.createHTML
+import kotlinx.html.td
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import kotlin.test.assertFalse
@@ -64,6 +66,8 @@ class YkiSuoritusPageTest {
         yksilointivirheet = null,
         passinumerot = null,
     )
+
+    private fun copyableTd(value: String) = createHTML(prettyPrint = false).td { copyable(value) }
 
     private fun renderArviointi(suoritus: YkiSuoritusEntity) =
         with(YkiSuoritusPage) {
@@ -141,7 +145,7 @@ class YkiSuoritusPageTest {
         val html = renderHenkilonTiedot(suoritus, henkilo)
 
         assertTrue(
-            html.contains("<tr><th>Henkilötunnus</th><td>–</td><td>010180-9026</td></tr>"),
+            html.contains("<tr><th>Henkilötunnus</th><td>–</td>${copyableTd("010180-9026")}</tr>"),
             "hetu row should show a dash for the suoritus and the ONR hetu without a diff highlight:\n$html",
         )
     }
@@ -154,7 +158,7 @@ class YkiSuoritusPageTest {
         val html = renderHenkilonTiedot(suoritus, henkilo)
 
         assertTrue(
-            html.contains("<tr><th>Henkilötunnus</th><td>111111-111C</td><td>222222-222D</td></tr>"),
+            html.contains("<tr><th>Henkilötunnus</th>${copyableTd("111111-111C")}${copyableTd("222222-222D")}</tr>"),
             "differing hetut should render without a diff highlight:\n$html",
         )
     }
@@ -167,7 +171,7 @@ class YkiSuoritusPageTest {
         val html = renderHenkilonTiedot(suoritus, henkilo)
 
         assertTrue(
-            html.contains("<tr><th>Henkilötunnus</th><td>111111-111C</td><td>–</td></tr>"),
+            html.contains("<tr><th>Henkilötunnus</th>${copyableTd("111111-111C")}<td>–</td></tr>"),
             "missing ONR hetu should render as a dash without a diff highlight:\n$html",
         )
     }

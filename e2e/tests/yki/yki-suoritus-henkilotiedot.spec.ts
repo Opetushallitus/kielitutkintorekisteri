@@ -31,6 +31,27 @@ describe("YKI suorituksen henkilötiedot", () => {
     await expect(ykiSuorituksenTiedotPage.yksilointiLink()).toHaveCount(0)
   })
 
+  test("kopioi oppijanumeron leikepöydälle", async ({
+    context,
+    page,
+    ykiSuorituksetPage,
+    ykiSuorituksenTiedotPage,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"])
+    await ykiSuorituksetPage.open()
+    await ykiSuorituksetPage.setSearchTerm("Ranja")
+    await ykiSuorituksetPage.filterSuoritukset()
+    await ykiSuorituksetPage.openSuoritusDetails()
+
+    const copyButton = ykiSuorituksenTiedotPage.copyButton("Oppijanumero")
+    await copyButton.click()
+
+    await expect(copyButton).toHaveClass(/copied/)
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      "1.2.246.562.24.20281155246",
+    )
+  })
+
   test("näyttää henkilö-oidin ja yksilöintilinkin yksilöimättömälle oppijalle", async ({
     ykiSuorituksetPage,
     ykiSuorituksenTiedotPage,

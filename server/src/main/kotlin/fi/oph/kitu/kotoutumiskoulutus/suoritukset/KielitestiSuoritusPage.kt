@@ -1,6 +1,8 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.card
+import fi.oph.kitu.html.copyable
+import fi.oph.kitu.html.copyableOrDash
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.html.orDash
 import fi.oph.kitu.i18n.UiText
@@ -29,7 +31,7 @@ object KielitestiSuoritusPage {
         h3 { +UiText.Koto.henkilotiedot }
         card(compact = true) {
             infoTable(
-                UiText.Koto.Sarake.oppijanumero to { +suoritus.oppijanumero?.toString().orDash() },
+                UiText.Koto.Sarake.oppijanumero to { copyableOrDash(suoritus.oppijanumero?.toString()) },
                 UiText.Koto.Sarake.sukunimi to { +suoritus.sukunimi },
                 UiText.Koto.Sarake.etunimet to { +suoritus.etunimet },
                 UiText.Koto.Sarake.kutsumanimi to { +suoritus.kutsumanimi },
@@ -46,8 +48,12 @@ object KielitestiSuoritusPage {
         card(compact = true) {
             infoTable(
                 UiText.Koto.kurssi to { +"${suoritus.kurssi} (${suoritus.kurssiId})" },
-                UiText.Koto.jarjestaja to
-                    { +"${orgs.nimet[suoritus.oppilaitosOid]} (${suoritus.oppilaitosOid})" },
+                UiText.Koto.jarjestaja to {
+                    suoritus.oppilaitosOid?.let { oid ->
+                        orgs.nimet[oid]?.let { +"$it " }
+                        copyable(oid.toString()) { +"($oid)" }
+                    } ?: +"–"
+                },
                 UiText.Koto.Sarake.opettajanSahkopostiosoite to { +suoritus.opettajanEmail.orEmpty() },
                 UiText.Koto.Sarake.suoritusaika to
                     { suoritus.suoritusaika?.let { finnishDateTime(it) } ?: +"-" },

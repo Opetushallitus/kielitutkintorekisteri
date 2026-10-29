@@ -869,6 +869,8 @@ object UiText {
     }
 
     object Toiminto {
+        val kopioi: LocalizedString get() = tr("toiminto.kopioi")
+        val kopioitu: LocalizedString get() = tr("toiminto.kopioitu")
         val nayta: LocalizedString get() = tr("toiminto.nayta")
         val palauta: LocalizedString get() = tr("toiminto.palauta")
         val piilota: LocalizedString get() = tr("toiminto.piilota")

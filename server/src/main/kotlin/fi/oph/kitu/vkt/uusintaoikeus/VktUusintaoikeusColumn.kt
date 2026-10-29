@@ -1,5 +1,6 @@
 package fi.oph.kitu.vkt.uusintaoikeus
 
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.ColumnTags
 import fi.oph.kitu.html.table.RenderableDisplayTableEnum
@@ -25,8 +26,10 @@ enum class VktUusintaoikeusColumn(
         getValue = { it.suorittajanOid },
         comparator = compareBy { it.suorittajanOid },
         renderHtml = {
-            a(href = Links.Vkt.ilmoittautuneenArviointi(it.suorittajanOid, it.tutkintokieli, it.taitotaso)) {
-                +it.suorittajanOid
+            copyable(it.suorittajanOid) {
+                a(href = Links.Vkt.ilmoittautuneenArviointi(it.suorittajanOid, it.tutkintokieli, it.taitotaso)) {
+                    +it.suorittajanOid
+                }
             }
         },
     ),

@@ -2,6 +2,7 @@ package fi.oph.kitu.yki.arvioijat.hakemus
 
 import fi.oph.kitu.html.Page
 import fi.oph.kitu.html.card
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.errorsArticle
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.UiText
@@ -51,8 +52,8 @@ object ArvioijahakemusPage {
                             rivit.forEach { rivi ->
                                 tr {
                                     testId(rivi.hakemusOid)
-                                    td { +rivi.hakemusOid }
-                                    td { +rivi.henkiloOid.orEmpty() }
+                                    td { copyable(rivi.hakemusOid) }
+                                    td { rivi.henkiloOid?.let { copyable(it) } }
                                     td { +rivi.tila.nimi }
                                     td { +rivi.syy.orEmpty() }
                                     td { finnishDateTime(rivi.kasitelty.toInstant()) }

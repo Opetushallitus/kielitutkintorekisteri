@@ -31,6 +31,12 @@ export default class YkiSuorituksenTiedotPage extends BasePage {
       .first()
   }
 
+  copyButton(label: string): Locator {
+    return this.getValue(label).getByRole("button", {
+      name: "Kopioi leikepöydälle",
+    })
+  }
+
   yksilointiLink(): Locator {
     return this.getPageContent().getByRole("button", {
       name: "Tee yksilöinti oppijanumerorekisterissä",

@@ -1,4 +1,5 @@
 package fi.oph.kitu.yki.suoritukset
+import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.ColumnTags
 import fi.oph.kitu.html.table.RenderableDisplayTableEnum
@@ -41,6 +42,7 @@ enum class YkiSuoritusColumn(
         uiHeaderValue = UiText.Yki.Sarake.oppijanumero,
         urlParam = "suorittajanoid",
         getValue = { it.suorittajanOID?.toString().orEmpty() },
+        renderHtml = { it.suorittajanOID?.let { oid -> copyable(oid.toString()) } },
     ),
 
     @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
