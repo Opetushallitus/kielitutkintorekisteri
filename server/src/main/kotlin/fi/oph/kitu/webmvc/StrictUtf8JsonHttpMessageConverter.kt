@@ -53,6 +53,6 @@ class NulRejectingStringDeserializer : StringDeserializer() {
         ctxt: DeserializationContext,
     ): String? =
         super.deserialize(p, ctxt)?.also {
-            if ('\u0000' in it) ctxt.reportInputMismatch<Unit>(this, "Merkkijono ei saa sisältää NUL-merkkiä (\\u0000)")
+            if ('\u0000' in it) ctxt.reportInputMismatch<Unit>(this, NUL_VIRHE)
         }
 }
