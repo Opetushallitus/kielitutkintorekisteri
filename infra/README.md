@@ -97,6 +97,11 @@ order (because of dependencies):
    `YkiSuoritusEmailTopic` for emailed summaries).
 6. **`Network`** — VPC with the per-env CIDR (Dev `10.15.0.0/18`, Test
    `10.15.64.0/18`, Prod `10.15.128.0/18`) and 2 AZs in dev / 3 AZs in test+prod.
+   NAT gateways: one per AZ in prod; dev and test have a single NAT gateway in
+   the first AZ, and the other AZs' private subnets route through it
+   (`network.natGateways` in `accounts.ts`). A NAT gateway costs ~$38/month with
+   its public IP, and dev/test don't need outbound internet that survives
+   losing an AZ. Outbound traffic therefore leaves from one fixed IP per env.
 7. **`Connections`** — three empty SGs (`serviceSG`, `loadBalancerSG`,
    `databaseSG`). Rules are added in `createRules()` at the very end of the
    stage, after the DB is created and `databaseSG` is populated. This deferred
