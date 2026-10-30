@@ -19,6 +19,9 @@ export class NetworkStack extends cdk.Stack {
       ipAddresses: ec2.IpAddresses.cidr(props.cidrBlock),
       maxAzs: props.maxAzs,
       natGateways: props.natGateways,
+      gatewayEndpoints: {
+        S3: { service: ec2.GatewayVpcEndpointAwsService.S3 },
+      },
     })
   }
 }
