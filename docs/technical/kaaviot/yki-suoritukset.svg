@@ -49,7 +49,7 @@
   <rect class="tausta" x="0" y="0" width="1900" height="990"/>
   <g id="otsikko">
     <text class="otsikko" x="24" y="34">YKI – suoritukset: tietovirrat</text>
-    <text class="alaotsikko" x="24" y="54">Kielitutkintorekisterin (kitu) ja KIOS-ilmoittautumisjärjestelmän integraatiot · tilanne 7.10.2026</text>
+    <text class="alaotsikko" x="24" y="54">Kielitutkintorekisterin (kitu) ja KIOS-ilmoittautumisjärjestelmän integraatiot · tilanne 30.10.2026</text>
   </g>
   <g id="selite">
     <g class="laatikko kitu">
@@ -307,7 +307,7 @@
       <text x="1072" y="392" text-anchor="end">
         <tspan x="1072" y="392">suoritukset</tspan>
         <tspan x="1072" y="406">PUT /koski/api/oppija</tspan>
-        <tspan x="1072" y="420">Basic · öisin</tspan>
+        <tspan x="1072" y="420">Basic · 15 min välein</tspan>
       </text>
     </g>
   </g>
