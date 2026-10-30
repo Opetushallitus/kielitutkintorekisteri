@@ -218,7 +218,11 @@ other CDK-provided Lambda, see _Stack lifecycle_.
   (`/kitu/otel-config-<stack-id>`), loaded into the sidecar via
   `AOT_CONFIG_CONTENT`. Tail sampling: 0.1% for the health check route,
   always-sample for everything else. Traces export to X-Ray; metrics export
-  to CloudWatch via EMF.
+  to CloudWatch via EMF with `dimension_rollup_option: NoDimensionRollup`. Each
+  exported series is a billed custom metric, so the app exports only an
+  allowlist of meters (`management.metrics.enable.*` in
+  `application.properties`); request and dependency metrics come from the
+  spans in the `ApplicationSignals` namespace.
 - Health check: 2 successful pings × 10s = 20s to healthy. Deployment drain
   timeout 5s.
 - Alarms attached: 5xx count ≥ 4 over the period; CPU > 50%; memory > 50%.

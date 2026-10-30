@@ -14,7 +14,8 @@ liittyvät käytännöt.
   extension-funktiot).
 - Paikallinen Jaeger nousee `docker-compose.yml`:stä, käyttöliittymä portissa `16686`.
   AWS-ympäristöissä ECS-tehtävän ADOT-sivuvaunu (collector) vie tracet X-Rayhin ja
-  Transaction Searchiin ja metriikat CloudWatchiin (EMF); ks. `infra/README.md`.
+  Transaction Searchiin ja muutaman valitun sovellusmetriikan CloudWatchiin (EMF); ks.
+  `infra/README.md`.
 
 ### Strukturoidut lokit
 
