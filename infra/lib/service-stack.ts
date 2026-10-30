@@ -266,6 +266,7 @@ processors:
 exporters:
   awsxray:
   awsemf:
+    dimension_rollup_option: NoDimensionRollup
 
 service:
   pipelines:
