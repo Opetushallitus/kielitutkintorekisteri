@@ -1028,4 +1028,101 @@ class YkiSuoritusRepositoryTest(
         assertNotNull(ykiSuoritusRepository.save(muuttunut, false))
         assertEquals(2, versioidenMaara(suoritus.solkiId))
     }
+
+    @Test
+    fun `kohdennetut haut palauttavat saman viimeisimmän version kuin listahaku`() {
+        val opiskeluoikeus = createOid(OidClass.OPPIJA, 99999999991)
+        val vanha =
+            generateRandomYkiSuoritusEntity(maxDate = LocalDate.of(2024, 9, 1)).copy(
+                koskiOpiskeluoikeus = opiskeluoikeus,
+                lastModified = Instant.parse("2024-10-01T10:00:00Z"),
+            )
+        val uusi =
+            vanha.copy(
+                katuosoite = "Uusi katu 1",
+                lastModified = Instant.parse("2024-11-01T13:53:56Z"),
+                tarkistusarvioinninSaapumisPvm = LocalDate.of(2024, 10, 1),
+                tarkistusarvioinninAsiatunnus = "123123",
+                tarkistusarvioidutOsakokeet = setOf(TutkinnonOsa.puhuminen, TutkinnonOsa.puheenYmmartaminen),
+                arvosanaMuuttui = setOf(TutkinnonOsa.puhuminen),
+                perustelu = "Tarkistusarvioinnin testi",
+                tarkistusarvioinninKasittelyPvm = LocalDate.of(2024, 10, 15),
+            )
+        ykiSuoritusRepository.saveAllNewEntities(listOf(vanha, uusi, generateRandomYkiSuoritusEntity()))
+        ykiSuoritusRepository.setArvioinninTilaSent(vanha.solkiId)
+
+        val listahaku = ykiSuoritusRepository.find(distinct = true).single { it.solkiId == vanha.solkiId }
+
+        assertAll(
+            { assertEquals("Uusi katu 1", listahaku.katuosoite) },
+            { assertEquals(setOf(TutkinnonOsa.puhuminen), listahaku.arvosanaMuuttui) },
+            { assertEquals(listOf(listahaku), ykiSuoritusRepository.findLatestBySolkiIds(listOf(vanha.solkiId))) },
+            { assertEquals(listahaku, ykiSuoritusRepository.getLatestByOpiskeluoikeusOid(opiskeluoikeus)) },
+            {
+                assertEquals(
+                    listahaku,
+                    ykiSuoritusRepository.getLatestByLahdejarjestelmanTunnus(vanha.lahdejarjestelmanTunnus),
+                )
+            },
+        )
+    }
+
+    @Test
+    fun `findKoskeenLahettamattomatSuoritukset ei palauta suoritusta, jonka vain vanhempi versio on lähettämättä`() {
+        val vanha =
+            generateRandomYkiSuoritusEntity().copy(
+                koskiSiirtoKasitelty = false,
+                lastModified = Instant.parse("2025-01-01T10:00:00Z"),
+            )
+        val uusi =
+            vanha.copy(
+                katuosoite = "Uusi katu 1",
+                koskiSiirtoKasitelty = true,
+                lastModified = Instant.parse("2025-02-01T10:00:00Z"),
+            )
+        val lahettamaton = generateRandomYkiSuoritusEntity().copy(koskiSiirtoKasitelty = false)
+        ykiSuoritusRepository.saveAllNewEntities(listOf(vanha, uusi, lahettamaton))
+
+        assertEquals(
+            listOf(lahettamaton.solkiId),
+            ykiSuoritusRepository.findKoskeenLahettamattomatSuoritukset().map { it.solkiId },
+        )
+    }
+
+    @Test
+    fun `tarkistusarvioinnit haetaan ja lasketaan vain viimeisimmistä versioista`() {
+        val kasittelyPvm = LocalDate.of(2025, 6, 15)
+        val hyvaksytty =
+            generateRandomYkiSuoritusEntity().copy(
+                arviointitila = Arviointitila.TARKISTUSARVIOITU,
+                tarkistusarvioinninKasittelyPvm = kasittelyPvm,
+            )
+        val odottava =
+            generateRandomYkiSuoritusEntity().copy(
+                arviointitila = Arviointitila.TARKISTUSARVIOITU,
+                tarkistusarvioinninKasittelyPvm = kasittelyPvm,
+            )
+        ykiSuoritusRepository.saveAllNewEntities(listOf(hyvaksytty, odottava))
+        ykiSuoritusRepository.hyvaksyTarkistusarvioinnit(suoritusIds = listOf(hyvaksytty.solkiId), pvm = kasittelyPvm)
+
+        assertAll(
+            {
+                assertEquals(
+                    listOf(odottava.solkiId),
+                    ykiSuoritusRepository
+                        .findTarkistusarvoidutSuoritukset(Arviointitila.TARKISTUSARVIOITU)
+                        .map { it.solkiId },
+                )
+            },
+            {
+                assertEquals(
+                    listOf(hyvaksytty.solkiId),
+                    ykiSuoritusRepository
+                        .findTarkistusarvoidutSuoritukset(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY)
+                        .map { it.solkiId },
+                )
+            },
+            { assertEquals(1L, ykiSuoritusRepository.countTarkistusarvioinnitOdottamassaHyvaksyntaa()) },
+        )
+    }
 }

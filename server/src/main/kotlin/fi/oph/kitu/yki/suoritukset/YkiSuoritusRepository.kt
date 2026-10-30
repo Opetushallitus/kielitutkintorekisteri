@@ -20,6 +20,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectFullYkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectSuorituksetFull
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectSuorituksetRoot
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectTarkistusarviointiAgg
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.selectViimeisimmatSuoritukset
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSql.withCtes
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -126,20 +127,17 @@ class YkiSuoritusRepository(
     @WithSpan
     fun findKoskeenLahettamattomatSuoritukset(): Iterable<YkiSuoritusEntity> =
         jdbcNamedParameterTemplate.query(
-            selectSuorituksetFull(
-                viimeisin = true,
-                "WHERE NOT koski_siirto_kasitelty AND suorittajan_oid IS NOT NULL",
-            ),
+            selectViimeisimmatSuoritukset("NOT koski_siirto_kasitelty AND suorittajan_oid IS NOT NULL"),
             YkiSuoritusEntity.fromRow,
         )
 
     @WithSpan
     fun findTarkistusarvoidutSuoritukset(arviointitila: Arviointitila): Iterable<YkiSuoritusEntity> =
-        jdbcTemplate
+        jdbcNamedParameterTemplate
             .query(
-                selectSuorituksetFull(viimeisin = true, "WHERE arviointitila = ?"),
+                selectViimeisimmatSuoritukset("arviointitila = :arviointitila"),
+                mapOf("arviointitila" to arviointitila.name),
                 YkiSuoritusEntity.fromRow,
-                arviointitila.name,
             ).sortedWith(
                 compareByDescending(YkiSuoritusEntity::tarkistusarvioinninKasittelyPvm)
                     .thenByDescending { it.tarkistusarvioinninSaapumisPvm },
@@ -204,7 +202,7 @@ class YkiSuoritusRepository(
         jdbcNamedParameterTemplate.queryForObject(
             buildSql(
                 withCtes(
-                    "viimeisin_suoritus" to selectSuorituksetFull(viimeisin = true, "WHERE arviointitila = :tila"),
+                    "viimeisin_suoritus" to selectViimeisimmatSuoritukset("arviointitila = :tila"),
                 ),
                 "SELECT COUNT(*) FROM viimeisin_suoritus",
             ),
@@ -305,7 +303,7 @@ class YkiSuoritusRepository(
             emptyList()
         } else {
             jdbcNamedParameterTemplate.query(
-                selectSuorituksetFull(viimeisin = true, "WHERE yki_suoritus.solki_id IN (:ids)"),
+                selectViimeisimmatSuoritukset("yki_suoritus.solki_id IN (:ids)"),
                 mapOf("ids" to ids),
                 YkiSuoritusEntity.fromRow,
             )
@@ -632,7 +630,7 @@ class YkiSuoritusRepository(
     fun getLatestByOpiskeluoikeusOid(opiskeluoikeus: Oid): YkiSuoritusEntity? =
         jdbcNamedParameterTemplate
             .query(
-                selectSuorituksetFull(viimeisin = true, "WHERE koski_opiskeluoikeus = :opiskeluoikeus"),
+                selectViimeisimmatSuoritukset("koski_opiskeluoikeus = :opiskeluoikeus"),
                 mapOf("opiskeluoikeus" to opiskeluoikeus.toString()),
                 YkiSuoritusEntity.fromRow,
             ).firstOrNull()
@@ -641,7 +639,7 @@ class YkiSuoritusRepository(
     fun getLatestByLahdejarjestelmanTunnus(tunnus: String): YkiSuoritusEntity? =
         jdbcNamedParameterTemplate
             .query(
-                selectSuorituksetFull(viimeisin = true, "WHERE lahdejarjestelmantunnus = :tunnus"),
+                selectViimeisimmatSuoritukset("lahdejarjestelmantunnus = :tunnus"),
                 mapOf("tunnus" to tunnus),
                 YkiSuoritusEntity.fromRow,
             ).firstOrNull()
