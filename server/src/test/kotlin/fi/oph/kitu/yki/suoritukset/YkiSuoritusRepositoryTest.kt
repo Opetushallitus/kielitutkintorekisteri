@@ -1028,4 +1028,56 @@ class YkiSuoritusRepositoryTest(
         assertNotNull(ykiSuoritusRepository.save(muuttunut, false))
         assertEquals(2, versioidenMaara(suoritus.solkiId))
     }
+
+    @Test
+    fun `kieli- ja tasosuodatin vertaa listassa ja laskennoissa vain viimeisintä versiota`() {
+        val vanha =
+            generateRandomYkiSuoritusEntity().copy(
+                tutkintokieli = Tutkintokieli.FIN,
+                tutkintotaso = Tutkintotaso.KT,
+                lastModified = Instant.parse("2025-01-01T10:00:00Z"),
+            )
+        val uusi =
+            vanha.copy(
+                tutkintokieli = Tutkintokieli.SWE,
+                tutkintotaso = Tutkintotaso.YT,
+                lastModified = Instant.parse("2025-02-01T10:00:00Z"),
+            )
+        val ennallaan =
+            generateRandomYkiSuoritusEntity().copy(
+                tutkintokieli = Tutkintokieli.FIN,
+                tutkintotaso = Tutkintotaso.KT,
+            )
+        ykiSuoritusRepository.saveAllNewEntities(listOf(vanha, uusi, ennallaan))
+
+        val suomi = YkiSuoritusFilter(tutkintokieli = listOf(Tutkintokieli.FIN))
+        val ruotsi = YkiSuoritusFilter(tutkintokieli = listOf(Tutkintokieli.SWE))
+        val keskitaso = YkiSuoritusFilter(tutkintotaso = listOf(Tutkintotaso.KT))
+
+        assertAll(
+            {
+                assertEquals(
+                    listOf(ennallaan.solkiId),
+                    ykiSuoritusRepository.findForListView(suomi).map { it.solkiId },
+                )
+            },
+            { assertEquals(listOf(vanha.solkiId), ykiSuoritusRepository.findForListView(ruotsi).map { it.solkiId }) },
+            {
+                assertEquals(
+                    listOf(ennallaan.solkiId),
+                    ykiSuoritusRepository.findForListView(keskitaso).map { it.solkiId },
+                )
+            },
+            { assertEquals(1L, ykiSuoritusRepository.countSuoritukset(suomi)) },
+            { assertEquals(2L, ykiSuoritusRepository.countSuoritukset(suomi, distinct = false)) },
+            {
+                assertEquals(
+                    1L,
+                    ykiSuoritusRepository
+                        .countSuorituksetRyhmittain(suomi, ryhmittely = emptyList())
+                        .sumOf { it.lukumaara },
+                )
+            },
+        )
+    }
 }
