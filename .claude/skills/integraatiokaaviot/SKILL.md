@@ -74,7 +74,7 @@ truth for layout; every coordinate is set by hand in it (no auto-layout).
   - `heti` (teal): system push triggered by an event, e.g. kitu → KIOS arviointitila right after
     ingest, or kitu → Solki right after a save. Retries on a timer don't change this.
   - `ajastettu` (amber): system push run as a batch/scheduled job (KIOS → Solki every 59 min,
-    KIOS → kitu VKT hourly, kitu → KOSKI nightly, KOSKI tiedotteet hourly, email queues polled
+    KIOS → kitu VKT hourly, kitu → KOSKI YKI every 15 min and VKT nightly, KOSKI tiedotteet hourly, email queues polled
     every 10 s).
   - `push` (dark grey): system push whose timing we **haven't verified in code**, e.g. Solki → kitu
     (Solki decides when), Tiedotuspalvelu → Suomi.fi-viestit, YKI emails from the old Clojure
