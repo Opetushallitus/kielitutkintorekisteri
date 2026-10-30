@@ -102,6 +102,10 @@ order (because of dependencies):
    (`network.natGateways` in `accounts.ts`). A NAT gateway costs ~$38/month with
    its public IP, and dev/test don't need outbound internet that survives
    losing an AZ. Outbound traffic therefore leaves from one fixed IP per env.
+   Every env also has a free S3 gateway endpoint, so S3 traffic in the region
+   (the tehtäväpankki bucket, ECR image layers) bypasses the NAT gateway and its
+   $0.048/GB processing charge. A bucket policy that matches on `aws:SourceIp`
+   would not see the NAT IP for that traffic.
 7. **`Connections`** — three empty SGs (`serviceSG`, `loadBalancerSG`,
    `databaseSG`). Rules are added in `createRules()` at the very end of the
    stage, after the DB is created and `databaseSG` is populated. This deferred
