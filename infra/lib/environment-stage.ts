@@ -69,6 +69,7 @@ export class EnvironmentStage extends Stage {
       env,
       cidrBlock: environmentConfig.network.cidr,
       maxAzs: environmentConfig.network.maxAzs,
+      natGateways: environmentConfig.network.natGateways,
     })
 
     const connectionsStack = new ConnectionsStack(this, "Connections", {

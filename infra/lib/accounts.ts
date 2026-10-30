@@ -5,6 +5,10 @@ export interface EnvironmentConfig {
   network: {
     cidr: string
     maxAzs: number
+    // NAT gateway maksaa n. 38 $/kk julkisine IP-osoitteineen. Yksi riittää,
+    // kun lähtevän liikenteen ei tarvitse kestää availability zonen
+    // menetystä; muut zonet reititetään ensimmäisen zonen kautta.
+    natGateways: number
   }
   domainName: string
   databaseName: string
@@ -48,6 +52,7 @@ export const deploymentAccounts: {
     network: {
       cidr: "10.15.0.0/18",
       maxAzs: 2,
+      natGateways: 1,
     },
     domainName: "kios.untuvaopintopolku.fi",
     databaseName: "kios",
@@ -71,6 +76,7 @@ export const deploymentAccounts: {
     network: {
       cidr: "10.15.64.0/18",
       maxAzs: 3,
+      natGateways: 1,
     },
     domainName: "kios.testiopintopolku.fi",
     databaseName: "kios",
@@ -94,6 +100,7 @@ export const deploymentAccounts: {
     network: {
       cidr: "10.15.128.0/18",
       maxAzs: 3,
+      natGateways: 3,
     },
     domainName: "kios.opintopolku.fi",
     databaseName: "kios",

@@ -5,6 +5,7 @@ import { Construct } from "constructs"
 
 interface NetworkStackProps extends cdk.StackProps {
   maxAzs: number
+  natGateways: number
   cidrBlock: string
 }
 
@@ -17,6 +18,7 @@ export class NetworkStack extends cdk.Stack {
     this.vpc = new ec2.Vpc(this, "Vpc", {
       ipAddresses: ec2.IpAddresses.cidr(props.cidrBlock),
       maxAzs: props.maxAzs,
+      natGateways: props.natGateways,
     })
   }
 }
