@@ -7,6 +7,7 @@ import arrow.core.raise.ensure
 import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.organisaatiot.OrganisaatioService
+import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.EnrichmentRaise
 import fi.oph.kitu.util.validation.Validation
 import fi.oph.kitu.util.validation.ValidationRaise
@@ -20,6 +21,7 @@ import java.time.LocalDate
 @Service
 class YkiSuoritusValidation(
     val organisaatiot: OrganisaatioService,
+    val timeService: TimeService,
     @param:Value($$"${kitu.validaatiot.yki.hetunSiirronRajapaiva}")
     val hetunSiirronRajapaiva: LocalDate,
     @param:Value($$"${kitu.validaatiot.yki.todistuskielenSiirronRajapaiva}")
@@ -162,6 +164,31 @@ class YkiSuoritusValidation(
             accumulating { validateArvosanat(value) }
             accumulating { validateArviointitilaVastaaArvosanoja(value) }
             accumulating { validateTarkistusarviointiSallittu(value) }
+            accumulating { validateTutkintopaivaEiTulevaisuudessa(value) }
+        }
+    }
+
+    private fun Raise<Validation.ValidationError>.validateTutkintopaivaEiTulevaisuudessa(s: YkiHenkilosuoritus) {
+        when (s.suoritus.arviointitila) {
+            Arviointitila.ARVIOITAVA,
+            Arviointitila.ARVIOITU,
+            Arviointitila.TARKISTUSARVIOITAVA,
+            Arviointitila.TARKISTUSARVIOITU,
+            -> {
+                ensure(!s.suoritus.tutkintopaiva.isAfter(timeService.today())) {
+                    Validation.ValidationError(
+                        listOf("suoritus", "tutkintopaiva"),
+                        "Tutkintopäivä ei voi olla tulevaisuudessa, " +
+                            "kun arviointitila on '${s.suoritus.arviointitila}'",
+                    )
+                }
+            }
+
+            Arviointitila.ILMOITTAUTUNUT,
+            Arviointitila.PERUTTU,
+            Arviointitila.EI_SUORITUSTA,
+            Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY,
+            -> {}
         }
     }
 
