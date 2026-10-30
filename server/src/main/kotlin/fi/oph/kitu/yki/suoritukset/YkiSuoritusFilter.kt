@@ -28,8 +28,6 @@ data class YkiSuoritusFilter(
     val tuontialku: LocalDate? = null,
     val tuontiloppu: LocalDate? = null,
 ) : SqlFilter() {
-    fun requiresSubTables(): Boolean = tutkintokieli.isNotEmpty() || tutkintotaso.isNotEmpty()
-
     fun extendHenkiloOids(onr: OppijanumeroService): Either<OppijanumeroException, YkiSuoritusFilter> =
         either {
             val currentSearch = search ?: return@either this@YkiSuoritusFilter

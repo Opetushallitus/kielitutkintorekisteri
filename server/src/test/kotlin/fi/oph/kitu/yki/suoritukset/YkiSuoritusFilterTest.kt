@@ -219,7 +219,6 @@ class YkiSuoritusFilterTest {
         assertTrue(where.contains("(arviointitila IN (:filter_arviointitila))"), "Got: $where")
         assertEquals(listOf("FIN", "SWE"), filter.params()["filter_kieli"])
         assertEquals(listOf("ARVIOITU", "TARKISTUSARVIOITU"), filter.params()["filter_arviointitila"])
-        assertTrue(filter.requiresSubTables())
     }
 
     @Test
@@ -227,6 +226,5 @@ class YkiSuoritusFilterTest {
         val filter = YkiSuoritusFilter(tutkintokieli = emptyList(), arviointitila = emptyList())
 
         assertNull(filter.whereSql())
-        assertFalse(filter.requiresSubTables())
     }
 }
