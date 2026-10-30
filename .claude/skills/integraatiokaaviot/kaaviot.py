@@ -186,7 +186,7 @@ LEGEND_BASE = [
     ("toimija", "Käyttäjä"),
 ]
 
-PAIVAYS = "7.10.2026"
+PAIVAYS = "30.10.2026"
 SUB = f"Kielitutkintorekisterin (kitu) ja KIOS-ilmoittautumisjärjestelmän integraatiot · tilanne {PAIVAYS}"
 
 
@@ -282,7 +282,7 @@ def yki_suoritukset():
     s.arrow(
         "kitu-koski",
         [(1080, 570), (1080, 280)],
-        ["suoritukset", "PUT /koski/api/oppija", "Basic · öisin"],
+        ["suoritukset", "PUT /koski/api/oppija", "Basic · 15 min välein"],
         1072,
         392,
         anchor="end",
