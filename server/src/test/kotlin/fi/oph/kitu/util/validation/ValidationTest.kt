@@ -30,6 +30,8 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaValidation
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeus
 import fi.oph.kitu.yki.suoritukset.Todistuskieli
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -612,6 +614,90 @@ class ValidationTest(
             ),
             result,
         )
+    }
+
+    private fun suoritusTilassa(
+        arviointitila: Arviointitila,
+        tutkintopaiva: LocalDate,
+    ): Henkilosuoritus<YkiSuoritus> {
+        val suoritus =
+            validiYkiSuoritus.suoritus.copy(
+                tutkintopaiva = tutkintopaiva,
+                arviointipaiva = tutkintopaiva,
+                arviointitila = arviointitila,
+            )
+        val tarkistusarviointi = validiTarkistusarviointi.copy(saapumispaiva = tutkintopaiva)
+        return validiYkiSuoritus.copy(
+            henkilo = validiYkiSuoritus.henkilo.copy(hetu = null),
+            suoritus =
+                when (arviointitila) {
+                    Arviointitila.ILMOITTAUTUNUT,
+                    Arviointitila.PERUTTU,
+                    Arviointitila.ARVIOITAVA,
+                    -> {
+                        suoritus.copy(arviointipaiva = null, osat = suoritus.osat.map { it.copy(arvosana = null) })
+                    }
+
+                    Arviointitila.TARKISTUSARVIOITAVA -> {
+                        suoritus.copy(tarkistusarviointi = tarkistusarviointi)
+                    }
+
+                    Arviointitila.TARKISTUSARVIOITU -> {
+                        suoritus.copy(tarkistusarviointi = tarkistusarviointi.copy(kasittelypaiva = tutkintopaiva))
+                    }
+
+                    else -> {
+                        suoritus
+                    }
+                },
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(Arviointitila::class, names = ["ARVIOITAVA", "ARVIOITU", "TARKISTUSARVIOITAVA", "TARKISTUSARVIOITU"])
+    fun `Arvioitavaa tai arvioitua suoritusta ei voi siirtää, jos tutkintopäivä on tulevaisuudessa`(
+        arviointitila: Arviointitila,
+    ) {
+        val result =
+            timeService.runWithFixedClock(Instant.parse("2026-10-30T12:00:00Z")) {
+                tiedonsiirto.validateAndEnrich(suoritusTilassa(arviointitila, timeService.today().plusDays(1)))
+            }
+
+        assertEquals(
+            fail(
+                listOf("suoritus", "tutkintopaiva"),
+                "Tutkintopäivä ei voi olla tulevaisuudessa, kun arviointitila on '$arviointitila'",
+            ),
+            result,
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(Arviointitila::class, names = ["ARVIOITAVA", "ARVIOITU", "TARKISTUSARVIOITAVA", "TARKISTUSARVIOITU"])
+    fun `Arvioitavan tai arvioidun suorituksen voi siirtää, kun tutkintopäivä on Suomen aikaa tänään`(
+        arviointitila: Arviointitila,
+    ) {
+        val suoritus = suoritusTilassa(arviointitila, LocalDate.of(2026, 10, 31))
+
+        val result =
+            timeService.runWithFixedClock(Instant.parse("2026-10-30T22:30:00Z")) {
+                tiedonsiirto.validateAndEnrich(suoritus)
+            }
+
+        assertEquals(suoritus.right(), result)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Arviointitila::class, names = ["ILMOITTAUTUNUT", "PERUTTU"])
+    fun `Ilmoittautumisen voi siirtää, vaikka tutkintopäivä on tulevaisuudessa`(arviointitila: Arviointitila) {
+        val suoritus = suoritusTilassa(arviointitila, LocalDate.of(2026, 12, 30))
+
+        val result =
+            timeService.runWithFixedClock(Instant.parse("2026-10-30T12:00:00Z")) {
+                tiedonsiirto.validateAndEnrich(suoritus)
+            }
+
+        assertEquals(suoritus.right(), result)
     }
 
     private val validiTallennaArvioija =
