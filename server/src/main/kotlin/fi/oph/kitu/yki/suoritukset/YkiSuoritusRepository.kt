@@ -102,27 +102,23 @@ class YkiSuoritusRepository(
         limit: Int? = null,
         offset: Int? = null,
     ): Iterable<YkiSuoritusEntity> =
-        if (filter.requiresSubTables()) {
-            find(filter, order, distinct, limit, offset)
-        } else {
-            jdbcNamedParameterTemplate.query(
-                buildSql(
-                    withCtes(
-                        "suoritus" to selectSuorituksetRoot(distinct),
-                    ),
-                    "SELECT * FROM suoritus AS yki_suoritus",
-                    filter.whereSql(),
-                    "ORDER BY $order",
-                    pagingQuery(limit, offset),
+        jdbcNamedParameterTemplate.query(
+            buildSql(
+                withCtes(
+                    "suoritus" to selectSuorituksetRoot(distinct),
                 ),
-                filter.params() +
-                    mapOf(
-                        "limit" to limit,
-                        "offset" to offset,
-                    ),
-                YkiSuoritusEntity.fromRootRow,
-            )
-        }
+                "SELECT * FROM suoritus AS yki_suoritus",
+                filter.whereSql(),
+                "ORDER BY $order",
+                pagingQuery(limit, offset),
+            ),
+            filter.params() +
+                mapOf(
+                    "limit" to limit,
+                    "offset" to offset,
+                ),
+            YkiSuoritusEntity.fromRootRow,
+        )
 
     @WithSpan
     fun findKoskeenLahettamattomatSuoritukset(): Iterable<YkiSuoritusEntity> =
@@ -216,18 +212,11 @@ class YkiSuoritusRepository(
         distinct: Boolean = true,
     ): Long {
         val sql =
-            if (filter.requiresSubTables()) {
-                buildSql(
-                    withCtes("viimeisin_suoritus" to selectSuorituksetFull(viimeisin = distinct, filter.whereSql())),
-                    "SELECT COUNT(*) FROM viimeisin_suoritus",
-                )
-            } else {
-                buildSql(
-                    withCtes("suoritus" to selectSuorituksetRoot(distinct)),
-                    "SELECT COUNT(*) FROM suoritus AS yki_suoritus",
-                    filter.whereSql(),
-                )
-            }
+            buildSql(
+                withCtes("suoritus" to selectSuorituksetRoot(distinct)),
+                "SELECT COUNT(*) FROM suoritus AS yki_suoritus",
+                filter.whereSql(),
+            )
 
         return jdbcNamedParameterTemplate.queryForObject(
             sql,
@@ -254,20 +243,12 @@ class YkiSuoritusRepository(
             }
         val ryhmittelySql = ryhmat.takeIf { it.isNotEmpty() }?.joinToString(", ", "GROUP BY ") { it.sqlLauseke }
         val sql =
-            if (filter.requiresSubTables()) {
-                buildSql(
-                    withCtes("viimeisin_suoritus" to selectSuorituksetFull(viimeisin = distinct, filter.whereSql())),
-                    "SELECT $sarakkeet FROM viimeisin_suoritus",
-                    ryhmittelySql,
-                )
-            } else {
-                buildSql(
-                    withCtes("suoritus" to selectSuorituksetRoot(distinct)),
-                    "SELECT $sarakkeet FROM suoritus AS yki_suoritus",
-                    filter.whereSql(),
-                    ryhmittelySql,
-                )
-            }
+            buildSql(
+                withCtes("suoritus" to selectSuorituksetRoot(distinct)),
+                "SELECT $sarakkeet FROM suoritus AS yki_suoritus",
+                filter.whereSql(),
+                ryhmittelySql,
+            )
 
         return jdbcNamedParameterTemplate
             .query(sql, filter.params(), YkiSuoritusTilastoRivi.fromRow)
