@@ -6,7 +6,7 @@
     "infra": "bin/infra.js"
   },
   "engines": {
-    "node": "^24",
+    "node": "^26.0.0",
     "npm": ">=11"
   },
   "scripts": {
