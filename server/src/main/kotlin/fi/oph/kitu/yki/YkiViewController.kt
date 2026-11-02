@@ -107,21 +107,21 @@ class YkiViewController(
         csrfToken: CsrfToken?,
     ): ResponseEntity<String> {
         val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
-        val totalSuoritukset = ykiService.countSuoritukset(extended.filter, params.versionHistory)
+        val sivu =
+            ykiService.findSuorituksetSivu(
+                extended.filter,
+                params.toOrder(),
+                params.versionHistory,
+                params.limit,
+                offset = params.limit * (params.page - 1),
+            )
         return ResponseEntity.ok(
             YkiSuorituksetPage.render(
-                suoritukset =
-                    ykiService.findSuorituksetPaged(
-                        extended.filter,
-                        params.toOrder(),
-                        params.versionHistory,
-                        params.limit,
-                        offset = params.limit * (params.page - 1),
-                    ),
-                totalSuoritukset = totalSuoritukset,
+                suoritukset = sivu.suoritukset,
+                totalSuoritukset = sivu.kokonaismaara,
                 filterParams = params,
                 pagination =
-                    params.pagination(totalSuoritukset.toInt()),
+                    params.pagination(sivu.kokonaismaara.toInt()),
                 koskiErrorsCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, false).toLong(),
                 csrfToken = csrfToken,
                 varhaisinTutkintopaiva = ykiService.findVarhaisinTutkintopaiva(),

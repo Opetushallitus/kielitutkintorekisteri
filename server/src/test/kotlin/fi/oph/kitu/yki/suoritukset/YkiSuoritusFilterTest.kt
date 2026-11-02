@@ -49,7 +49,7 @@ class YkiSuoritusFilterTest {
     }
 
     @Test
-    fun `vapaasanahaku tuottaa ILIKE-ehdon parametrilla`() {
+    fun `vapaasanahaku tuottaa hakuehdon parametrilla`() {
         val filter = YkiSuoritusFilter.from(search = "matti")
 
         assertTrue(filter.whereSql()!!.contains("filter_search_0"), "Got: ${filter.whereSql()}")

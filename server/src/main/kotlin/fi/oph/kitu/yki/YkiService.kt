@@ -13,6 +13,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusSivu
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -122,28 +123,30 @@ class YkiService(
         )
 
     @WithSpan
-    fun findSuorituksetPaged(
+    fun findSuorituksetSivu(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         order: YkiSuoritusOrder = YkiSuoritusOrder(),
         versionHistory: Boolean = false,
         limit: Int,
         offset: Int,
-    ): List<YkiSuoritusEntity> =
-        suoritusRepository
-            .findForListView(
-                filter = filter,
-                order = order,
-                distinct = !versionHistory,
-                limit = limit,
-                offset = offset,
-            ).toList()
-            .also {
-                auditLogger.logAllInternalOnly("Yki suoritus viewed", it) { suoritus ->
-                    arrayOf(
-                        "suoritus.id" to suoritus.id,
-                    )
-                }
+    ): YkiSuoritusSivu {
+        val distinct = !versionHistory
+        val sivu =
+            if (filter.hasTextSearch()) {
+                suoritusRepository.findSivuKokonaismaaralla(filter, order, distinct, limit, offset)
+            } else {
+                YkiSuoritusSivu(
+                    suoritukset = suoritusRepository.findForListView(filter, order, distinct, limit, offset).toList(),
+                    kokonaismaara = countSuoritukset(filter, versionHistory),
+                )
             }
+        auditLogger.logAllInternalOnly("Yki suoritus viewed", sivu.suoritukset) { suoritus ->
+            arrayOf(
+                "suoritus.id" to suoritus.id,
+            )
+        }
+        return sivu
+    }
 
     @WithSpan
     fun findViimeisinBySolkiId(solkiId: Int): YkiSuoritusEntity =

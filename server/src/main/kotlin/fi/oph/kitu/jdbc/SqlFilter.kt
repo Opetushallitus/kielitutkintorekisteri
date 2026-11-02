@@ -41,6 +41,28 @@ fun SqlFilterBuilder.addSearchTerms(
     searchTermsCondition(terms, columns, paramPrefix)?.let { add(it.sql, it.params) }
 }
 
+fun combinedSearchTermsCondition(
+    terms: Collection<String>,
+    columns: List<String>,
+    collation: String,
+    paramPrefix: String,
+): SqlCondition? {
+    if (terms.isEmpty()) return null
+    val params = terms.withIndex().associate { (i, term) -> "${paramPrefix}_$i" to "%$term%" }
+    val combined = "lower(concat_ws(' ', ${columns.joinToString(", ")}) COLLATE \"$collation\")"
+    val sql = params.keys.joinToString(" AND ") { param -> "$combined LIKE lower(:$param COLLATE \"$collation\")" }
+    return SqlCondition(sql, params)
+}
+
+fun SqlFilterBuilder.addCombinedSearchTerms(
+    terms: Collection<String>,
+    columns: List<String>,
+    collation: String,
+    paramPrefix: String,
+) {
+    combinedSearchTermsCondition(terms, columns, collation, paramPrefix)?.let { add(it.sql, it.params) }
+}
+
 fun SqlFilterBuilder.addAnyOf(
     column: String,
     param: String,
