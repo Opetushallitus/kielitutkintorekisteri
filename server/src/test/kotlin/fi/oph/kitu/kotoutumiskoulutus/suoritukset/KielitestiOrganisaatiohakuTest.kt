@@ -1,14 +1,10 @@
 package fi.oph.kitu.kotoutumiskoulutus.suoritukset
 
-import arrow.core.Either
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.oid.Oid
-import fi.oph.kitu.organisaatiot.GetOrganisaatiohierarkiaResponse
 import fi.oph.kitu.organisaatiot.OrganisaatioService
-import fi.oph.kitu.organisaatiot.OrganisaatiopalveluException
 import fi.oph.kitu.organisaatiot.Organisaatiot
-import fi.oph.kitu.util.cache.PersistentCache
 import fi.oph.kitu.util.result.getOrThrow
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
