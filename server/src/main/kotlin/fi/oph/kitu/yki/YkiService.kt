@@ -6,6 +6,7 @@ import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.TimeService
+import fi.oph.kitu.util.cache.InMemoryCache
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
@@ -17,8 +18,10 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import kotlin.time.Duration
 
 data class ExtendedFilter(
     val filter: YkiSuoritusFilter,
@@ -31,8 +34,15 @@ class YkiService(
     private val auditLogger: AuditLogger,
     private val oppijanumeroService: OppijanumeroService,
     private val timeService: TimeService,
+    @param:Value($$"${kitu.yki.varhaisinTutkintopaiva.cache.ttl}")
+    varhaisinTutkintopaivaCacheTtl: String,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
+
+    private val varhaisinTutkintopaivaCache =
+        InMemoryCache<Unit, LocalDate>(ttl = Duration.parse(varhaisinTutkintopaivaCacheTtl)) {
+            suoritusRepository.findVarhaisinTutkintopaiva()
+        }
 
     @WithSpan
     fun extendFilterWithLinkedOids(filter: YkiSuoritusFilter): ExtendedFilter =
@@ -97,7 +107,7 @@ class YkiService(
     ): Long = suoritusRepository.countSuoritukset(filter = filter, distinct = !versionHistory)
 
     @WithSpan
-    fun findVarhaisinTutkintopaiva(): LocalDate? = suoritusRepository.findVarhaisinTutkintopaiva()
+    fun findVarhaisinTutkintopaiva(): LocalDate? = varhaisinTutkintopaivaCache.get(Unit)
 
     @WithSpan
     fun countSuorituksetRyhmittain(
