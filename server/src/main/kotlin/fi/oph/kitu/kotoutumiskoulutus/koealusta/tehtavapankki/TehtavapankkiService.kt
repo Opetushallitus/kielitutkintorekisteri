@@ -158,14 +158,17 @@ class TehtavapankkiService(
     @WithSpan
     fun listAllObjects(): List<TehtavapakettiObject> =
         useS3 { bucket ->
-            listAllObjects(bucket).map {
-                TehtavapakettiObject(
-                    key = it.location.`object`,
-                    filename = it.filename,
-                    size = it.contentLength(),
-                    timestamp = Instant.ofEpochMilli(it.lastModified()),
-                )
-            }
+            s3Client
+                .listObjectsV2Paginator { it.bucket(bucket) }
+                .contents()
+                .map {
+                    TehtavapakettiObject(
+                        key = it.key(),
+                        filename = it.key(),
+                        size = it.size(),
+                        timestamp = it.lastModified(),
+                    )
+                }
         }.orEmpty()
 
     @WithSpan

@@ -6,6 +6,8 @@ import fi.oph.kitu.LocalStackContainerConfiguration
 import fi.oph.kitu.LocalStackContainerConfiguration.Companion.TEST_BUCKET
 import fi.oph.kitu.tehtavapankki.TehtavapakettiEntity
 import fi.oph.kitu.tehtavapankki.TehtavapankkiRepository
+import fi.oph.kitu.util.TimeService
+import io.awspring.cloud.s3.S3Template
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -23,6 +25,9 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.web.client.RestClientResponseException
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response
+import software.amazon.awssdk.services.s3.model.S3Object
 import java.net.URI
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -46,6 +51,9 @@ class TehtavapankkiServiceTest(
     @param:Autowired private val importService: TehtavapankkiImportService,
     @param:Autowired private val tehtavapankkiClient: TehtavapankkiClientImpl,
     @param:Autowired private val s3Client: S3Client,
+    @param:Autowired private val s3Template: S3Template,
+    @param:Autowired private val parser: TehtavapankkiXmlParser,
+    @param:Autowired private val timeService: TimeService,
     @param:Autowired private val repository: TehtavapankkiRepository,
     @param:Autowired private val jdbc: JdbcTemplate,
 ) {
@@ -500,6 +508,7 @@ class TehtavapankkiServiceTest(
             tehtavapaketit.map { it.key }.toSet(),
         )
         tehtavapaketit.forEach { tp ->
+            assertEquals("<questions/>".length.toLong(), tp.size, "Koko, avain: ${tp.key}")
             assertTrue(
                 !tp.timestamp.isBefore(startTime.truncatedTo(ChronoUnit.SECONDS)) &&
                     !tp.timestamp.isAfter(endTime.plusSeconds(1)),
@@ -511,6 +520,59 @@ class TehtavapankkiServiceTest(
     @Test
     fun `listTehtavapaketit palauttaa tyhjan listan kun bucketissa ei ole objekteja`() {
         assertEquals(emptyList(), tehtavapankkiService.listAllObjects())
+    }
+
+    @Test
+    fun `listAllObjects lukee kaikki sivut ja ottaa koon ja ajan listauksesta ilman HEAD-kutsuja`() {
+        val aika = Instant.parse("2026-01-01T00:00:00Z")
+        val sivut =
+            mapOf(
+                null to
+                    ListObjectsV2Response
+                        .builder()
+                        .contents(
+                            S3Object
+                                .builder()
+                                .key("1-A/a.xml")
+                                .size(11L)
+                                .lastModified(aika)
+                                .build(),
+                        ).isTruncated(true)
+                        .nextContinuationToken("sivu2")
+                        .build(),
+                "sivu2" to
+                    ListObjectsV2Response
+                        .builder()
+                        .contents(
+                            S3Object
+                                .builder()
+                                .key("2-B/b.xml")
+                                .size(22L)
+                                .lastModified(aika.plusSeconds(1))
+                                .build(),
+                        ).isTruncated(false)
+                        .build(),
+            )
+        val vainListaavaS3 =
+            object : S3Client {
+                override fun serviceName(): String = S3Client.SERVICE_NAME
+
+                override fun close() {}
+
+                override fun listObjectsV2(request: ListObjectsV2Request): ListObjectsV2Response =
+                    sivut.getValue(request.continuationToken())
+            }
+        val service =
+            TehtavapankkiService(tehtavapankkiClient, s3Template, vainListaavaS3, parser, repository, timeService)
+                .apply { bucket = TEST_BUCKET }
+
+        assertEquals(
+            listOf(
+                TehtavapakettiObject("1-A/a.xml", "1-A/a.xml", 11L, aika),
+                TehtavapakettiObject("2-B/b.xml", "2-B/b.xml", 22L, aika.plusSeconds(1)),
+            ),
+            service.listAllObjects(),
+        )
     }
 
     @Test
