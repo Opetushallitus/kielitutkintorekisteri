@@ -8,7 +8,7 @@ import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
 import fi.oph.kitu.jdbc.addAnyOf
-import fi.oph.kitu.jdbc.addSearchTerms
+import fi.oph.kitu.jdbc.addCombinedSearchTerms
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.SearchTerms
@@ -49,8 +49,10 @@ data class YkiSuoritusFilter(
             copy(search = currentSearch.withHenkiloOids(expanded))
         }
 
+    fun hasTextSearch(): Boolean = search?.texts() != null
+
     override fun SqlFilterBuilder.build() {
-        addSearchTerms(search?.texts().orEmpty(), HAKUSARAKKEET, "filter_search")
+        addCombinedSearchTerms(search?.texts().orEmpty(), HAKUSARAKKEET, "fi_FI", "filter_search")
         search?.henkiloOids()?.let { oids ->
             add("suorittajan_oid IN (:henkilo_oids)", "henkilo_oids" to oids)
         }

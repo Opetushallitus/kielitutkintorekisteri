@@ -34,6 +34,11 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
 
+data class YkiSuoritusSivu(
+    val suoritukset: List<YkiSuoritusEntity>,
+    val kokonaismaara: Long,
+)
+
 @Service
 class YkiSuoritusRepository(
     private val jdbcTemplate: JdbcTemplate,
@@ -93,6 +98,32 @@ class YkiSuoritusRepository(
                 ),
             YkiSuoritusEntity.fromRow,
         )
+
+    @WithSpan
+    fun findSivuKokonaismaaralla(
+        filter: YkiSuoritusFilter,
+        order: YkiSuoritusOrder,
+        distinct: Boolean,
+        limit: Int,
+        offset: Int,
+    ): YkiSuoritusSivu {
+        val rivit =
+            jdbcNamedParameterTemplate.query(
+                buildSql(
+                    withCtes("suoritus" to selectSuorituksetRoot(distinct)),
+                    "SELECT *, COUNT(*) OVER () AS kokonaismaara FROM suoritus AS yki_suoritus",
+                    filter.whereSql(),
+                    "ORDER BY $order",
+                    pagingQuery(limit, offset),
+                ),
+                filter.params() + mapOf("limit" to limit, "offset" to offset),
+            ) { rs, rivi ->
+                checkNotNull(YkiSuoritusEntity.fromRootRow.mapRow(rs, rivi)) to rs.getLong("kokonaismaara")
+            }
+        val kokonaismaara =
+            rivit.firstOrNull()?.second ?: if (offset == 0) 0L else countSuoritukset(filter, distinct)
+        return YkiSuoritusSivu(rivit.map { it.first }, kokonaismaara)
+    }
 
     @WithSpan
     fun findForListView(
