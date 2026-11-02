@@ -55,6 +55,7 @@ class CustomKielitestiSuoritusRepository(
     private fun KielitestiSuoritusFilter.withOrganisaatiohaku(): KielitestiSuoritusFilter =
         withOrgOids(
             search
+                ?.takeIf { it.isNotBlank() }
                 ?.let { organisaatioService.searchOrganisaatiot(it) }
                 ?.nimet
                 ?.keys
