@@ -302,7 +302,7 @@ class YkiApiController(
     fun deleteHenkilosuoritus(
         @RequestBody tunniste: LahdejarjestelmanTunniste,
     ): ResponseEntity<*> =
-        service.poistaSuoritus(tunniste).fold(
+        service.poistaSuoritus(tunniste.toTunnus()).fold(
             ifLeft = { virhe ->
                 when (virhe) {
                     is PoistaSuoritusError.SuoritustaEiLoydy -> TiedonsiirtoFailure.notFound(virhe.message)

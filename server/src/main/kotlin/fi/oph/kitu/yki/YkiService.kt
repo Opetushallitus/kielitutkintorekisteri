@@ -8,7 +8,6 @@ import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
-import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.cache.InMemoryCache
 import fi.oph.kitu.util.result.getOrThrow
@@ -158,14 +157,14 @@ class YkiService(
 
     @Transactional
     @WithSpan
-    fun poistaSuoritus(tunniste: LahdejarjestelmanTunniste): Either<PoistaSuoritusError, Unit> =
+    fun poistaSuoritus(tunnus: String): Either<PoistaSuoritusError, Unit> =
         either {
             val suoritus =
-                ensureNotNull(suoritusRepository.getLatestByLahdejarjestelmanTunnus(tunniste.toTunnus())) {
-                    PoistaSuoritusError.SuoritustaEiLoydy(tunniste)
+                ensureNotNull(suoritusRepository.getLatestByLahdejarjestelmanTunnus(tunnus)) {
+                    PoistaSuoritusError.SuoritustaEiLoydy(tunnus)
                 }
             ensure(suoritus.arviointitila == Arviointitila.ILMOITTAUTUNUT) {
-                PoistaSuoritusError.TilaEstaaPoiston(tunniste, suoritus.arviointitila)
+                PoistaSuoritusError.TilaEstaaPoiston(tunnus, suoritus.arviointitila)
             }
 
             val uusiVersio =

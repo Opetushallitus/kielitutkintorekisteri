@@ -655,4 +655,20 @@ class YkiSuoritusRepository(
                 mapOf("tunnus" to tunnus),
                 YkiSuoritusEntity.fromRow,
             ).firstOrNull()
+
+    @WithSpan
+    fun findIlmoittautuneidenTunnukset(viimeinenTutkintopaiva: LocalDate): List<String> =
+        jdbcNamedParameterTemplate.query(
+            buildSql(
+                withCtes("suoritus" to selectSuorituksetRoot(viimeisin = true)),
+                """
+                SELECT lahdejarjestelmantunnus FROM suoritus
+                WHERE arviointitila = :arviointitila AND tutkintopaiva <= :viimeinenTutkintopaiva
+                """,
+            ),
+            mapOf(
+                "arviointitila" to Arviointitila.ILMOITTAUTUNUT.name,
+                "viimeinenTutkintopaiva" to viimeinenTutkintopaiva,
+            ),
+        ) { rs, _ -> rs.getString("lahdejarjestelmantunnus") }
 }

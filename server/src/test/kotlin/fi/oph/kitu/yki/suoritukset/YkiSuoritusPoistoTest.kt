@@ -6,8 +6,6 @@ import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.koski.KoskiYkiMappingError
 import fi.oph.kitu.koski.KoskiYkiRequestMapper
 import fi.oph.kitu.oid.Oid
-import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
-import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
 import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.Arviointitila
@@ -50,7 +48,7 @@ class YkiSuoritusPoistoTest(
         jdbcTemplate.tyhjennaYkiSuoritukset()
     }
 
-    private fun tunniste(id: Int) = LahdejarjestelmanTunniste(id.toString(), Lahdejarjestelma.Solki)
+    private fun tunniste(id: Int) = "yki.$id"
 
     private fun suoritus(
         arviointitila: Arviointitila,
@@ -211,7 +209,7 @@ class YkiSuoritusPoistoTest(
     @Test
     fun `saman numeron tunniste toisesta lähdejärjestelmästä ei poista suoritusta`() {
         suoritusRepository.save(ilmoittautuminen(), false)
-        val toinenLahde = LahdejarjestelmanTunniste(solkiId.toString(), Lahdejarjestelma.OPH)
+        val toinenLahde = "oph.$solkiId"
 
         assertEquals(
             Either.Left(PoistaSuoritusError.SuoritustaEiLoydy(toinenLahde)),
@@ -268,7 +266,7 @@ class YkiSuoritusPoistoTest(
 
         val virhe =
             assertFailsWith<IllegalStateException> {
-                ykiService.poistaSuoritus(LahdejarjestelmanTunniste(pitkaId, Lahdejarjestelma.Solki))
+                ykiService.poistaSuoritus("yki.$pitkaId")
             }
 
         assertContains(virhe.message.orEmpty(), "Audit log value")
