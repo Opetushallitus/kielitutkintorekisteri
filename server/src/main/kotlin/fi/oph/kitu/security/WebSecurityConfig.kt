@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpMethod.DELETE
 import org.springframework.http.HttpMethod.GET
 import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpMethod.PUT
@@ -50,6 +51,7 @@ fun developmentProfileActive(environment: Environment): Boolean {
 fun AuthorizeHttpRequestsDsl.configureCommonAuthorizations() {
     authorize(PUT, "/api/vkt/kios", hasAnyAuthority(*Authority.VKT_TALLENNUS.authStrings()))
     authorize(POST, "/yki/api/suoritus", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
+    authorize(DELETE, "/yki/api/suoritus", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
     authorize(POST, "/yki/api/arvioija", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
     authorize(GET, "/yhteystiedot/api/**", hasAnyAuthority(*Authority.TODISTUS_YHTEYSTIEDOT_LUKEMINEN.authStrings()))
 

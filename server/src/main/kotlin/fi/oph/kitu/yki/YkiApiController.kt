@@ -3,6 +3,7 @@ package fi.oph.kitu.yki
 import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.ilmoittautumisjarjestelma.IlmoittautumisjarjestelmaService
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
+import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoValidation
@@ -18,6 +19,7 @@ import fi.oph.kitu.yki.arvioijat.YkiArvioijaParams
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaService
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaValidation
+import fi.oph.kitu.yki.suoritukset.PoistaSuoritusError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -33,6 +35,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpSession
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
@@ -232,6 +235,82 @@ class YkiApiController(
         ilmoittautumisjarjestelma.sendArvioinninTila(entity)
         return TiedonsiirtoSuccess().toResponseEntity()
     }
+
+    @DeleteMapping("/suoritus")
+    @Tag(name = "oauth2")
+    @Operation(
+        summary = "Yleisen kielitutkinnon suorituksen poisto",
+        description = """
+            Kirjoittaa suoritukselle uuden version, jonka arviointitila on EI_SUORITUSTA ja jokaisen osakokeen
+            arvosana 12 (Ei suoritusta). Suoritus ja sen aiemmat versiot säilyvät rekisterissä.
+            Sallittu vain, kun suorituksen arviointitila on ILMOITTAUTUNUT, PERUTTU tai EI_SUORITUSTA.
+            Jo poistetun suorituksen uusi poisto onnistuu muuttamatta mitään.
+        """,
+        requestBody =
+            SwaggerRequestBody(
+                """Suorituksen lähdejärjestelmän tunniste, esim. {"id": "183424", "lahde": "Solki"}""",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(LahdejarjestelmanTunniste::class),
+                    ),
+                ],
+            ),
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Suoritus poistettu",
+                content = [
+                    Content(
+                        mediaType = "application/json",
+                        schema = Schema(TiedonsiirtoSuccess::class),
+                        examples = [
+                            ExampleObject(
+                                name = "Onnistunut poisto",
+                                externalValue = "/kielitutkinnot/schema-examples/tiedonsiirto-ok.json",
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Virheellinen lähdejärjestelmän tunniste",
+                content = [
+                    Content(mediaType = "application/json", schema = Schema(TiedonsiirtoFailure::class)),
+                ],
+            ),
+            ApiResponse(responseCode = "403", description = "Ei käyttöoikeuksia"),
+            ApiResponse(
+                responseCode = "404",
+                description = "Tunnisteella ei löydy suoritusta",
+                content = [
+                    Content(mediaType = "application/json", schema = Schema(TiedonsiirtoFailure::class)),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "409",
+                description = "Suorituksen arviointitila estää poiston",
+                content = [
+                    Content(mediaType = "application/json", schema = Schema(TiedonsiirtoFailure::class)),
+                ],
+            ),
+        ],
+    )
+    fun deleteHenkilosuoritus(
+        @RequestBody tunniste: LahdejarjestelmanTunniste,
+    ): ResponseEntity<*> =
+        service.poistaSuoritus(tunniste).fold(
+            ifLeft = { virhe ->
+                when (virhe) {
+                    is PoistaSuoritusError.SuoritustaEiLoydy -> TiedonsiirtoFailure.notFound(virhe.message)
+                    is PoistaSuoritusError.TilaEstaaPoiston -> TiedonsiirtoFailure.conflict(virhe.message)
+                }.toResponseEntity()
+            },
+            ifRight = { TiedonsiirtoSuccess().toResponseEntity() },
+        )
 
     @PostMapping("/arvioija")
     @Tag(name = "oauth2")

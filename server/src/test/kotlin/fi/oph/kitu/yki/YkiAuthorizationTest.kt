@@ -95,7 +95,57 @@ class YkiAuthorizationTest {
         )
     }
 
+    @Test
+    fun `suorituksen poisto on sallittu YKI_TALLENNUS-oikeudella`() {
+        val response =
+            deleteJson(
+                "/yki/api/suoritus",
+                """{"id": "999999", "lahde": "Solki"}""",
+                token(subject = "solki", authorities = arrayOf(Authority.YKI_TALLENNUS)),
+            )
+        assertEquals(
+            HttpStatus.NOT_FOUND,
+            response.statusCode,
+            "pyynto runkoineen paasee kontrollerille, jolla tunnistetta ei ole: ${response.body}",
+        )
+    }
+
+    @Test
+    fun `suorituksen poisto on kielletty ilman oikeutta`() {
+        val response =
+            deleteJson(
+                "/yki/api/suoritus",
+                """{"id": "999999", "lahde": "Solki"}""",
+                token(subject = "solki", authorities = emptyArray()),
+            )
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+    }
+
+    @Test
+    fun `suorituksen poisto on kielletty pelkalla lukuoikeudella`() {
+        val response =
+            deleteJson(
+                "/yki/api/suoritus",
+                """{"id": "999999", "lahde": "Solki"}""",
+                token(subject = "virkailija", authorities = arrayOf(Authority.VIRKAILIJA)),
+            )
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+    }
+
     private fun postJson(
+        path: String,
+        body: String,
+        bearer: String,
+    ): ResponseEntity<String> = exchangeJson(HttpMethod.POST, path, body, bearer)
+
+    private fun deleteJson(
+        path: String,
+        body: String,
+        bearer: String,
+    ): ResponseEntity<String> = exchangeJson(HttpMethod.DELETE, path, body, bearer)
+
+    private fun exchangeJson(
+        method: HttpMethod,
         path: String,
         body: String,
         bearer: String,
@@ -108,7 +158,7 @@ class YkiAuthorizationTest {
             }
         return restTemplate.exchange(
             "http://localhost:$port/kielitutkinnot$path",
-            HttpMethod.POST,
+            method,
             HttpEntity(body, headers),
             String::class.java,
         )

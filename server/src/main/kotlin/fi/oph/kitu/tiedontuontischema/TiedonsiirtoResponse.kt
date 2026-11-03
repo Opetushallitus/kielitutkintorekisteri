@@ -32,6 +32,10 @@ data class TiedonsiirtoFailure(
     companion object {
         fun forbidden(msg: String) = TiedonsiirtoFailure(HttpStatus.FORBIDDEN, listOf(msg))
 
+        fun notFound(msg: String) = TiedonsiirtoFailure(HttpStatus.NOT_FOUND, listOf(msg))
+
+        fun conflict(msg: String) = TiedonsiirtoFailure(HttpStatus.CONFLICT, listOf(msg))
+
         fun badRequest(msg: String) = TiedonsiirtoFailure(HttpStatus.BAD_REQUEST, listOf(msg))
 
         fun badRequest(msgs: Iterable<String>) = TiedonsiirtoFailure(HttpStatus.BAD_REQUEST, msgs.toList())
