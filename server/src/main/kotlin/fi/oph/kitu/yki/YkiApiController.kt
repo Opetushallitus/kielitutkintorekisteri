@@ -243,8 +243,8 @@ class YkiApiController(
         description = """
             Kirjoittaa suoritukselle uuden version, jonka arviointitila on EI_SUORITUSTA ja jokaisen osakokeen
             arvosana 12 (Ei suoritusta). Suoritus ja sen aiemmat versiot säilyvät rekisterissä.
-            Sallittu vain, kun suorituksen arviointitila on ILMOITTAUTUNUT, PERUTTU tai EI_SUORITUSTA.
-            Jo poistetun suorituksen uusi poisto onnistuu muuttamatta mitään.
+            Sallittu vain, kun suorituksen arviointitila on ILMOITTAUTUNUT. Jo poistetun suorituksen tila on
+            EI_SUORITUSTA, joten sen uusi poisto palauttaa 409:n.
         """,
         requestBody =
             SwaggerRequestBody(
@@ -292,7 +292,7 @@ class YkiApiController(
             ),
             ApiResponse(
                 responseCode = "409",
-                description = "Suorituksen arviointitila estää poiston",
+                description = "Suorituksen arviointitila ei ole ILMOITTAUTUNUT",
                 content = [
                     Content(mediaType = "application/json", schema = Schema(TiedonsiirtoFailure::class)),
                 ],

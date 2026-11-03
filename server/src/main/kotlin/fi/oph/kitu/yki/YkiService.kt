@@ -164,7 +164,7 @@ class YkiService(
                 ensureNotNull(suoritusRepository.getLatestByLahdejarjestelmanTunnus(tunniste.toTunnus())) {
                     PoistaSuoritusError.SuoritustaEiLoydy(tunniste)
                 }
-            ensure(suoritus.arviointitila.poistettavissa()) {
+            ensure(suoritus.arviointitila == Arviointitila.ILMOITTAUTUNUT) {
                 PoistaSuoritusError.TilaEstaaPoiston(tunniste, suoritus.arviointitila)
             }
 
@@ -173,17 +173,15 @@ class YkiService(
                     suoritus.eiSuoritettuna(timeService.now()),
                     updateOnConflict = false,
                 )
-            if (uusiVersio != null) {
-                val jwtSubject = (SecurityContextHolder.getContext().authentication?.principal as? Jwt)?.subject
-                auditLogger.logAllInternalOnly("Yki suoritus deleted", listOf(suoritus)) {
-                    arrayOf(
-                        "suoritus.id" to uusiVersio,
-                        "suoritus.solki_id" to it.solkiId,
-                        "suoritus.lahdejarjestelmantunnus" to it.lahdejarjestelmanTunnus,
-                        "suoritus.suorittajan_oid" to it.suorittajanOID,
-                        "auth.principal_oid" to jwtSubject,
-                    )
-                }
+            val jwtSubject = (SecurityContextHolder.getContext().authentication?.principal as? Jwt)?.subject
+            auditLogger.logAllInternalOnly("Yki suoritus deleted", listOf(suoritus)) {
+                arrayOf(
+                    "suoritus.id" to uusiVersio,
+                    "suoritus.solki_id" to it.solkiId,
+                    "suoritus.lahdejarjestelmantunnus" to it.lahdejarjestelmanTunnus,
+                    "suoritus.suorittajan_oid" to it.suorittajanOID,
+                    "auth.principal_oid" to jwtSubject,
+                )
             }
         }
 

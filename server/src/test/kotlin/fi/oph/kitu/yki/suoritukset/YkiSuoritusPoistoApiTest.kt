@@ -187,7 +187,7 @@ class YkiSuoritusPoistoApiTest(
         )
 
     @Test
-    fun `sallitussa tilassa poisto vastaa 200 ja kirjoittaa EI_SUORITUSTA-version`() {
+    fun `ILMOITTAUTUNUT-tilassa poisto vastaa 200 ja kirjoittaa EI_SUORITUSTA-version`() {
         tallennaSuoritus(Arviointitila.ILMOITTAUTUNUT)
 
         val vastaus = deleteSuoritus()
@@ -212,13 +212,25 @@ class YkiSuoritusPoistoApiTest(
     }
 
     @Test
-    fun `uusi poisto vastaa 200 eikä kirjoita uutta versiota`() {
+    fun `PERUTTU-tilassa poisto vastaa 409`() {
         tallennaSuoritus(Arviointitila.PERUTTU)
-        deleteSuoritus()
 
         val vastaus = deleteSuoritus()
 
-        assertEquals(200, vastaus.status, vastaus.contentAsString)
+        assertEquals(409, vastaus.status, vastaus.contentAsString)
+        assertContains(vastaus.contentAsString, "PERUTTU")
+        assertEquals(1, versiomaara())
+    }
+
+    @Test
+    fun `uusi poisto vastaa 409 eikä kirjoita uutta versiota`() {
+        tallennaSuoritus(Arviointitila.ILMOITTAUTUNUT)
+        assertEquals(200, deleteSuoritus().status)
+
+        val vastaus = deleteSuoritus()
+
+        assertEquals(409, vastaus.status, vastaus.contentAsString)
+        assertContains(vastaus.contentAsString, "EI_SUORITUSTA")
         assertEquals(2, versiomaara())
     }
 
