@@ -31,6 +31,16 @@ saatu siirrettyä (esim. verkko- tai palvelinvian takia). Tavallisesti arviointi
 kun Solki lähettää uutta dataa rajapintaan `POST /yki/api/suoritus`. Tämän ajon tarkoitus on varmistaa tiedon
 perille pääsy.
 
+### Merkitse tutkinnosta poisjääneet YKI-ilmoittautuneet
+
+Merkitsee ei-suoritetuiksi ne suoritukset, joiden viimeisimmän version arviointitila on `ILMOITTAUTUNUT` ja joiden
+tutkintopäivästä on kulunut vähintään `kitu.yki.scheduling.merkitseEiSuoritetuiksi.paivatTutkinnosta` (oletus `14`)
+päivää. Merkintä kirjoittaa uuden version, jonka arviointitila on `EI_SUORITUSTA` ja jokaisen osakokeen arvosana 12
+(Ei suoritusta), samalla tavalla kuin `DELETE /yki/api/suoritus`. Suoritus ja sen aiemmat versiot säilyvät.
+
+Epäonnistunut suoritus ei pysäytä muita, mutta ajo merkitään lopuksi epäonnistuneeksi. Se yritetään uudelleen
+seuraavalla ajolla.
+
 ## Valtionhallinnon kielitutkinnot
 
 ### Lähetä VKT-suoritukset KOSKI-palveluun
