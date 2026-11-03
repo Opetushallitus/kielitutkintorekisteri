@@ -65,27 +65,25 @@ class YkiSuoritusPoistoTest(
         receivedAt = lastModified,
     )
 
-    private fun ilmoittautuminen(
-        arviointitila: Arviointitila = Arviointitila.ILMOITTAUTUNUT,
-        lastModified: Instant = ensimmainenVersio,
-    ) = suoritus(arviointitila, lastModified = lastModified)
-        .copy(
-            arviointipaiva = null,
-            tekstinYmmartaminen = null,
-            kirjoittaminen = null,
-            rakenteetJaSanasto = null,
-            puheenYmmartaminen = null,
-            puhuminen = null,
-            yleisarvosana = null,
-            tarkistusarvioinninSaapumisPvm = null,
-            tarkistusarvioinninAsiatunnus = null,
-            tarkistusarvioidutOsakokeet = null,
-            arvosanaMuuttui = null,
-            perustelu = null,
-            tarkistusarvioinninKasittelyPvm = null,
-        ).also {
-            it.ilmoitetutOsakokeet = setOf(TutkinnonOsa.PU, TutkinnonOsa.KI, TutkinnonOsa.TY, TutkinnonOsa.PY)
-        }
+    private fun ilmoittautuminen(lastModified: Instant = ensimmainenVersio) =
+        suoritus(Arviointitila.ILMOITTAUTUNUT, lastModified = lastModified)
+            .copy(
+                arviointipaiva = null,
+                tekstinYmmartaminen = null,
+                kirjoittaminen = null,
+                rakenteetJaSanasto = null,
+                puheenYmmartaminen = null,
+                puhuminen = null,
+                yleisarvosana = null,
+                tarkistusarvioinninSaapumisPvm = null,
+                tarkistusarvioinninAsiatunnus = null,
+                tarkistusarvioidutOsakokeet = null,
+                arvosanaMuuttui = null,
+                perustelu = null,
+                tarkistusarvioinninKasittelyPvm = null,
+            ).also {
+                it.ilmoitetutOsakokeet = setOf(TutkinnonOsa.PU, TutkinnonOsa.KI, TutkinnonOsa.TY, TutkinnonOsa.PY)
+            }
 
     private fun viimeisin(id: Int = solkiId) = suoritusRepository.findLatestBySolkiIds(listOf(id)).single()
 
@@ -142,16 +140,14 @@ class YkiSuoritusPoistoTest(
     }
 
     @Test
-    fun `poisto on sallittu vain tiloissa ILMOITTAUTUNUT, PERUTTU ja EI_SUORITUSTA`() {
-        val sallitut = setOf(Arviointitila.ILMOITTAUTUNUT, Arviointitila.PERUTTU, Arviointitila.EI_SUORITUSTA)
-
+    fun `poisto on sallittu vain tilassa ILMOITTAUTUNUT`() {
         Arviointitila.entries.forEachIndexed { indeksi, tila ->
             val id = 2000 + indeksi
             suoritusRepository.save(suoritus(tila, id = id), false)
 
             val tulos = ykiService.poistaSuoritus(tunniste(id))
 
-            if (tila in sallitut) {
+            if (tila == Arviointitila.ILMOITTAUTUNUT) {
                 assertEquals(Either.Right(Unit), tulos, "tila $tila")
                 assertEquals(Arviointitila.EI_SUORITUSTA, viimeisin(id).arviointitila, "tila $tila")
                 assertEquals(2, versiomaara(id), "tila $tila")
@@ -178,39 +174,27 @@ class YkiSuoritusPoistoTest(
     }
 
     @Test
-    fun `viimeisin versio ratkaisee - arvioinnin jälkeen peruttu voidaan poistaa`() {
+    fun `viimeisin versio ratkaisee - arvioinnin jälkeen ilmoittautunut voidaan poistaa`() {
         suoritusRepository.save(suoritus(Arviointitila.ARVIOITU), false)
-        suoritusRepository.save(ilmoittautuminen(Arviointitila.PERUTTU, lastModified = toinenVersio), false)
+        suoritusRepository.save(ilmoittautuminen(lastModified = toinenVersio), false)
 
         assertEquals(Either.Right(Unit), ykiService.poistaSuoritus(tunniste))
         assertEquals(Arviointitila.EI_SUORITUSTA, viimeisin().arviointitila)
     }
 
     @Test
-    fun `jo poistetun suorituksen uusi poisto onnistuu tekemättä uutta versiota`() {
+    fun `jo poistetun suorituksen uusi poisto palauttaa virheen tekemättä uutta versiota`() {
         suoritusRepository.save(ilmoittautuminen(), false)
         ykiService.poistaSuoritus(tunniste).getOrThrow()
         val poistettu = viimeisin()
 
-        assertEquals(Either.Right(Unit), ykiService.poistaSuoritus(tunniste))
+        assertEquals(
+            Either.Left(PoistaSuoritusError.TilaEstaaPoiston(tunniste, Arviointitila.EI_SUORITUSTA)),
+            ykiService.poistaSuoritus(tunniste),
+        )
 
         assertEquals(2, versiomaara())
         assertEquals(poistettu.lastModified, viimeisin().lastModified)
-    }
-
-    @Test
-    fun `EI_SUORITUSTA muilla arvosanoilla saa arvosanaksi 12`() {
-        val keskeytetty = 10
-        suoritusRepository.save(
-            ilmoittautuminen(Arviointitila.EI_SUORITUSTA).copy(puhuminen = keskeytetty, kirjoittaminen = keskeytetty),
-            false,
-        )
-
-        ykiService.poistaSuoritus(tunniste).getOrThrow()
-
-        assertEquals(eiSuoritusta, viimeisin().puhuminen)
-        assertEquals(eiSuoritusta, viimeisin().kirjoittaminen)
-        assertEquals(2, versiomaara())
     }
 
     @Test
@@ -251,7 +235,7 @@ class YkiSuoritusPoistoTest(
     fun `poisto säilyttää KOSKI-tiedot, joten käsiteltyä suoritusta ei jonoteta uudelleen`() {
         val opiskeluoikeus = Oid.parse("1.2.246.562.15.00000000001").getOrThrow()
         suoritusRepository.save(
-            ilmoittautuminen(Arviointitila.PERUTTU).copy(
+            ilmoittautuminen().copy(
                 koskiOpiskeluoikeus = opiskeluoikeus,
                 koskiSiirtoKasitelty = true,
             ),
