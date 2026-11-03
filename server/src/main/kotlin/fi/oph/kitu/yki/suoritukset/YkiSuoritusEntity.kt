@@ -100,6 +100,27 @@ data class YkiSuoritusEntity(
             .map { Osakoe(it, arvosana(it), arviointipaiva) }
     }
 
+    fun eiSuoritettuna(lastModified: Instant): YkiSuoritusEntity {
+        val osat = osakokeet().map { it.tyyppi }.toSet()
+        val eiSuoritusta =
+            Koodisto.YkiArvosana.EiSuoritusta.koodiarvo
+                .toInt()
+
+        fun arvosanaJosIlmoitettu(osa: TutkinnonOsa) = eiSuoritusta.takeIf { osa in osat }
+
+        return copy(
+            id = null,
+            lastModified = lastModified,
+            arviointitila = Arviointitila.EI_SUORITUSTA,
+            tekstinYmmartaminen = arvosanaJosIlmoitettu(TutkinnonOsa.TY),
+            kirjoittaminen = arvosanaJosIlmoitettu(TutkinnonOsa.KI),
+            rakenteetJaSanasto = arvosanaJosIlmoitettu(TutkinnonOsa.RS),
+            puheenYmmartaminen = arvosanaJosIlmoitettu(TutkinnonOsa.PY),
+            puhuminen = arvosanaJosIlmoitettu(TutkinnonOsa.PU),
+            yleisarvosana = arvosanaJosIlmoitettu(TutkinnonOsa.YL),
+        )
+    }
+
     fun isOphTesti(): Boolean = Lahdejarjestelma.ofTunnus(lahdejarjestelmanTunnus) == Lahdejarjestelma.OPHTesti
 
     fun kokoNimi() = "$sukunimi $etunimet"

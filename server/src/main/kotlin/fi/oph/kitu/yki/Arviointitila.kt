@@ -35,6 +35,8 @@ enum class Arviointitila : DisplayEnum {
 
     fun pelkkäIlmoittautuminen() = ilmoittautumistilat.contains(this)
 
+    fun poistettavissa() = listOf(ILMOITTAUTUNUT, PERUTTU, EI_SUORITUSTA).contains(this)
+
     override fun displayText(): String = viewText
 
     companion object {

@@ -1,14 +1,19 @@
 package fi.oph.kitu.yki
 
 import arrow.core.Either
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.cache.InMemoryCache
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.suoritukset.HyvaksyTarkistusarviointiError
+import fi.oph.kitu.yki.suoritukset.PoistaSuoritusError
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
@@ -20,7 +25,10 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import kotlin.time.Duration
 
@@ -147,6 +155,37 @@ class YkiService(
         }
         return sivu
     }
+
+    @Transactional
+    @WithSpan
+    fun poistaSuoritus(tunniste: LahdejarjestelmanTunniste): Either<PoistaSuoritusError, Unit> =
+        either {
+            val suoritus =
+                ensureNotNull(suoritusRepository.getLatestByLahdejarjestelmanTunnus(tunniste.toTunnus())) {
+                    PoistaSuoritusError.SuoritustaEiLoydy(tunniste)
+                }
+            ensure(suoritus.arviointitila.poistettavissa()) {
+                PoistaSuoritusError.TilaEstaaPoiston(tunniste, suoritus.arviointitila)
+            }
+
+            val uusiVersio =
+                suoritusRepository.save(
+                    suoritus.eiSuoritettuna(timeService.now()),
+                    updateOnConflict = false,
+                )
+            if (uusiVersio != null) {
+                val jwtSubject = (SecurityContextHolder.getContext().authentication?.principal as? Jwt)?.subject
+                auditLogger.logAllInternalOnly("Yki suoritus deleted", listOf(suoritus)) {
+                    arrayOf(
+                        "suoritus.id" to uusiVersio,
+                        "suoritus.solki_id" to it.solkiId,
+                        "suoritus.lahdejarjestelmantunnus" to it.lahdejarjestelmanTunnus,
+                        "suoritus.suorittajan_oid" to it.suorittajanOID,
+                        "auth.principal_oid" to jwtSubject,
+                    )
+                }
+            }
+        }
 
     @WithSpan
     fun findViimeisinBySolkiId(solkiId: Int): YkiSuoritusEntity =
