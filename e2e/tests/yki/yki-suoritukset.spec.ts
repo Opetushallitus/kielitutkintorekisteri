@@ -92,6 +92,14 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(3)
   })
 
+  test("filter dropdowns are block-level, because Safari cuts off the options of an inline one", async ({
+    ykiSuorituksetPage,
+  }) => {
+    await ykiSuorituksetPage.open()
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await expect(dialog.tutkintokieli().details).toHaveCSS("display", "block")
+  })
+
   test("tilastot page keeps the active filters of the list view", async ({
     ykiSuorituksetPage,
   }) => {

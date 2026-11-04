@@ -341,6 +341,11 @@ th {
   vertical-align: top;
 }
 
+dialog details.dropdown {
+  display: block;
+  margin: 0;
+}
+
 dialog details.dropdown[open] > summary::before {
   width: auto;
   height: auto;
