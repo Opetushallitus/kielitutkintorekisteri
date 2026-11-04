@@ -28,7 +28,11 @@ import { SlackChannel } from "./accounts"
 // scheduledChange-tapahtumat, joihin ei tarvitse reagoida. Fargaten
 // patch-retirement korvaa tehtävät itsestään ECS-palvelun kautta, ja jokainen
 // mainin deploy vaihtaa ne joka tapauksessa uusiin.
-const OHITETTAVAT_HEALTH_TAPAHTUMAT = ["AWS_ECS_TASK_PATCHING_RETIREMENT"]
+const OHITETTAVAT_HEALTH_TAPAHTUMAT = [
+  "AWS_ECS_TASK_PATCHING_RETIREMENT",
+  "AWS_CLOUDWATCH_PLANNED_LIFECYCLE_EVENT",
+  "AWS_WORKMAIL_PLANNED_LIFECYCLE_EVENT",
+]
 
 export interface AlarmsStackSlackProps {
   workspaceId: string
