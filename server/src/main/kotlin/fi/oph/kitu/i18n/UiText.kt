@@ -247,6 +247,7 @@ object UiText {
         val tarkistusarvioidutOsakokeet: LocalizedString
             get() = tr("yki.tarkistusarvioidutOsakokeet")
         val perustelu: LocalizedString get() = tr("yki.perustelu")
+        val naytaPerustelu: LocalizedString get() = tr("yki.naytaPerustelu")
         val viimeksiMuokattu: LocalizedString get() = tr("yki.viimeksiMuokattu")
         val koski: LocalizedString get() = tr("yki.koski")
         val koskiVirheet: LocalizedString get() = tr("yki.koskiVirheet")
@@ -575,8 +576,8 @@ object UiText {
             val saapunut: LocalizedString get() = tr("yki.sarake.saapunut")
             val kasitelty: LocalizedString get() = tr("yki.sarake.kasitelty")
             val hyvaksytty: LocalizedString get() = tr("yki.sarake.hyvaksytty")
-            val tarkistusarviointi: LocalizedString
-                get() = tr("yki.sarake.tarkistusarviointi")
+            val osat: LocalizedString get() = tr("yki.sarake.osat")
+            val muuttuneet: LocalizedString get() = tr("yki.sarake.muuttuneet")
             val tarkistusarvioinninSaapumispaiva: LocalizedString
                 get() =
                     tr("yki.sarake.tarkistusarvioinninSaapumispaiva")
