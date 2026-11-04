@@ -1,15 +1,17 @@
 package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.html.copyable
+import fi.oph.kitu.html.infoModal
+import fi.oph.kitu.html.orDash
 import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDate
-import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.yki.TutkinnonOsa
 import kotlinx.html.FlowContent
+import kotlinx.html.div
 import kotlinx.html.li
 import kotlinx.html.p
-import kotlinx.html.strong
 import kotlinx.html.ul
 
 enum class YkiTarkistusarviointiColumn(
@@ -39,7 +41,7 @@ enum class YkiTarkistusarviointiColumn(
     ),
     Tutkintotaso(
         entityName = "tutkintotaso",
-        uiHeaderValue = UiText.Yki.Sarake.tutkintotaso,
+        uiHeaderValue = UiText.Yki.Sarake.taso,
         urlParam = "tutkintotaso",
         getValue = { it.tutkintotaso.name },
     ),
@@ -74,37 +76,35 @@ enum class YkiTarkistusarviointiColumn(
         getValue = { it.tarkistusarvioinninAsiatunnus.orEmpty() },
         renderHtml = { it.tarkistusarvioinninAsiatunnus?.let { asiatunnus -> copyable(asiatunnus) } },
     ),
-    Muutokset(
+    Osat(
         entityName = null,
-        uiHeaderValue = UiText.Yki.Sarake.tarkistusarviointi,
-        urlParam = "arviointi",
-        getValue = { "Not implemented" },
-        renderHtml = {
-            val arvosanaMuuttui = it.arvosanaMuuttui?.isNotEmpty() ?: false
-            it.perustelu?.let { x ->
-                p(classes = if (arvosanaMuuttui) null else "faded") {
-                    +(
-                        x.ifBlank {
-                            "Arvosana ei muuttunut (tarkistusarvioitu: ${
-                                it.tarkistusarvioidutOsakokeet
-                                    .orEmpty()
-                                    .joinToString(separator = ", ") { it.viewText }}"
-                        }
-                    )
+        uiHeaderValue = UiText.Yki.Sarake.osat,
+        urlParam = "osat",
+        getValue = { osakoeLista(it.tarkistusarvioidutOsakokeet) },
+        renderHtml = { osakoeRivit(it.tarkistusarvioidutOsakokeet.orEmpty()) },
+    ),
+    Muuttuneet(
+        entityName = null,
+        uiHeaderValue = UiText.Yki.Sarake.muuttuneet,
+        urlParam = "muuttuneet",
+        getValue = { it.muuttuneetTekstina() },
+        renderHtml = { suoritus ->
+            div(classes = "muuttuneet-osakokeet") {
+                val muuttuneet = suoritus.muuttuneetOsakokeet()
+                div {
+                    if (muuttuneet.isNullOrEmpty()) {
+                        +suoritus.muuttuneetTekstina()
+                    } else {
+                        osakoeRivit(muuttuneet)
+                    }
                 }
-            }
-            if (arvosanaMuuttui) {
-                ul(classes = "flat") {
-                    it.tarkistusarvioidutOsakokeet.orEmpty().forEach { osakoe ->
-                        li {
-                            if (it.arvosanaMuuttui.contains(osakoe) == true) {
-                                strong { +"${osakoe.viewText}: " }
-                                +"${UiText.Yki.arvosanaMuuttui}: ${it.arvosana(osakoe) ?: "-"}"
-                            } else {
-                                +"${osakoe.viewText}: "
-                                +UiText.Yki.arvosanaEiMuuttunut
-                            }
-                        }
+                suoritus.perustelu?.takeIf { it.isNotBlank() }?.let { perustelu ->
+                    infoModal(
+                        modalId = "perustelu-${suoritus.solkiId}",
+                        title = UiText.Yki.perustelu.toString(),
+                        label = UiText.Yki.naytaPerustelu.toString(),
+                    ) {
+                        p { +perustelu }
                     }
                 }
             }
@@ -120,4 +120,16 @@ enum class YkiTarkistusarviointiColumn(
             getValue = getValue,
             renderHtml = renderHtml,
         )
+}
+
+private fun YkiSuoritusEntity.muuttuneetOsakokeet(): Set<TutkinnonOsa>? =
+    tarkistusarvioinninKasittelyPvm?.let { arvosanaMuuttui.orEmpty() }
+
+private fun YkiSuoritusEntity.muuttuneetTekstina(): String =
+    muuttuneetOsakokeet()?.let { osakoeLista(it).ifEmpty { null }.orDash() }.orEmpty()
+
+private fun FlowContent.osakoeRivit(osakokeet: Set<TutkinnonOsa>) {
+    ul(classes = "flat") {
+        osakokeet.sortedBy { it.ordinal }.forEach { li { +it.viewText } }
+    }
 }

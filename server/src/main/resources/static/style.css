@@ -299,6 +299,21 @@ td ul.flat li {
   text-wrap: auto;
 }
 
+.info-modal dialog {
+  white-space: normal;
+}
+
+.info-modal dialog p {
+  max-width: none;
+}
+
+.muuttuneet-osakokeet {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .invalid-value {
   color: var(--oph-orange3);
 }
@@ -551,7 +566,9 @@ button.tight {
 }
 
 button.copy-button,
-button.copy-button:is(:hover, :active, :focus) {
+button.copy-button:is(:hover, :active, :focus),
+button.info-button,
+button.info-button:is(:hover, :active, :focus) {
   display: inline-flex;
   width: auto;
   margin: 0 0 0 0.25rem;
@@ -566,7 +583,8 @@ button.copy-button:is(:hover, :active, :focus) {
   cursor: pointer;
 }
 
-button.copy-button:hover {
+button.copy-button:hover,
+button.info-button:hover {
   color: var(--pico-primary);
 }
 
@@ -574,12 +592,14 @@ button.copy-button.copied {
   color: var(--oph-green2);
 }
 
-button.copy-button:focus-visible {
+button.copy-button:focus-visible,
+button.info-button:focus-visible {
   outline: 2px solid var(--pico-primary);
   outline-offset: 1px;
 }
 
-button.copy-button svg {
+button.copy-button svg,
+button.info-button svg {
   width: 1em;
   height: 1em;
 }

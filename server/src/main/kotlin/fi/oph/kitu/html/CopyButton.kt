@@ -10,7 +10,7 @@ import kotlinx.html.button
 import kotlinx.html.span
 import kotlinx.html.unsafe
 
-private const val SVG_ATTRIBUTES =
+internal const val SVG_ATTRIBUTES =
     """viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" """ +
         """stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false""""
 

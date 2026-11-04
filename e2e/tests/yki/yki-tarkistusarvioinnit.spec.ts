@@ -212,9 +212,9 @@ describe("YKI-tarkastusarvioinnit", () => {
     await ykiTarkistusarvioinnitPage.sortBy("Käsitelty")
     await expectToHaveTexts(etunimet, "Magdalena Testi", "Ranja Testi")
 
-    await ykiTarkistusarvioinnitPage.sortBy("Tutkintotaso")
+    await ykiTarkistusarvioinnitPage.sortBy("Taso")
     await expectToHaveTexts(etunimet, "Magdalena Testi", "Ranja Testi")
-    await ykiTarkistusarvioinnitPage.sortBy("Tutkintotaso")
+    await ykiTarkistusarvioinnitPage.sortBy("Taso")
     await expectToHaveTexts(etunimet, "Ranja Testi", "Magdalena Testi")
 
     const dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
@@ -274,5 +274,47 @@ describe("YKI-tarkastusarvioinnit", () => {
     await dialog.setHyvaksymisaika("2025-11-11", "2025-11-11")
     await dialog.submit()
     await expectToHaveTexts(etunimet, "Magdalena Testi")
+  })
+
+  test("Osat ja muuttuneet näkyvät omissa sarakkeissaan", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const rivi = ykiTarkistusarvioinnitPage.odottaaTable.body.getByRole("row", {
+      name: "Sallinen-Testi Magdalena",
+    })
+
+    await expectToHaveTexts(
+      rivi.getByTestId("osat").getByRole("listitem"),
+      "Puhuminen",
+    )
+    await expectToHaveTexts(
+      rivi.getByTestId("muuttuneet").getByRole("listitem"),
+      "Puhuminen",
+    )
+  })
+
+  test("Perustelu avautuu info-painikkeesta eikä lähetä hyväksyntää", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const rivi = ykiTarkistusarvioinnitPage.odottaaTable.body.getByRole("row", {
+      name: "Sallinen-Testi Magdalena",
+    })
+    const valinta = rivi.getByRole("checkbox")
+    await valinta.setChecked(true)
+
+    await expect(rivi.getByRole("dialog")).not.toBeVisible()
+    await rivi.getByRole("button", { name: "Näytä perustelu" }).click()
+
+    const modaali = rivi.getByRole("dialog")
+    await expect(modaali).toBeVisible()
+    await expect(modaali).toContainText("Perustelu")
+    await expect(modaali).toContainText("Tarkistusarvioinnin testi")
+
+    await modaali.getByRole("button", { name: "Sulje" }).click()
+    await expect(modaali).not.toBeVisible()
+
+    await expect(valinta).toBeChecked()
+    await expect(ykiTarkistusarvioinnitPage.viewMessage).not.toBeVisible()
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("2")
   })
 })

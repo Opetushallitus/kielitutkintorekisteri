@@ -9,6 +9,8 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiColumn
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -59,10 +61,13 @@ class YkiTarkistusarvioinnitViewTest(
         tutkintotaso: Tutkintotaso = Tutkintotaso.PT,
         tutkintopaiva: LocalDate = LocalDate.of(2025, 1, 1),
         saapunut: LocalDate = LocalDate.of(2025, 2, 1),
-        kasitelty: LocalDate = LocalDate.of(2025, 3, 1),
+        kasitelty: LocalDate? = LocalDate.of(2025, 3, 1),
         arvosanaMuuttui: Boolean = true,
         arviointitila: Arviointitila = Arviointitila.TARKISTUSARVIOITU,
         hetu: String? = null,
+        osakokeet: Set<TutkinnonOsa> = setOf(TutkinnonOsa.puhuminen),
+        muuttuneet: Set<TutkinnonOsa> = osakokeet,
+        perustelu: String = "Perustelu $sukunimi",
     ): YkiSuoritusEntity =
         generateRandomYkiSuoritusEntity()
             .copy(
@@ -75,8 +80,9 @@ class YkiTarkistusarvioinnitViewTest(
                 tarkistusarvioinninAsiatunnus = asiatunnus,
                 tarkistusarvioinninSaapumisPvm = saapunut,
                 tarkistusarvioinninKasittelyPvm = kasitelty,
-                tarkistusarvioidutOsakokeet = setOf(TutkinnonOsa.puhuminen),
-                arvosanaMuuttui = if (arvosanaMuuttui) setOf(TutkinnonOsa.puhuminen) else null,
+                tarkistusarvioidutOsakokeet = osakokeet,
+                arvosanaMuuttui = if (arvosanaMuuttui) muuttuneet else null,
+                perustelu = perustelu,
                 arviointitila = arviointitila,
             ).also { suoritusRepository.save(it, false) }
 
@@ -84,6 +90,19 @@ class YkiTarkistusarvioinnitViewTest(
         params: YkiTarkistusarvioinnitParams,
         arviointitila: Arviointitila = Arviointitila.TARKISTUSARVIOITU,
     ): List<String> = suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, params).map { it.sukunimi }
+
+    private fun rivi(
+        html: String,
+        sukunimi: String,
+    ): Element =
+        Jsoup
+            .parse(html)
+            .select("tbody tr")
+            .single { it.selectFirst("td[data-testid=sukunimi]")?.text() == sukunimi }
+
+    private fun Element.sarake(testId: String): Element = selectFirst("td[data-testid=$testId]")!!
+
+    private fun Element.listanRivit(): List<String> = select("li").map { it.text() }
 
     private fun getHtml(url: String): String =
         mockMvc
@@ -327,14 +346,89 @@ class YkiTarkistusarvioinnitViewTest(
     }
 
     @Test
-    fun `tarkistusarviointisarakkeen otsikko ei ole lajittelulinkki`() {
+    fun `osakoesarakkeiden otsikot eivat ole lajittelulinkkeja`() {
         tallenna("Virtanen")
 
         val html = getHtml("/yki/tarkistusarvioinnit")
 
         assertContains(html, "sortColumn=sukunimi")
         assertContains(html, "sortColumn=saapunut")
-        assertFalse(html.contains("sortColumn=arviointi"))
+        assertFalse(html.contains("sortColumn=osat"))
+        assertFalse(html.contains("sortColumn=muuttuneet"))
+    }
+
+    @Test
+    fun `osat ja muuttuneet listataan omissa sarakkeissaan osakokeiden jarjestyksessa`() {
+        tallenna(
+            "Virtanen",
+            osakokeet = setOf(TutkinnonOsa.kirjoittaminen, TutkinnonOsa.puhuminen),
+            muuttuneet = setOf(TutkinnonOsa.kirjoittaminen),
+        )
+
+        val rivi = rivi(getHtml("/yki/tarkistusarvioinnit"), "Virtanen")
+
+        assertEquals(listOf("Puhuminen", "Kirjoittaminen"), rivi.sarake("osat").listanRivit())
+        assertEquals(listOf("Kirjoittaminen"), rivi.sarake("muuttuneet").listanRivit())
+    }
+
+    @Test
+    fun `muuttuneissa on viiva kun kasitelty tarkistusarviointi ei muuttanut arvosanoja`() {
+        tallenna("Virtanen", arvosanaMuuttui = false)
+
+        val solu = rivi(getHtml("/yki/tarkistusarvioinnit"), "Virtanen").sarake("muuttuneet")
+
+        assertEquals("–", solu.selectFirst(".muuttuneet-osakokeet > div")!!.text())
+        assertEquals(emptyList(), solu.selectFirst(".muuttuneet-osakokeet > div")!!.select("li").map { it.text() })
+    }
+
+    @Test
+    fun `muuttuneet on tyhja kun kasittelypaivaa ei ole`() {
+        tallenna(
+            "Kesken",
+            kasitelty = null,
+            arvosanaMuuttui = false,
+            arviointitila = Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY,
+        )
+
+        val solu = rivi(getHtml("/yki/tarkistusarvioinnit/hyvaksytyt"), "Kesken").sarake("muuttuneet")
+
+        assertEquals("", solu.selectFirst(".muuttuneet-osakokeet > div")!!.text())
+    }
+
+    @Test
+    fun `perustelu avataan rivikohtaisesta modaalista`() {
+        val virtanen = tallenna("Virtanen", perustelu = "Perustelu <b>Virtaselle</b>")
+        val aalto = tallenna("Aalto", perustelu = "Perustelu Aallolle")
+
+        val html = getHtml("/yki/tarkistusarvioinnit")
+
+        listOf(
+            Triple("Virtanen", virtanen.solkiId, "Perustelu <b>Virtaselle</b>"),
+            Triple("Aalto", aalto.solkiId, "Perustelu Aallolle"),
+        ).forEach { (sukunimi, solkiId, perustelu) ->
+            val solu = rivi(html, sukunimi).sarake("muuttuneet")
+            val nappi = solu.selectFirst("button.info-button")!!
+            assertEquals("perustelu-$solkiId", nappi.attr("commandfor"))
+            assertEquals("show-modal", nappi.attr("command"))
+            assertEquals("button", nappi.attr("type"))
+            assertEquals("Näytä perustelu", nappi.attr("aria-label"))
+
+            val modaali = solu.selectFirst("dialog#perustelu-$solkiId")!!
+            assertEquals(perustelu, modaali.selectFirst("p")!!.text())
+            assertEquals("close", modaali.selectFirst("footer button")!!.attr("command"))
+            assertEquals("button", modaali.selectFirst("footer button")!!.attr("type"))
+        }
+        assertFalse(html.contains("<b>Virtaselle</b>"))
+    }
+
+    @Test
+    fun `tyhjalle perustelulle ei nayteta info-painiketta`() {
+        tallenna("Virtanen", perustelu = "   ")
+
+        val solu = rivi(getHtml("/yki/tarkistusarvioinnit"), "Virtanen").sarake("muuttuneet")
+
+        assertEquals(null, solu.selectFirst("button.info-button"))
+        assertEquals(null, solu.selectFirst("dialog"))
     }
 
     @Test
