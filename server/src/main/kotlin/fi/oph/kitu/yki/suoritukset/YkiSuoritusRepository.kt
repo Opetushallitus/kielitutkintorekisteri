@@ -159,16 +159,21 @@ class YkiSuoritusRepository(
         )
 
     @WithSpan
-    fun findTarkistusarvoidutSuoritukset(arviointitila: Arviointitila): Iterable<YkiSuoritusEntity> =
-        jdbcNamedParameterTemplate
-            .query(
+    fun findTarkistusarvoidutSuoritukset(
+        arviointitila: Arviointitila,
+        params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+    ): List<YkiSuoritusEntity> =
+        jdbcNamedParameterTemplate.query(
+            buildSql(
+                "SELECT * FROM (",
                 selectViimeisimmatSuoritukset("arviointitila = :arviointitila"),
-                mapOf("arviointitila" to arviointitila.name),
-                YkiSuoritusEntity.fromRow,
-            ).sortedWith(
-                compareByDescending(YkiSuoritusEntity::tarkistusarvioinninKasittelyPvm)
-                    .thenByDescending { it.tarkistusarvioinninSaapumisPvm },
-            )
+                ") AS tarkistusarviointi",
+                params.whereSql(),
+                "ORDER BY ${params.orderBySql()}",
+            ),
+            params.params() + ("arviointitila" to arviointitila.name),
+            YkiSuoritusEntity.fromRow,
+        )
 
     @Transactional
     @WithSpan

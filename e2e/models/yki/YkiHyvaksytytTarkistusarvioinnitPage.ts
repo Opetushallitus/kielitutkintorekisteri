@@ -1,9 +1,9 @@
-import BasePage from "../BasePage"
 import { Locator, Page } from "@playwright/test"
 import { Config } from "../../config"
 import DisplayTable from "../components/DisplayTable"
+import BaseYkiTarkistusarvioinnitPage from "./BaseYkiTarkistusarvioinnitPage"
 
-export default class YkiHyvaksytytTarkistusarvioinnitPage extends BasePage {
+export default class YkiHyvaksytytTarkistusarvioinnitPage extends BaseYkiTarkistusarvioinnitPage {
   hyvaksytytTable: DisplayTable
   hyvaksytytDate: Locator
   hyvaksytytSubmit: Locator

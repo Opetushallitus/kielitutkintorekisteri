@@ -295,6 +295,10 @@ td p {
   text-wrap: auto;
 }
 
+td ul.flat li {
+  text-wrap: auto;
+}
+
 .invalid-value {
   color: var(--oph-orange3);
 }

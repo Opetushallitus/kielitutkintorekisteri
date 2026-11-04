@@ -190,6 +190,10 @@ object UiText {
         val arvioijiaYhteensa: LocalizedString get() = tr("yki.arvioijiaYhteensa")
         val hakusanaArvioija: LocalizedString
             get() = tr("yki.hakusanaArvioija")
+        val hakusanaTarkistusarviointi: LocalizedString
+            get() = tr("yki.hakusanaTarkistusarviointi")
+        val tarkistusarviointejaYhteensa: LocalizedString
+            get() = tr("yki.tarkistusarviointejaYhteensa")
         val lisaaArvioija: LocalizedString get() = tr("yki.lisaaArvioija")
         val odottaaLahetysta: LocalizedString get() = tr("yki.odottaaLahetysta")
         val solkiLahetysOnnistui: LocalizedString get() = tr("yki.solkiLahetysOnnistui")
@@ -279,6 +283,12 @@ object UiText {
         val saapunut: LocalizedString get() = tr("yki.saapunut")
         val kasitelty: LocalizedString get() = tr("yki.kasitelty")
         val hyvaksytty: LocalizedString get() = tr("yki.hyvaksytty")
+        val saapunutAlkaen: LocalizedString get() = tr("yki.saapunutAlkaen")
+        val saapunutPaattyen: LocalizedString get() = tr("yki.saapunutPaattyen")
+        val kasiteltyAlkaen: LocalizedString get() = tr("yki.kasiteltyAlkaen")
+        val kasiteltyPaattyen: LocalizedString get() = tr("yki.kasiteltyPaattyen")
+        val hyvaksyttyAlkaen: LocalizedString get() = tr("yki.hyvaksyttyAlkaen")
+        val hyvaksyttyPaattyen: LocalizedString get() = tr("yki.hyvaksyttyPaattyen")
         val arvosanaMuuttui: LocalizedString get() = tr("yki.arvosanaMuuttui")
         val arvosanaEiMuuttunut: LocalizedString get() = tr("yki.arvosanaEiMuuttunut")
         val onrEiYhteytta: LocalizedString
@@ -561,8 +571,10 @@ object UiText {
             val ashaNumero: LocalizedString get() = tr("yki.sarake.ashaNumero")
             val solkiTila: LocalizedString get() = tr("yki.sarake.solkiTila")
             val muokattu: LocalizedString get() = tr("yki.sarake.muokattu")
-            val paivamaara: LocalizedString get() = tr("yki.sarake.paivamaara")
             val asiatunnus: LocalizedString get() = tr("yki.sarake.asiatunnus")
+            val saapunut: LocalizedString get() = tr("yki.sarake.saapunut")
+            val kasitelty: LocalizedString get() = tr("yki.sarake.kasitelty")
+            val hyvaksytty: LocalizedString get() = tr("yki.sarake.hyvaksytty")
             val tarkistusarviointi: LocalizedString
                 get() = tr("yki.sarake.tarkistusarviointi")
             val tarkistusarvioinninSaapumispaiva: LocalizedString

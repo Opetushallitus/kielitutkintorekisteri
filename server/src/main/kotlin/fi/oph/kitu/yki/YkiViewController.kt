@@ -3,6 +3,7 @@ import fi.oph.kitu.html.KituRequest
 import fi.oph.kitu.html.ViewMessage
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.ViewMessageType
+import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.pagination
 import fi.oph.kitu.i18n.LocalizationService
 import fi.oph.kitu.i18n.UiText
@@ -20,6 +21,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusPage
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastotPage
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitPage
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
 import fi.oph.kitu.yki.suoritukset.error.YkiKoskiErrors
 import jakarta.servlet.http.HttpSession
 import org.springframework.http.ResponseEntity
@@ -204,37 +206,42 @@ class YkiViewController(
     }
 
     @GetMapping("/tarkistusarvioinnit", produces = ["text/html"])
-    fun tarkistusArvioinnitView(viewMessage: ViewMessage? = null): ResponseEntity<String> =
-        ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU).let {
-            ResponseEntity.ok(
-                YkiTarkistusarvioinnitPage.render(
-                    suoritukset = it.toList(),
-                    message = viewMessage?.consume(),
-                    oletuspaiva = timeService.today(),
-                ),
-            )
-        }
+    fun tarkistusArvioinnitView(
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+        viewMessage: ViewMessage? = null,
+    ): ResponseEntity<String> =
+        ResponseEntity.ok(
+            YkiTarkistusarvioinnitPage.render(
+                suoritukset = ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU, params),
+                params = params,
+                message = viewMessage?.consume(),
+                oletuspaiva = timeService.today(),
+            ),
+        )
 
     @GetMapping("/tarkistusarvioinnit/hyvaksytyt", produces = ["text/html"])
-    fun hyvaksytytTarkistusArvioinnitView(viewMessage: ViewMessage? = null): ResponseEntity<String> =
-        ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY).let {
-            ResponseEntity.ok(
-                YkiTarkistusarvioinnitPage.renderHyvaksytyt(
-                    suoritukset = it.toList(),
-                    message = viewMessage?.consume(),
-                    oletuspaiva = timeService.today(),
-                ),
-            )
-        }
+    fun hyvaksytytTarkistusArvioinnitView(
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+        viewMessage: ViewMessage? = null,
+    ): ResponseEntity<String> =
+        ResponseEntity.ok(
+            YkiTarkistusarvioinnitPage.renderHyvaksytyt(
+                suoritukset = ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, params),
+                params = params,
+                message = viewMessage?.consume(),
+                oletuspaiva = timeService.today(),
+            ),
+        )
 
     @PostMapping("/tarkistusarvioinnit")
     fun hyvaksyTarkistusArvioinnit(
         @RequestParam suoritukset: List<Int>? = null,
         @RequestParam hyvaksyttyPvm: LocalDate? = null,
         viewMessage: ViewMessage? = null,
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
     ): RedirectView {
         hyvaksyTarkistusarvioinnit(suoritukset, hyvaksyttyPvm, viewMessage)
-        return RedirectView(Links.Yki.tarkistusArvioinnit())
+        return RedirectView(Links.Yki.tarkistusArvioinnit() + httpParams(params.toMap()))
     }
 
     @PostMapping("/tarkistusarvioinnit/hyvaksytyt")
@@ -242,9 +249,10 @@ class YkiViewController(
         @RequestParam suoritukset: List<Int>? = null,
         @RequestParam hyvaksyttyPvm: LocalDate? = null,
         viewMessage: ViewMessage? = null,
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
     ): RedirectView {
         hyvaksyTarkistusarvioinnit(suoritukset, hyvaksyttyPvm, viewMessage)
-        return RedirectView(Links.Yki.hyvaksytytTarkistusArvioinnit())
+        return RedirectView(Links.Yki.hyvaksytytTarkistusArvioinnit() + httpParams(params.toMap()))
     }
 
     private fun hyvaksyTarkistusarvioinnit(
