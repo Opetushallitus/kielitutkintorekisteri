@@ -104,11 +104,11 @@ describe("YKI-tarkastusarvioinnit", () => {
     ykiHyvaksytytTarkistusarvioinnitPage,
   }) => {
     await ykiHyvaksytytTarkistusarvioinnitPage.open()
-    const paivamaaraCell = ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable
-      .getCellsOfColumn("tutkintoPvm")
-      .first()
-    await expect(paivamaaraCell).toContainText("Pyyntö käsitelty: 20.10.2024")
-    await expect(paivamaaraCell).not.toContainText("Tulos hyväksytty:")
+    const table = ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable
+    await expect(table.getCellsOfColumn("kasitelty").first()).toHaveText(
+      "20.10.2024",
+    )
+    await expect(table.getCellsOfColumn("hyvaksytty").first()).toHaveText("")
 
     await ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable.body
       .getByRole("row")
@@ -121,11 +121,9 @@ describe("YKI-tarkastusarvioinnit", () => {
       "1 tarkistusarviointi merkitty hyväksytyksi",
     )
 
-    await expect(
-      ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable
-        .getCellsOfColumn("tutkintoPvm")
-        .first(),
-    ).toContainText("Tulos hyväksytty: 20.11.2025")
+    await expect(table.getCellsOfColumn("hyvaksytty").first()).toHaveText(
+      "20.11.2025",
+    )
   })
 
   test("Mitään ei tapahdu, jos rakseja ei ole valittu ja painaa submit", async ({
@@ -145,5 +143,136 @@ describe("YKI-tarkastusarvioinnit", () => {
       "Magdalena Testi",
       "Ranja Testi",
     )
+  })
+
+  test("Hakusana rajaa taulukon ja säilyy järjestettäessä", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const etunimet =
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn("etunimet")
+
+    await ykiTarkistusarvioinnitPage.search("OPH-14893989377-2")
+    await expectToHaveTexts(etunimet, "Magdalena Testi")
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("1")
+
+    await ykiTarkistusarvioinnitPage.sortBy("Sukunimi")
+    await expectToHaveTexts(etunimet, "Magdalena Testi")
+    await expect(
+      ykiTarkistusarvioinnitPage.getPageContent().getByTestId("search"),
+    ).toHaveValue("OPH-14893989377-2")
+
+    await ykiTarkistusarvioinnitPage.search("Ranja")
+    await expectToHaveTexts(etunimet, "Ranja Testi")
+  })
+
+  test("Tyhjä hakutulos säilyttää haun ja rajauksen, mutta piilottaa hyväksyntälomakkeen", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    await ykiTarkistusarvioinnitPage.search("eiloydy")
+
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("0")
+    await expect(ykiTarkistusarvioinnitPage.odottaaSubmit).not.toBeVisible()
+    await expect(
+      ykiTarkistusarvioinnitPage.getPageContent().getByTestId("search"),
+    ).toHaveValue("eiloydy")
+
+    const dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await expect(dialog.modal).toBeVisible()
+  })
+
+  test("Rajausdialogi suodattaa tutkintotasolla ja käsittelypäivällä", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const etunimet =
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn("etunimet")
+
+    let dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setTutkintotaso(["YT"])
+    await dialog.submit()
+    await expectToHaveTexts(etunimet, "Ranja Testi")
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("1")
+
+    dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setTutkintotaso([])
+    await dialog.setKasittelyaika("2025-10-22", "2025-10-22")
+    await dialog.submit()
+    await expectToHaveTexts(etunimet, "Magdalena Testi")
+  })
+
+  test("Sarakkeen otsikosta järjestetään, ja järjestys säilyy rajattaessa", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const etunimet =
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn("etunimet")
+    await expectToHaveTexts(etunimet, "Magdalena Testi", "Ranja Testi")
+
+    await ykiTarkistusarvioinnitPage.sortBy("Käsitelty")
+    await expectToHaveTexts(etunimet, "Ranja Testi", "Magdalena Testi")
+
+    await ykiTarkistusarvioinnitPage.sortBy("Käsitelty")
+    await expectToHaveTexts(etunimet, "Magdalena Testi", "Ranja Testi")
+
+    await ykiTarkistusarvioinnitPage.sortBy("Tutkintotaso")
+    await expectToHaveTexts(etunimet, "Magdalena Testi", "Ranja Testi")
+    await ykiTarkistusarvioinnitPage.sortBy("Tutkintotaso")
+    await expectToHaveTexts(etunimet, "Ranja Testi", "Magdalena Testi")
+
+    const dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setTutkintotaso(["PT", "YT"])
+    await dialog.submit()
+    await expectToHaveTexts(etunimet, "Ranja Testi", "Magdalena Testi")
+  })
+
+  test("Hyväksynnän jälkeen palataan samaan rajaukseen ja järjestykseen", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const etunimet =
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn("etunimet")
+
+    const dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setTutkintotaso(["PT", "YT"])
+    await dialog.submit()
+    await ykiTarkistusarvioinnitPage.sortBy("Sukunimi")
+
+    await ykiTarkistusarvioinnitPage.odottaaTable.body
+      .getByRole("row", { name: "Sallinen-Testi Magdalena" })
+      .getByRole("checkbox")
+      .setChecked(true)
+    await ykiTarkistusarvioinnitPage.odottaaDate.fill("2025-11-11")
+    await ykiTarkistusarvioinnitPage.odottaaSubmit.click()
+
+    await expect(ykiTarkistusarvioinnitPage.viewMessage).toHaveText(
+      "1 tarkistusarviointi merkitty hyväksytyksi",
+    )
+    await expectToHaveTexts(etunimet, "Ranja Testi")
+    const url = new URL(ykiTarkistusarvioinnitPage.page.url())
+    expect(url.searchParams.get("tutkintotaso")).toBe("PT,YT")
+    expect(url.searchParams.get("sortColumn")).toBe("sukunimi")
+  })
+
+  test("Hyväksyttyjä voi rajata ja järjestää hyväksymispäivällä", async ({
+    ykiTarkistusarvioinnitPage,
+    ykiHyvaksytytTarkistusarvioinnitPage,
+  }) => {
+    await ykiTarkistusarvioinnitPage.odottaaTable.body
+      .getByRole("row", { name: "Sallinen-Testi Magdalena" })
+      .getByRole("checkbox")
+      .setChecked(true)
+    await ykiTarkistusarvioinnitPage.odottaaDate.fill("2025-11-11")
+    await ykiTarkistusarvioinnitPage.odottaaSubmit.click()
+    await expect(ykiTarkistusarvioinnitPage.viewMessage).toBeVisible()
+
+    await ykiHyvaksytytTarkistusarvioinnitPage.open()
+    const etunimet =
+      ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable.getCellsOfColumn(
+        "etunimet",
+      )
+    await ykiHyvaksytytTarkistusarvioinnitPage.sortBy("Hyväksytty")
+    await expectToHaveTexts(etunimet, "Magdalena Testi", "Eino Testi")
+
+    const dialog = await ykiHyvaksytytTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setHyvaksymisaika("2025-11-11", "2025-11-11")
+    await dialog.submit()
+    await expectToHaveTexts(etunimet, "Magdalena Testi")
   })
 })

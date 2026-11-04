@@ -35,7 +35,7 @@ fun FlowContent.csvDownloadButton(href: String) {
 fun FlowContent.listViewActions(
     countLabel: LocalizedString,
     numberOfItems: Number,
-    csvHref: String,
+    csvHref: String?,
     extraActions: (UL.() -> Unit)? = null,
     filterButton: FlowContent.() -> Unit,
 ) {
@@ -49,7 +49,7 @@ fun FlowContent.listViewActions(
                     +numberOfItems.toString()
                 }
             }
-            li { csvDownloadButton(csvHref) }
+            csvHref?.let { li { csvDownloadButton(it) } }
             li { filterButton() }
             extraActions?.invoke(this)
         }
@@ -63,7 +63,7 @@ fun FlowContent.listViewActions(
 fun FlowContent.listViewHeader(
     countLabel: LocalizedString,
     numberOfItems: Number,
-    csvHref: String,
+    csvHref: String?,
     filterDescriptions: List<String>,
     extraActions: (UL.() -> Unit)? = null,
     filterButton: FlowContent.() -> Unit,

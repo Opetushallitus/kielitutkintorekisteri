@@ -20,6 +20,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSivu
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -197,8 +198,10 @@ class YkiService(
         suoritusRepository.findLatestBySolkiIds(solkiIds)
 
     @WithSpan
-    fun findTarkistusarvioidut(arviointitila: Arviointitila): List<YkiSuoritusEntity> =
-        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila).toList()
+    fun findTarkistusarvioidut(
+        arviointitila: Arviointitila,
+        params: YkiTarkistusarvioinnitParams,
+    ): List<YkiSuoritusEntity> = suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, params)
 
     /**
      * Oletuspaiva tulee TimeServicelta, ei LocalDate.now():lta: kontti ajaa UTC:ssa ja

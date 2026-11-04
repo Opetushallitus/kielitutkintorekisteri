@@ -1,6 +1,6 @@
 package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.html.copyable
-import fi.oph.kitu.html.labelColon
+import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.html.table.DisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
@@ -32,7 +32,7 @@ enum class YkiTarkistusarviointiColumn(
         getValue = { it.etunimet },
     ),
     Kieli(
-        entityName = "kieli",
+        entityName = "tutkintokieli",
         uiHeaderValue = UiText.Yki.Sarake.kieli,
         urlParam = "kieli",
         getValue = { it.tutkintokieli.name },
@@ -43,47 +43,39 @@ enum class YkiTarkistusarviointiColumn(
         urlParam = "tutkintotaso",
         getValue = { it.tutkintotaso.name },
     ),
-    Paivamaara(
-        entityName = "tutkintoPvm",
-        uiHeaderValue = UiText.Yki.Sarake.paivamaara,
-        urlParam = "tutkintoPvm",
+    Tutkintopaiva(
+        entityName = "tutkintopaiva",
+        uiHeaderValue = UiText.Yki.Sarake.tutkintopaiva,
+        urlParam = "tutkintopaiva",
         getValue = { it.tutkintopaiva.finnishDate() },
-        renderHtml = {
-            ul(classes = "flat") {
-                li {
-                    labelColon(UiText.Yki.Sarake.tutkintopaiva)
-                    +it.tutkintopaiva.finnishDate()
-                }
-                it.tarkistusarvioinninSaapumisPvm?.let { pvm ->
-                    li {
-                        labelColon(UiText.Yki.saapunut)
-                        +pvm.finnishDate()
-                    }
-                }
-                it.tarkistusarvioinninKasittelyPvm?.let { pvm ->
-                    li {
-                        labelColon(UiText.Yki.kasitelty)
-                        +pvm.finnishDate()
-                    }
-                }
-                it.tarkistusarviointiHyvaksyttyPvm?.let { pvm ->
-                    li {
-                        labelColon(UiText.Yki.hyvaksytty)
-                        +pvm.finnishDate()
-                    }
-                }
-            }
-        },
+    ),
+    Saapumispaiva(
+        entityName = "tarkistusarvioinnin_saapumis_pvm",
+        uiHeaderValue = UiText.Yki.Sarake.saapunut,
+        urlParam = "saapunut",
+        getValue = { it.tarkistusarvioinninSaapumisPvm?.finnishDate().orEmpty() },
+    ),
+    Kasittelypaiva(
+        entityName = "tarkistusarvioinnin_kasittely_pvm",
+        uiHeaderValue = UiText.Yki.Sarake.kasitelty,
+        urlParam = "kasitelty",
+        getValue = { it.tarkistusarvioinninKasittelyPvm?.finnishDate().orEmpty() },
+    ),
+    Hyvaksymispaiva(
+        entityName = "tarkistusarviointi_hyvaksytty_pvm",
+        uiHeaderValue = UiText.Yki.Sarake.hyvaksytty,
+        urlParam = "hyvaksytty",
+        getValue = { it.tarkistusarviointiHyvaksyttyPvm?.finnishDate().orEmpty() },
     ),
     Asiatunnus(
-        entityName = "asiatunnus",
+        entityName = "tarkistusarvioinnin_asiatunnus",
         uiHeaderValue = UiText.Yki.Sarake.asiatunnus,
         urlParam = "asiatunnus",
         getValue = { it.tarkistusarvioinninAsiatunnus.orEmpty() },
         renderHtml = { it.tarkistusarvioinninAsiatunnus?.let { asiatunnus -> copyable(asiatunnus) } },
     ),
     Muutokset(
-        entityName = "arviointi",
+        entityName = null,
         uiHeaderValue = UiText.Yki.Sarake.tarkistusarviointi,
         urlParam = "arviointi",
         getValue = { "Not implemented" },
@@ -118,4 +110,14 @@ enum class YkiTarkistusarviointiColumn(
             }
         },
     ),
+    ;
+
+    fun toDisplayColumn(): DisplayTableColumn<YkiSuoritusEntity> =
+        DisplayTableColumn(
+            label = uiHeaderValue.toString(),
+            sortKey = entityName?.let { urlParam },
+            testId = urlParam,
+            getValue = getValue,
+            renderHtml = renderHtml,
+        )
 }
