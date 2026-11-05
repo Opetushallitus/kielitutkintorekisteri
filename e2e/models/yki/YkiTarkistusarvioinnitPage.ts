@@ -20,8 +20,8 @@ export default class YkiTarkistusarvioinnitPage extends BaseYkiTarkistusarvioinn
     this.hyvaksytytLink = page.getByTestId("hyvaksytytLink")
   }
 
-  async open() {
-    await this.goto("yki/tarkistusarvioinnit")
+  async open(query: string = "") {
+    await this.goto(`yki/tarkistusarvioinnit${query}`)
   }
 
   async openHyvaksytyt() {

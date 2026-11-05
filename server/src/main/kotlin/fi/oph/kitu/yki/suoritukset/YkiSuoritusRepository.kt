@@ -162,6 +162,8 @@ class YkiSuoritusRepository(
     fun findTarkistusarvoidutSuoritukset(
         arviointitila: Arviointitila,
         filter: YkiTarkistusarviointiFilter = YkiTarkistusarvioinnitParams().toFilter(),
+        limit: Int? = null,
+        offset: Int? = null,
     ): List<YkiSuoritusEntity> =
         jdbcNamedParameterTemplate.query(
             buildSql(
@@ -170,10 +172,27 @@ class YkiSuoritusRepository(
                 ") AS tarkistusarviointi",
                 filter.whereSql(),
                 "ORDER BY ${filter.orderBySql()}",
+                pagingQuery(limit, offset),
             ),
-            filter.params() + ("arviointitila" to arviointitila.name),
+            filter.params() + mapOf("arviointitila" to arviointitila.name, "limit" to limit, "offset" to offset),
             YkiSuoritusEntity.fromRow,
         )
+
+    @WithSpan
+    fun countTarkistusarvioidutSuoritukset(
+        arviointitila: Arviointitila,
+        filter: YkiTarkistusarviointiFilter,
+    ): Int =
+        jdbcNamedParameterTemplate.queryForObject(
+            buildSql(
+                "SELECT COUNT(*) FROM (",
+                selectViimeisimmatSuoritukset("arviointitila = :arviointitila"),
+                ") AS tarkistusarviointi",
+                filter.whereSql(),
+            ),
+            filter.params() + ("arviointitila" to arviointitila.name),
+            Int::class.java,
+        )!!
 
     @Transactional
     @WithSpan

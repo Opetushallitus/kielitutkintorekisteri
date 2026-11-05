@@ -50,6 +50,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import ch.qos.logback.classic.Logger as LogbackLogger
 
@@ -764,6 +765,110 @@ class YkiTarkistusarvioinnitViewTest(
                 loki.stop()
             }
         }
+    }
+
+    private fun rivimaara(html: String): String = Jsoup.parse(html).selectFirst("[data-testid=numberOfRows]")!!.text()
+
+    private val sukunimijarjestys = "/yki/tarkistusarvioinnit?sortColumn=sukunimi&sortDirection=ASC"
+
+    @Test
+    fun `sivutus rajaa rivit mutta yhteismaara kertoo kaikki`() {
+        listOf("Aalto", "Berg", "Cedar").forEach { tallenna(it) }
+
+        val ensimmainen = getHtml("$sukunimijarjestys&limit=2")
+        assertEquals(setOf("Aalto", "Berg"), sukunimet(ensimmainen))
+        assertEquals("3", rivimaara(ensimmainen))
+        assertNotNull(Jsoup.parse(ensimmainen).selectFirst("nav.pagination"))
+
+        val toinen = getHtml("$sukunimijarjestys&limit=2&page=2")
+        assertEquals(setOf("Cedar"), sukunimet(toinen))
+        assertEquals("3", rivimaara(toinen))
+    }
+
+    @Test
+    fun `oletussivukoko on sata ja sivutus nakyy vasta kun rivit eivat mahdu yhdelle sivulle`() {
+        repeat(100) { tallenna("Henkilo$it") }
+        val tasan = getHtml("/yki/tarkistusarvioinnit")
+        assertEquals(100, sukunimet(tasan).size)
+        assertEquals(null, Jsoup.parse(tasan).selectFirst("nav.pagination"))
+
+        tallenna("Henkilo100")
+        val yli = getHtml("/yki/tarkistusarvioinnit")
+        assertEquals(100, sukunimet(yli).size)
+        assertEquals("101", rivimaara(yli))
+        assertNotNull(Jsoup.parse(yli).selectFirst("nav.pagination"))
+    }
+
+    @Test
+    fun `sivunumero ja sivukoko rajataan kelvollisiin arvoihin`() {
+        listOf("Aalto", "Berg", "Cedar").forEach { tallenna(it) }
+
+        assertEquals(setOf("Cedar"), sukunimet(getHtml("$sukunimijarjestys&limit=2&page=99")))
+        assertEquals(setOf("Aalto", "Berg"), sukunimet(getHtml("$sukunimijarjestys&limit=2&page=0")))
+        assertEquals(setOf("Aalto", "Berg"), sukunimet(getHtml("$sukunimijarjestys&limit=2&page=-1")))
+        assertEquals(setOf("Aalto"), sukunimet(getHtml("$sukunimijarjestys&limit=0")))
+        assertEquals(setOf("Aalto"), sukunimet(getHtml("$sukunimijarjestys&limit=-5")))
+    }
+
+    @Test
+    fun `viimeisen sivun tyhjentava hyvaksynta nayttaa edellisen sivun lomakkeineen`() {
+        tallenna("Aalto")
+        val berg = tallenna("Berg")
+        suoritusRepository.hyvaksyTarkistusarvioinnit(listOf(berg.solkiId), LocalDate.of(2025, 5, 1))
+
+        val html = getHtml("$sukunimijarjestys&limit=1&page=2")
+
+        assertEquals(setOf("Aalto"), sukunimet(html))
+        assertEquals("1", rivimaara(html))
+        assertContains(html, """name="hyvaksyttyPvm"""")
+    }
+
+    @Test
+    fun `sivulinkit sailyttavat rajauksen mutta uusi haku ja rajaus palaavat alkuun`() {
+        listOf("Aalto", "Berg", "Cedar").forEach { tallenna(it) }
+
+        val sivu = Jsoup.parse(getHtml("$sukunimijarjestys&limit=1&page=2&tutkintokieli=FIN"))
+
+        val seuraava = sivu.selectFirst("nav.pagination li.next a")!!.attr("href")
+        listOf("page=3", "limit=1", "tutkintokieli=FIN", "sortColumn=sukunimi").forEach {
+            assertContains(seuraava, it)
+        }
+        assertEquals(null, sivu.selectFirst("form:has(input[name=search]) input[name=page]"))
+        assertEquals(null, sivu.selectFirst("dialog#table-filter-dialog input[name=page]"))
+    }
+
+    @Test
+    fun `CSV sisaltaa kaikki rivit eika sen linkki kanna sivua`() {
+        listOf("Aalto", "Berg", "Cedar").forEach { tallenna(it) }
+
+        val rivit = getCsv("/yki/api/tarkistusarvioinnit?limit=1&page=2").csvRivit()
+        assertEquals(setOf("Aalto", "Berg", "Cedar"), rivit.drop(1).map { it.split(";")[1] }.toSet())
+
+        val linkki =
+            Jsoup
+                .parse(getHtml("$sukunimijarjestys&limit=1&page=2"))
+                .selectFirst("a[download]")!!
+                .attr("href")
+        assertFalse(linkki.contains("page="))
+        assertFalse(linkki.contains("limit="))
+    }
+
+    @Test
+    fun `hyvaksynta palaa samalle sivulle`() {
+        val location =
+            mockMvc
+                .perform(
+                    post("/yki/tarkistusarvioinnit?page=2&limit=1&sortColumn=sukunimi")
+                        .session(virkailijaSession())
+                        .with(csrf())
+                        .param("hyvaksyttyPvm", "2025-05-01"),
+                ).andExpect(status().is3xxRedirection)
+                .andReturn()
+                .response.redirectedUrl
+                .orEmpty()
+
+        assertContains(location, "page=2")
+        assertContains(location, "limit=1")
     }
 
     @Test

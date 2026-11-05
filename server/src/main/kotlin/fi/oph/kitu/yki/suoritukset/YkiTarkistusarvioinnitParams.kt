@@ -3,6 +3,8 @@ package fi.oph.kitu.yki.suoritukset
 import arrow.core.Either
 import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.csv.toCsvFilenameSegment
+import fi.oph.kitu.html.Pagination
+import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
@@ -20,6 +22,14 @@ import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
+
+private const val OLETUSSIVUKOKO = 100
+
+data class YkiTarkistusarvioinnitSivu(
+    val suoritukset: List<YkiSuoritusEntity>,
+    val kokonaismaara: Int,
+    val sivunumero: Int,
+)
 
 data class YkiTarkistusarvioinnitParams(
     var search: String = "",
@@ -45,8 +55,22 @@ data class YkiTarkistusarvioinnitParams(
     var arvosanaMuuttui: Boolean? = null,
     var sortColumn: YkiTarkistusarviointiColumn = YkiTarkistusarviointiColumn.Kasittelypaiva,
     var sortDirection: SortDirection = SortDirection.DESC,
+    var page: Int = 1,
+    var limit: Int = OLETUSSIVUKOKO,
 ) {
     fun toFilter(): YkiTarkistusarviointiFilter = YkiTarkistusarviointiFilter(this, SearchTerms.from(search))
+
+    fun sivukoko(): Int = limit.coerceAtLeast(1)
+
+    fun pagination(sivu: YkiTarkistusarvioinnitSivu): Pagination =
+        Pagination.valueOf(
+            currentPageNumber = sivu.sivunumero,
+            numberOfRows = sivu.kokonaismaara,
+            pageSize = sivukoko(),
+            url = { sivunumero -> httpParams(toMap() + ("page" to sivunumero.toString())) },
+        )
+
+    fun toCsvMap(): Map<String, String?> = toMap() - "page" - "limit"
 
     fun toMap(): Map<String, String?> =
         mapOf(
@@ -65,6 +89,8 @@ data class YkiTarkistusarvioinnitParams(
             "arvosanaMuuttui" to arvosanaMuuttui?.toString(),
             "sortColumn" to sortColumn.urlParam,
             "sortDirection" to sortDirection.name,
+            "page" to page.toString(),
+            "limit" to limit.takeIf { it != OLETUSSIVUKOKO }?.toString(),
         )
 
     fun csvFileName(prefix: String): String =

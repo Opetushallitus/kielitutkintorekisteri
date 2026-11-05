@@ -1,5 +1,6 @@
 package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.html.Page
+import fi.oph.kitu.html.Pagination
 import fi.oph.kitu.html.ViewMessageData
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.formPost
@@ -8,6 +9,7 @@ import fi.oph.kitu.html.horizontalGroup
 import fi.oph.kitu.html.input
 import fi.oph.kitu.html.listSearchForm
 import fi.oph.kitu.html.listViewHeader
+import fi.oph.kitu.html.pagination
 import fi.oph.kitu.html.table.CheckboxKey
 import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
@@ -37,6 +39,7 @@ import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 object YkiTarkistusarvioinnitPage {
     fun render(
         suoritukset: List<YkiSuoritusEntity>,
+        pagination: Pagination,
         params: YkiTarkistusarvioinnitParams,
         message: ViewMessageData?,
         oletuspaiva: LocalDate,
@@ -59,16 +62,18 @@ object YkiTarkistusarvioinnitPage {
                 title = UiText.Yki.odottavatHyvaksyntaa.toString(),
                 submitButtonText = UiText.Yki.merkitseHyvaksynta.toString(),
                 suoritukset = suoritukset,
+                pagination = pagination,
                 params = params,
                 oletuspaiva = oletuspaiva,
                 testId = "odottaaHyvaksyntaa",
                 naytaHyvaksymispaiva = false,
-                csvHref = Links.Yki.tarkistusArvioinnitCsv() + httpParams(params.toMap()),
+                csvHref = Links.Yki.tarkistusArvioinnitCsv() + httpParams(params.toCsvMap()),
             )
         }
 
     fun renderHyvaksytyt(
         suoritukset: List<YkiSuoritusEntity>,
+        pagination: Pagination,
         params: YkiTarkistusarvioinnitParams,
         message: ViewMessageData?,
         oletuspaiva: LocalDate,
@@ -91,11 +96,12 @@ object YkiTarkistusarvioinnitPage {
                 title = UiText.Yki.hyvaksytytTarkistusarvioinnit.toString(),
                 submitButtonText = UiText.Yki.korjaaHyvaksymispaiva.toString(),
                 suoritukset = suoritukset,
+                pagination = pagination,
                 params = params,
                 oletuspaiva = oletuspaiva,
                 testId = "hyvaksytty",
                 naytaHyvaksymispaiva = true,
-                csvHref = Links.Yki.hyvaksytytTarkistusArvioinnitCsv() + httpParams(params.toMap()),
+                csvHref = Links.Yki.hyvaksytytTarkistusArvioinnitCsv() + httpParams(params.toCsvMap()),
             )
         }
 
@@ -103,6 +109,7 @@ object YkiTarkistusarvioinnitPage {
         title: String,
         submitButtonText: String,
         suoritukset: List<YkiSuoritusEntity>,
+        pagination: Pagination,
         params: YkiTarkistusarvioinnitParams,
         oletuspaiva: LocalDate,
         testId: String,
@@ -120,7 +127,7 @@ object YkiTarkistusarvioinnitPage {
 
         listViewHeader(
             countLabel = UiText.Yki.tarkistusarviointejaYhteensa,
-            numberOfItems = suoritukset.size,
+            numberOfItems = pagination.numberOfItems,
             csvHref = csvHref,
             filterDescriptions = params.filterDescriptions(),
         ) { tarkistusarviointiFilterButton(params, naytaHyvaksymispaiva) }
@@ -160,6 +167,8 @@ object YkiTarkistusarvioinnitPage {
                     )
                 }
             }
+
+            pagination(pagination)
         }
     }
 
