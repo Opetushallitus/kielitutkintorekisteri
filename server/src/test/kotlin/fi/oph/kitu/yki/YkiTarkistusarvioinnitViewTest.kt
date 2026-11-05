@@ -454,8 +454,6 @@ class YkiTarkistusarvioinnitViewTest(
                     "Kirjoittaminen",
                     "Tekstin ymmärtäminen",
                     "Puheen ymmärtäminen",
-                    "Rakenteet ja sanasto",
-                    "Yleisarvosana",
                 ),
                 valikko.select("label").map { it.text() },
             )
