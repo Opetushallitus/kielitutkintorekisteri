@@ -64,6 +64,28 @@ describe("YKI-tarkastusarvioinnit", () => {
     )
   })
 
+  test("Odottavat voi ladata CSV:nä rajauksen mukaisena", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    await ykiTarkistusarvioinnitPage.search("OPH-14893989377-2")
+
+    expect(await ykiTarkistusarvioinnitPage.downloadCSV()).toEqual([
+      "Oppijanumero;Sukunimi;Etunimet;Kieli;Taso;Tutkintopäivä;Saapunut;Käsitelty;Asiatunnus;Osat;Muuttuneet;Perustelu",
+      "1.2.246.562.24.33342764709;Sallinen-Testi;Magdalena Testi;FIN;PT;12.1.2025;1.10.2025;22.10.2025;OPH-14893989377-2;Puhuminen;Puhuminen;Tarkistusarvioinnin testi",
+    ])
+  })
+
+  test("Hyväksytyt voi ladata CSV:nä hyväksymispäivän kanssa", async ({
+    ykiHyvaksytytTarkistusarvioinnitPage,
+  }) => {
+    await ykiHyvaksytytTarkistusarvioinnitPage.open()
+
+    expect(await ykiHyvaksytytTarkistusarvioinnitPage.downloadCSV()).toEqual([
+      "Oppijanumero;Sukunimi;Etunimet;Kieli;Taso;Tutkintopäivä;Saapunut;Käsitelty;Hyväksytty;Asiatunnus;Osat;Muuttuneet;Perustelu",
+      "1.2.246.562.24.67409348034;Välimaa-Testi;Eino Testi;FIN;KT;12.1.2025;1.10.2024;20.10.2024;;OPH-14893989377-1;Puhuminen;Puhuminen;Tarkistusarvioinnin testi",
+    ])
+  })
+
   test("Hyväksytyt-painike vie hyväksyttyjen tarkistusarviointien sivulle", async ({
     ykiTarkistusarvioinnitPage,
     ykiHyvaksytytTarkistusarvioinnitPage,

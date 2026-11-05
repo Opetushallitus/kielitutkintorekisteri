@@ -1,5 +1,7 @@
 package fi.oph.kitu.yki.suoritukset
 
+import fi.oph.kitu.csv.buildCsvFilename
+import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
@@ -58,6 +60,28 @@ data class YkiTarkistusarvioinnitParams(
             "arvosanaMuuttui" to arvosanaMuuttui?.toString(),
             "sortColumn" to sortColumn.urlParam,
             "sortDirection" to sortDirection.name,
+        )
+
+    fun csvFileName(prefix: String): String =
+        buildCsvFilename(
+            prefix,
+            false,
+            tutkintokieli.toCsvFilenameSegment(),
+            tutkintotaso.toCsvFilenameSegment(),
+            osa.toCsvFilenameSegment(),
+            tutkintoalku?.toString(),
+            tutkintoloppu?.toString(),
+            saapumisalku?.let { "saapunut_$it" },
+            saapumisloppu?.let { "saapunut_$it" },
+            kasittelyalku?.let { "kasitelty_$it" },
+            kasittelyloppu?.let { "kasitelty_$it" },
+            hyvaksyttyalku?.let { "hyvaksytty_$it" },
+            hyvaksyttyloppu?.let { "hyvaksytty_$it" },
+            when (arvosanaMuuttui) {
+                true -> "arvosana_muuttui"
+                false -> "arvosana_ei_muuttunut"
+                null -> null
+            },
         )
 
     fun orderBySql(): String =

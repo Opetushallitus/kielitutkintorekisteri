@@ -12,6 +12,7 @@ import fi.oph.kitu.html.table.CheckboxKey
 import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
+import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
 import fi.oph.kitu.html.testId
@@ -60,6 +61,7 @@ object YkiTarkistusarvioinnitPage {
                 oletuspaiva = oletuspaiva,
                 testId = "odottaaHyvaksyntaa",
                 naytaHyvaksymispaiva = false,
+                csvHref = Links.Yki.tarkistusArvioinnitCsv() + httpParams(params.toMap()),
             )
         }
 
@@ -89,6 +91,7 @@ object YkiTarkistusarvioinnitPage {
                 oletuspaiva = oletuspaiva,
                 testId = "hyvaksytty",
                 naytaHyvaksymispaiva = true,
+                csvHref = Links.Yki.hyvaksytytTarkistusArvioinnitCsv() + httpParams(params.toMap()),
             )
         }
 
@@ -100,6 +103,7 @@ object YkiTarkistusarvioinnitPage {
         oletuspaiva: LocalDate,
         testId: String,
         naytaHyvaksymispaiva: Boolean,
+        csvHref: String,
     ) {
         h2 { +title }
 
@@ -113,7 +117,7 @@ object YkiTarkistusarvioinnitPage {
         listViewHeader(
             countLabel = UiText.Yki.tarkistusarviointejaYhteensa,
             numberOfItems = suoritukset.size,
-            csvHref = null,
+            csvHref = csvHref,
             filterDescriptions = params.filterDescriptions(),
         ) { tarkistusarviointiFilterButton(params, naytaHyvaksymispaiva) }
 
@@ -141,9 +145,7 @@ object YkiTarkistusarvioinnitPage {
                     displayTable(
                         rows = suoritukset,
                         columns =
-                            YkiTarkistusarviointiColumn.entries
-                                .filter { naytaHyvaksymispaiva || it != YkiTarkistusarviointiColumn.Hyvaksymispaiva }
-                                .map { it.toDisplayColumn() },
+                            YkiTarkistusarviointiColumn.listaSarakkeet(naytaHyvaksymispaiva),
                         sortedBy = params.sortColumn,
                         sortDirection = params.sortDirection,
                         urlParams = params.toMap(),

@@ -24,6 +24,8 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiColumn
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
 import io.swagger.v3.oas.annotations.Operation
@@ -108,6 +110,25 @@ class YkiApiController(
             filename = params.csvFileName(),
             data = arvioijaService.haeKaikki(params),
             excludeTags = params.excludeTags(),
+        )
+
+    @GetMapping("/tarkistusarvioinnit", produces = ["text/csv"])
+    fun getTarkistusarvioinnitCsv(
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+    ): ResponseEntity<StreamingResponseBody> =
+        csvAttachmentResponse<YkiTarkistusarviointiColumn, _>(
+            filename = params.csvFileName("yki_tarkistusarvioinnit"),
+            data = service.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU, params),
+            includeColumn = { it != YkiTarkistusarviointiColumn.Hyvaksymispaiva },
+        )
+
+    @GetMapping("/tarkistusarvioinnit/hyvaksytyt", produces = ["text/csv"])
+    fun getHyvaksytytTarkistusarvioinnitCsv(
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+    ): ResponseEntity<StreamingResponseBody> =
+        csvAttachmentResponse<YkiTarkistusarviointiColumn, _>(
+            filename = params.csvFileName("yki_tarkistusarvioinnit_hyvaksytyt"),
+            data = service.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, params),
         )
 
     @PostMapping("/suoritus")

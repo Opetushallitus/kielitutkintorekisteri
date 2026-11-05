@@ -2,8 +2,10 @@ package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.html.copyable
 import fi.oph.kitu.html.infoModal
 import fi.oph.kitu.html.orDash
+import fi.oph.kitu.html.table.ColumnTag
+import fi.oph.kitu.html.table.ColumnTags
 import fi.oph.kitu.html.table.DisplayTableColumn
-import fi.oph.kitu.html.table.DisplayTableEnum
+import fi.oph.kitu.html.table.RenderableDisplayTableEnum
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDate
@@ -18,9 +20,10 @@ enum class YkiTarkistusarviointiColumn(
     override val entityName: String?,
     override val uiHeaderValue: LocalizedString,
     override val urlParam: String,
-    val getValue: (YkiSuoritusEntity) -> String,
-    val renderHtml: (FlowContent.(YkiSuoritusEntity) -> Unit)? = null,
-) : DisplayTableEnum {
+    override val getValue: (YkiSuoritusEntity) -> String,
+    override val renderHtml: (FlowContent.(YkiSuoritusEntity) -> Unit)? = null,
+) : RenderableDisplayTableEnum<YkiSuoritusEntity> {
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     SuorittajanOid(
         entityName = "suorittajan_oid",
         uiHeaderValue = UiText.Yki.Sarake.oppijanumero,
@@ -28,54 +31,72 @@ enum class YkiTarkistusarviointiColumn(
         getValue = { it.suorittajanOID?.toString().orEmpty() },
         renderHtml = { it.suorittajanOID?.let { oid -> copyable(oid.toString()) } },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Sukunimi(
         entityName = "sukunimi",
         uiHeaderValue = UiText.Yki.Sarake.sukunimi,
         urlParam = "sukunimi",
         getValue = { it.sukunimi },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Etunimet(
         entityName = "etunimet",
         uiHeaderValue = UiText.Yki.Sarake.etunimet,
         urlParam = "etunimet",
         getValue = { it.etunimet },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Kieli(
         entityName = "tutkintokieli",
         uiHeaderValue = UiText.Yki.Sarake.kieli,
         urlParam = "kieli",
         getValue = { it.tutkintokieli.name },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Tutkintotaso(
         entityName = "tutkintotaso",
         uiHeaderValue = UiText.Yki.Sarake.taso,
         urlParam = "tutkintotaso",
         getValue = { it.tutkintotaso.name },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Tutkintopaiva(
         entityName = "tutkintopaiva",
         uiHeaderValue = UiText.Yki.Sarake.tutkintopaiva,
         urlParam = "tutkintopaiva",
         getValue = { it.tutkintopaiva.finnishDate() },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Saapumispaiva(
         entityName = "tarkistusarvioinnin_saapumis_pvm",
         uiHeaderValue = UiText.Yki.Sarake.saapunut,
         urlParam = "saapunut",
         getValue = { it.tarkistusarvioinninSaapumisPvm?.finnishDate().orEmpty() },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Kasittelypaiva(
         entityName = "tarkistusarvioinnin_kasittely_pvm",
         uiHeaderValue = UiText.Yki.Sarake.kasitelty,
         urlParam = "kasitelty",
         getValue = { it.tarkistusarvioinninKasittelyPvm?.finnishDate().orEmpty() },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Hyvaksymispaiva(
         entityName = "tarkistusarviointi_hyvaksytty_pvm",
         uiHeaderValue = UiText.Yki.Sarake.hyvaksytty,
         urlParam = "hyvaksytty",
         getValue = { it.tarkistusarviointiHyvaksyttyPvm?.finnishDate().orEmpty() },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Asiatunnus(
         entityName = "tarkistusarvioinnin_asiatunnus",
         uiHeaderValue = UiText.Yki.Sarake.asiatunnus,
@@ -83,6 +104,8 @@ enum class YkiTarkistusarviointiColumn(
         getValue = { it.tarkistusarvioinninAsiatunnus.orEmpty() },
         renderHtml = { it.tarkistusarvioinninAsiatunnus?.let { asiatunnus -> copyable(asiatunnus) } },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Osat(
         entityName = null,
         uiHeaderValue = UiText.Yki.Sarake.osat,
@@ -90,6 +113,8 @@ enum class YkiTarkistusarviointiColumn(
         getValue = { osakoeLista(it.tarkistusarvioidutOsakokeet) },
         renderHtml = { osakoeRivit(it.tarkistusarvioidutOsakokeet.orEmpty()) },
     ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
     Muuttuneet(
         entityName = null,
         uiHeaderValue = UiText.Yki.Sarake.muuttuneet,
@@ -117,16 +142,31 @@ enum class YkiTarkistusarviointiColumn(
             }
         },
     ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT)
+    Perustelu(
+        entityName = null,
+        uiHeaderValue = UiText.Yki.perustelu,
+        urlParam = "perustelu",
+        getValue = { it.perustelu.orEmpty() },
+    ),
     ;
 
-    fun toDisplayColumn(): DisplayTableColumn<YkiSuoritusEntity> =
-        DisplayTableColumn(
-            label = uiHeaderValue.toString(),
-            sortKey = entityName?.let { urlParam },
-            testId = urlParam,
-            getValue = getValue,
-            renderHtml = renderHtml,
-        )
+    companion object {
+        fun listaSarakkeet(naytaHyvaksymispaiva: Boolean): List<DisplayTableColumn<YkiSuoritusEntity>> =
+            RenderableDisplayTableEnum
+                .getByTags<YkiTarkistusarviointiColumn, YkiSuoritusEntity>(setOf(ColumnTag.LIST_VIEW))
+                .filter { naytaHyvaksymispaiva || it != Hyvaksymispaiva }
+                .map { sarake ->
+                    DisplayTableColumn(
+                        label = sarake.uiHeaderValue.toString(),
+                        sortKey = sarake.entityName?.let { sarake.urlParam },
+                        testId = sarake.urlParam,
+                        getValue = sarake.getValue,
+                        renderHtml = sarake.renderHtml,
+                    )
+                }
+    }
 }
 
 private fun YkiSuoritusEntity.muuttuneetOsakokeet(): Set<TutkinnonOsa>? =

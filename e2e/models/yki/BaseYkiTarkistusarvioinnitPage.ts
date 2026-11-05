@@ -1,6 +1,8 @@
 import BasePage from "../BasePage"
 import { Locator, Page } from "@playwright/test"
 import { Config } from "../../config"
+import { expect } from "../../fixtures/baseFixture"
+import * as node_fs from "node:fs"
 import { YkiTarkistusarvioinnitFilterDialog } from "./YkiTarkistusarvioinnitFilterDialog"
 
 export default abstract class BaseYkiTarkistusarvioinnitPage extends BasePage {
@@ -9,6 +11,17 @@ export default abstract class BaseYkiTarkistusarvioinnitPage extends BasePage {
   constructor(page: Page, config: Config) {
     super(page, config)
     this.numberOfRows = this.getPageContent().getByTestId("numberOfRows")
+  }
+
+  async downloadCSV(): Promise<string[]> {
+    const [download] = await Promise.all([
+      this.page.waitForEvent("download"),
+      this.getPageContent().getByText("Lataa tiedot CSV:nä").click(),
+    ])
+    const path = await download.path()
+    expect(path).not.toBeNull()
+    const csv = await node_fs.promises.readFile(path!, "utf8")
+    return csv.replace(/^﻿/, "").trim().split("\n")
   }
 
   async search(term: string) {
