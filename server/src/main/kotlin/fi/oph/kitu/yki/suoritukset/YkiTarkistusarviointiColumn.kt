@@ -21,6 +21,13 @@ enum class YkiTarkistusarviointiColumn(
     val getValue: (YkiSuoritusEntity) -> String,
     val renderHtml: (FlowContent.(YkiSuoritusEntity) -> Unit)? = null,
 ) : DisplayTableEnum {
+    SuorittajanOid(
+        entityName = "suorittajan_oid",
+        uiHeaderValue = UiText.Yki.Sarake.oppijanumero,
+        urlParam = "suorittajanoid",
+        getValue = { it.suorittajanOID?.toString().orEmpty() },
+        renderHtml = { it.suorittajanOID?.let { oid -> copyable(oid.toString()) } },
+    ),
     Sukunimi(
         entityName = "sukunimi",
         uiHeaderValue = UiText.Yki.Sarake.sukunimi,
