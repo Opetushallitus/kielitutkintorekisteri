@@ -201,7 +201,14 @@ class YkiService(
     fun findTarkistusarvioidut(
         arviointitila: Arviointitila,
         params: YkiTarkistusarvioinnitParams,
-    ): List<YkiSuoritusEntity> = suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, params)
+    ): List<YkiSuoritusEntity> =
+        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, params).also {
+            auditLogger.logAllInternalOnly("Yki suoritus viewed", it) { suoritus ->
+                arrayOf(
+                    "suoritus.id" to suoritus.id,
+                )
+            }
+        }
 
     /**
      * Oletuspaiva tulee TimeServicelta, ei LocalDate.now():lta: kontti ajaa UTC:ssa ja

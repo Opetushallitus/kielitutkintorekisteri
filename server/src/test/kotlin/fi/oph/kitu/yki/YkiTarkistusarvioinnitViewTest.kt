@@ -1,7 +1,10 @@
 package fi.oph.kitu.yki
 
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
+import fi.oph.kitu.auditlogs.AUDIT_LOGGER_NAME
 import fi.oph.kitu.dev.mockdata.generateRandomOppijaOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.jdbc.SortDirection
@@ -14,15 +17,20 @@ import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiColumn
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.junit.jupiter.api.BeforeEach
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.HttpHeaders
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.request
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -34,6 +42,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import ch.qos.logback.classic.Logger as LogbackLogger
 
 @SpringBootTest
 @Import(DBContainerConfiguration::class)
@@ -114,6 +123,42 @@ class YkiTarkistusarvioinnitViewTest(
             .andExpect(status().isOk)
             .andReturn()
             .response.contentAsString
+
+    private fun getCsv(url: String): MvcResult {
+        val alkanut =
+            mockMvc
+                .perform(get(url).session(virkailijaSession()))
+                .andExpect(request().asyncStarted())
+                .andReturn()
+        return mockMvc
+            .perform(asyncDispatch(alkanut))
+            .andExpect(status().isOk)
+            .andReturn()
+    }
+
+    private fun MvcResult.csvRivit(): List<String> =
+        response
+            .getContentAsString(Charsets.UTF_8)
+            .removePrefix("﻿")
+            .lines()
+            .filter { it.isNotBlank() }
+
+    private fun odotaAuditoitu(
+        loki: ListAppender<ILoggingEvent>,
+        suoritusId: String,
+    ): Boolean {
+        val loppu = System.currentTimeMillis() + 5_000
+        while (System.currentTimeMillis() < loppu) {
+            val auditoitu =
+                synchronized(loki) { loki.list.toList() }
+                    .filter { it.message == "Yki suoritus viewed" }
+                    .flatMap { it.keyValuePairs.orEmpty() }
+                    .any { it.key == "suoritus.id" && it.value.toString() == suoritusId }
+            if (auditoitu) return true
+            Thread.sleep(20)
+        }
+        return false
+    }
 
     @Test
     fun `hyvaksymispaivan oletus on Suomen aikavyohykkeen tama paiva`() {
@@ -448,6 +493,149 @@ class YkiTarkistusarvioinnitViewTest(
 
         assertEquals("", solu.text())
         assertEquals(null, solu.selectFirst("button.copy-button"))
+    }
+
+    @Test
+    fun `odottavien CSV sisaltaa taulukon sarakkeet ja perustelun`() {
+        val virtanen =
+            tallenna(
+                "Virtanen",
+                osakokeet = setOf(TutkinnonOsa.kirjoittaminen, TutkinnonOsa.puhuminen),
+                muuttuneet = setOf(TutkinnonOsa.kirjoittaminen),
+                perustelu = "Perustelu Virtaselle",
+            )
+
+        assertEquals(
+            listOf(
+                listOf(
+                    "Oppijanumero",
+                    "Sukunimi",
+                    "Etunimet",
+                    "Kieli",
+                    "Taso",
+                    "Tutkintopäivä",
+                    "Saapunut",
+                    "Käsitelty",
+                    "Asiatunnus",
+                    "Osat",
+                    "Muuttuneet",
+                    "Perustelu",
+                ),
+                listOf(
+                    virtanen.suorittajanOID.toString(),
+                    "Virtanen",
+                    "Testi",
+                    "FIN",
+                    "PT",
+                    "1.1.2025",
+                    "1.2.2025",
+                    "1.3.2025",
+                    "OPH-Virtanen",
+                    "Puhuminen, Kirjoittaminen",
+                    "Kirjoittaminen",
+                    "Perustelu Virtaselle",
+                ),
+            ).map { it.joinToString(";") },
+            getCsv("/yki/api/tarkistusarvioinnit").csvRivit(),
+        )
+    }
+
+    @Test
+    fun `hyvaksyttyjen CSV sisaltaa hyvaksymispaivan eika odottavia`() {
+        val hyvaksytty = tallenna("Hyvaksytty")
+        tallenna("Odottava")
+        suoritusRepository.hyvaksyTarkistusarvioinnit(listOf(hyvaksytty.solkiId), LocalDate.of(2025, 5, 1))
+
+        val rivit = getCsv("/yki/api/tarkistusarvioinnit/hyvaksytyt").csvRivit()
+
+        assertEquals(2, rivit.size)
+        assertContains(rivit[0], "Käsitelty;Hyväksytty;Asiatunnus")
+        assertContains(rivit[1], ";Hyvaksytty;")
+        assertContains(rivit[1], ";1.3.2025;1.5.2025;OPH-Hyvaksytty;")
+    }
+
+    @Test
+    fun `CSV noudattaa rajausta ja jarjestysta ja tiedostonimi kertoo rajauksen`() {
+        tallenna("Aalto", tutkintokieli = Tutkintokieli.FIN, osakokeet = setOf(TutkinnonOsa.puhuminen))
+        tallenna("Öhman", tutkintokieli = Tutkintokieli.SWE, osakokeet = setOf(TutkinnonOsa.kirjoittaminen))
+        tallenna("Muu kieli", tutkintokieli = Tutkintokieli.ENG, osakokeet = setOf(TutkinnonOsa.puhuminen))
+        tallenna("Muu osa", tutkintokieli = Tutkintokieli.FIN, osakokeet = setOf(TutkinnonOsa.tekstinYmmartaminen))
+
+        val csv =
+            getCsv(
+                "/yki/api/tarkistusarvioinnit?tutkintokieli=FIN,SWE&osa=PU,KI&kasittelyalku=2025-03-01" +
+                    "&arvosanaMuuttui=true&sortColumn=sukunimi&sortDirection=DESC",
+            )
+
+        assertEquals(listOf("Öhman", "Aalto"), csv.csvRivit().drop(1).map { it.split(";")[1] })
+        assertContains(
+            csv.response.getHeader(HttpHeaders.CONTENT_DISPOSITION).orEmpty(),
+            "yki_tarkistusarvioinnit_henkilotiedot_FIN-SWE_PU-KI_kasitelty_2025-03-01_arvosana_muuttui.csv",
+        )
+    }
+
+    @Test
+    fun `sivun CSV-linkki osoittaa sivun omaan vientiin ja sailyttaa rajauksen`() {
+        tallenna("Virtanen")
+
+        fun csvLinkki(url: String) = Jsoup.parse(getHtml(url)).selectFirst("a[download]")!!.attr("href")
+
+        val odottavat = csvLinkki("/yki/tarkistusarvioinnit?osa=PU&tutkintokieli=FIN&search=Virtanen")
+        assertContains(odottavat, "/yki/api/tarkistusarvioinnit?")
+        listOf("osa=PU", "tutkintokieli=FIN", "search=Virtanen", "sortColumn=kasitelty").forEach {
+            assertContains(odottavat, it)
+        }
+
+        assertContains(csvLinkki("/yki/tarkistusarvioinnit/hyvaksytyt"), "/yki/api/tarkistusarvioinnit/hyvaksytyt?")
+    }
+
+    @Test
+    fun `CSV ei sisalla henkilotunnusta`() {
+        tallenna("Virtanen", hetu = "010101A123X")
+
+        assertFalse(getCsv("/yki/api/tarkistusarvioinnit").csvRivit().any { it.contains("010101A123X") })
+    }
+
+    @Test
+    fun `CSV vaatii kirjautumisen`() {
+        mockMvc.perform(get("/yki/api/tarkistusarvioinnit")).andExpect(status().is3xxRedirection)
+    }
+
+    @Test
+    fun `perustelu ei ole taulukossa omana sarakkeenaan`() {
+        tallenna("Virtanen")
+
+        val html = getHtml("/yki/tarkistusarvioinnit")
+
+        assertEquals(null, rivi(html, "Virtanen").selectFirst("td[data-testid=perustelu]"))
+        assertFalse(html.contains("sortColumn=perustelu"))
+    }
+
+    @Test
+    fun `taulukko ja CSV kirjaavat naytetyt suoritukset auditlokiin`() {
+        tallenna("Virtanen")
+        val id =
+            suoritusRepository
+                .findTarkistusarvoidutSuoritukset(Arviointitila.TARKISTUSARVIOITU)
+                .single()
+                .id
+                .toString()
+        val auditLogger = LoggerFactory.getLogger(AUDIT_LOGGER_NAME) as LogbackLogger
+
+        listOf<() -> Unit>(
+            { getHtml("/yki/tarkistusarvioinnit") },
+            { getCsv("/yki/api/tarkistusarvioinnit") },
+        ).forEach { nayta ->
+            val loki = ListAppender<ILoggingEvent>().apply { start() }
+            auditLogger.addAppender(loki)
+            try {
+                nayta()
+                assertTrue(odotaAuditoitu(loki, id))
+            } finally {
+                auditLogger.detachAppender(loki)
+                loki.stop()
+            }
+        }
     }
 
     @Test
