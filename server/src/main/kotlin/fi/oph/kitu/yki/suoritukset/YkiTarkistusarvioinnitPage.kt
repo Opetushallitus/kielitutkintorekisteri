@@ -40,11 +40,13 @@ object YkiTarkistusarvioinnitPage {
         params: YkiTarkistusarvioinnitParams,
         message: ViewMessageData?,
         oletuspaiva: LocalDate,
+        warning: ViewMessageData? = null,
     ): String =
         Page.renderHtml(wideContent = true, ohje = UiText.Ohje.Yki.tarkistusarvioinnit) {
             h1 { +UiText.Yki.tarkistusarvioinnit }
 
             viewMessage(message)
+            viewMessage(warning)
 
             p {
                 a(href = Links.Yki.hyvaksytytTarkistusArvioinnit()) {
@@ -70,11 +72,13 @@ object YkiTarkistusarvioinnitPage {
         params: YkiTarkistusarvioinnitParams,
         message: ViewMessageData?,
         oletuspaiva: LocalDate,
+        warning: ViewMessageData? = null,
     ): String =
         Page.renderHtml(wideContent = true, ohje = UiText.Ohje.Yki.tarkistusarvioinnit) {
             h1 { +UiText.Yki.tarkistusarvioinnit }
 
             viewMessage(message)
+            viewMessage(warning)
 
             p {
                 a(href = Links.Yki.tarkistusArvioinnit()) {

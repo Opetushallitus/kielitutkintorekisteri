@@ -7,6 +7,7 @@ import arrow.core.raise.ensureNotNull
 import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.cache.InMemoryCache
@@ -20,7 +21,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSivu
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
-import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiFilter
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,8 +33,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import kotlin.time.Duration
 
-data class ExtendedFilter(
-    val filter: YkiSuoritusFilter,
+data class ExtendedFilter<F>(
+    val filter: F,
     val oppijanumeroUnavailable: Boolean,
 )
 
@@ -54,17 +55,28 @@ class YkiService(
         }
 
     @WithSpan
-    fun extendFilterWithLinkedOids(filter: YkiSuoritusFilter): ExtendedFilter =
-        filter.extendHenkiloOids(oppijanumeroService).fold(
+    fun extendFilterWithLinkedOids(filter: YkiSuoritusFilter): ExtendedFilter<YkiSuoritusFilter> =
+        filter.extendHenkiloOids(oppijanumeroService).toExtendedFilter(filter)
+
+    @WithSpan
+    fun extendFilterWithLinkedOids(filter: YkiTarkistusarviointiFilter): ExtendedFilter<YkiTarkistusarviointiFilter> =
+        filter.extendHenkiloOids(oppijanumeroService).toExtendedFilter(filter)
+
+    private fun <F> Either<OppijanumeroException, F>.toExtendedFilter(alkuperainen: F): ExtendedFilter<F> =
+        fold(
             ifLeft = { error ->
                 logger.warn("Oppijanumeropalvelu ei vastannut, YKI-haku tehdään vain annetuilla oideilla", error)
-                ExtendedFilter(filter, oppijanumeroUnavailable = true)
+                ExtendedFilter(alkuperainen, oppijanumeroUnavailable = true)
             },
             ifRight = { extended -> ExtendedFilter(extended, oppijanumeroUnavailable = false) },
         )
 
     @WithSpan
     fun extendFilterWithLinkedOidsOrThrow(filter: YkiSuoritusFilter): YkiSuoritusFilter =
+        filter.extendHenkiloOids(oppijanumeroService).getOrThrow()
+
+    @WithSpan
+    fun extendFilterWithLinkedOidsOrThrow(filter: YkiTarkistusarviointiFilter): YkiTarkistusarviointiFilter =
         filter.extendHenkiloOids(oppijanumeroService).getOrThrow()
 
     fun findSuoritusById(id: Int): YkiSuoritusEntity? =
@@ -200,9 +212,9 @@ class YkiService(
     @WithSpan
     fun findTarkistusarvioidut(
         arviointitila: Arviointitila,
-        params: YkiTarkistusarvioinnitParams,
+        filter: YkiTarkistusarviointiFilter,
     ): List<YkiSuoritusEntity> =
-        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, params).also {
+        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, filter).also {
             auditLogger.logAllInternalOnly("Yki suoritus viewed", it) { suoritus ->
                 arrayOf(
                     "suoritus.id" to suoritus.id,

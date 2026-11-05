@@ -209,29 +209,36 @@ class YkiViewController(
     fun tarkistusArvioinnitView(
         @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
         viewMessage: ViewMessage? = null,
-    ): ResponseEntity<String> =
-        ResponseEntity.ok(
+    ): ResponseEntity<String> {
+        val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        return ResponseEntity.ok(
             YkiTarkistusarvioinnitPage.render(
-                suoritukset = ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU, params),
+                suoritukset = ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU, extended.filter),
                 params = params,
                 message = viewMessage?.consume(),
                 oletuspaiva = timeService.today(),
+                warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),
         )
+    }
 
     @GetMapping("/tarkistusarvioinnit/hyvaksytyt", produces = ["text/html"])
     fun hyvaksytytTarkistusArvioinnitView(
         @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
         viewMessage: ViewMessage? = null,
-    ): ResponseEntity<String> =
-        ResponseEntity.ok(
+    ): ResponseEntity<String> {
+        val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        return ResponseEntity.ok(
             YkiTarkistusarvioinnitPage.renderHyvaksytyt(
-                suoritukset = ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, params),
+                suoritukset =
+                    ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, extended.filter),
                 params = params,
                 message = viewMessage?.consume(),
                 oletuspaiva = timeService.today(),
+                warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),
         )
+    }
 
     @PostMapping("/tarkistusarvioinnit")
     fun hyvaksyTarkistusArvioinnit(

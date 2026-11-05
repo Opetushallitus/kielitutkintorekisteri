@@ -3,6 +3,7 @@ package fi.oph.kitu.yki.suoritukset
 import arrow.core.Either
 import arrow.core.raise.either
 import arrow.core.recover
+import arrow.core.right
 import arrow.core.toNonEmptySetOrNull
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.jdbc.SqlFilter
@@ -29,23 +30,10 @@ data class YkiSuoritusFilter(
     val tuontiloppu: LocalDate? = null,
 ) : SqlFilter() {
     fun extendHenkiloOids(onr: OppijanumeroService): Either<OppijanumeroException, YkiSuoritusFilter> =
-        either {
-            val currentSearch = search ?: return@either this@YkiSuoritusFilter
-            val oids = currentSearch.henkiloOids() ?: return@either this@YkiSuoritusFilter
-            val expanded =
-                oids
-                    .toList()
-                    .flatMap { term ->
-                        val oid = onr.parseOid(term).bind()
-                        onr
-                            .getLinkedOids(oid)
-                            .recover { error ->
-                                if (error is OppijanumeroException.OppijaNotFoundException) setOf(oid) else raise(error)
-                            }.bind()
-                    }.map { it.toString() }
-                    .toNonEmptySetOrNull() ?: oids
-            copy(search = currentSearch.withHenkiloOids(expanded))
-        }
+        search
+            ?.withLinkedHenkiloOids(onr)
+            ?.map { copy(search = it) }
+            ?: this.right()
 
     fun hasTextSearch(): Boolean = search?.texts() != null
 
@@ -81,6 +69,24 @@ data class YkiSuoritusFilter(
         fun from(search: String?) = YkiSuoritusFilter(search = SearchTerms.from(search))
     }
 }
+
+fun SearchTerms.withLinkedHenkiloOids(onr: OppijanumeroService): Either<OppijanumeroException, SearchTerms> =
+    either {
+        val oids = henkiloOids() ?: return@either this@withLinkedHenkiloOids
+        val expanded =
+            oids
+                .toList()
+                .flatMap { term ->
+                    val oid = onr.parseOid(term).bind()
+                    onr
+                        .getLinkedOids(oid)
+                        .recover { error ->
+                            if (error is OppijanumeroException.OppijaNotFoundException) setOf(oid) else raise(error)
+                        }.bind()
+                }.map { it.toString() }
+                .toNonEmptySetOrNull() ?: oids
+        withHenkiloOids(expanded)
+    }
 
 data class YkiSuoritusOrder(
     val sortColumn: YkiSuoritusColumn = YkiSuoritusColumn.Tutkintopaiva,

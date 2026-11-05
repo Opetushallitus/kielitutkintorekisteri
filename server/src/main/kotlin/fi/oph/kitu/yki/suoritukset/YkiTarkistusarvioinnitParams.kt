@@ -1,5 +1,6 @@
 package fi.oph.kitu.yki.suoritukset
 
+import arrow.core.Either
 import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.table.valintaDescription
@@ -10,7 +11,9 @@ import fi.oph.kitu.jdbc.SqlFilter
 import fi.oph.kitu.jdbc.SqlFilterBuilder
 import fi.oph.kitu.jdbc.addAnyOf
 import fi.oph.kitu.jdbc.addSearchTerms
-import fi.oph.kitu.util.searchTerms
+import fi.oph.kitu.oppijanumero.OppijanumeroException
+import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.util.SearchTerms
 import fi.oph.kitu.webmvc.toUrlParam
 import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
@@ -42,7 +45,9 @@ data class YkiTarkistusarvioinnitParams(
     var arvosanaMuuttui: Boolean? = null,
     var sortColumn: YkiTarkistusarviointiColumn = YkiTarkistusarviointiColumn.Kasittelypaiva,
     var sortDirection: SortDirection = SortDirection.DESC,
-) : SqlFilter() {
+) {
+    fun toFilter(): YkiTarkistusarviointiFilter = YkiTarkistusarviointiFilter(this, SearchTerms.from(search))
+
     fun toMap(): Map<String, String?> =
         mapOf(
             "search" to search.ifEmpty { null },
@@ -108,22 +113,35 @@ data class YkiTarkistusarvioinnitParams(
                 null -> null
             },
         )
+}
+
+data class YkiTarkistusarviointiFilter(
+    val rajaus: YkiTarkistusarvioinnitParams,
+    val hakutermit: SearchTerms,
+) : SqlFilter() {
+    fun extendHenkiloOids(onr: OppijanumeroService): Either<OppijanumeroException, YkiTarkistusarviointiFilter> =
+        hakutermit.withLinkedHenkiloOids(onr).map { copy(hakutermit = it) }
+
+    fun orderBySql(): String = rajaus.orderBySql()
 
     override fun SqlFilterBuilder.build() {
-        addSearchTerms(searchTerms(search), HAKUSARAKKEET, "hakusana")
-        addAnyOf("tutkintokieli", "filter_kieli", tutkintokieli)
-        addAnyOf("tutkintotaso", "filter_taso", tutkintotaso)
-        if (osa.isNotEmpty()) {
+        addSearchTerms(hakutermit.termsExceptHenkiloOids(), HAKUSARAKKEET, "hakusana")
+        hakutermit.henkiloOids()?.let { oids ->
+            add("suorittajan_oid IN (:henkilo_oids)", "henkilo_oids" to oids)
+        }
+        addAnyOf("tutkintokieli", "filter_kieli", rajaus.tutkintokieli)
+        addAnyOf("tutkintotaso", "filter_taso", rajaus.tutkintotaso)
+        if (rajaus.osa.isNotEmpty()) {
             add(
                 "tarkistusarvioidut_osakokeet && ARRAY[:filter_osa]::yki_osakoetyyppi[]",
-                "filter_osa" to osa.map { it.name },
+                "filter_osa" to rajaus.osa.map { it.name },
             )
         }
-        addPaivavali("tutkintopaiva", tutkintoalku, tutkintoloppu)
-        addPaivavali("tarkistusarvioinnin_saapumis_pvm", saapumisalku, saapumisloppu)
-        addPaivavali("tarkistusarvioinnin_kasittely_pvm", kasittelyalku, kasittelyloppu)
-        addPaivavali("tarkistusarviointi_hyvaksytty_pvm", hyvaksyttyalku, hyvaksyttyloppu)
-        when (arvosanaMuuttui) {
+        addPaivavali("tutkintopaiva", rajaus.tutkintoalku, rajaus.tutkintoloppu)
+        addPaivavali("tarkistusarvioinnin_saapumis_pvm", rajaus.saapumisalku, rajaus.saapumisloppu)
+        addPaivavali("tarkistusarvioinnin_kasittely_pvm", rajaus.kasittelyalku, rajaus.kasittelyloppu)
+        addPaivavali("tarkistusarviointi_hyvaksytty_pvm", rajaus.hyvaksyttyalku, rajaus.hyvaksyttyloppu)
+        when (rajaus.arvosanaMuuttui) {
             true -> {
                 add("arvosana_muuttui IS NOT NULL")
             }

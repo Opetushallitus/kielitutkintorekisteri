@@ -1,5 +1,7 @@
 package fi.oph.kitu.yki
 
+import arrow.core.Either
+import arrow.core.left
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import fi.oph.kitu.DBContainerConfiguration
@@ -9,6 +11,8 @@ import fi.oph.kitu.dev.mockdata.generateRandomOppijaOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.OppijanumeroException
+import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.virkailijaSession
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -22,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.web.servlet.MockMvc
@@ -35,14 +41,20 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import ch.qos.logback.classic.Logger as LogbackLogger
+
+private const val PAAHENKILON_OID = "1.2.246.562.24.67409348034"
+private const val DUPLIKAATIN_OID = "1.2.246.562.24.00000000177"
 
 @SpringBootTest
 @Import(DBContainerConfiguration::class)
@@ -102,7 +114,36 @@ class YkiTarkistusarvioinnitViewTest(
     private fun hae(
         params: YkiTarkistusarvioinnitParams,
         arviointitila: Arviointitila = Arviointitila.TARKISTUSARVIOITU,
-    ): List<String> = suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, params).map { it.sukunimi }
+    ): List<String> =
+        suoritusRepository
+            .findTarkistusarvoidutSuoritukset(arviointitila, params.toFilter())
+            .map { it.sukunimi }
+
+    private inline fun <reified T : Any> bean(): T = context.getBean(T::class.java)
+
+    private fun rikkinainenOnr(): OppijanumeroService =
+        object : OppijanumeroService by bean<OppijanumeroService>() {
+            override fun getLinkedOids(henkiloOid: Oid): Either<OppijanumeroException, Set<Oid>> =
+                OppijanumeroException.MalformedOppijanumero(oppijanumero = "rikki").left()
+        }
+
+    private fun palveluIlmanOnr() = YkiService(suoritusRepository, bean(), rikkinainenOnr(), timeService, "0s")
+
+    private fun <T> pyynnossa(block: () -> T): T {
+        RequestContextHolder.setRequestAttributes(ServletRequestAttributes(MockHttpServletRequest()))
+        try {
+            return block()
+        } finally {
+            RequestContextHolder.resetRequestAttributes()
+        }
+    }
+
+    private fun sukunimet(html: String): Set<String> =
+        Jsoup
+            .parse(html)
+            .select("td[data-testid=sukunimi]")
+            .map { it.text() }
+            .toSet()
 
     private fun rivi(
         html: String,
@@ -245,6 +286,95 @@ class YkiTarkistusarvioinnitViewTest(
         assertEquals(
             listOf("Virtanen"),
             hae(YkiTarkistusarvioinnitParams(search = virtanen.suorittajanOID.toString())),
+        )
+    }
+
+    @Test
+    fun `oppijanumerohaku loytaa yhdistetyn duplikaatin suoritukset molemmilla oppijanumeroilla`() {
+        tallenna("Paahenkilo", oppijanumero = Oid(PAAHENKILON_OID))
+        tallenna("Duplikaatti", oppijanumero = Oid(DUPLIKAATIN_OID))
+        tallenna("Muu")
+        val molemmat = setOf("Paahenkilo", "Duplikaatti")
+
+        listOf(PAAHENKILON_OID, DUPLIKAATIN_OID).forEach { oid ->
+            assertEquals(molemmat, sukunimet(getHtml("/yki/tarkistusarvioinnit?search=$oid")))
+            assertEquals(
+                molemmat,
+                getCsv("/yki/api/tarkistusarvioinnit?search=$oid")
+                    .csvRivit()
+                    .drop(1)
+                    .map { it.split(";")[1] }
+                    .toSet(),
+            )
+        }
+    }
+
+    @Test
+    fun `oppijanumerohaku rajautuu myos muilla hakusanoilla`() {
+        tallenna("Paahenkilo", asiatunnus = "OPH-1", oppijanumero = Oid(PAAHENKILON_OID))
+        tallenna("Duplikaatti", asiatunnus = "OPH-2", oppijanumero = Oid(DUPLIKAATIN_OID))
+
+        assertEquals(
+            setOf("Duplikaatti"),
+            sukunimet(getHtml("/yki/tarkistusarvioinnit?search=$PAAHENKILON_OID,OPH-2")),
+        )
+    }
+
+    @Test
+    fun `oppijanumeron ja asiatunnuksen osilla haetaan yha tekstina`() {
+        tallenna("Virtanen", asiatunnus = "OPH-5000-1", oppijanumero = Oid("1.2.246.562.24.20281155246"))
+        tallenna("Muu", asiatunnus = "OPH-7", oppijanumero = Oid("1.2.246.562.24.10000000001"))
+
+        listOf("20281155246", ".24.2028", "5000", "OPH-5000").forEach { hakusana ->
+            assertEquals(listOf("Virtanen"), hae(YkiTarkistusarvioinnitParams(search = hakusana)), hakusana)
+        }
+    }
+
+    @Test
+    fun `sivut varoittavat ja hakevat annetulla oppijanumerolla kun oppijanumerorekisteri ei vastaa`() {
+        tallenna("Duplikaatti", oppijanumero = Oid(DUPLIKAATIN_OID))
+        tallenna("Paahenkilo", oppijanumero = Oid(PAAHENKILON_OID))
+        val controller =
+            YkiViewController(palveluIlmanOnr(), bean(), bean(), bean(), rikkinainenOnr(), bean(), timeService)
+        val params = YkiTarkistusarvioinnitParams(search = DUPLIKAATIN_OID)
+        val varoitus = "Oppijanumerorekisteriin ei juuri nyt saatu yhteyttä"
+
+        val odottavat = pyynnossa { controller.tarkistusArvioinnitView(params) }.body.orEmpty()
+        assertContains(odottavat, varoitus)
+        assertEquals(setOf("Duplikaatti"), sukunimet(odottavat))
+
+        assertContains(pyynnossa { controller.hyvaksytytTarkistusArvioinnitView(params) }.body.orEmpty(), varoitus)
+    }
+
+    @Test
+    fun `sivu ei varoita kun haussa ei ole oppijanumeroa`() {
+        tallenna("Virtanen")
+        val controller =
+            YkiViewController(palveluIlmanOnr(), bean(), bean(), bean(), rikkinainenOnr(), bean(), timeService)
+
+        val html =
+            pyynnossa {
+                controller.tarkistusArvioinnitView(YkiTarkistusarvioinnitParams(search = "Virtanen"))
+            }.body.orEmpty()
+
+        assertFalse(html.contains("Oppijanumerorekisteriin ei juuri nyt saatu yhteyttä"))
+        assertEquals(setOf("Virtanen"), sukunimet(html))
+    }
+
+    @Test
+    fun `CSV epaonnistuu oppijanumerohaulla kun oppijanumerorekisteri ei vastaa`() {
+        val api = YkiApiController(palveluIlmanOnr(), bean(), bean(), bean(), bean(), bean(), bean(), bean())
+        val oppijanumerolla = YkiTarkistusarvioinnitParams(search = DUPLIKAATIN_OID)
+
+        assertFailsWith<OppijanumeroException.MalformedOppijanumero> {
+            api.getTarkistusarvioinnitCsv(oppijanumerolla)
+        }
+        assertFailsWith<OppijanumeroException.MalformedOppijanumero> {
+            api.getHyvaksytytTarkistusarvioinnitCsv(oppijanumerolla)
+        }
+        assertEquals(
+            HttpStatus.OK,
+            api.getTarkistusarvioinnitCsv(YkiTarkistusarvioinnitParams(search = "Virtanen")).statusCode,
         )
     }
 
