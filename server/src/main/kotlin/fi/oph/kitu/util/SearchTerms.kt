@@ -29,6 +29,8 @@ data class SearchTerms(
 
     fun texts(): NonEmptySet<String>? = terms[TermKind.Text]
 
+    fun termsExceptHenkiloOids(): List<String> = terms.filterKeys { it != TermKind.HenkiloOid }.values.flatten()
+
     companion object {
         fun from(query: String?): SearchTerms =
             SearchTerms(

@@ -118,7 +118,11 @@ class YkiApiController(
     ): ResponseEntity<StreamingResponseBody> =
         csvAttachmentResponse<YkiTarkistusarviointiColumn, _>(
             filename = params.csvFileName("yki_tarkistusarvioinnit"),
-            data = service.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU, params),
+            data =
+                service.findTarkistusarvioidut(
+                    Arviointitila.TARKISTUSARVIOITU,
+                    service.extendFilterWithLinkedOidsOrThrow(params.toFilter()),
+                ),
             includeColumn = { it != YkiTarkistusarviointiColumn.Hyvaksymispaiva },
         )
 
@@ -128,7 +132,11 @@ class YkiApiController(
     ): ResponseEntity<StreamingResponseBody> =
         csvAttachmentResponse<YkiTarkistusarviointiColumn, _>(
             filename = params.csvFileName("yki_tarkistusarvioinnit_hyvaksytyt"),
-            data = service.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, params),
+            data =
+                service.findTarkistusarvioidut(
+                    Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY,
+                    service.extendFilterWithLinkedOidsOrThrow(params.toFilter()),
+                ),
         )
 
     @PostMapping("/suoritus")

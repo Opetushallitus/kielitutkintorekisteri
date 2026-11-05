@@ -208,6 +208,22 @@ describe("YKI-tarkastusarvioinnit", () => {
     await expectToHaveTexts(etunimet, "Ranja Testi")
   })
 
+  test("Oppijanumerohaku löytää suorituksen yhdistetyn duplikaatin oppijanumerolla", async ({
+    ykiHyvaksytytTarkistusarvioinnitPage,
+  }) => {
+    await ykiHyvaksytytTarkistusarvioinnitPage.open()
+    await ykiHyvaksytytTarkistusarvioinnitPage.search(
+      "1.2.246.562.24.00000000177",
+    )
+
+    await expectToHaveTexts(
+      ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable.getCellsOfColumn(
+        "suorittajanoid",
+      ),
+      "1.2.246.562.24.67409348034",
+    )
+  })
+
   test("Tyhjä hakutulos säilyttää haun ja rajauksen, mutta piilottaa hyväksyntälomakkeen", async ({
     ykiTarkistusarvioinnitPage,
   }) => {

@@ -161,17 +161,17 @@ class YkiSuoritusRepository(
     @WithSpan
     fun findTarkistusarvoidutSuoritukset(
         arviointitila: Arviointitila,
-        params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+        filter: YkiTarkistusarviointiFilter = YkiTarkistusarvioinnitParams().toFilter(),
     ): List<YkiSuoritusEntity> =
         jdbcNamedParameterTemplate.query(
             buildSql(
                 "SELECT * FROM (",
                 selectViimeisimmatSuoritukset("arviointitila = :arviointitila"),
                 ") AS tarkistusarviointi",
-                params.whereSql(),
-                "ORDER BY ${params.orderBySql()}",
+                filter.whereSql(),
+                "ORDER BY ${filter.orderBySql()}",
             ),
-            params.params() + ("arviointitila" to arviointitila.name),
+            filter.params() + ("arviointitila" to arviointitila.name),
             YkiSuoritusEntity.fromRow,
         )
 
