@@ -22,6 +22,8 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastotPage
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitPage
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastoValinnat
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastotPage
 import fi.oph.kitu.yki.suoritukset.error.YkiKoskiErrors
 import jakarta.servlet.http.HttpSession
 import org.springframework.http.ResponseEntity
@@ -238,6 +240,22 @@ class YkiViewController(
                 params = params,
                 message = viewMessage?.consume(),
                 oletuspaiva = timeService.today(),
+                warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
+            ),
+        )
+    }
+
+    @GetMapping("/tarkistusarvioinnit/tilastot", produces = ["text/html"])
+    fun tarkistusarviointiTilastotView(
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+        @ModelAttribute valinnat: YkiTarkistusarviointiTilastoValinnat = YkiTarkistusarviointiTilastoValinnat(),
+    ): ResponseEntity<String> {
+        val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        return ResponseEntity.ok(
+            YkiTarkistusarviointiTilastotPage.render(
+                rivit = ykiService.tarkistusarviointiTilastot(valinnat, extended.filter),
+                params = params,
+                valinnat = valinnat,
                 warning = if (extended.oppijanumeroUnavailable) ONR_UNAVAILABLE_WARNING else null,
             ),
         )

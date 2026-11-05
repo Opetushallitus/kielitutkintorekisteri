@@ -12,6 +12,10 @@ export class YkiTarkistusarvioinnitFilterDialog {
     await new MultiSelectDropdown(this.modal, "tutkintotaso").select(values)
   }
 
+  async setTila(values: string[]) {
+    await new MultiSelectDropdown(this.modal, "tila").select(values)
+  }
+
   async setOsa(values: string[]) {
     await new MultiSelectDropdown(this.modal, "osa").select(values)
   }

@@ -19,6 +19,7 @@ import YkiArvioijatPage from "../models/yki/YkiArvioijatPage"
 import YkiArvioijaLomakePage from "../models/yki/YkiArvioijaLomakePage"
 import YkiTarkistusarvioinnitPage from "../models/yki/YkiTarkistusarvioinnitPage"
 import YkiHyvaksytytTarkistusarvioinnitPage from "../models/yki/YkiHyvaksytytTarkistusarvioinnitPage"
+import YkiTarkistusarviointiTilastotPage from "../models/yki/YkiTarkistusarviointiTilastotPage"
 import { OauthRequestContext } from "./oauthRequestContext"
 
 interface Fixtures {
@@ -28,6 +29,7 @@ interface Fixtures {
   ykiArvioijaLomakePage: YkiArvioijaLomakePage
   ykiTarkistusarvioinnitPage: YkiTarkistusarvioinnitPage
   ykiHyvaksytytTarkistusarvioinnitPage: YkiHyvaksytytTarkistusarvioinnitPage
+  ykiTarkistusarviointiTilastotPage: YkiTarkistusarviointiTilastotPage
   kielitestiSuorituksetPage: KielitestiSuorituksetPage
   kielitestiErrorPage: KielitestiErrorPage
   indexPage: IndexPage
@@ -97,6 +99,9 @@ export const test = baseTest.extend<Fixtures, WorkerArgs>({
     const ykiHyvaksytytTarkistusarvioinnitPage =
       new YkiHyvaksytytTarkistusarvioinnitPage(page, config)
     await use(ykiHyvaksytytTarkistusarvioinnitPage)
+  },
+  ykiTarkistusarviointiTilastotPage: async ({ page, config }, use) => {
+    await use(new YkiTarkistusarviointiTilastotPage(page, config))
   },
   config: [
     async ({}, use) => {

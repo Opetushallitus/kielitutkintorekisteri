@@ -309,6 +309,19 @@ object UiText {
             val eiAikaryhmittelya: LocalizedString get() = tr("yki.tilastot.eiAikaryhmittelya")
             val paivita: LocalizedString get() = tr("yki.tilastot.paivita")
             val eiSuorituksia: LocalizedString get() = tr("yki.tilastot.eiSuorituksia")
+            val eiTarkistusarviointeja: LocalizedString get() = tr("yki.tilastot.eiTarkistusarviointeja")
+            val takaisinTarkistusarviointeihin: LocalizedString
+                get() = tr("yki.tilastot.takaisinTarkistusarviointeihin")
+            val tila: LocalizedString get() = tr("yki.tilastot.tila")
+            val tilaHyvaksytty: LocalizedString get() = tr("yki.tilastot.tilaHyvaksytty")
+            val tilaOdottaaHyvaksyntaa: LocalizedString get() = tr("yki.tilastot.tilaOdottaaHyvaksyntaa")
+            val kohde: LocalizedString get() = tr("yki.tilastot.kohde")
+            val yhteensa: LocalizedString get() = tr("yki.tilastot.yhteensa")
+            val eiMuuttunut: LocalizedString get() = tr("yki.tilastot.eiMuuttunut")
+            val tarkistusarvioinnit: LocalizedString get() = tr("yki.tilastot.tarkistusarvioinnit")
+            val ilmanOsakoetietoa: LocalizedString get() = tr("yki.tilastot.ilmanOsakoetietoa")
+            val osakokeetYhteensa: LocalizedString get() = tr("yki.tilastot.osakokeetYhteensa")
+            val riviEivatSummaudu: LocalizedString get() = tr("yki.tilastot.riviEivatSummaudu")
         }
 
         object Arviointitila {

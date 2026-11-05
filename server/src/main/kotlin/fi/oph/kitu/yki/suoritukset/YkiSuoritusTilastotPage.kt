@@ -13,6 +13,7 @@ import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.html.viewMessage
+import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.webmvc.Links
@@ -91,7 +92,18 @@ object YkiSuoritusTilastotPage {
                     filterDescriptionList(filterParams.filterDescriptions())
                 }
 
-                ryhmittelyLomake(filterParams)
+                ryhmittelyLomake(
+                    piilotetut =
+                        mapOf("recallSearch" to "true") +
+                            filterParams
+                                .toMap()
+                                .filterKeys { it !in setOf("aikaryhmittely", "ryhmittely", "page", "recallSearch") },
+                    aikaryhmittely = filterParams.valittuAikaryhmittely(),
+                    valinnat =
+                        YkiSuoritusTilastoColumn.muutRyhmittelyt.map {
+                            RyhmittelyValinta(it.urlParam, it.uiHeaderValue, it in filterParams.valittuRyhmittely())
+                        },
+                )
 
                 if (tilastot.isEmpty()) {
                     p { +UiText.Yki.Tilastot.eiSuorituksia }
@@ -128,16 +140,22 @@ object YkiSuoritusTilastotPage {
         }
 }
 
-private fun FlowContent.ryhmittelyLomake(params: YkiSuorituksetParams) {
-    val valitut = params.valittuRyhmittely()
-    val aikaryhmittely = params.valittuAikaryhmittely()
+data class RyhmittelyValinta(
+    val urlParam: String,
+    val nimi: LocalizedString,
+    val valittu: Boolean,
+)
+
+internal fun FlowContent.ryhmittelyLomake(
+    piilotetut: Map<String, String?>,
+    aikaryhmittely: YkiSuoritusAikaryhmittely,
+    valinnat: List<RyhmittelyValinta>,
+) {
     form(action = "", method = FormMethod.get, classes = "ryhmittely-lomake") {
         testId("ryhmittely-lomake")
-        input(type = InputType.hidden, name = "recallSearch", value = "true")
-        params
-            .toMap()
-            .filterKeys { it !in setOf("aikaryhmittely", "ryhmittely", "page", "recallSearch") }
-            .forEach { (name, value) -> value?.let { input(type = InputType.hidden, name = name, value = it) } }
+        piilotetut.forEach { (name, value) ->
+            value?.let { input(type = InputType.hidden, name = name, value = it) }
+        }
         fieldSet {
             legend { +UiText.Yki.Tilastot.ryhmittely }
             label {
@@ -155,17 +173,17 @@ private fun FlowContent.ryhmittelyLomake(params: YkiSuorituksetParams) {
                 }
             }
             div(classes = "ryhmittely-valinnat") {
-                YkiSuoritusTilastoColumn.muutRyhmittelyt.forEach { sarake ->
+                valinnat.forEach { valinta ->
                     label {
                         input(
                             type = InputType.checkBox,
                             name = "ryhmittely",
-                            value = sarake.urlParam,
-                            checked = sarake in valitut,
+                            value = valinta.urlParam,
+                            checked = valinta.valittu,
                         ) {
-                            testId("ryhmittely-${sarake.urlParam}")
+                            testId("ryhmittely-${valinta.urlParam}")
                         }
-                        +sarake.uiHeaderValue
+                        +valinta.nimi
                     }
                 }
             }

@@ -93,10 +93,13 @@ data class YkiTarkistusarvioinnitParams(
             "limit" to limit.takeIf { it != OLETUSSIVUKOKO }?.toString(),
         )
 
-    fun csvFileName(prefix: String): String =
+    fun csvFileName(
+        prefix: String,
+        henkilotiedot: Boolean = true,
+    ): String =
         buildCsvFilename(
             prefix,
-            false,
+            !henkilotiedot,
             tutkintokieli.toCsvFilenameSegment(),
             tutkintotaso.toCsvFilenameSegment(),
             osa.toCsvFilenameSegment(),

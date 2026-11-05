@@ -32,6 +32,7 @@ import kotlinx.html.fieldSet
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.label
+import kotlinx.html.li
 import kotlinx.html.p
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
@@ -68,6 +69,7 @@ object YkiTarkistusarvioinnitPage {
                 testId = "odottaaHyvaksyntaa",
                 naytaHyvaksymispaiva = false,
                 csvHref = Links.Yki.tarkistusArvioinnitCsv() + httpParams(params.toCsvMap()),
+                tilastotHref = tilastotHref(params, Tarkistusarvioinnintila.OdottaaHyvaksyntaa),
             )
         }
 
@@ -102,8 +104,14 @@ object YkiTarkistusarvioinnitPage {
                 testId = "hyvaksytty",
                 naytaHyvaksymispaiva = true,
                 csvHref = Links.Yki.hyvaksytytTarkistusArvioinnitCsv() + httpParams(params.toCsvMap()),
+                tilastotHref = tilastotHref(params, Tarkistusarvioinnintila.Hyvaksytty),
             )
         }
+
+    private fun tilastotHref(
+        params: YkiTarkistusarvioinnitParams,
+        tila: Tarkistusarvioinnintila,
+    ): String = Links.Yki.tarkistusarviointiTilastot() + httpParams(params.toCsvMap() + ("tila" to tila.name))
 
     private fun FlowContent.ykiTarkistusarviointiTable(
         title: String,
@@ -115,6 +123,7 @@ object YkiTarkistusarvioinnitPage {
         testId: String,
         naytaHyvaksymispaiva: Boolean,
         csvHref: String,
+        tilastotHref: String,
     ) {
         h2 { +title }
 
@@ -130,6 +139,14 @@ object YkiTarkistusarvioinnitPage {
             numberOfItems = pagination.numberOfItems,
             csvHref = csvHref,
             filterDescriptions = params.filterDescriptions(),
+            extraActions = {
+                li {
+                    a(href = tilastotHref) {
+                        testId("tilastot-linkki")
+                        +UiText.Yki.Tilastot.otsikko
+                    }
+                }
+            },
         ) { tarkistusarviointiFilterButton(params, naytaHyvaksymispaiva) }
 
         if (suoritukset.isNotEmpty()) {
@@ -171,62 +188,68 @@ object YkiTarkistusarvioinnitPage {
             pagination(pagination)
         }
     }
+}
 
-    private fun FlowContent.tarkistusarviointiFilterButton(
-        params: YkiTarkistusarvioinnitParams,
-        naytaHyvaksymispaiva: Boolean,
-    ) {
-        tableFilterDialog("") {
-            hiddenValues(params.toMap().filterKeys { it in setOf("search", "sortColumn", "sortDirection") })
+internal fun FlowContent.tarkistusarviointiFilterButton(
+    params: YkiTarkistusarvioinnitParams,
+    naytaHyvaksymispaiva: Boolean,
+    sailytettavatParametrit: Map<String, String?> = emptyMap(),
+    lisakentat: FlowContent.() -> Unit = {},
+) {
+    tableFilterDialog("") {
+        hiddenValues(
+            params.toMap().filterKeys { it in setOf("search", "sortColumn", "sortDirection") } +
+                sailytettavatParametrit,
+        )
+        lisakentat()
+        fieldSet(classes = "grid") {
+            dateFilter("tutkintoalku", UiText.Yki.tutkintopaivaAlkaen.toString(), params.tutkintoalku)
+            dateFilter("tutkintoloppu", UiText.Yki.tutkintopaivaPaattyen.toString(), params.tutkintoloppu)
+        }
+        fieldSet(classes = "grid") {
+            dateFilter("saapumisalku", UiText.Yki.saapunutAlkaen.toString(), params.saapumisalku)
+            dateFilter("saapumisloppu", UiText.Yki.saapunutPaattyen.toString(), params.saapumisloppu)
+        }
+        fieldSet(classes = "grid") {
+            dateFilter("kasittelyalku", UiText.Yki.kasiteltyAlkaen.toString(), params.kasittelyalku)
+            dateFilter("kasittelyloppu", UiText.Yki.kasiteltyPaattyen.toString(), params.kasittelyloppu)
+        }
+        if (naytaHyvaksymispaiva) {
             fieldSet(classes = "grid") {
-                dateFilter("tutkintoalku", UiText.Yki.tutkintopaivaAlkaen.toString(), params.tutkintoalku)
-                dateFilter("tutkintoloppu", UiText.Yki.tutkintopaivaPaattyen.toString(), params.tutkintoloppu)
+                dateFilter("hyvaksyttyalku", UiText.Yki.hyvaksyttyAlkaen.toString(), params.hyvaksyttyalku)
+                dateFilter("hyvaksyttyloppu", UiText.Yki.hyvaksyttyPaattyen.toString(), params.hyvaksyttyloppu)
             }
-            fieldSet(classes = "grid") {
-                dateFilter("saapumisalku", UiText.Yki.saapunutAlkaen.toString(), params.saapumisalku)
-                dateFilter("saapumisloppu", UiText.Yki.saapunutPaattyen.toString(), params.saapumisloppu)
-            }
-            fieldSet(classes = "grid") {
-                dateFilter("kasittelyalku", UiText.Yki.kasiteltyAlkaen.toString(), params.kasittelyalku)
-                dateFilter("kasittelyloppu", UiText.Yki.kasiteltyPaattyen.toString(), params.kasittelyloppu)
-            }
-            if (naytaHyvaksymispaiva) {
-                fieldSet(classes = "grid") {
-                    dateFilter("hyvaksyttyalku", UiText.Yki.hyvaksyttyAlkaen.toString(), params.hyvaksyttyalku)
-                    dateFilter("hyvaksyttyloppu", UiText.Yki.hyvaksyttyPaattyen.toString(), params.hyvaksyttyloppu)
-                }
-            }
-            fieldSet {
-                enumFilter<Tutkintokieli>(
-                    "tutkintokieli",
-                    UiText.Yki.Sarake.tutkintokieli
-                        .toString(),
-                    params.tutkintokieli,
-                )
-            }
-            fieldSet {
-                enumFilter<Tutkintotaso>(
-                    "tutkintotaso",
-                    UiText.Yki.Sarake.tutkintotaso
-                        .toString(),
-                    params.tutkintotaso,
-                )
-            }
-            fieldSet {
-                enumFilter<TutkinnonOsa>(
-                    "osa",
-                    UiText.Yki.Sarake.osat
-                        .toString(),
-                    params.osa,
-                )
-            }
-            fieldSet {
-                trueFalseOrAllFilter(
-                    "arvosanaMuuttui",
-                    UiText.Yki.arvosanaMuuttui.toString(),
-                    params.arvosanaMuuttui,
-                )
-            }
+        }
+        fieldSet {
+            enumFilter<Tutkintokieli>(
+                "tutkintokieli",
+                UiText.Yki.Sarake.tutkintokieli
+                    .toString(),
+                params.tutkintokieli,
+            )
+        }
+        fieldSet {
+            enumFilter<Tutkintotaso>(
+                "tutkintotaso",
+                UiText.Yki.Sarake.tutkintotaso
+                    .toString(),
+                params.tutkintotaso,
+            )
+        }
+        fieldSet {
+            enumFilter<TutkinnonOsa>(
+                "osa",
+                UiText.Yki.Sarake.osat
+                    .toString(),
+                params.osa,
+            )
+        }
+        fieldSet {
+            trueFalseOrAllFilter(
+                "arvosanaMuuttui",
+                UiText.Yki.arvosanaMuuttui.toString(),
+                params.arvosanaMuuttui,
+            )
         }
     }
 }

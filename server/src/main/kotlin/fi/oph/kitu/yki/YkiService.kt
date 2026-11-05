@@ -23,6 +23,9 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitSivu
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiFilter
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastoRivi
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastoValinnat
+import fi.oph.kitu.yki.suoritukset.koostaTarkistusarviointiTilastot
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -232,6 +235,19 @@ class YkiService(
                 .also(::auditoiNaytetyt)
         return YkiTarkistusarvioinnitSivu(suoritukset, kokonaismaara, sivunumero)
     }
+
+    @WithSpan
+    fun tarkistusarviointiTilastot(
+        valinnat: YkiTarkistusarviointiTilastoValinnat,
+        filter: YkiTarkistusarviointiFilter,
+    ): List<YkiTarkistusarviointiTilastoRivi> =
+        koostaTarkistusarviointiTilastot(
+            suoritusRepository.findTarkistusarviointiTilastopohja(
+                valinnat.tilat(),
+                filter,
+                valinnat.valittuRyhmittely(),
+            ),
+        )
 
     private fun auditoiNaytetyt(suoritukset: List<YkiSuoritusEntity>) {
         auditLogger.logAllInternalOnly("Yki suoritus viewed", suoritukset) { suoritus ->
