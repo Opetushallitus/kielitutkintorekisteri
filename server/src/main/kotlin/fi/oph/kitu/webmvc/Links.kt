@@ -180,6 +180,12 @@ object Links {
         fun hyvaksytytTarkistusArvioinnitCsv(): String =
             linkTo(methodOn(YkiApiController::class.java).getHyvaksytytTarkistusarvioinnitCsv()).toString()
 
+        fun tarkistusarviointiTilastot(): String =
+            linkTo(methodOn(YkiViewController::class.java).tarkistusarviointiTilastotView()).toString()
+
+        fun tarkistusarviointiTilastotCsv(): String =
+            linkTo(methodOn(YkiApiController::class.java).getTarkistusarviointiTilastotCsv()).toString()
+
         fun arvioijatCsv(): String =
             linkTo(methodOn(YkiApiController::class.java).getArvioijatCsv(YkiArvioijaParams())).toString()
 

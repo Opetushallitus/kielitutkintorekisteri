@@ -26,6 +26,8 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitParams
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiColumn
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastoColumn
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastoValinnat
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
 import io.swagger.v3.oas.annotations.Operation
@@ -138,6 +140,23 @@ class YkiApiController(
                     service.extendFilterWithLinkedOidsOrThrow(params.toFilter()),
                 ),
         )
+
+    @GetMapping("/tarkistusarvioinnit/tilastot", produces = ["text/csv"])
+    fun getTarkistusarviointiTilastotCsv(
+        @ModelAttribute params: YkiTarkistusarvioinnitParams = YkiTarkistusarvioinnitParams(),
+        @ModelAttribute valinnat: YkiTarkistusarviointiTilastoValinnat = YkiTarkistusarviointiTilastoValinnat(),
+    ): ResponseEntity<StreamingResponseBody> {
+        val sarakkeet = YkiTarkistusarviointiTilastoColumn.sarakkeet(valinnat.valittuRyhmittely())
+        return csvAttachmentResponse<YkiTarkistusarviointiTilastoColumn, _>(
+            filename = valinnat.csvFileName(params),
+            data =
+                service.tarkistusarviointiTilastot(
+                    valinnat,
+                    service.extendFilterWithLinkedOidsOrThrow(params.toFilter()),
+                ),
+            includeColumn = { it in sarakkeet },
+        )
+    }
 
     @PostMapping("/suoritus")
     @Tag(name = "oauth2")

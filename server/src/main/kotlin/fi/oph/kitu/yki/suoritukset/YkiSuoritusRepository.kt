@@ -194,6 +194,38 @@ class YkiSuoritusRepository(
             Int::class.java,
         )!!
 
+    @WithSpan
+    fun findTarkistusarviointiTilastopohja(
+        tilat: List<Arviointitila>,
+        filter: YkiTarkistusarviointiFilter,
+        ryhmittely: List<YkiTarkistusarviointiTilastoColumn>,
+    ): List<YkiTarkistusarviointiTilastoPohja> {
+        val ryhmat = YkiTarkistusarviointiTilastoColumn.ryhmittelyt
+        val ryhmaSarakkeet =
+            ryhmat.joinToString(", ") {
+                if (it in ryhmittely) {
+                    "${it.sqlLauseke} AS ${it.entityName}"
+                } else {
+                    "NULL::${it.ryhmittelynSqlTyyppi} AS ${it.entityName}"
+                }
+            }
+        val ryhmittelyLausekkeet = ryhmat.filter { it in ryhmittely }.map { it.sqlLauseke }
+
+        return jdbcNamedParameterTemplate.query(
+            buildSql(
+                "SELECT $ryhmaSarakkeet, tarkistusarvioidut_osakokeet, arvosana_muuttui, COUNT(*) AS lukumaara",
+                "FROM (",
+                selectViimeisimmatSuoritukset("arviointitila IN (:tilat)"),
+                ") AS tarkistusarviointi",
+                filter.whereSql(),
+                (ryhmittelyLausekkeet + listOf("tarkistusarvioidut_osakokeet", "arvosana_muuttui"))
+                    .joinToString(", ", prefix = "GROUP BY "),
+            ),
+            filter.params() + ("tilat" to tilat.map { it.name }),
+            YkiTarkistusarviointiTilastoPohja.fromRow,
+        )
+    }
+
     @Transactional
     @WithSpan
     fun hyvaksyTarkistusarvioinnit(
