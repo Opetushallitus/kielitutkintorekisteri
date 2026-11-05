@@ -12,6 +12,10 @@ export class YkiTarkistusarvioinnitFilterDialog {
     await new MultiSelectDropdown(this.modal, "tutkintotaso").select(values)
   }
 
+  async setOsa(values: string[]) {
+    await new MultiSelectDropdown(this.modal, "osa").select(values)
+  }
+
   async setKasittelyaika(alku: string, loppu: string) {
     await this.modal.getByLabel("Pyyntö käsitelty alkaen").fill(alku)
     await this.modal.getByLabel("Pyyntö käsitelty päättyen").fill(loppu)

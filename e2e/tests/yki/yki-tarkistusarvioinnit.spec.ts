@@ -220,6 +220,25 @@ describe("YKI-tarkastusarvioinnit", () => {
     await expectToHaveTexts(etunimet, "Magdalena Testi")
   })
 
+  test("Rajausdialogi suodattaa tarkistusarvioidulla osalla", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    let dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setOsa(["KI"])
+    await dialog.submit()
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("0")
+
+    dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.setOsa(["PU", "KI"])
+    await dialog.submit()
+    await expectToHaveTexts(
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn("etunimet"),
+      "Magdalena Testi",
+      "Ranja Testi",
+    )
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("2")
+  })
+
   test("Sarakkeen otsikosta järjestetään, ja järjestys säilyy rajattaessa", async ({
     ykiTarkistusarvioinnitPage,
   }) => {
