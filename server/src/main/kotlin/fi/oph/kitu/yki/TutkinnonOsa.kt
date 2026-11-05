@@ -1,6 +1,7 @@
 package fi.oph.kitu.yki
 
 import fi.oph.kitu.html.DisplayEnum
+import fi.oph.kitu.html.table.HideInTableFilter
 import fi.oph.kitu.i18n.UiText
 
 enum class TutkinnonOsa : DisplayEnum {
@@ -8,7 +9,11 @@ enum class TutkinnonOsa : DisplayEnum {
     KI,
     TY,
     PY,
+
+    @HideInTableFilter
     RS,
+
+    @HideInTableFilter
     YL,
     ;
 
