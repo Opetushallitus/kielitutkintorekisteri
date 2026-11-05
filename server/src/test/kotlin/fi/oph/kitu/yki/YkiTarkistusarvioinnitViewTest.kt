@@ -2,8 +2,10 @@ package fi.oph.kitu.yki
 
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
+import fi.oph.kitu.dev.mockdata.generateRandomOppijaOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.jdbc.SortDirection
+import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.virkailijaSession
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -68,9 +70,11 @@ class YkiTarkistusarvioinnitViewTest(
         osakokeet: Set<TutkinnonOsa> = setOf(TutkinnonOsa.puhuminen),
         muuttuneet: Set<TutkinnonOsa> = osakokeet,
         perustelu: String = "Perustelu $sukunimi",
+        oppijanumero: Oid? = generateRandomOppijaOid(),
     ): YkiSuoritusEntity =
         generateRandomYkiSuoritusEntity()
             .copy(
+                suorittajanOID = oppijanumero,
                 sukunimi = sukunimi,
                 etunimet = "Testi",
                 hetu = hetu,
@@ -343,6 +347,53 @@ class YkiTarkistusarvioinnitViewTest(
             )
 
         assertContains(html, "Virtanen")
+    }
+
+    @Test
+    fun `oppijanumero naytetaan kopioitavana ja jarjestettavana molemmilla sivuilla`() {
+        val odottava = tallenna("Odottava")
+        val hyvaksytty = tallenna("Hyvaksytty")
+        suoritusRepository.hyvaksyTarkistusarvioinnit(listOf(hyvaksytty.solkiId), LocalDate.of(2025, 5, 1))
+
+        listOf(
+            "/yki/tarkistusarvioinnit" to odottava,
+            "/yki/tarkistusarvioinnit/hyvaksytyt" to hyvaksytty,
+        ).forEach { (polku, suoritus) ->
+            val html = getHtml(polku)
+            val solu = rivi(html, suoritus.sukunimi).sarake("suorittajanoid")
+
+            assertEquals(suoritus.suorittajanOID.toString(), solu.text())
+            assertEquals(suoritus.suorittajanOID.toString(), solu.selectFirst("button.copy-button")!!.attr("data-copy"))
+            assertContains(html, "sortColumn=suorittajanoid")
+        }
+    }
+
+    @Test
+    fun `oppijanumeron mukaan jarjestetaan ja puuttuva oppijanumero jaa loppuun molempiin suuntiin`() {
+        tallenna("Suurempi", oppijanumero = Oid("1.2.246.562.24.20000000000"))
+        tallenna("Pienempi", oppijanumero = Oid("1.2.246.562.24.10000000000"))
+        tallenna("Historia", oppijanumero = null)
+
+        fun jarjestys(suunta: SortDirection) =
+            hae(
+                YkiTarkistusarvioinnitParams(
+                    sortColumn = YkiTarkistusarviointiColumn.SuorittajanOid,
+                    sortDirection = suunta,
+                ),
+            )
+
+        assertEquals(listOf("Pienempi", "Suurempi", "Historia"), jarjestys(SortDirection.ASC))
+        assertEquals(listOf("Suurempi", "Pienempi", "Historia"), jarjestys(SortDirection.DESC))
+    }
+
+    @Test
+    fun `oppijanumeron solu on tyhja ilman kopiointipainiketta kun oppijanumeroa ei ole`() {
+        tallenna("Historia", oppijanumero = null)
+
+        val solu = rivi(getHtml("/yki/tarkistusarvioinnit"), "Historia").sarake("suorittajanoid")
+
+        assertEquals("", solu.text())
+        assertEquals(null, solu.selectFirst("button.copy-button"))
     }
 
     @Test

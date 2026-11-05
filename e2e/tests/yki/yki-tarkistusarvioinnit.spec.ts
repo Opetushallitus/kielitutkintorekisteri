@@ -43,6 +43,27 @@ describe("YKI-tarkastusarvioinnit", () => {
     )
   })
 
+  test("Oppijanumero näkyy molemmissa taulukoissa", async ({
+    ykiTarkistusarvioinnitPage,
+    ykiHyvaksytytTarkistusarvioinnitPage,
+  }) => {
+    await expectToHaveTexts(
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn(
+        "suorittajanoid",
+      ),
+      "1.2.246.562.24.33342764709",
+      "1.2.246.562.24.20281155246",
+    )
+
+    await ykiHyvaksytytTarkistusarvioinnitPage.open()
+    await expectToHaveTexts(
+      ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable.getCellsOfColumn(
+        "suorittajanoid",
+      ),
+      "1.2.246.562.24.67409348034",
+    )
+  })
+
   test("Hyväksytyt-painike vie hyväksyttyjen tarkistusarviointien sivulle", async ({
     ykiTarkistusarvioinnitPage,
     ykiHyvaksytytTarkistusarvioinnitPage,
