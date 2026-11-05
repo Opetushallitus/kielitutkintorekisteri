@@ -19,6 +19,7 @@ import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.webmvc.Links
+import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import kotlinx.html.FlowContent
@@ -194,6 +195,14 @@ object YkiTarkistusarvioinnitPage {
                     UiText.Yki.Sarake.tutkintotaso
                         .toString(),
                     params.tutkintotaso,
+                )
+            }
+            fieldSet {
+                enumFilter<TutkinnonOsa>(
+                    "osa",
+                    UiText.Yki.Sarake.osat
+                        .toString(),
+                    params.osa,
                 )
             }
             fieldSet {

@@ -237,6 +237,60 @@ class YkiTarkistusarvioinnitViewTest(
     }
 
     @Test
+    fun `osasuodatin on monivalintainen ja katsoo vain tarkistusarvioituja osia`() {
+        tallenna("Puhuminen", osakokeet = setOf(TutkinnonOsa.puhuminen))
+        tallenna("Kirjoittaminen", osakokeet = setOf(TutkinnonOsa.kirjoittaminen))
+        tallenna("Molemmat", osakokeet = setOf(TutkinnonOsa.puhuminen, TutkinnonOsa.kirjoittaminen))
+        tallenna("Tekstin ymmartaminen", osakokeet = setOf(TutkinnonOsa.tekstinYmmartaminen))
+
+        assertEquals(
+            setOf("Puhuminen", "Molemmat"),
+            hae(YkiTarkistusarvioinnitParams(osa = listOf(TutkinnonOsa.puhuminen))).toSet(),
+        )
+        assertEquals(
+            setOf("Puhuminen", "Kirjoittaminen", "Molemmat"),
+            hae(
+                YkiTarkistusarvioinnitParams(osa = listOf(TutkinnonOsa.puhuminen, TutkinnonOsa.kirjoittaminen)),
+            ).toSet(),
+        )
+        assertEquals(emptyList(), hae(YkiTarkistusarvioinnitParams(osa = listOf(TutkinnonOsa.puheenYmmartaminen))))
+    }
+
+    @Test
+    fun `osasuodatin luetaan URL-parametreista ja se nakyy rajausdialogissa kuvauksessa ja lajittelulinkeissa`() {
+        tallenna("Puhuminen", osakokeet = setOf(TutkinnonOsa.puhuminen))
+        tallenna("Kirjoittaminen", osakokeet = setOf(TutkinnonOsa.kirjoittaminen))
+        tallenna("Tekstin ymmartaminen", osakokeet = setOf(TutkinnonOsa.tekstinYmmartaminen))
+
+        listOf("osa=PU,KI", "osa=PU&osa=KI").forEach { osat ->
+            val html = getHtml("/yki/tarkistusarvioinnit?$osat")
+            val sivu = Jsoup.parse(html)
+
+            assertEquals(
+                setOf("Puhuminen", "Kirjoittaminen"),
+                sivu.select("td[data-testid=sukunimi]").map { it.text() }.toSet(),
+            )
+
+            val valikko = sivu.selectFirst("[data-testid=osa-valinta]")!!
+            assertEquals(listOf("PU", "KI"), valikko.select("input[checked]").map { it.attr("value") })
+            assertEquals(
+                listOf(
+                    "Puhuminen",
+                    "Kirjoittaminen",
+                    "Tekstin ymmärtäminen",
+                    "Puheen ymmärtäminen",
+                    "Rakenteet ja sanasto",
+                    "Yleisarvosana",
+                ),
+                valikko.select("label").map { it.text() },
+            )
+
+            assertContains(html, "Osat: Puhuminen, Kirjoittaminen")
+            assertContains(sivu.selectFirst("th a[href*=sortColumn=sukunimi]")!!.attr("href"), "osa=PU")
+        }
+    }
+
+    @Test
     fun `paivarajaukset ovat molemmista paista inklusiivisia ja koskevat omaa saraketta`() {
         tallenna("Rajalla", tutkintopaiva = LocalDate.of(2025, 1, 10))
         tallenna("Ennen", tutkintopaiva = LocalDate.of(2025, 1, 9))
@@ -343,7 +397,7 @@ class YkiTarkistusarvioinnitViewTest(
         val html =
             getHtml(
                 "/yki/tarkistusarvioinnit?search=&tutkintoalku=&tutkintoloppu=&saapumisalku=&saapumisloppu=" +
-                    "&kasittelyalku=&kasittelyloppu=&arvosanaMuuttui=",
+                    "&kasittelyalku=&kasittelyloppu=&arvosanaMuuttui=&osa=",
             )
 
         assertContains(html, "Virtanen")

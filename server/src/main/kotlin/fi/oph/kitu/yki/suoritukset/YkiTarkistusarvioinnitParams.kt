@@ -10,6 +10,7 @@ import fi.oph.kitu.jdbc.addAnyOf
 import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.util.searchTerms
 import fi.oph.kitu.webmvc.toUrlParam
+import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import org.springframework.format.annotation.DateTimeFormat
@@ -19,6 +20,7 @@ data class YkiTarkistusarvioinnitParams(
     var search: String = "",
     var tutkintokieli: List<Tutkintokieli> = emptyList(),
     var tutkintotaso: List<Tutkintotaso> = emptyList(),
+    var osa: List<TutkinnonOsa> = emptyList(),
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var tutkintoalku: LocalDate? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -44,6 +46,7 @@ data class YkiTarkistusarvioinnitParams(
             "search" to search.ifEmpty { null },
             "tutkintokieli" to tutkintokieli.toUrlParam(),
             "tutkintotaso" to tutkintotaso.toUrlParam(),
+            "osa" to osa.toUrlParam(),
             "tutkintoalku" to tutkintoalku?.toString(),
             "tutkintoloppu" to tutkintoloppu?.toString(),
             "saapumisalku" to saapumisalku?.toString(),
@@ -74,6 +77,7 @@ data class YkiTarkistusarvioinnitParams(
             aikarajausDescription(hyvaksyttyalku, hyvaksyttyloppu, prefix = UiText.Yki.hyvaksytty),
             valintaDescription(UiText.Yki.Sarake.tutkintokieli, tutkintokieli),
             valintaDescription(UiText.Yki.Sarake.tutkintotaso, tutkintotaso),
+            valintaDescription(UiText.Yki.Sarake.osat, osa),
             when (arvosanaMuuttui) {
                 true -> UiText.Yki.arvosanaMuuttui.toString()
                 false -> UiText.Yki.arvosanaEiMuuttunut.toString()
@@ -85,6 +89,12 @@ data class YkiTarkistusarvioinnitParams(
         addSearchTerms(searchTerms(search), HAKUSARAKKEET, "hakusana")
         addAnyOf("tutkintokieli", "filter_kieli", tutkintokieli)
         addAnyOf("tutkintotaso", "filter_taso", tutkintotaso)
+        if (osa.isNotEmpty()) {
+            add(
+                "tarkistusarvioidut_osakokeet && ARRAY[:filter_osa]::yki_osakoetyyppi[]",
+                "filter_osa" to osa.map { it.name },
+            )
+        }
         addPaivavali("tutkintopaiva", tutkintoalku, tutkintoloppu)
         addPaivavali("tarkistusarvioinnin_saapumis_pvm", saapumisalku, saapumisloppu)
         addPaivavali("tarkistusarvioinnin_kasittely_pvm", kasittelyalku, kasittelyloppu)

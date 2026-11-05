@@ -1,8 +1,9 @@
 package fi.oph.kitu.yki
 
+import fi.oph.kitu.html.DisplayEnum
 import fi.oph.kitu.i18n.UiText
 
-enum class TutkinnonOsa {
+enum class TutkinnonOsa : DisplayEnum {
     PU,
     KI,
     TY,
@@ -21,6 +22,8 @@ enum class TutkinnonOsa {
                 RS -> UiText.Yki.Sarake.rakenteetJaSanasto
                 YL -> UiText.Yki.Sarake.yleisarvosana
             }.toString()
+
+    override fun displayText(): String = viewText
 
     companion object {
         // Solki-koodit avattuna:
