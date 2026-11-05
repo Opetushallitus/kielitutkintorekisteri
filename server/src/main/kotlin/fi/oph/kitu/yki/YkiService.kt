@@ -21,6 +21,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusSivu
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoRivi
+import fi.oph.kitu.yki.suoritukset.YkiTarkistusarvioinnitSivu
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiFilter
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
@@ -214,13 +215,31 @@ class YkiService(
         arviointitila: Arviointitila,
         filter: YkiTarkistusarviointiFilter,
     ): List<YkiSuoritusEntity> =
-        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, filter).also {
-            auditLogger.logAllInternalOnly("Yki suoritus viewed", it) { suoritus ->
-                arrayOf(
-                    "suoritus.id" to suoritus.id,
-                )
-            }
+        suoritusRepository.findTarkistusarvoidutSuoritukset(arviointitila, filter).also(::auditoiNaytetyt)
+
+    @WithSpan
+    fun findTarkistusarvioidutSivu(
+        arviointitila: Arviointitila,
+        filter: YkiTarkistusarviointiFilter,
+    ): YkiTarkistusarvioinnitSivu {
+        val kokonaismaara = suoritusRepository.countTarkistusarvioidutSuoritukset(arviointitila, filter)
+        val sivukoko = filter.rajaus.sivukoko()
+        val viimeinenSivu = ((kokonaismaara - 1) / sivukoko + 1).coerceAtLeast(1)
+        val sivunumero = filter.rajaus.page.coerceIn(1, viimeinenSivu)
+        val suoritukset =
+            suoritusRepository
+                .findTarkistusarvoidutSuoritukset(arviointitila, filter, sivukoko, sivukoko * (sivunumero - 1))
+                .also(::auditoiNaytetyt)
+        return YkiTarkistusarvioinnitSivu(suoritukset, kokonaismaara, sivunumero)
+    }
+
+    private fun auditoiNaytetyt(suoritukset: List<YkiSuoritusEntity>) {
+        auditLogger.logAllInternalOnly("Yki suoritus viewed", suoritukset) { suoritus ->
+            arrayOf(
+                "suoritus.id" to suoritus.id,
+            )
         }
+    }
 
     /**
      * Oletuspaiva tulee TimeServicelta, ei LocalDate.now():lta: kontti ajaa UTC:ssa ja

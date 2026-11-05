@@ -211,9 +211,11 @@ class YkiViewController(
         viewMessage: ViewMessage? = null,
     ): ResponseEntity<String> {
         val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        val sivu = ykiService.findTarkistusarvioidutSivu(Arviointitila.TARKISTUSARVIOITU, extended.filter)
         return ResponseEntity.ok(
             YkiTarkistusarvioinnitPage.render(
-                suoritukset = ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOITU, extended.filter),
+                suoritukset = sivu.suoritukset,
+                pagination = params.pagination(sivu),
                 params = params,
                 message = viewMessage?.consume(),
                 oletuspaiva = timeService.today(),
@@ -228,10 +230,11 @@ class YkiViewController(
         viewMessage: ViewMessage? = null,
     ): ResponseEntity<String> {
         val extended = ykiService.extendFilterWithLinkedOids(params.toFilter())
+        val sivu = ykiService.findTarkistusarvioidutSivu(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, extended.filter)
         return ResponseEntity.ok(
             YkiTarkistusarvioinnitPage.renderHyvaksytyt(
-                suoritukset =
-                    ykiService.findTarkistusarvioidut(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, extended.filter),
+                suoritukset = sivu.suoritukset,
+                pagination = params.pagination(sivu),
                 params = params,
                 message = viewMessage?.consume(),
                 oletuspaiva = timeService.today(),

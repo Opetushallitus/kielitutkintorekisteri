@@ -3,14 +3,17 @@ import { Locator, Page } from "@playwright/test"
 import { Config } from "../../config"
 import { expect } from "../../fixtures/baseFixture"
 import * as node_fs from "node:fs"
+import Pagination from "../components/Pagination"
 import { YkiTarkistusarvioinnitFilterDialog } from "./YkiTarkistusarvioinnitFilterDialog"
 
 export default abstract class BaseYkiTarkistusarvioinnitPage extends BasePage {
   numberOfRows: Locator
+  pagination: Pagination
 
   constructor(page: Page, config: Config) {
     super(page, config)
     this.numberOfRows = this.getPageContent().getByTestId("numberOfRows")
+    this.pagination = new Pagination(this.getPageContent())
   }
 
   async downloadCSV(): Promise<string[]> {

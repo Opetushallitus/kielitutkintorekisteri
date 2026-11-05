@@ -224,6 +224,35 @@ describe("YKI-tarkastusarvioinnit", () => {
     )
   })
 
+  test("Viimeisen sivun tyhjentävä hyväksyntä palaa edelliselle sivulle", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    await ykiTarkistusarvioinnitPage.open("?limit=1")
+    const etunimet =
+      ykiTarkistusarvioinnitPage.odottaaTable.getCellsOfColumn("etunimet")
+    await expectToHaveTexts(etunimet, "Magdalena Testi")
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("2")
+
+    await ykiTarkistusarvioinnitPage.pagination.goToNextPage()
+    await expectToHaveTexts(etunimet, "Ranja Testi")
+    await expect(ykiTarkistusarvioinnitPage.pagination.current).toHaveText("2")
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("2")
+
+    await ykiTarkistusarvioinnitPage.odottaaTable.body
+      .getByRole("row", { name: "Öhman-Testi Ranja" })
+      .getByRole("checkbox")
+      .setChecked(true)
+    await ykiTarkistusarvioinnitPage.odottaaDate.fill("2025-11-11")
+    await ykiTarkistusarvioinnitPage.odottaaSubmit.click()
+
+    await expect(ykiTarkistusarvioinnitPage.viewMessage).toHaveText(
+      "1 tarkistusarviointi merkitty hyväksytyksi",
+    )
+    await expectToHaveTexts(etunimet, "Magdalena Testi")
+    await expect(ykiTarkistusarvioinnitPage.numberOfRows).toHaveText("1")
+    await expect(ykiTarkistusarvioinnitPage.odottaaSubmit).toBeVisible()
+  })
+
   test("Tyhjä hakutulos säilyttää haun ja rajauksen, mutta piilottaa hyväksyntälomakkeen", async ({
     ykiTarkistusarvioinnitPage,
   }) => {
