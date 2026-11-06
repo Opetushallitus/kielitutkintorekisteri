@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
+import fi.oph.kitu.VIRKAILIJAN_OID
 import fi.oph.kitu.auditlogs.AUDIT_LOGGER_NAME
 import fi.oph.kitu.dev.mockdata.generateRandomOppijaOid
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
@@ -764,6 +765,93 @@ class YkiTarkistusarvioinnitViewTest(
                 auditLogger.detachAppender(loki)
                 loki.stop()
             }
+        }
+    }
+
+    private fun hyvaksy(vararg suoritukset: YkiSuoritusEntity) {
+        mockMvc
+            .perform(
+                post("/yki/tarkistusarvioinnit")
+                    .session(virkailijaSession())
+                    .with(csrf())
+                    .param("suoritukset", *suoritukset.map { it.solkiId.toString() }.toTypedArray())
+                    .param("hyvaksyttyPvm", "2025-05-01"),
+            ).andExpect(status().is3xxRedirection)
+    }
+
+    private fun <T> auditlokilla(block: (ListAppender<ILoggingEvent>) -> T): T {
+        val auditLogger = LoggerFactory.getLogger(AUDIT_LOGGER_NAME) as LogbackLogger
+        val loki = ListAppender<ILoggingEvent>().apply { start() }
+        auditLogger.addAppender(loki)
+        try {
+            return block(loki)
+        } finally {
+            auditLogger.detachAppender(loki)
+            loki.stop()
+        }
+    }
+
+    private fun ListAppender<ILoggingEvent>.tapahtumat(): List<ILoggingEvent> = synchronized(this) { list.toList() }
+
+    private fun ListAppender<ILoggingEvent>.hyvaksyntaoperaatiot(): List<String> =
+        tapahtumat().map { it.formattedMessage }.filter { it.contains("YkiTarkistusarviointiHyvaksytty") }
+
+    private fun odotaHyvaksyntarivit(
+        loki: ListAppender<ILoggingEvent>,
+        maara: Int,
+    ): List<Map<String, String?>> {
+        val loppu = System.currentTimeMillis() + 5_000
+        while (true) {
+            val rivit =
+                loki
+                    .tapahtumat()
+                    .filter { it.message == "Yki tarkistusarviointi approved" }
+                    .map { tapahtuma -> tapahtuma.keyValuePairs.orEmpty().associate { it.key to it.value?.toString() } }
+            if (rivit.size >= maara || System.currentTimeMillis() > loppu) return rivit
+            Thread.sleep(20)
+        }
+    }
+
+    @Test
+    fun `hyvaksynta kirjataan auditlokiin myos ilman oppijanumeroa`() {
+        val virtanen = tallenna("Virtanen")
+        val nieminen = tallenna("Nieminen", oppijanumero = null)
+
+        auditlokilla { loki ->
+            hyvaksy(virtanen, nieminen)
+
+            val hyvaksytytVersiot =
+                suoritusRepository
+                    .findLatestBySolkiIds(listOf(virtanen.solkiId, nieminen.solkiId))
+                    .associateBy { it.solkiId }
+            assertEquals(
+                listOf(virtanen, nieminen)
+                    .map { suoritus ->
+                        mapOf(
+                            "suoritus.id" to hyvaksytytVersiot.getValue(suoritus.solkiId).id.toString(),
+                            "suoritus.solki_id" to suoritus.solkiId.toString(),
+                            "suoritus.suorittajan_oid" to suoritus.suorittajanOID?.toString(),
+                            "tarkistusarviointi.hyvaksymispaiva" to "2025-05-01",
+                            "principal.oid" to VIRKAILIJAN_OID,
+                        )
+                    }.toSet(),
+                odotaHyvaksyntarivit(loki, 2).toSet(),
+            )
+
+            val operaatio = loki.hyvaksyntaoperaatiot().single()
+            assertContains(operaatio, virtanen.suorittajanOID.toString())
+            assertContains(operaatio, VIRKAILIJAN_OID)
+        }
+    }
+
+    @Test
+    fun `epaonnistunutta hyvaksyntaa ei kirjata auditlokiin`() {
+        val kesken = tallenna("Kesken", kasitelty = null)
+
+        auditlokilla { loki ->
+            hyvaksy(kesken)
+
+            assertEquals(emptyList(), loki.hyvaksyntaoperaatiot())
         }
     }
 
