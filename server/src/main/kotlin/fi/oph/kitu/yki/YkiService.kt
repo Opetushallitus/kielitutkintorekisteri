@@ -262,13 +262,36 @@ class YkiService(
      * sovelluksen kasitys tasta paivasta on Europe/Helsinki, joten klo 21-24 UTC valilla
      * hyvaksyntapaiva olisi mennyt edelliselle paivalle.
      */
+    @Transactional
     @WithSpan
     fun hyvaksyTarkistusarvioinnit(
         suoritusIds: List<Int>,
         pvm: LocalDate?,
-    ): Either<HyvaksyTarkistusarviointiError, Int> =
-        suoritusRepository.hyvaksyTarkistusarvioinnit(
-            suoritusIds = suoritusIds,
-            pvm = pvm ?: timeService.today(),
-        )
+    ): Either<HyvaksyTarkistusarviointiError, Int> {
+        val hyvaksymispaiva = pvm ?: timeService.today()
+        return suoritusRepository
+            .hyvaksyTarkistusarvioinnit(
+                suoritusIds = suoritusIds,
+                pvm = hyvaksymispaiva,
+            ).onRight {
+                auditoiHyvaksytyt(suoritusRepository.findLatestBySolkiIds(suoritusIds), hyvaksymispaiva)
+            }
+    }
+
+    private fun auditoiHyvaksytyt(
+        suoritukset: List<YkiSuoritusEntity>,
+        hyvaksymispaiva: LocalDate,
+    ) {
+        auditLogger.logAllInternalOnly("Yki tarkistusarviointi approved", suoritukset) { suoritus ->
+            arrayOf(
+                "suoritus.id" to suoritus.id,
+                "suoritus.solki_id" to suoritus.solkiId,
+                "suoritus.suorittajan_oid" to suoritus.suorittajanOID,
+                "tarkistusarviointi.hyvaksymispaiva" to hyvaksymispaiva,
+            )
+        }
+        suoritukset.forEach { suoritus ->
+            suoritus.suorittajanOID?.let { auditLogger.log(AuditLogOperation.YkiTarkistusarviointiHyvaksytty, it) }
+        }
+    }
 }

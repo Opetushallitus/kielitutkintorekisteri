@@ -10,6 +10,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 
+const val VIRKAILIJAN_OID = "1.2.246.562.24.20281155246"
+
 fun virkailijaSession(
     asiointikieli: String? = null,
     authorities: List<Authority> = listOf(Authority.VIRKAILIJA),
@@ -17,7 +19,7 @@ fun virkailijaSession(
     val principal =
         CasUserDetails(
             name = "test-virkailija",
-            oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
+            oid = Oid.parse(VIRKAILIJAN_OID).getOrThrow(),
             strongAuth = false,
             kayttajaTyyppi = "VIRKAILIJA",
             asiointikieli = asiointikieli,
