@@ -16,6 +16,12 @@ data class UpdateOnConflict(
         """.trimIndent()
 }
 
+data class DoNothingOnConflict(
+    override val conflictTarget: ConflictTarget,
+) : ConflictHandler {
+    override fun toString() = "ON CONFLICT $conflictTarget DO NOTHING"
+}
+
 sealed interface ConflictTarget
 
 data class Constraint(
