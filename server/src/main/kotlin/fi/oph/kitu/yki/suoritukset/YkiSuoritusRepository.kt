@@ -7,6 +7,7 @@ import arrow.core.raise.ensureNotNull
 import fi.oph.kitu.jdbc.Columns
 import fi.oph.kitu.jdbc.ConflictHandler
 import fi.oph.kitu.jdbc.Constraint
+import fi.oph.kitu.jdbc.DoNothingOnConflict
 import fi.oph.kitu.jdbc.UpdateOnConflict
 import fi.oph.kitu.jdbc.sqlAll
 import fi.oph.kitu.oid.Oid
@@ -654,6 +655,7 @@ class YkiSuoritusRepository(
             "tarkistusarviointi_id" to tarkistusarvointiId,
             "arvosana_muuttui" to arvosanaMuuttui,
         ),
+        onConflict = DoNothingOnConflict(Constraint("yki_osakoe_tarkistusarviointi_unique")),
         returning = null,
     )
 

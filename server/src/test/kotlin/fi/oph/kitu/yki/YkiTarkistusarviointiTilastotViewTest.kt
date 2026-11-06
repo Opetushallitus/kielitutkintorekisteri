@@ -207,21 +207,6 @@ class YkiTarkistusarviointiTilastotViewTest(
     }
 
     @Test
-    fun `duplikaattiliitos ei kasvata lukuja`() {
-        tallenna("OPH-1", osakokeet = setOf(TutkinnonOsa.PU), muuttuneet = setOf(TutkinnonOsa.PU))
-        jdbc.execute(
-            "INSERT INTO yki_osakoe_tarkistusarviointi (osakoe_id, tarkistusarviointi_id, arvosana_muuttui) " +
-                "SELECT osakoe_id, tarkistusarviointi_id, arvosana_muuttui FROM yki_osakoe_tarkistusarviointi",
-        )
-
-        val sivu = sivu()
-
-        assertEquals(listOf("1", "1", "0"), sivu.rivi("Tarkistusarvioinnit"))
-        assertEquals(listOf("1", "1", "0"), sivu.rivi("Osakokeet yhteensä"))
-        assertEquals(listOf("1", "1", "0"), sivu.rivi("Puhuminen"))
-    }
-
-    @Test
     fun `osakoeliitokseton suoritus nakyy omana rivinaan`() {
         tallenna("OPH-1")
         jdbc.execute("DELETE FROM yki_osakoe_tarkistusarviointi")

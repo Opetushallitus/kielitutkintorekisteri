@@ -901,6 +901,42 @@ class YkiSuoritusRepositoryTest(
     }
 
     @Test
+    fun `Koski-siirron uudelleentallennus ei monista tarkistusarvioinnin liitoksia`() {
+        val suoritus =
+            generateRandomYkiSuoritusEntity().copy(
+                tarkistusarvioidutOsakokeet = setOf(TutkinnonOsa.puhuminen, TutkinnonOsa.kirjoittaminen),
+                arvosanaMuuttui = setOf(TutkinnonOsa.puhuminen),
+            )
+        val suoritusId = ykiSuoritusRepository.save(suoritus, false)
+
+        repeat(2) {
+            ykiSuoritusRepository.save(
+                suoritus.copy(
+                    koskiOpiskeluoikeus = createOid(OidClass.OPPIJA, 99999999991),
+                    koskiSiirtoKasitelty = true,
+                ),
+                updateOnConflict = true,
+                forceWrite = true,
+            )
+        }
+
+        assertEquals(listOf("KI" to false, "PU" to true), tarkistusarvioinninLiitokset(suoritusId))
+    }
+
+    private fun tarkistusarvioinninLiitokset(suoritusId: Int?): List<Pair<String, Boolean?>> =
+        jdbcTemplate.query(
+            """
+            SELECT o.tyyppi::text, l.arvosana_muuttui
+            FROM yki_osakoe_tarkistusarviointi l
+                JOIN yki_osakoe o ON o.id = l.osakoe_id
+            WHERE o.suoritus_id = ?
+            ORDER BY 1
+            """.trimIndent(),
+            { rs, _ -> rs.getString(1) to rs.getObject(2) as Boolean? },
+            suoritusId,
+        )
+
+    @Test
     fun `muuttumaton uudelleensiirto ei luo uutta versiota arviointitilan lahetyksen jalkeen`() {
         val suoritus = generateRandomYkiSuoritusEntity()
         ykiSuoritusRepository.save(suoritus, false)
