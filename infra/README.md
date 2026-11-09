@@ -724,6 +724,13 @@ Renovate's bumps by itself. Ignore lists live at the top of the script:
 central Control Tower tooling and AWS's own, not ours. A failing run is reported
 to Slack by `slack-notifier.yml`.
 
+Each job first waits (up to 45 min, then audits anyway with a warning) for
+in-flight `build.yml` runs on `main` to finish. A deploy in progress looks like
+drift: a stack being updated is `UPDATE_IN_PROGRESS`, which the script doesn't
+count as deployed, and an account the deploy chain hasn't reached yet lags
+behind the audited commit. On 9.11.2026 the audit overlapped the Test deploy by
+a minute and reported `Test-Service` as missing.
+
 Run it locally against one account with:
 
 ```bash
