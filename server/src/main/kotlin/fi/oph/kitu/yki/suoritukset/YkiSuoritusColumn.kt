@@ -299,7 +299,15 @@ enum class YkiSuoritusColumn(
         getValue = { it.koskiOpiskeluoikeus?.toString().orEmpty() },
     ),
 
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA, ColumnTag.VERSION_HISTORY_ONLY)
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    SolkiIdCsv(
+        entityName = "solki_id",
+        uiHeaderValue = UiText.Yki.Sarake.solkiTunniste,
+        urlParam = "solkiIdCsv",
+        getValue = { it.solkiId.toString() },
+    ),
+
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.PERSONAL_DATA, ColumnTag.VERSION_HISTORY_ONLY)
     SolkiId(
         entityName = "solki_id",
         uiHeaderValue = UiText.Yki.Sarake.solkiTunniste,
