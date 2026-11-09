@@ -31,11 +31,31 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      actions: read
     environment:
       name: ${{ matrix.environment }}
     env:
       TAG: ${{ github.sha }}
     steps:
+      # Kesken oleva deploy näyttää auditille ajautumalta: päivittyvä pino on
+      # UPDATE_IN_PROGRESS eikä lasketa deployatuksi (Test-Service 9.11.2026),
+      # ja tili, jolle deployketju ei ole vielä ehtinyt, on auditoitavaa
+      # committia jäljessä. Odotetaan siksi ennen AWS-kirjautumista, jotta
+      # OIDC-tunnusten tunnin voimassaolo ei kulu odotukseen.
+      - name: Wait for builds on main to finish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for _ in $(seq 90); do
+            kesken="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow build.yml --branch main \
+              --limit 20 --json status --jq '[.[] | select(.status != "completed")] | length')"
+            if [ "$kesken" = "0" ]; then
+              exit 0
+            fi
+            echo "Mainin build- ja deployajoja kesken: $kesken. Odotetaan 30 s..."
+            sleep 30
+          done
+          echo "::warning::Mainin deployt olivat yhä kesken 45 minuutin jälkeen. Auditoidaan silti."
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install tools
         uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5
