@@ -364,7 +364,8 @@ describe('"YKI Suoritukset" -page', () => {
         "Perustelu",
         "Tila lähetetty",
         "Opiskeluoikeus-OID",
-      ].join(";"),
+        "Solki-tunniste",
+      ].join(";") + "\n",
     )
   })
 

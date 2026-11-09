@@ -3,7 +3,9 @@ package fi.oph.kitu.yki.suoritukset
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.DisplayTableColumn
+import fi.oph.kitu.html.table.RenderableDisplayTableEnum
 import fi.oph.kitu.i18n.UiText
+import fi.oph.kitu.yki.YkiSuorituksetParams
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -61,6 +63,58 @@ class YkiSuoritusColumnTest {
             UiText.Yki.Sarake.rekisteriintuontiaika
                 .toString(),
         )
+    }
+
+    @Test
+    fun `solki-tunniste on CSV-viennin viimeinen sarake myos ilman versiohistoriaa`() {
+        val solkiTunniste =
+            UiText.Yki.Sarake.solkiTunniste
+                .toString()
+
+        listOf(false, true).forEach { versionHistory ->
+            val headers =
+                RenderableDisplayTableEnum
+                    .getByTags<YkiSuoritusColumn, YkiSuoritusEntity>(
+                        setOf(ColumnTag.CSV_EXPORT),
+                        YkiSuorituksetParams(versionHistory = versionHistory).excludeTags(),
+                    ).map { it.uiHeaderValue.toString() }
+
+            assertEquals(solkiTunniste, headers.last(), "versionHistory=$versionHistory")
+            assertEquals(1, headers.count { it == solkiTunniste }, "versionHistory=$versionHistory")
+        }
+    }
+
+    @Test
+    fun `solki-tunniste ei ole CSV-viennissa kun henkilotiedot piilotetaan`() {
+        val headers =
+            RenderableDisplayTableEnum
+                .getByTags<YkiSuoritusColumn, YkiSuoritusEntity>(
+                    setOf(ColumnTag.CSV_EXPORT),
+                    YkiSuorituksetParams(piilotaHenkilotiedot = true).excludeTags(),
+                ).map { it.uiHeaderValue.toString() }
+
+        assertFalse(
+            headers.contains(
+                UiText.Yki.Sarake.solkiTunniste
+                    .toString(),
+            ),
+        )
+    }
+
+    @Test
+    fun `solki-tunniste nakyy listanakymassa vain versiohistoriassa`() {
+        fun listHeaders(versionHistory: Boolean) =
+            DisplayTableColumn
+                .of<YkiSuoritusColumn, YkiSuoritusEntity>(
+                    setOf(ColumnTag.LIST_VIEW),
+                    YkiSuorituksetParams(versionHistory = versionHistory).excludeTags(),
+                ).map { it.label }
+
+        val solkiTunniste =
+            UiText.Yki.Sarake.solkiTunniste
+                .toString()
+        assertFalse(listHeaders(versionHistory = false).contains(solkiTunniste))
+        assertEquals(1, listHeaders(versionHistory = true).count { it == solkiTunniste })
     }
 
     @Test
