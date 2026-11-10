@@ -55,6 +55,51 @@ class KoealustaMappingServiceTest {
                 ),
         )
 
+    private fun kahdellaSuorituksella(ensimmaisenKoulu: String): User {
+        val oikea = antero.completions.single()
+        return antero.copy(
+            completions =
+                listOf(
+                    oikea.copy(courseid = 31, schoolOID = ensimmaisenKoulu, timecompleted = 1728000000),
+                    oikea,
+                ),
+        )
+    }
+
+    @Test
+    fun `virheellinen oppilaitoksen OID kirjataan virheeksi eika ohita henkilon suorituksia`() {
+        val onr = LaskevaOnr().apply { oppijanumero = anteronOppijanumero }
+
+        val (suoritukset, virhe) =
+            muunna(onr, ensimmainenAjo, user = kahdellaSuorituksella("1.2.246.562.10.4292323001x"))
+
+        assertAll(
+            fun() = assertEquals(listOf(32), suoritukset.map { it.kurssiId }),
+            fun() = assertEquals(Instant.ofEpochSecond(1728000000), virhe?.varhaisinEpaonnistunutSuoritus),
+            fun() =
+                assertTrue(
+                    virhe!!
+                        .validationErrors
+                        .filterIsInstance<KoealustaMappingError.ValidationFailure>()
+                        .flatMap { it.validationErrors }
+                        .any { it is KoealustaMappingError.Validation.MalformedField && it.field == "schoolOID" },
+                ),
+        )
+    }
+
+    @Test
+    fun `testioppilaitoksen suoritus ohitetaan ilman etta saman henkilon muut suoritukset katoavat`() {
+        val onr = LaskevaOnr().apply { oppijanumero = anteronOppijanumero }
+
+        val (suoritukset, virhe) =
+            muunna(onr, ensimmainenAjo, user = kahdellaSuorituksella("1.2.246.562.10.1234567890"))
+
+        assertAll(
+            fun() = assertEquals(listOf(32), suoritukset.map { it.kurssiId }),
+            fun() = assertNull(virhe),
+        )
+    }
+
     @Test
     fun `toistuvalle henkilötietovirheelle tehdään vain oppijanumeron haku ilman vianetsintää`() {
         val onr = LaskevaOnr()

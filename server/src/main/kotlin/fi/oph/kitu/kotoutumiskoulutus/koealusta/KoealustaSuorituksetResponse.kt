@@ -15,9 +15,6 @@ interface KoealustaOppija {
 
     fun firstCourse(): KoealustaCourse?
 
-    fun mustBeSkipped(): Boolean =
-        Oid.parse(firstCourse()?.schoolOID).getOrNull().let { oid -> ignoredSchoolOids.contains(oid) }
-
     fun isOnrValidateable(): Boolean =
         listOf(firstnames, lastname, preferredname, ssn).all { it.orEmpty().isNotBlank() }
 }
@@ -29,6 +26,9 @@ interface KoealustaCourse {
     val teacheremail: String?
 
     fun suoritusaika(): Instant? = null
+
+    fun onOhitettavaOppilaitos(): Boolean =
+        schoolOID.isNullOrBlank() || Oid.parse(schoolOID).getOrNull() in ignoredSchoolOids
 }
 
 data class KoealustaSuorituksetResponse(
@@ -46,6 +46,8 @@ data class KoealustaSuorituksetResponse(
         val completions: List<Completion>,
     ) : KoealustaOppija {
         override fun firstCourse(): KoealustaCourse? = completions.firstOrNull()
+
+        fun ilmanOhitettaviaOppilaitoksia() = copy(completions = completions.filterNot { it.onOhitettavaOppilaitos() })
 
         data class Completion(
             override val courseid: Int,
@@ -84,6 +86,8 @@ data class KoealustaKeskeneraisetResponse(
     ) : KoealustaOppija {
         override fun firstCourse(): KoealustaCourse? = courses.firstOrNull()
 
+        fun ilmanOhitettaviaOppilaitoksia() = copy(courses = courses.filterNot { it.onOhitettavaOppilaitos() })
+
         data class Course(
             override val courseid: Int,
             override val coursename: String,
@@ -95,6 +99,5 @@ data class KoealustaKeskeneraisetResponse(
 
 val ignoredSchoolOids =
     listOf(
-        null,
         Oid.parse("1.2.246.562.10.1234567890").getOrThrow(),
     )

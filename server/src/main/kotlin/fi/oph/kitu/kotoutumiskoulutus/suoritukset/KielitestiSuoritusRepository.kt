@@ -71,8 +71,8 @@ class CustomKielitestiSuoritusRepository(
         val sql =
             """
             SELECT * from (
-                SELECT DISTINCT ON (kurssi_id, oppijanumero, suoritusaika) * FROM koto_suoritus
-                ORDER BY kurssi_id, oppijanumero, suoritusaika, last_modified DESC
+                SELECT DISTINCT ON (kurssi_id, oppijanumero, suoritusaika, $KESKENERAINEN_OMANA_RIVINA) * FROM koto_suoritus
+                ORDER BY kurssi_id, oppijanumero, suoritusaika, $KESKENERAINEN_OMANA_RIVINA, last_modified DESC
                 )
             ${haku.whereSql().orEmpty()}
             ORDER BY $order
@@ -87,8 +87,8 @@ class CustomKielitestiSuoritusRepository(
         val sql =
             """
             SELECT count(*) from (
-                SELECT DISTINCT ON (kurssi_id, oppijanumero, suoritusaika) * FROM koto_suoritus
-                ORDER BY kurssi_id, oppijanumero, suoritusaika, last_modified DESC
+                SELECT DISTINCT ON (kurssi_id, oppijanumero, suoritusaika, $KESKENERAINEN_OMANA_RIVINA) * FROM koto_suoritus
+                ORDER BY kurssi_id, oppijanumero, suoritusaika, $KESKENERAINEN_OMANA_RIVINA, last_modified DESC
                 )
             ${haku.whereSql().orEmpty()}
             """.trimIndent()
@@ -215,11 +215,13 @@ data class KielitestiSuoritusFilter(
     }
 }
 
+private const val KESKENERAINEN_OMANA_RIVINA = "CASE WHEN completed THEN NULL ELSE id END"
+
 data class KielitestiSuoritusOrder(
     override val sortColumn: KielitestiSuoritusColumn = KielitestiSuoritusColumn.Suoritusaika,
     override val sortDirection: SortDirection = SortDirection.DESC,
     override val pageNumber: Int? = 0,
     override val pageSize: Int = PAGINATED_DEFAULT_PAGE_SIZE,
 ) : PaginatedSortOrder<KielitestiSuoritusColumn> {
-    override fun toString(): String = orderSql()
+    override fun toString(): String = "${orderSql()}, id"
 }

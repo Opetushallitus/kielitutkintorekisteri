@@ -167,6 +167,24 @@ class KielitestiSuoritusRepositoryTest(
     }
 
     @Test
+    fun `saman kurssin keskeneraiset nakyvat kukin omana rivinaan`() {
+        kielitestiSuoritusRepository.deleteAll()
+        val keskenerainen = suoritusRaija.copy(oppijanumero = null, suoritusaika = null, completed = false)
+        kielitestiSuoritusRepository.saveAll(
+            listOf(
+                keskenerainen,
+                keskenerainen.copy(etunimet = "Toinen", sukunimi = "Opiskelija", email = "toinen@testi.oph.fi"),
+            ),
+        )
+        val filter = KielitestiSuoritusFilter(naytettavatSuoritukset = NaytettavatSuoritukset.KESKENERAISET)
+
+        assertAll(
+            fun () = assertEquals(2, customKielitestiSuoritusRepository.findSuoritukset(filter).size),
+            fun () = assertEquals(2, customKielitestiSuoritusRepository.countSuoritukset(filter)),
+        )
+    }
+
+    @Test
     fun `varhaisin suoritusaika ohittaa keskeneräiset suoritukset`() {
         kielitestiSuoritusRepository.save(
             suoritusJennika.copy(
