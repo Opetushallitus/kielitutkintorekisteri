@@ -108,18 +108,31 @@ class VktErinomaisenArviointiTest(
         auditLogger.addAppender(loki)
         try {
             tallenna(suoritus, osakoeId).andExpect(status().is3xxRedirection)
+            assertTrue(odotaAuditoitu(loki, osakoeId), "Osakoetta $osakoeId ei kirjattu auditlokiin")
         } finally {
             auditLogger.detachAppender(loki)
             loki.stop()
         }
 
         assertEquals(Koodisto.VktArvosana.Hylätty, arvosanaKannassa(osakoeId))
-        assertTrue(
-            loki.list
-                .flatMap { it.keyValuePairs.orEmpty() }
-                .any { it.key == "osakoe.id" && it.value == osakoeId },
-        )
         assertTrue(loki.list.any { it.formattedMessage.contains("VktArviointiTallennettu") })
+    }
+
+    private fun odotaAuditoitu(
+        loki: ListAppender<ILoggingEvent>,
+        osakoeId: Int,
+    ): Boolean {
+        val loppu = System.currentTimeMillis() + 5_000
+        while (System.currentTimeMillis() < loppu) {
+            val loytyi =
+                loki.list
+                    .toList()
+                    .flatMap { it.keyValuePairs.orEmpty() }
+                    .any { it.key == "osakoe.id" && it.value == osakoeId }
+            if (loytyi) return true
+            Thread.sleep(20)
+        }
+        return false
     }
 
     @Test
