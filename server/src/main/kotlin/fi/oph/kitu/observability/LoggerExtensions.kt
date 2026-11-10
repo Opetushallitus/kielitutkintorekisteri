@@ -12,11 +12,18 @@ import org.springframework.http.HttpHeaders
 fun LoggingEventBuilder.addServletRequest(request: HttpServletRequest): LoggingEventBuilder =
     add(
         UrlAttributes.URL_PATH.toString() to request.requestURI,
-        UrlAttributes.URL_QUERY.toString() to request.queryString,
+        UrlAttributes.URL_QUERY.toString() to kyselynParametrienNimet(request.queryString),
         UrlAttributes.URL_SCHEME.toString() to (request.scheme ?: "http"),
         HttpAttributes.HTTP_REQUEST_METHOD.toString() to request.method,
         UserAgentAttributes.USER_AGENT_ORIGINAL.toString() to request.getHeader(HttpHeaders.USER_AGENT),
     )
+
+fun kyselynParametrienNimet(queryString: String?): String? =
+    queryString
+        ?.split('&')
+        ?.filter { it.isNotEmpty() }
+        ?.joinToString("&") { if ('=' in it) "${it.substringBefore('=')}=*" else it }
+        ?.ifEmpty { null }
 
 fun LoggingEventBuilder.addServletResponse(response: HttpServletResponse): LoggingEventBuilder =
     add(

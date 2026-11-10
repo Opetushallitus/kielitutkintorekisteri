@@ -23,7 +23,7 @@ class AccessLoggingConfiguration {
                 try {
                     filterChain.doFilter(request, response)
                 } finally {
-                    if (request.requestURI != "/actuator/health") {
+                    if (request.servletPath != "/actuator/health") {
                         logFilterLogger
                             .atInfo()
                             .addServletResponse(response)
