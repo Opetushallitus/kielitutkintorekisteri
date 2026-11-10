@@ -95,7 +95,7 @@ class VktViewController(
         @ModelAttribute params: VktUusintaoikeusParams = VktUusintaoikeusParams(),
     ): ResponseEntity<String> =
         ResponseEntity.ok(
-            VktUusintaoikeudetPage.render(uusintaoikeudet.findUusintaanOikeutetut(params), params),
+            VktUusintaoikeudetPage.render(uusintaoikeudet.findForView(params), params),
         )
 
     private fun redirectToSuorituksetView(filter: VktSuoritusFilter): RedirectView {
