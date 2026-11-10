@@ -85,6 +85,12 @@ class YkiService(
 
     fun findSuoritusById(id: Int): YkiSuoritusEntity? =
         suoritusRepository.findById(id).also { suoritus ->
+            auditLogger.logAllInternalOnly("Yki suoritus viewed", listOfNotNull(suoritus)) {
+                arrayOf(
+                    "suoritus.id" to it.id,
+                    "suoritus.solki_id" to it.solkiId,
+                )
+            }
             suoritus?.suorittajanOID?.let { oid ->
                 auditLogger.log(AuditLogOperation.YkiSuoritusViewed, oid)
             }
@@ -211,7 +217,14 @@ class YkiService(
 
     @WithSpan
     fun findLatestBySolkiIds(solkiIds: List<Int>): List<YkiSuoritusEntity> =
-        suoritusRepository.findLatestBySolkiIds(solkiIds)
+        suoritusRepository.findLatestBySolkiIds(solkiIds).also { suoritukset ->
+            auditLogger.logAllInternalOnly("Yki suoritus viewed", suoritukset) { suoritus ->
+                arrayOf(
+                    "suoritus.id" to suoritus.id,
+                    "suoritus.solki_id" to suoritus.solkiId,
+                )
+            }
+        }
 
     @WithSpan
     fun findTarkistusarvioidut(

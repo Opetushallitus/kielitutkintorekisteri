@@ -46,6 +46,10 @@ class VktUusintaoikeusService(
         )
     }
 
+    @WithSpan("VktUusintaoikeusService.findForView")
+    fun findForView(params: VktUusintaoikeusParams): VktUusintaoikeusraportti =
+        findUusintaanOikeutetut(params).also { kirjaaKatselu("VKT uusintaoikeudet viewed", it) }
+
     @WithSpan("VktUusintaoikeusService.findForCsv")
     fun findForCsv(params: VktUusintaoikeusParams): VktUusintaoikeusraportti {
         val raportti = findUusintaanOikeutetut(params)

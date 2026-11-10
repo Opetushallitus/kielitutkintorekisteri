@@ -40,7 +40,14 @@ class VktSuoritusService(
         filter: VktSuoritusFilter,
         order: VktSuoritusOrder,
     ) = Pair(
-        customSuoritusRepository.find(filter, order),
+        customSuoritusRepository.find(filter, order).also { suoritukset ->
+            auditLogger.logAllInternalOnly("VKT suoritus viewed", suoritukset) { suoritus ->
+                arrayOf(
+                    "suoritus.id" to suoritus.suoritusId,
+                    "suoritus.oppijanumero" to suoritus.suorittajanOid,
+                )
+            }
+        },
         getPagination(filter, order),
     )
 
