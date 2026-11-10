@@ -16,11 +16,13 @@ import org.springframework.security.authentication.event.AuthenticationFailureBa
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent
 import org.springframework.security.authentication.event.LogoutSuccessEvent
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import ch.qos.logback.classic.Logger as LogbackLogger
 
 class AuthEventAuditListenerTest {
@@ -80,6 +82,25 @@ class AuthEventAuditListenerTest {
         assertEquals("evil-user", kv["auth.attempted_name"])
         assertEquals("BadCredentialsException", kv["auth.failure_reason"])
         assertNull(kv["auth.principal_oid"], "Failed auth has no resolved CasUserDetails principal")
+    }
+
+    @Test
+    fun `hylatty bearer-token ei paady audit-lokiin yritettyna nimena`() {
+        val auth = BearerTokenAuthenticationToken("eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ4In0.allekirjoitus")
+
+        fire(
+            listener.authenticationFailureAuditListener(),
+            AuthenticationFailureBadCredentialsEvent(auth, BadCredentialsException("expired")),
+        )
+
+        val kv =
+            listAppender.list
+                .single()
+                .keyValuePairs
+                .associate { it.key to it.value }
+        assertEquals("auth.failure", kv["event"])
+        assertNull(kv["auth.attempted_name"])
+        assertTrue(kv.values.none { it?.toString().orEmpty().contains("eyJ") })
     }
 
     @Test

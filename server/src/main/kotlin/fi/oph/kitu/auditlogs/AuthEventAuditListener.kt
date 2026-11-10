@@ -12,6 +12,7 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.security.authentication.event.LogoutSuccessEvent
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 
@@ -41,7 +42,7 @@ class AuthEventAuditListener {
                 .atInfo()
                 .add(*commonFields("auth.failure", event))
                 .add(
-                    "auth.attempted_name" to event.authentication.name,
+                    "auth.attempted_name" to yritettyNimi(event.authentication),
                     "auth.failure_reason" to event.exception.javaClass.simpleName,
                 ).log("Spring Security auth event")
         }
@@ -65,6 +66,9 @@ class AuthEventAuditListener {
             "auth.remote_addr" to remoteAddr(),
             "auth.timestamp" to evt.timestamp,
         )
+
+    private fun yritettyNimi(authentication: Authentication): String? =
+        if (authentication is BearerTokenAuthenticationToken) null else authentication.name
 
     private fun principalOid(authentication: Authentication?): String? =
         when (val principal = authentication?.principal) {

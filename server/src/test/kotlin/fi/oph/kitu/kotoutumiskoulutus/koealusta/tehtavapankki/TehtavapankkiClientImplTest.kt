@@ -1,17 +1,22 @@
 package fi.oph.kitu.kotoutumiskoulutus.koealusta.tehtavapankki
 
+import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import org.springframework.test.web.client.response.MockRestResponseCreators.withException
 import org.springframework.test.web.client.response.MockRestResponseCreators.withServerError
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
+import java.net.SocketTimeoutException
 import java.time.Instant
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 
 class TehtavapankkiClientImplTest {
     @Test
@@ -88,8 +93,46 @@ class TehtavapankkiClientImplTest {
                 downloadUrl = "https://example.test/koto/pluginfile.php/9/qb.xml",
             )
 
-        assertFailsWith<RestClientResponseException> {
-            client.downloadXml(meta)
+        val ex =
+            assertFailsWith<RestClientResponseException> {
+                client.downloadXml(meta)
+            }
+        assertFalse(ex.message.orEmpty().contains("testitoken"), ex.message)
+    }
+
+    @Test
+    fun `yhteysvirheen viestissa ei ole tokenia`() {
+        val builder = RestClient.builder()
+        val mockServer = MockRestServiceServer.bindTo(builder).build()
+        mockServer
+            .expect(requestTo("https://example.test/koto/pluginfile.php/9/qb.xml?token=testitoken"))
+            .andRespond(withException(SocketTimeoutException("Read timed out")))
+        mockServer
+            .expect(requestTo(startsWith("https://example.test/koto/webservice/rest/server.php?wstoken=testitoken")))
+            .andRespond(withException(SocketTimeoutException("Read timed out")))
+
+        val client =
+            TehtavapankkiClientImpl(builder).apply {
+                koealustaToken = "testitoken"
+                koealustaBaseUrl = "https://example.test/koto"
+            }
+        val meta =
+            QuestionBankMetadata(
+                courseId = 9,
+                courseName = "Suomi",
+                published = Instant.ofEpochMilli(0),
+                generated = Instant.ofEpochMilli(0),
+                version = "v1",
+                language = "fin",
+                downloadUrl = "https://example.test/koto/pluginfile.php/9/qb.xml",
+            )
+
+        val lataus = assertFailsWith<ResourceAccessException> { client.downloadXml(meta) }
+        val listaus = assertFailsWith<ResourceAccessException> { client.listQuestionBanks() }
+
+        for (ex in listOf(lataus, listaus)) {
+            assertFalse(ex.stackTraceToString().contains("testitoken"), ex.stackTraceToString())
+            assertContains(ex.message.orEmpty(), "Read timed out")
         }
     }
 

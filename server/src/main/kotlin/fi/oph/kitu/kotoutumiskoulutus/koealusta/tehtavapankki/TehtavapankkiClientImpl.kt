@@ -82,35 +82,37 @@ class TehtavapankkiClientImpl(
                 .queryParam("token", koealustaToken)
                 .build()
                 .toUri()
-        return FileXmlSource(spoolToTempFile(uri), deleteOnClose = true)
+        return FileXmlSource(spoolToTempFile(uri, meta.downloadUrl), deleteOnClose = true)
     }
 
-    private fun spoolToTempFile(uri: URI) =
-        Files.createTempFile("tehtavapankki-", ".xml").apply {
-            try {
-                restClient.get().uri(uri).exchange { _, response ->
-                    if (!response.statusCode.is2xxSuccessful) {
-                        throw RestClientResponseException(
-                            "Tehtäväpankin XML-lataus epäonnistui ($uri): ${response.statusCode}",
-                            response.statusCode,
-                            response.statusText,
-                            response.headers,
-                            null,
-                            null,
-                        )
-                    }
-                    response.body.buffered().use { body ->
-                        if (!startsWithXml(body)) {
-                            throw nonXmlDownloadException(uri, body)
-                        }
-                        Files.newOutputStream(this).use { out -> body.copyTo(out) }
-                    }
+    private fun spoolToTempFile(
+        uri: URI,
+        naytettavaOsoite: String,
+    ) = Files.createTempFile("tehtavapankki-", ".xml").apply {
+        try {
+            restClient.get().uri(uri).exchange { _, response ->
+                if (!response.statusCode.is2xxSuccessful) {
+                    throw RestClientResponseException(
+                        "Tehtäväpankin XML-lataus epäonnistui ($naytettavaOsoite): ${response.statusCode}",
+                        response.statusCode,
+                        response.statusText,
+                        response.headers,
+                        null,
+                        null,
+                    )
                 }
-            } catch (e: Throwable) {
-                Files.deleteIfExists(this)
-                throw e
+                response.body.buffered().use { body ->
+                    if (!startsWithXml(body)) {
+                        throw nonXmlDownloadException(naytettavaOsoite, body)
+                    }
+                    Files.newOutputStream(this).use { out -> body.copyTo(out) }
+                }
             }
+        } catch (e: Throwable) {
+            Files.deleteIfExists(this)
+            throw e
         }
+    }
 
     private fun startsWithXml(input: BufferedInputStream): Boolean {
         val limit = 64
@@ -137,12 +139,14 @@ class TehtavapankkiClientImpl(
     }
 
     private fun nonXmlDownloadException(
-        uri: URI,
+        naytettavaOsoite: String,
         body: InputStream,
     ): TehtavapankkiDownloadException {
         val snippet = body.readNBytes(2_000).toString(Charsets.UTF_8)
         val detail = moodleErrorDetail(snippet.toJsonNode()) ?: snippet.take(200)
-        return TehtavapankkiDownloadException("Tehtäväpankin XML-lataus ($uri) palautti ei-XML-sisältöä: $detail")
+        return TehtavapankkiDownloadException(
+            "Tehtäväpankin XML-lataus ($naytettavaOsoite) palautti ei-XML-sisältöä: $detail",
+        )
     }
 
     private fun moodleErrorDetail(node: JsonNode): String? {
