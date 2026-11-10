@@ -56,7 +56,6 @@ class CasConfig {
             setAuthenticationUserDetailsService(casUserDetailsService)
             setServiceProperties(serviceProperties)
             setTicketValidator(ticketValidator)
-            setStatelessTicketCache(CasStatelessTicketCache())
             setKey("kitu")
         }
 
