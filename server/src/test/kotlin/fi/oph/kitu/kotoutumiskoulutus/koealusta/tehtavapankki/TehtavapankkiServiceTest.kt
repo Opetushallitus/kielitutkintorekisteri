@@ -745,6 +745,29 @@ class TehtavapankkiServiceTest(
     }
 
     @Test
+    fun `removeDuplicates ei poista XML-versioiden yhteisia assetteja`() {
+        s3Client.putObject(
+            { it.bucket(TEST_BUCKET).key("42-Suomi_alkeet/2026-01-01T00-00-00-0 assets/a.mp3") },
+            RequestBody.fromString("aanitiedosto"),
+        )
+        s3Client.putObject(
+            { it.bucket(TEST_BUCKET).key("42-Suomi_alkeet/2026-02-01T00-00-00-0 assets/a.mp3") },
+            RequestBody.fromString("aanitiedosto"),
+        )
+
+        val result = tehtavapankkiService.removeDuplicates()
+
+        assertEquals(emptyList(), result!!.deleted)
+        assertEquals(
+            2,
+            s3Client
+                .listObjectsV2 { it.bucket(TEST_BUCKET) }
+                .contents()
+                .size,
+        )
+    }
+
+    @Test
     fun `removeDuplicates ei poista mitaan kun bucket on tyhja`() {
         val result = tehtavapankkiService.removeDuplicates()
 

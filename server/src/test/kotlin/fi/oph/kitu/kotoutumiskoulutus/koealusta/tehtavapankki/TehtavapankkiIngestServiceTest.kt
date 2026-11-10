@@ -171,6 +171,27 @@ class TehtavapankkiIngestServiceTest(
     }
 
     @Test
+    fun `vanhan kansion sama sisalto paivittaa vain vastaavan paketin lahdetiedot`() {
+        val vanhaKey = "42-Suomi_alkeet/2026-01-01T00:00:00-fg1700000000-0.xml"
+        val uusiKey = "42-Suomi_uusi_nimi/2026-02-01T00:00:00-fg1800000000-0.xml"
+        s3Client.putObject({ it.bucket(TEST_BUCKET).key(vanhaKey) }, RequestBody.fromBytes(xmlBytes))
+        s3Client.putObject(
+            { it.bucket(TEST_BUCKET).key(uusiKey) },
+            RequestBody.fromString("""<?xml version="1.0"?><quiz></quiz>"""),
+        )
+        ingestService.ingestFromS3(vanhaKey)
+        Thread.sleep(20)
+        val uusin = (ingestService.ingestFromS3(uusiKey) as Either.Right).value
+
+        ingestService.ingestFromS3(vanhaKey)
+
+        assertEquals(
+            Instant.ofEpochSecond(1800000000).atOffset(ZoneOffset.UTC),
+            repository.findPakettiById(uusin.id!!)!!.lahdeFilegenerated,
+        )
+    }
+
+    @Test
     fun `ingest palauttaa NotFound kun XML ta ei loydy bucketista`() {
         val result = ingestService.ingestFromS3("ei-olemassa.xml")
         assertIs<Either.Left<TehtavapankkiParseError>>(result)

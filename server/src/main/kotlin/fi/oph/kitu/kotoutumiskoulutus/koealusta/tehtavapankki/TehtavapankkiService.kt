@@ -67,6 +67,17 @@ class TehtavapankkiService(
                 .atZone(TimeService.zoneId)
                 .toLocalDateTime()
                 .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        try {
+            uploadEach(now, downloads)
+        } finally {
+            downloads.forEach { runCatching { it.close() } }
+        }
+    }
+
+    private fun uploadEach(
+        now: String,
+        downloads: List<QuestionBankDownload>,
+    ) {
         downloads.forEachIndexed { index, download ->
             val meta = download.metadata
             val sanitizedCoursename = sanitizeFilename(meta.courseName)
@@ -182,9 +193,11 @@ class TehtavapankkiService(
         }
 
     /**
-     * Poistaa kustakin "kansiosta" (avaimen `/`-prefiksi) duplikaatti-objektit:
-     * objektit, joilla on sama koko ja ETag (eli sama sisältö). Vanhin pidetään,
-     * loput poistetaan. Eri kansioiden välillä ei verrata.
+     * Poistaa kustakin "kansiosta" (avaimen `/`-prefiksi) duplikaatti-XML:t:
+     * kansion suorat `.xml`-objektit, joilla on sama koko ja ETag (eli sama sisältö).
+     * Vanhin pidetään, loput poistetaan. Eri kansioiden välillä ei verrata.
+     * Assetteja (`… assets/…`) ei verrata, koska `tehtava_tiedosto.s3_avain`
+     * viittaa niihin, eikä samaa sisältöä ladata uudelleen hash-osuman jälkeen.
      */
     @WithSpan
     fun removeDuplicates(): CleanupResult? =
@@ -197,7 +210,7 @@ class TehtavapankkiService(
 
             val toDelete =
                 objects
-                    .filter { it.key().contains("/") }
+                    .filter { it.key().onKurssikansionXml() }
                     .groupBy { it.key().substringBefore("/") }
                     .flatMap { (_, folderObjects) ->
                         folderObjects
@@ -381,3 +394,8 @@ internal fun TehtavapankkiQuiz.allEmbeddedFiles(): List<EmbeddedFile> =
             is CategoryQuestion, is UnknownQuestion -> emptyList()
         }
     }
+
+private fun String.onKurssikansionXml(): Boolean {
+    val kansionSisalla = substringAfter("/", "")
+    return kansionSisalla.isNotEmpty() && "/" !in kansionSisalla && kansionSisalla.endsWith(".xml")
+}

@@ -76,9 +76,9 @@ class TehtavapankkiIngestService(
         val source = MoodleSourceIdentifiers.fromS3Key(xmlKey)
         val lahde = readLahdeMetadata(xmlKey, source)
 
-        if (repository.existsByVersionHash(LAHDEJARJESTELMA, source.lahdeId, versioHash)) {
+        repository.findPakettiByVersionHash(LAHDEJARJESTELMA, source.lahdeId, versioHash)?.let { sama ->
             Span.current().setAttribute("ingest.dedup", true)
-            return refreshLahdeMetadata(source, lahde).right()
+            return refreshLahdeMetadata(sama, lahde).right()
         }
 
         val quiz =
@@ -112,15 +112,14 @@ class TehtavapankkiIngestService(
     // silti, jotta seuraava import skippaa latauksen ja näkymä esittää
     // tuoreimmat lähde-arvot.
     private fun refreshLahdeMetadata(
-        source: MoodleSourceIdentifiers,
+        paketti: TehtavapakettiEntity,
         lahde: LahdeMetadata,
     ): TehtavapakettiEntity =
         transactionTemplate.execute {
-            val latest = repository.findLatestPakettiBySource(LAHDEJARJESTELMA, source.lahdeId)!!
-            val merged = lahde.mergeInto(latest)
-            if (merged != latest) {
+            val merged = lahde.mergeInto(paketti)
+            if (merged != paketti) {
                 repository.updateLahdeMetadata(
-                    id = latest.id!!,
+                    id = paketti.id!!,
                     lahdeFilegenerated = merged.lahdeFilegenerated,
                     lahdePublished = merged.lahdePublished,
                     lahdeVersion = merged.lahdeVersion,
