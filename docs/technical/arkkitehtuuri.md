@@ -78,9 +78,11 @@ Ajastus toteutetaan `db-scheduler`-kirjastolla, ja tehtävien aktivointi ohjataa
 profiilikohtaisilla propertyilla. Sovellus tarjoaa db-scheduler UI:n sisäänkirjautuneille
 virkailijoille. Tehtäväluettelo: [Eräajot](../db-scheduler).
 
-`db-scheduler-log`-laajennus on kopioitu paikallisesti hakemistoon
-`server/src/main/kotlin/io/rocketbase/extension/` (0.7.0 relocatoituna Spring Boot 4:ään), kunnes
-upstream julkaisee SB4-yhteensopivan version. Paluuohjeet ovat paketin omassa README:ssä.
+Ajohistorian kirjoittaa tauluun `scheduled_execution_logs` db-scheduler UI:n oma lokikirjoitin
+(`db-scheduler-ui.log.enabled=true`), ja UI:n historianäkymä lukee sitä
+(`db-scheduler-ui.history=true`). Se korvasi 11/2026 `db-scheduler-log`-laajennuksen, jota
+projektissa ylläpidettiin omana kopiona, koska sen upstream ei julkaissut Spring Boot 4
+-yhteensopivaa versiota.
 
 ## Frontend
 
