@@ -201,27 +201,28 @@ class TehtavapankkiRepository(
             ).firstOrNull()
 
     @WithSpan
-    fun existsByVersionHash(
+    fun findPakettiByVersionHash(
         lahdejarjestelma: String,
         lahdeId: String,
         versioHash: String,
-    ): Boolean =
-        jdbc.queryForObject(
-            """
-            SELECT EXISTS (
-                SELECT 1 FROM tehtavapaketti
+    ): TehtavapakettiEntity? =
+        jdbc
+            .query(
+                """
+                SELECT * FROM tehtavapaketti
                 WHERE lahdejarjestelma = :lahdejarjestelma
                   AND lahde_id = :lahde_id
                   AND versio_hash = :versio_hash
-            )
-            """.trimIndent(),
-            mapOf(
-                "lahdejarjestelma" to lahdejarjestelma,
-                "lahde_id" to lahdeId,
-                "versio_hash" to versioHash,
-            ),
-            Boolean::class.java,
-        ) ?: false
+                ORDER BY luotu DESC
+                LIMIT 1
+                """.trimIndent(),
+                mapOf(
+                    "lahdejarjestelma" to lahdejarjestelma,
+                    "lahde_id" to lahdeId,
+                    "versio_hash" to versioHash,
+                ),
+                TehtavapakettiEntity.fromRow,
+            ).firstOrNull()
 
     @WithSpan
     fun findTehtavatByPakettiId(pakettiId: Int): List<TehtavaEntity> =

@@ -18,9 +18,10 @@ class TehtavapankkiImportService(
     /**
      * Ajastetun tehtävän kokonaisuus: lataa tehtäväpankit S3:een, siivoaa
      * duplikaatit ja ingestoi kunkin kurssin uusimman XML:n tietokantaan.
-     * Yhden paketin epäonnistuminen ei estä muiden ingestiä; jos yksikin
-     * lataus tai ingest epäonnistui, heitetään lopuksi
+     * Yhden paketin Moodle-virhe tai ingest-virhe ei estä muiden ingestiä; jos
+     * yksikin lataus tai ingest epäonnistui, heitetään lopuksi
      * [TehtavapankkiImportException] jotta tehtävä menee FAILED-tilaan.
+     * Latauksen ei-2xx-vastaus kaataa sen sijaan koko ajon heti (fail-fast).
      */
     @WithSpan
     fun importAndIngest() {

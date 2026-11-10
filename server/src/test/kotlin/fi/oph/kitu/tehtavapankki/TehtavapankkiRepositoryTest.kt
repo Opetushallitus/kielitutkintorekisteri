@@ -10,8 +10,8 @@ import org.springframework.dao.DuplicateKeyException
 import org.springframework.jdbc.core.JdbcTemplate
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @SpringBootTest
@@ -180,9 +180,9 @@ class TehtavapankkiRepositoryTest(
         Thread.sleep(20) // varmistaa eri 'luotu'-aikaleimat
         val v2 = seedPaketti(versioHash = "hash-v2")
 
-        assertTrue(repo.existsByVersionHash("moodle.koealusta", "42", "hash-v1"))
-        assertTrue(repo.existsByVersionHash("moodle.koealusta", "42", "hash-v2"))
-        assertFalse(repo.existsByVersionHash("moodle.koealusta", "42", "hash-v3"))
+        assertEquals("hash-v1", repo.findPakettiByVersionHash("moodle.koealusta", "42", "hash-v1")?.versioHash)
+        assertEquals("hash-v2", repo.findPakettiByVersionHash("moodle.koealusta", "42", "hash-v2")?.versioHash)
+        assertNull(repo.findPakettiByVersionHash("moodle.koealusta", "42", "hash-v3"))
 
         val latest = repo.findLatestPakettiBySource("moodle.koealusta", "42")
         assertNotNull(latest)
