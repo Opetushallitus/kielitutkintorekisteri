@@ -4,6 +4,7 @@ import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
 import fi.oph.kitu.dev.mockdata.VktSuoritusMockGenerator
 import fi.oph.kitu.koodisto.Koodisto
+import fi.oph.kitu.koski.KoskiClient
 import fi.oph.kitu.koski.KoskiErrorService
 import fi.oph.kitu.koski.KoskiService
 import fi.oph.kitu.koski.KoskiVktRequestMapper
@@ -74,7 +75,7 @@ class VktKoskiKirjanpitoTest(
                 ).createResponse(req)
             }
         return KoskiService(
-            restClientBuilder.build(),
+            KoskiClient(restClientBuilder.build()),
             koskiYkiRequestMapper,
             koskiVktRequestMapper,
             ykiSuoritusRepository,
@@ -133,7 +134,7 @@ class VktKoskiKirjanpitoTest(
                 LocalDate.of(2026, 10, 1),
             )
         }
-        vktSuoritusService.requestTransferToKoski(ryhma)
+        customSuoritusRepository.requestTransferToKoski(ryhma)
     }
 
     @Test
