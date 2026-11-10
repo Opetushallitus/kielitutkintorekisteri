@@ -3,6 +3,7 @@ package fi.oph.kitu.vkt
 import fi.oph.kitu.jdbc.getEnum
 import fi.oph.kitu.jdbc.pageSql
 import fi.oph.kitu.koodisto.Koodisto
+import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
 import fi.oph.kitu.util.equalsIgnoringAnnotated
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -104,6 +105,24 @@ class CustomVktSuoritusRepository(
 
         return jdbcNamedParameterTemplate.query(query, filter.params(), VktSuoritusFlat.fromRow)
     }
+
+    fun findKoskiOpiskeluoikeus(id: Tutkintoryhma): Oid? =
+        jdbcNamedParameterTemplate
+            .queryForList(
+                """
+                SELECT koski_opiskeluoikeus
+                FROM vkt_suoritus
+                WHERE suorittajan_oid = :oppijanumero
+                    AND tutkintokieli = :tutkintokieli
+                    AND taitotaso = :taitotaso
+                    AND koski_opiskeluoikeus IS NOT NULL
+                ORDER BY id DESC
+                LIMIT 1
+                """.trimIndent(),
+                id.toSqlParams(),
+                String::class.java,
+            ).firstOrNull()
+            ?.let { Oid.parse(it).getOrNull() }
 
     fun getOppijanSuoritusIds(id: Tutkintoryhma): List<Int> {
         val query =
