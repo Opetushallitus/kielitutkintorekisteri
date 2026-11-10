@@ -13,7 +13,11 @@ interface PaginatedSortOrder<C : DisplayTableEnum> {
 
 fun PaginatedSortOrder<*>.orderSql(): String = "${sortColumn.entityName} $sortDirection"
 
-fun PaginatedSortOrder<*>.pageSql(): String? = pageNumber?.let { "LIMIT $pageSize OFFSET ${pageSize * it}" }
+fun PaginatedSortOrder<*>.pageSql(): String? =
+    pageNumber?.let {
+        val koko = pageSize.coerceAtLeast(1)
+        "LIMIT $koko OFFSET ${koko * it.coerceAtLeast(0)}"
+    }
 
 fun PaginatedSortOrder<*>.toMap(): Map<String, String> =
     mapOf(
