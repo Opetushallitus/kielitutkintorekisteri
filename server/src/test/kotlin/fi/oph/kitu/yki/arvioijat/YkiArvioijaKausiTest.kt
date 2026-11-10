@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -47,6 +48,7 @@ class YkiArvioijaKausiTest(
     @param:Autowired private val repository: YkiArvioijaRepository,
     @param:Autowired private val kausiRepository: YkiArvioijaKausiRepository,
     @param:Autowired private val timeService: TestTimeService,
+    @param:Autowired private val jdbc: JdbcTemplate,
 ) {
     private lateinit var mockMvc: MockMvc
 
@@ -339,6 +341,43 @@ class YkiArvioijaKausiTest(
                 "projektio kantaa voimassa olevan kauden paatosviitteen",
             )
         }
+    }
+
+    @Test
+    fun `synkronointi paivittaa saman alkupaivan kauden paattymispaivan eika lisaa toista kautta`() {
+        val id = idOf(petro)
+        val uusiLoppu = LocalDate.of(2025, 12, 1)
+
+        kausiRepository.synkronoiKaudet(
+            id,
+            listOf(
+                arviointioikeus(
+                    tasot = setOf(Tutkintotaso.PT),
+                    kaudenAlkupaiva = VANHA_ALKU,
+                    kaudenPaattymispaiva = uusiLoppu,
+                ),
+            ),
+            null,
+        )
+
+        val kausi = kausiRepository.findKaudet(id).single()
+        assertEquals(VANHA_ALKU, kausi.alkupaiva)
+        assertEquals(uusiLoppu, kausi.paattymispaiva)
+    }
+
+    @Test
+    fun `tuleva kausi kumoaa vanhan passivoinnin leiman`() {
+        val id = idOf(petro)
+        jdbc.update("UPDATE yki_arvioija SET passivoitu = '2021-03-01T00:00:00Z' WHERE id = ?", id)
+
+        timeService.runWithFixedClock(HETKI) {
+            lisaaKausi(id, "2026-12-01", "FIN:PT")
+        }
+
+        assertNull(
+            jdbc.queryForObject("SELECT passivoitu FROM yki_arvioija WHERE id = ?", Instant::class.java, id),
+            "uusi rekisterointi kumoaa passivoinnin, jottei sailytysaika laske vanhasta leimasta",
+        )
     }
 
     @Test
