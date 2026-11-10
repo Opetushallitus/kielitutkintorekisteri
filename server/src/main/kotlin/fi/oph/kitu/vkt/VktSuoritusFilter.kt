@@ -96,21 +96,10 @@ data class VktSuoritusFilter(
                 "osakokeet.arviointeja > 0"
             }
 
-            // Rajataan vain ilmoittautumisen uusimpaan versioon (latest-id alikysely): muuten
-            // vanha versio, jolta arvosanat puuttuivat, näkyisi vaikka päälle olisi tallennettu
-            // uusi täydellinen versio. Lisäksi edellytetään, että tällä joinilla osallistuva
-            // osakoerivi on null-arvosanainen — näin näytettävä tutkintopäivä on arvioimaton
-            // päivä, ei toinen jo arvioitu päivä samasta suorituksesta.
+            // Joinilla osallistuvan osakoerivin on oltava null-arvosanainen, jotta näytettävä
+            // tutkintopäivä on arvioimaton päivä eikä toinen jo arvioitu päivä samasta suorituksesta.
             VktArvioinninTila.ArviointejaPuuttuu -> {
-                """
-                vkt_osakoe.arvosana IS NULL
-                AND vkt_suoritus.id = (
-                    SELECT id FROM vkt_suoritus latest
-                    WHERE latest.ilmoittautumisen_id = vkt_suoritus.ilmoittautumisen_id
-                    ORDER BY latest.created_at DESC
-                    LIMIT 1
-                )
-                """.trimIndent()
+                "vkt_osakoe.arvosana IS NULL"
             }
         }
 

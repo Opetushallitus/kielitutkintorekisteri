@@ -112,7 +112,7 @@ class KoskiService(
                 ?.firstOrNull()
                 ?.oid
 
-        vktSuoritusService.markKoskiTransferProcessed(id, koskiOpiskeluoikeusOid)
+        vktSuoritusService.markKoskiTransferProcessed(suoritus, koskiOpiskeluoikeusOid)
         return Unit.right()
     }
 
