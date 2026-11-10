@@ -108,6 +108,18 @@ class VktSuoritusService(
         } else {
             mergeVktHenkilosuoritukset(suoritukset, suorituksenVastaanottajat)
                 .getOrElse { error(it.message) }
+                .let { hs ->
+                    if (hs.suoritus.koskiOpiskeluoikeusOid != null) {
+                        hs
+                    } else {
+                        hs.copy(
+                            suoritus =
+                                hs.suoritus.copy(
+                                    koskiOpiskeluoikeusOid = customSuoritusRepository.findKoskiOpiskeluoikeus(id),
+                                ),
+                        )
+                    }
+                }
         }
     }
 
