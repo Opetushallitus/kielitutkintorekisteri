@@ -2,6 +2,7 @@ package fi.oph.kitu.ilmoittautumisjarjestelma
 
 import arrow.core.Either
 import fi.oph.kitu.restclient.fetchOphService
+import fi.oph.kitu.util.retry.RetryOutboundIntegration
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -28,6 +29,7 @@ class IlmoittautumisjarjestelmaClientImpl(
     val serviceUrl: String,
 ) : IlmoittautumisjarjestelmaClient {
     @WithSpan
+    @RetryOutboundIntegration
     override fun <T> post(
         endpoint: String,
         body: IlmoittautumisjarjestelmaRequest,

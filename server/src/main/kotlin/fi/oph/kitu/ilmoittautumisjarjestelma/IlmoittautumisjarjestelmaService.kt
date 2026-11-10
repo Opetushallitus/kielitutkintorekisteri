@@ -1,7 +1,6 @@
 package fi.oph.kitu.ilmoittautumisjarjestelma
 
 import arrow.core.Either
-import fi.oph.kitu.util.retry.RetryOutboundIntegration
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import io.opentelemetry.api.trace.Span
@@ -51,8 +50,6 @@ class IlmoittautumisjarjestelmaServiceImpl(
         }
     }
 
-    @WithSpan
-    @RetryOutboundIntegration
     private fun sendArvioinninTilat(
         request: YkiArvioinninTilaRequest,
     ): Either<IlmoittautumisjarjestelmaException, IlmoittautumisjarjestelmaResponse> =
