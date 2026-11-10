@@ -26,14 +26,19 @@ export class ContainerRepositoryStack extends cdk.Stack {
     this.repository
       .onImageScanCompleted("ReportVulnerabilities", {
         eventPattern: {
-          detailType: ["ECR Image Scan"],
-          source: ["aws.ecr"],
           detail: {
-            scanStatus: ["COMPLETE"],
-            findingSeverityCounts: {
-              CRITICAL: [">0"],
-              HIGH: [">0"],
-            },
+            $or: [
+              {
+                "finding-severity-counts": {
+                  CRITICAL: [{ numeric: [">", 0] }],
+                },
+              },
+              {
+                "finding-severity-counts": {
+                  HIGH: [{ numeric: [">", 0] }],
+                },
+              },
+            ],
           },
         },
       })

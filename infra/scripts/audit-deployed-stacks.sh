@@ -28,6 +28,9 @@ readonly IGNORED_STACKS='^(CDKToolkit|DnsStack|StackSet-.*|AWS-QuickSetup-.*|aws
 # aws-controltower-* ja aws-quicksetup-* AWS:n omaa.
 readonly IGNORED_FUNCTIONS='^(vaka-pilvi-tietoturva-|aws-controltower-|aws-quicksetup-)'
 readonly LIVE_STACK_STATUSES='CREATE_COMPLETE UPDATE_COMPLETE UPDATE_ROLLBACK_COMPLETE IMPORT_COMPLETE IMPORT_ROLLBACK_COMPLETE'
+# Virhetilaan jääneen pinon resurssit (esim. Lambdat) ovat yhä olemassa, joten se
+# raportoidaan erikseen riippumatta siitä, onko pino CDK-apissa.
+readonly FAILED_STACK_STATUSES='CREATE_FAILED ROLLBACK_FAILED ROLLBACK_COMPLETE DELETE_FAILED UPDATE_ROLLBACK_FAILED IMPORT_ROLLBACK_FAILED'
 
 if [ "${1:-}" != "--no-synth" ]; then
   echo "Synteesi (cdk synth)..."
@@ -73,6 +76,16 @@ for region in $regions; do
     echo "PUUTTUVA    $region  $stack — CDK-apissa, mutta ei deployattu" >> "$FINDINGS"
   done
 
+  # shellcheck disable=SC2086 # statusflagit halutaan erillisinä argumentteina
+  failed="$(aws cloudformation list-stacks --region "$region" \
+    --stack-status-filter $FAILED_STACK_STATUSES \
+    --query 'StackSummaries[].[StackName,StackStatus]' --output text)"
+  while IFS=$'\t' read -r stack status; do
+    [ -z "$stack" ] && continue
+    echo "$stack" | grep -Eq "$IGNORED_STACKS" && continue
+    echo "VIRHETILA   $region  $stack — $status" >> "$FINDINGS"
+  done <<< "$failed"
+
   stale="$(aws lambda list-functions --region "$region" \
     --query "Functions[?Runtime!='$EXPECTED_RUNTIME'].[FunctionName,Runtime]" --output text \
     | grep -Ev "$IGNORED_FUNCTIONS" || true)"
@@ -83,7 +96,7 @@ for region in $regions; do
 done
 
 if [ ! -s "$FINDINGS" ]; then
-  echo "OK: tilillä $ACCOUNT ei orpoja pinoja eikä vanhentuneita ajonaikoja."
+  echo "OK: tilillä $ACCOUNT ei orpoja tai virhetilaisia pinoja eikä vanhentuneita ajonaikoja."
   exit 0
 fi
 
