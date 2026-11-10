@@ -85,7 +85,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -121,7 +121,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -153,7 +153,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -201,7 +201,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -227,6 +227,48 @@ class KoskiServiceTest(
     }
 
     @Test
+    fun `Vastaus ilman opiskeluoikeutta kirjataan virheeksi eika keskeyta Koski-erajoa`() {
+        val mockServer = MockRestServiceServer.bindTo(mockRestClientBuilder).build()
+        mockServer
+            .expect(ExpectedCount.once(), requestTo("oppija"))
+            .andRespond(
+                withSuccess(
+                    """{"henkilö":{"oid":"1.2.246.562.24.20281155246"},"opiskeluoikeudet":[]}""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+        mockServer
+            .expect(ExpectedCount.times(2), requestTo("oppija"))
+            .andRespond(
+                withSuccess(
+                    successfulKoskiResponseFor("1.2.246.562.24.20281155246", 183424),
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        val service =
+            KoskiService(
+                KoskiClient(mockRestClientBuilder.build()),
+                koskiYkiRequestMapper,
+                koskiVktRequestMapper,
+                ykiSuoritusRepository,
+                customVktSuoritusRepository,
+                vktSuoritusService,
+                koskiErrorService,
+                timeService,
+            )
+        ykiSuoritusRepository.saveAllNewEntities(List(3) { generateRandomYkiSuoritusEntity() })
+
+        service.sendYkiSuorituksetToKoski()
+
+        val suoritukset = ykiService.allSuoritukset(versionHistory = false)
+        assertEquals(2, suoritukset.count { it.koskiOpiskeluoikeus != null })
+        val ilmanOidia = suoritukset.single { it.koskiOpiskeluoikeus == null }
+        assertTrue(koskiErrorService.findById(YkiMappingId(ilmanOidia.solkiId))!!.message.contains("puuttuu"))
+        mockServer.verify()
+    }
+
+    @Test
     fun `Yhden suorituksen mappausvirhe ei keskeytä Koski-eräajoa`() {
         val koskiResponse = successfulKoskiResponseFor("1.2.246.562.24.20281155246", 183424)
         val mockServer = MockRestServiceServer.bindTo(mockRestClientBuilder).build()
@@ -236,7 +278,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -285,7 +327,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -358,7 +400,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -405,7 +447,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -453,7 +495,7 @@ class KoskiServiceTest(
 
         val service =
             KoskiService(
-                mockRestClientBuilder.build(),
+                KoskiClient(mockRestClientBuilder.build()),
                 koskiYkiRequestMapper,
                 koskiVktRequestMapper,
                 ykiSuoritusRepository,
@@ -500,7 +542,7 @@ class KoskiServiceTest(
             )
 
         return KoskiService(
-            mockRestClientBuilder.build(),
+            KoskiClient(mockRestClientBuilder.build()),
             koskiYkiRequestMapper,
             koskiVktRequestMapper,
             ykiSuoritusRepository,

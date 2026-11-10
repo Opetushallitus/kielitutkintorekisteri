@@ -8,26 +8,20 @@ import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.util.result.splitIntoValuesAndErrors
-import fi.oph.kitu.util.retry.RetryOutboundIntegration
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
 import fi.oph.kitu.vkt.VktSuoritusService
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import io.opentelemetry.instrumentation.annotations.WithSpan
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
-import org.springframework.web.client.toEntity
 import java.time.LocalDateTime
 
 @Service
 class KoskiService(
-    @param:Qualifier("koskiRestClient")
-    private val koskiRestClient: RestClient,
+    private val koskiClient: KoskiClient,
     private val koskiYkiRequestMapper: KoskiYkiRequestMapper,
     private val koskiVktRequestMapper: KoskiVktRequestMapper,
     private val ykiSuoritusRepository: YkiSuoritusRepository,
@@ -39,7 +33,6 @@ class KoskiService(
     private val ykiTransferBlockedUntil: LocalDateTime? = null,
 ) {
     @WithSpan
-    @RetryOutboundIntegration
     fun sendYkiSuoritusToKoski(ykiSuoritusEntity: YkiSuoritusEntity): Either<KoskiException, YkiSuoritusEntity> {
         val koskiRequest =
             when (val result = koskiYkiRequestMapper.ykiSuoritusToKoskiRequest(ykiSuoritusEntity)) {
@@ -81,16 +74,17 @@ class KoskiService(
         val koskiOpiskeluoikeus =
             koskiResponse.body
                 ?.opiskeluoikeudet
-                ?.first()
+                ?.firstOrNull()
                 ?.oid
+                ?.let { Oid.parse(it).getOrNull() }
                 ?: return KoskiException(
                     YkiMappingId(ykiSuoritusEntity.solkiId),
-                    "KOSKI-opiskeluoikeuden OID puuttuu vastauksesta",
+                    "KOSKI-opiskeluoikeuden OID puuttuu vastauksesta tai on virheellinen",
                 ).left()
 
         val suoritus =
             ykiSuoritusEntity.copy(
-                koskiOpiskeluoikeus = Oid.parse(koskiOpiskeluoikeus).getOrThrow(),
+                koskiOpiskeluoikeus = koskiOpiskeluoikeus,
                 koskiSiirtoKasitelty = true,
             )
         ykiSuoritusRepository.save(suoritus, updateOnConflict = true, forceWrite = true)
@@ -98,7 +92,6 @@ class KoskiService(
     }
 
     @WithSpan
-    @RetryOutboundIntegration
     fun sendVktSuoritusToKoski(suoritus: VktHenkilosuoritus): Either<KoskiException, Unit> {
         val id = CustomVktSuoritusRepository.Tutkintoryhma.from(suoritus)
         val koskiRequest = koskiVktRequestMapper.vktSuoritusToKoskiRequest(suoritus)
@@ -130,7 +123,15 @@ class KoskiService(
             ykiSuoritusRepository
                 .findKoskeenLahettamattomatSuoritukset()
                 .filter { !transferBlocked || it.isOphTesti() }
-        val results = suoritukset.map { sendYkiSuoritusToKoski(it) }
+        val results =
+            suoritukset.map { suoritus ->
+                Either
+                    .catch { sendYkiSuoritusToKoski(suoritus) }
+                    .fold(
+                        ifLeft = { KoskiTechnicalException(YkiMappingId(suoritus.solkiId), it.toString()).left() },
+                        ifRight = { it },
+                    )
+            }
         return reportErrors(
             results.map { it.map { suoritus -> YkiMappingId(suoritus.solkiId) } },
             blockedUntil = ykiTransferBlockedUntil.takeIf { transferBlocked },
@@ -147,11 +148,17 @@ class KoskiService(
         val siirrettavat = customVktSuoritusRepository.findOpiskeluoikeudetForKoskiTransfer()
         val results =
             siirrettavat.map { id ->
-                vktSuoritusService.getOppijanSuoritukset(id, false)?.let { suoritus ->
-                    sendVktSuoritusToKoski(suoritus).map {
-                        VktMappingId(CustomVktSuoritusRepository.Tutkintoryhma.from(suoritus))
-                    }
-                }
+                Either
+                    .catch {
+                        vktSuoritusService.getOppijanSuoritukset(id, false)?.let { suoritus ->
+                            sendVktSuoritusToKoski(suoritus).map {
+                                VktMappingId(CustomVktSuoritusRepository.Tutkintoryhma.from(suoritus))
+                            }
+                        }
+                    }.fold(
+                        ifLeft = { KoskiTechnicalException(VktMappingId(id), it.toString()).left() },
+                        ifRight = { it },
+                    )
             }
         return reportErrors(results)
     }
@@ -161,15 +168,7 @@ class KoskiService(
         koskiRequest: KoskiRequest,
     ): Either<KoskiException, ResponseEntity<KoskiResponse>> =
         try {
-            koskiRestClient
-                .put()
-                .uri("oppija")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(koskiRequest)
-                .retrieve()
-                .toEntity<KoskiResponse>()
-                .right()
+            koskiClient.put(koskiRequest).right()
         } catch (e: RestClientException) {
             KoskiException.from(id, e).left()
         }
