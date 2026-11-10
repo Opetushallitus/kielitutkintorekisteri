@@ -66,6 +66,7 @@ class GlobalControllerExceptionHandler(
 
             is MethodArgumentTypeMismatchException,
             is BindException,
+            is VirheellinenPyyntoException,
             -> {
                 ErrorPage.badRequest(traceId, traceUrl)
             }

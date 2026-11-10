@@ -1,6 +1,10 @@
 package fi.oph.kitu.vkt
 
+import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 import fi.oph.kitu.auditlogs.AuditLogOperation
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.html.Pagination
@@ -14,9 +18,11 @@ import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.tiedontuontischema.VktHenkilosuoritus
 import fi.oph.kitu.util.cache.InMemoryCache
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository.Tutkintoryhma
+import fi.oph.kitu.vkt.html.VktErinomaisenArviointiPage.ArvosanaFormData.ArvosanaFormEntry
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import kotlin.jvm.optionals.getOrNull
 import kotlin.time.Duration
@@ -132,28 +138,55 @@ class VktSuoritusService(
             }
     }
 
-    @WithSpan("VktSuoritusService.setOsakoeArvosana")
-    fun setOsakoeArvosana(
-        osakoeId: Int,
-        arvosana: Koodisto.VktArvosana?,
-        arviointipaiva: LocalDate? = null,
-    ) = osakoeRepository.updateArvosana(
-        id = osakoeId,
-        arvosana = arvosana,
-        arviointipaiva = arviointipaiva,
-    )
+    @Transactional
+    @WithSpan("VktSuoritusService.tallennaErinomaisenArviointi")
+    fun tallennaErinomaisenArviointi(
+        id: Tutkintoryhma,
+        arvioinnit: List<ArvosanaFormEntry>,
+    ): Either<VktArviointivirhe, Unit> =
+        either {
+            ensure(id.taitotaso == Koodisto.VktTaitotaso.Erinomainen) { VktArviointivirhe.EiErinomainenTaso }
+            val oppijanumero = ensureNotNull(Oid.parse(id.oppijanumero).getOrNull()) { VktArviointivirhe.EiOsakoetta }
+            val ryhmanOsakokeet =
+                customSuoritusRepository
+                    .getOppijanSuoritusIds(id)
+                    .mapNotNull { suoritusRepository.findById(it).getOrNull() }
+                    .flatMap { it.osakokeet }
+                    .mapNotNull { it.id }
+                    .toSet()
+            val vieraat = arvioinnit.map { it.id }.filterNot { it in ryhmanOsakokeet }
+            ensure(vieraat.isEmpty()) { VktArviointivirhe.EiOsakoetta }
 
-    @WithSpan("VktSuoritusService.deleteOsakoe")
-    fun deleteOsakoe(osakoeId: Int) = osakoeRepository.delete(osakoeId, retentionTimeForDeletedSeconds)
+            arvioinnit.forEach {
+                if (it.merkittyPoistettavaksi) {
+                    osakoeRepository.delete(it.id, retentionTimeForDeletedSeconds)
+                } else {
+                    osakoeRepository.updateArvosana(
+                        id = it.id,
+                        arvosana = it.arvosana,
+                        arviointipaiva = it.arviointipaiva,
+                    )
+                }
+            }
+            customSuoritusRepository.requestTransferToKoski(id)
+
+            auditLogger.logAllInternalOnly("VKT arviointi tallennettu", arvioinnit) {
+                arrayOf(
+                    "suoritus.oppijanumero" to id.oppijanumero,
+                    "osakoe.id" to it.id,
+                    "osakoe.arvosana" to it.arvosana,
+                    "osakoe.arviointipaiva" to it.arviointipaiva,
+                    "osakoe.merkitty_poistettavaksi" to it.merkittyPoistettavaksi,
+                )
+            }
+            auditLogger.log(AuditLogOperation.VktArviointiTallennettu, oppijanumero)
+        }
 
     @WithSpan("VktSuoritusService.markKoskiTransferProcessed")
     fun markKoskiTransferProcessed(
         id: Tutkintoryhma,
         koskiOpiskeluoikeusOid: String? = null,
     ) = customSuoritusRepository.markSuoritusTransferredToKoski(id, koskiOpiskeluoikeusOid)
-
-    @WithSpan("VktSuoritusService.requestTransferToKoski")
-    fun requestTransferToKoski(id: Tutkintoryhma) = customSuoritusRepository.requestTransferToKoski(id)
 
     private val listRowCounts =
         InMemoryCache(ttl = 5.minutes) { filter: VktSuoritusFilter ->
@@ -165,4 +198,10 @@ class VktSuoritusService(
         osakoeRepository.cleanup()
         customSuoritusRepository.cleanup()
     }
+}
+
+sealed interface VktArviointivirhe {
+    data object EiErinomainenTaso : VktArviointivirhe
+
+    data object EiOsakoetta : VktArviointivirhe
 }
