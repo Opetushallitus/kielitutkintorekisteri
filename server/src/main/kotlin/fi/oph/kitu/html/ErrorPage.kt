@@ -8,6 +8,7 @@ import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.html.pre
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 
 object ErrorPage {
@@ -51,6 +52,7 @@ object ErrorPage {
     fun badRequest(
         traceId: String?,
         traceUrl: String?,
+        status: HttpStatusCode = HttpStatus.BAD_REQUEST,
     ): ResponseEntity<String> =
         ResponseEntity(
             Page.renderHtml {
@@ -58,7 +60,7 @@ object ErrorPage {
                 p { +UiText.Error.virheellinenPyyntoOhje }
                 traceInfo(traceId, traceUrl)
             },
-            HttpStatus.BAD_REQUEST,
+            status,
         )
 
     fun accessDenied(

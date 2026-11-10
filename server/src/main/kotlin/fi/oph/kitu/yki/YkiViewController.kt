@@ -114,10 +114,10 @@ class YkiViewController(
         val sivu =
             ykiService.findSuorituksetSivu(
                 extended.filter,
-                params.toOrder(),
+                params.toListOrder(),
                 params.versionHistory,
-                params.limit,
-                offset = params.limit * (params.page - 1),
+                params.sivunKoko,
+                offset = params.sivunKoko * (params.sivu - 1),
             )
         return ResponseEntity.ok(
             YkiSuorituksetPage.render(

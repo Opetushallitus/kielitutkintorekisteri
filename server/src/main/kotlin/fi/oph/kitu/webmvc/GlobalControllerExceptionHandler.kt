@@ -7,12 +7,14 @@ import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.util.validation.Validation
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.StatusCode
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.validation.BindException
+import org.springframework.web.ErrorResponse
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -21,6 +23,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 class GlobalControllerExceptionHandler(
     val environment: Environment,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @Value($$"${trace-ui:}")
     private lateinit var traceUiUrl: String
 
@@ -76,7 +80,13 @@ class GlobalControllerExceptionHandler(
                 ErrorPage.accessDenied(traceId, traceUrl)
             }
 
+            is ErrorResponse if error.statusCode.is4xxClientError -> {
+                ErrorPage.badRequest(traceId, traceUrl, error.statusCode)
+            }
+
             else -> {
+                logger.error("Näkymän käsittely epäonnistui", error)
+                Span.current().recordException(error).setStatus(StatusCode.ERROR)
                 ErrorPage.error(error, traceId, traceUrl, environment.isLocal())
             }
         }

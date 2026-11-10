@@ -39,7 +39,7 @@ data class KielitestiSuorituksetParams(
         KielitestiSuoritusOrder(
             sortColumn = sortColumn,
             sortDirection = sortDirection,
-            pageNumber = page - 1,
+            pageNumber = sivu - 1,
         )
 
     override fun toMap(): Map<String, String?> =

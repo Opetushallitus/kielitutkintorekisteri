@@ -3,6 +3,7 @@ import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.table.ColumnTag
 import fi.oph.kitu.html.table.PaginatedListViewParams
+import fi.oph.kitu.html.table.RenderableDisplayTableEnum
 import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.aikarajausDescription
@@ -12,11 +13,15 @@ import fi.oph.kitu.webmvc.toTrueOrNull
 import fi.oph.kitu.webmvc.toUrlParam
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusFilter
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusOrder
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
+
+private val LISTAN_SARAKKEET =
+    RenderableDisplayTableEnum.getByTags<YkiSuoritusColumn, YkiSuoritusEntity>(setOf(ColumnTag.LIST_VIEW)).toSet()
 
 data class YkiSuorituksetParams(
     var versionHistory: Boolean = false,
@@ -123,6 +128,9 @@ data class YkiSuorituksetParams(
             sortColumn = sortColumn,
             sortDirection = sortDirection,
         )
+
+    fun toListOrder() =
+        if (sortColumn in LISTAN_SARAKKEET) toOrder() else YkiSuoritusOrder(sortDirection = sortDirection)
 
     override fun excludeTags(): Set<ColumnTag> =
         super.excludeTags() +

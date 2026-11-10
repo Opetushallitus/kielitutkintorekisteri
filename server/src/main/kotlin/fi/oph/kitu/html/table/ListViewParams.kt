@@ -13,6 +13,10 @@ interface PaginatedListViewParams : ListViewParams {
     val page: Int
     val limit: Int
 
+    val sivu: Int get() = page.coerceAtLeast(1)
+
+    val sivunKoko: Int get() = limit.coerceAtLeast(1)
+
     fun toMap(): Map<String, String?>
 }
 
@@ -21,9 +25,9 @@ fun PaginatedListViewParams.pagination(
     baseUrl: String = "",
 ): Pagination =
     Pagination.valueOf(
-        currentPageNumber = page,
+        currentPageNumber = sivu,
         numberOfRows = numberOfRows,
-        pageSize = limit,
+        pageSize = sivunKoko,
         url = { pageNumber -> baseUrl + httpParams(toMap() + ("page" to pageNumber.toString())) },
     )
 
