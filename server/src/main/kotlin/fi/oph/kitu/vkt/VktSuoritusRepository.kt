@@ -23,6 +23,12 @@ interface VktSuoritusRepository :
     fun findByIlmoittautumisenId(id: String): List<VktSuoritusEntity>
 }
 
+private const val VIIMEISIMMAT_VERSIOT = """viimeisimmat AS (
+                SELECT DISTINCT ON (ilmoittautumisen_id) id
+                FROM vkt_suoritus
+                ORDER BY ilmoittautumisen_id, created_at DESC
+            )"""
+
 @Repository
 class CustomVktSuoritusRepository(
     private val jdbcNamedParameterTemplate: NamedParameterJdbcTemplate,
@@ -30,20 +36,17 @@ class CustomVktSuoritusRepository(
     private val vktSuoritusRepository: VktSuoritusRepository,
 ) {
     @WithSpan
-    fun save(entity: VktSuoritusEntity): VktSuoritusEntity? =
-        if (!exists(entity)) {
-            vktSuoritusRepository.save(entity)
-        } else {
-            null
-        }
-
-    @WithSpan
-    fun exists(entity: VktSuoritusEntity): Boolean {
-        val storedEntity =
+    fun save(entity: VktSuoritusEntity): VktSuoritusEntity? {
+        val tallennettu =
             vktSuoritusRepository
                 .findByIlmoittautumisenId(entity.ilmoittautumisenId)
                 .maxByOrNull { it.createdAt ?: OffsetDateTime.MIN }
-        return storedEntity?.let { entity.equalsIgnoringAnnotated(it, "VKT") } ?: false
+        val tallennettava = tallennettu?.let { entity.kitunTiedotSailyttaen(it) } ?: entity
+        return if (tallennettu != null && tallennettava.equalsIgnoringAnnotated(tallennettu, "VKT")) {
+            null
+        } else {
+            vktSuoritusRepository.save(tallennettava)
+        }
     }
 
     @WithSpan
@@ -53,7 +56,8 @@ class CustomVktSuoritusRepository(
     ): Iterable<VktSuoritusFlat> {
         val query =
             """
-            WITH osakokeet AS (
+            WITH $VIIMEISIMMAT_VERSIOT,
+            osakokeet AS (
                 SELECT
                     vkt_suoritus.id as suoritus_id,
                     vkt_osakoe.tutkintopaiva,
@@ -83,6 +87,7 @@ class CustomVktSuoritusRepository(
                     max(osakokeet.tekstin_ymmärtäminen) AS tekstin_ymmärtäminen,
                     max(osakokeet.kirjoittaminen) AS kirjoittaminen
                 FROM vkt_suoritus
+                    JOIN viimeisimmat ON viimeisimmat.id = vkt_suoritus.id
                     JOIN vkt_osakoe ON vkt_osakoe.suoritus_id = vkt_suoritus.id
                     JOIN osakokeet ON osakokeet.suoritus_id = vkt_suoritus.id
             
@@ -192,7 +197,8 @@ class CustomVktSuoritusRepository(
     fun numberOfRowsForListView(filter: VktSuoritusFilter): Int {
         val query =
             """
-            WITH osakokeet AS (
+            WITH $VIIMEISIMMAT_VERSIOT,
+            osakokeet AS (
                 SELECT
                     vkt_suoritus.id as suoritus_id,
                     vkt_osakoe.tutkintopaiva,
@@ -204,6 +210,7 @@ class CustomVktSuoritusRepository(
             result AS (
                 SELECT DISTINCT ON (vkt_suoritus.ilmoittautumisen_id) 1
                 FROM vkt_suoritus
+                    JOIN viimeisimmat ON viimeisimmat.id = vkt_suoritus.id
                     JOIN vkt_osakoe ON vkt_osakoe.suoritus_id = vkt_suoritus.id
                     JOIN osakokeet ON osakokeet.suoritus_id = vkt_suoritus.id
             
@@ -248,21 +255,26 @@ class CustomVktSuoritusRepository(
     @WithSpan
     fun markSuoritusTransferredToKoski(
         id: Tutkintoryhma,
+        lahetetytOsakokeet: Collection<Int>,
         koskiOpiskeluoikeusOid: String?,
     ) {
+        if (lahetetytOsakokeet.isEmpty()) return
         val query =
             """
             UPDATE vkt_suoritus
             SET
                 koski_siirto_kasitelty = true,
-                koski_opiskeluoikeus = :koski_oid
+                koski_opiskeluoikeus = COALESCE(:koski_oid, koski_opiskeluoikeus)
             WHERE
                 suorittajan_oid = :oppijanumero
                 AND tutkintokieli = :tutkintokieli
                 AND taitotaso = :taitotaso
+                AND id <= (SELECT max(suoritus_id) FROM vkt_osakoe WHERE id IN (:osakokeet))
             """.trimIndent()
 
-        val params = id.toSqlParams() + mapOf("koski_oid" to koskiOpiskeluoikeusOid)
+        val params =
+            id.toSqlParams() +
+                mapOf("koski_oid" to koskiOpiskeluoikeusOid, "osakokeet" to lahetetytOsakokeet)
 
         jdbcNamedParameterTemplate.update(query, params)
     }

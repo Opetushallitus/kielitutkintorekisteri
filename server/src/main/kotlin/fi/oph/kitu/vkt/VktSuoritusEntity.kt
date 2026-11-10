@@ -35,8 +35,20 @@ data class VktSuoritusEntity(
     @IgnoreForEquality("VKT")
     val createdAt: OffsetDateTime? = null,
     val koskiOpiskeluoikeus: Oid? = null,
+    @IgnoreForEquality("VKT")
     val koskiSiirtoKasitelty: Boolean = false,
 ) {
+    fun kitunTiedotSailyttaen(tallennettu: VktSuoritusEntity): VktSuoritusEntity =
+        copy(
+            koskiOpiskeluoikeus = koskiOpiskeluoikeus ?: tallennettu.koskiOpiskeluoikeus,
+            osakokeet =
+                if (taitotaso == Koodisto.VktTaitotaso.Erinomainen) {
+                    osakokeet.map { it.virkailijanArviointiSailyttaen(tallennettu.osakokeet) }.toSet()
+                } else {
+                    osakokeet
+                },
+        )
+
     @Table(name = "vkt_osakoe")
     data class VktOsakoe(
         @Id
@@ -47,7 +59,18 @@ data class VktSuoritusEntity(
         val arviointipaiva: LocalDate?,
         val arvosana: Koodisto.VktArvosana?,
         val merkittyPoistettavaksi: Instant?,
-    )
+    ) {
+        fun virkailijanArviointiSailyttaen(tallennetut: Set<VktOsakoe>): VktOsakoe {
+            if (arvosana != null || merkittyPoistettavaksi != null) return this
+            val tallennettu =
+                tallennetut.firstOrNull { it.tyyppi == tyyppi && it.tutkintopaiva == tutkintopaiva } ?: return this
+            return copy(
+                arviointipaiva = tallennettu.arviointipaiva,
+                arvosana = tallennettu.arvosana,
+                merkittyPoistettavaksi = tallennettu.merkittyPoistettavaksi,
+            )
+        }
+    }
 
     @Table(name = "vkt_tutkinto")
     data class VktTutkinto(

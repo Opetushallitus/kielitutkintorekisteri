@@ -191,9 +191,13 @@ class VktSuoritusService(
 
     @WithSpan("VktSuoritusService.markKoskiTransferProcessed")
     fun markKoskiTransferProcessed(
-        id: Tutkintoryhma,
-        koskiOpiskeluoikeusOid: String? = null,
-    ) = customSuoritusRepository.markSuoritusTransferredToKoski(id, koskiOpiskeluoikeusOid)
+        suoritus: VktHenkilosuoritus,
+        koskiOpiskeluoikeusOid: String?,
+    ) = customSuoritusRepository.markSuoritusTransferredToKoski(
+        Tutkintoryhma.from(suoritus),
+        suoritus.suoritus.osat.mapNotNull { it.internalId },
+        koskiOpiskeluoikeusOid,
+    )
 
     private val listRowCounts =
         InMemoryCache(ttl = 5.minutes) { filter: VktSuoritusFilter ->
