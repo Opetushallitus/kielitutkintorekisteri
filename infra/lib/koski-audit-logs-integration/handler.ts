@@ -53,23 +53,17 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       }
     } catch (error) {
       console.log("failed to send batch to sqs", error)
-      return {
-        statusCode: 500,
-        message: "unknown error",
-        error,
-      }
+      // CloudWatch Logs invokes Lambda asynchronously, so only a thrown error
+      // makes Lambda retry the event; a returned object counts as success.
+      throw new Error(`failed to send audit log batch to sqs: ${String(error)}`)
     }
   }
 
   if (failed.length) {
-    // Return non-2xx so the CloudWatch Logs subscription retries the whole event.
-    // Audit logs tolerate duplicates better than data loss.
+    // Throw so that Lambda retries the whole event. Audit logs tolerate
+    // duplicates better than data loss.
     console.log("partial failure sending audit logs to sqs", failed)
-    return {
-      statusCode: 500,
-      message: "partial failure",
-      failed,
-    }
+    throw new Error(`failed to send ${failed.length} audit log entries to sqs`)
   }
 
   console.log(`sent ${auditLogEntries.length} audit log entries to sqs`)

@@ -62,7 +62,12 @@ Created once, in the shared util account. Four things live here:
   Actions deployment role. CI builds an image, pushes it here, then env deploys
   resolve the image from ECR by `TAG` env var (`bin/infra.ts:23-26`).
 - **`Util/Alarms`** — its own `AlarmsStack` for image-scan findings + Util-level
-  Slack notifications.
+  Slack notifications. The `ReportVulnerabilities` rule on the repo matches the
+  basic-scanning `ECR Image Scan` event with `finding-severity-counts.CRITICAL`
+  **or** `.HIGH` numerically `> 0` (kebab-case keys, `$or`). Until 11/2026 it
+  used camelCase keys and the string `">0"`, so it could never match. If the
+  registry is ever switched to enhanced (Inspector) scanning, these events stop
+  and the rule needs to follow Inspector's finding events instead.
 - **`Util/GithubActions`** — the OIDC provider, the deployment role and the PR
   diff role (see [GitHub Actions roles](#github-actions-roles)). In Util the
   deployment role also trusts `ref:refs/heads/main`, because `build_image`
@@ -130,7 +135,11 @@ order (because of dependencies):
 12. **`KoskiAuditLogsIntegration`** — a CloudWatch Logs subscription filter on
     the audit log group → Lambda → SQS in the KOSKI account. The Lambda assumes
     a role (`kitu-sqs-sender`) that the KOSKI account creates with a matching
-    trust policy.
+    trust policy. The subscription invokes the Lambda asynchronously, so the
+    handler **throws** on an SQS/STS failure (a returned object counts as
+    success and would drop the batch); Lambda then retries the event twice.
+    `SendAuditLogsToKoskiErrors` alarms to the alarm topic on any `Errors`
+    datapoint in 5 minutes.
 
 ### Prod-only stacks
 
@@ -225,8 +234,13 @@ other CDK-provided Lambda, see _Stack lifecycle_.
   "Avainten synkronointi Tolgeehen".
 - OTel sidecar: collector config stored as an SSM parameter
   (`/kitu/otel-config-<stack-id>`), loaded into the sidecar via
-  `AOT_CONFIG_CONTENT`. Tail sampling: 0.1% for the health check route,
-  always-sample for everything else. Traces export to X-Ray; metrics export
+  `AOT_CONFIG_CONTENT`. Tail sampling: always-sample, except that a `drop`
+  policy discards every trace with `url.path` `/kielitutkinnot/actuator/health`
+  (ALB health checks every 10 s per AZ). Until 11/2026 the health-check policy
+  was an `and` next to `always_sample` on `http.url` `/actuator/health`, which
+  matched nothing and could not override `always_sample` anyway, so every
+  health check was exported. `drop` needs ADOT ≥ the contrib release that added
+  it (v0.47.0 bundles contrib v0.143.0). Traces export to X-Ray; metrics export
   to CloudWatch via EMF with `dimension_rollup_option: NoDimensionRollup`. Each
   exported series is a billed custom metric, so the app exports only an
   allowlist of meters (`management.metrics.enable.*` in
@@ -714,6 +728,10 @@ stack names), and reports:
 
 - CloudFormation stacks that are deployed but no longer in the app
 - stacks in the app that are not deployed
+- stacks left in a failed terminal state (`DELETE_FAILED`, `ROLLBACK_COMPLETE`,
+  `UPDATE_ROLLBACK_FAILED`, …) — whether or not they are in the app, because
+  their resources (e.g. Lambdas) still exist; a failed delete of a removed stack
+  would otherwise go unnoticed
 - Lambda functions whose runtime is not the current `Runtime.NODEJS_LATEST`
 
 The expected runtime is read from `aws-cdk-lib` at run time, so it tracks

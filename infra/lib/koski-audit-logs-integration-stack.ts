@@ -1,4 +1,4 @@
-import { Stack, StackProps, aws_logs_destinations } from "aws-cdk-lib"
+import { Duration, Stack, StackProps, aws_logs_destinations } from "aws-cdk-lib"
 import { Construct } from "constructs"
 import {
   FilterPattern,
@@ -10,9 +10,13 @@ import { Runtime } from "aws-cdk-lib/aws-lambda"
 import path = require("node:path")
 import { StringParameter } from "aws-cdk-lib/aws-ssm"
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam"
+import { ITopic } from "aws-cdk-lib/aws-sns"
+import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions"
+import { Stats, TreatMissingData } from "aws-cdk-lib/aws-cloudwatch"
 
 export interface KoskiAuditLogsIntegrationStackProps extends StackProps {
   serviceAuditLogGroup: LogGroup
+  alarmsSnsTopic: ITopic
   koski: {
     region: string
     account: string
@@ -26,7 +30,7 @@ export class KoskiAuditLogsIntegrationStack extends Stack {
     props: KoskiAuditLogsIntegrationStackProps,
   ) {
     super(scope, id, props)
-    const { serviceAuditLogGroup, koski } = props
+    const { serviceAuditLogGroup, alarmsSnsTopic, koski } = props
 
     const koski_role_arn = `arn:aws:iam::${koski.account}:role/kitu-sqs-sender`
     const koski_sqs_queue_url = `https://sqs.${koski.region}.amazonaws.com/${koski.account}/oma-opintopolku-loki-audit-queue`
@@ -71,5 +75,17 @@ export class KoskiAuditLogsIntegrationStack extends Stack {
     )
 
     auditQueueParam.grantRead(sendAuditLogsToKoskiLambda)
+
+    const errorsAlarm = sendAuditLogsToKoskiLambda
+      .metricErrors({ period: Duration.minutes(5), statistic: Stats.SUM })
+      .createAlarm(this, "SendAuditLogsToKoskiErrors", {
+        alarmDescription:
+          "Auditlokien välitys KOSKI-järjestelmän SQS-jonoon epäonnistuu",
+        threshold: 1,
+        evaluationPeriods: 1,
+        treatMissingData: TreatMissingData.NOT_BREACHING,
+      })
+    errorsAlarm.addAlarmAction(new SnsAction(alarmsSnsTopic))
+    errorsAlarm.addOkAction(new SnsAction(alarmsSnsTopic))
   }
 }

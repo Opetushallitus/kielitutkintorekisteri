@@ -250,18 +250,14 @@ processors:
       - name: default
         type: always_sample
       - name: health checks
-        type: and
-        and:
-          and_sub_policy:
+        type: drop
+        drop:
+          drop_sub_policy:
             - name: route-health-checks
               type: string_attribute
               string_attribute:
-                key: http.url
-                values: [ /actuator/health ]
-            - name: probabilistic-policy
-              type: probabilistic
-              probabilistic:
-                sampling_percentage: 0.1           
+                key: url.path
+                values: [ /kielitutkinnot/actuator/health ]
 
 exporters:
   awsxray:
