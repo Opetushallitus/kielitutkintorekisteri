@@ -60,7 +60,7 @@ class YkiViewController(
             val (koskiError, koskiSiirronEstonSyyt) =
                 if (suoritus.id == viimeisinSuoritus.id) {
                     Pair(
-                        koskiErrorService.findById(YkiMappingId(suoritus.id)),
+                        koskiErrorService.findById(YkiMappingId(suoritus.solkiId)),
                         when (val left = koskiYkiRequestMapper.ykiSuoritusToKoskiRequest(suoritus).leftOrNull()) {
                             is KoskiYkiMappingError.EstoSyyt -> left.syyt
                             else -> null
