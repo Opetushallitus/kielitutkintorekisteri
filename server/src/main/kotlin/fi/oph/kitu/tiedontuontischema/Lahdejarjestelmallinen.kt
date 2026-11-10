@@ -24,7 +24,10 @@ data class LahdejarjestelmanTunniste(
             }
         }
 
-        fun randomFrom(from: Lahdejarjestelma) = LahdejarjestelmanTunniste(Random.nextInt(1000000).toString(), from)
+        fun randomFrom(from: Lahdejarjestelma) =
+            LahdejarjestelmanTunniste((TESTITUNNISTEIDEN_ALKU + Random.nextInt(100_000_000)).toString(), from)
+
+        private const val TESTITUNNISTEIDEN_ALKU = 900_000_000
     }
 }
 

@@ -40,6 +40,8 @@ data class YkiSuoritusSivu(
     val kokonaismaara: Long,
 )
 
+private const val SOLKI_IDEJA_KERRALLA = 10_000
+
 @Service
 class YkiSuoritusRepository(
     private val jdbcTemplate: JdbcTemplate,
@@ -380,23 +382,35 @@ class YkiSuoritusRepository(
 
     @WithSpan
     fun findOpiskeluoikeusOidsBySolkiIds(solkiIds: List<Int>): Map<Int, Oid> =
-        if (solkiIds.isEmpty()) {
-            emptyMap()
-        } else {
-            jdbcNamedParameterTemplate
-                .query(
-                    """
-                    SELECT DISTINCT ON (solki_id) solki_id, koski_opiskeluoikeus
-                    FROM yki_suoritus
-                    WHERE solki_id IN (:solki_ids) AND koski_opiskeluoikeus IS NOT NULL
-                    ORDER BY solki_id, received_at DESC
-                    """.trimIndent(),
-                    mapOf("solki_ids" to solkiIds),
-                ) { rs, _ ->
-                    rs.getInt("solki_id") to Oid.parse(rs.getString("koski_opiskeluoikeus")).getOrNull()
-                }.mapNotNull { (solkiId, oid) -> oid?.let { solkiId to it } }
-                .toMap()
+        solkiIds.chunked(SOLKI_IDEJA_KERRALLA).fold(emptyMap()) { tulos, era ->
+            tulos +
+                jdbcNamedParameterTemplate
+                    .query(
+                        """
+                        SELECT DISTINCT ON (solki_id) solki_id, koski_opiskeluoikeus
+                        FROM yki_suoritus
+                        WHERE solki_id IN (:solki_ids) AND koski_opiskeluoikeus IS NOT NULL
+                        ORDER BY solki_id, received_at DESC
+                        """.trimIndent(),
+                        mapOf("solki_ids" to era),
+                    ) { rs, _ ->
+                        rs.getInt("solki_id") to Oid.parse(rs.getString("koski_opiskeluoikeus")).getOrNull()
+                    }.mapNotNull { (solkiId, oid) -> oid?.let { solkiId to it } }
         }
+
+    fun findViimeisinLahdejarjestelmanTunnus(solkiId: Int): String? =
+        jdbcNamedParameterTemplate
+            .query(
+                """
+                SELECT lahdejarjestelmantunnus
+                FROM yki_suoritus
+                WHERE solki_id = :solki_id
+                ORDER BY last_modified DESC, id DESC
+                LIMIT 1
+                """.trimIndent(),
+                mapOf("solki_id" to solkiId),
+            ) { rs, _ -> rs.getString("lahdejarjestelmantunnus") }
+            .firstOrNull()
 
     @Transactional
     @WithSpan

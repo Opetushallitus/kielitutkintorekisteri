@@ -3,6 +3,7 @@ package fi.oph.kitu.yki
 import fi.oph.kitu.csv.csvAttachmentResponse
 import fi.oph.kitu.ilmoittautumisjarjestelma.IlmoittautumisjarjestelmaService
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
+import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
 import fi.oph.kitu.tiedontuontischema.LahdejarjestelmanTunniste
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoFailure
 import fi.oph.kitu.tiedontuontischema.TiedonsiirtoSuccess
@@ -278,6 +279,17 @@ class YkiApiController(
             .setAttribute("tutkintokieli", entity.tutkintokieli.name)
             .setAttribute("tutkintotaso", entity.tutkintotaso.name)
             .setAttribute("arviointitila", entity.arviointitila.name)
+
+        val tallennettuLahde =
+            ykiSuoritusRepository
+                .findViimeisinLahdejarjestelmanTunnus(entity.solkiId)
+                ?.let(Lahdejarjestelma::ofTunnus)
+                ?.takeIf { it != Lahdejarjestelma.Unknown && it != Lahdejarjestelma.OPHTesti }
+        if (tallennettuLahde != null && tallennettuLahde != Lahdejarjestelma.ofTunnus(entity.lahdejarjestelmanTunnus)) {
+            return TiedonsiirtoFailure
+                .conflict("Tunniste ${entity.solkiId} kuuluu lähdejärjestelmän $tallennettuLahde suoritukselle")
+                .toResponseEntity()
+        }
 
         ykiSuoritusRepository.save(entity, false)
         ilmoittautumisjarjestelma.sendArvioinninTila(entity)

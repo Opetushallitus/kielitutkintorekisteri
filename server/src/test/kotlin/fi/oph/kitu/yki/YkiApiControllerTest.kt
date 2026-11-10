@@ -1028,6 +1028,76 @@ class YkiApiControllerTest(
         )
     }
 
+    private fun arvioitava(
+        id: String,
+        lahde: Lahdejarjestelma,
+    ) = Henkilosuoritus(
+        henkilo =
+            Henkilo(
+                oid = Oid.parse("1.2.246.562.24.20281155246").getOrThrow(),
+                etunimet = "Ranja Testi",
+                sukunimi = "Öhman-Testi",
+                sukupuoli = Sukupuoli.N,
+                kansalaisuus = "EST",
+                katuosoite = "Testikuja 5",
+                postinumero = "40100",
+                postitoimipaikka = "Testilä",
+                maa = "FIN",
+                email = "testi@testi.fi",
+            ),
+        suoritus =
+            YkiSuoritus(
+                tutkintotaso = Tutkintotaso.YT,
+                kieli = Tutkintokieli.ENG,
+                todistuskieli = Todistuskieli.FIN,
+                jarjestaja =
+                    YkiJarjestaja(
+                        oid = Oid.parse("1.2.246.562.10.14893989377").getOrThrow(),
+                        nimi = "Jyväskylän yliopisto, Soveltavan kielentutkimuksen keskus",
+                    ),
+                tutkintopaiva = LocalDate.of(2026, 9, 1),
+                arviointipaiva = null,
+                arviointitila = Arviointitila.ARVIOITAVA,
+                osat =
+                    listOf(
+                        YkiOsa(tyyppi = TutkinnonOsa.puhuminen, arvosana = null),
+                        YkiOsa(tyyppi = TutkinnonOsa.puheenYmmartaminen, arvosana = null),
+                        YkiOsa(tyyppi = TutkinnonOsa.kirjoittaminen, arvosana = 12),
+                        YkiOsa(tyyppi = TutkinnonOsa.tekstinYmmartaminen, arvosana = 12),
+                    ),
+                lahdejarjestelmanId = LahdejarjestelmanTunniste(id = id, lahde = lahde),
+            ),
+    )
+
+    @Test
+    fun `testilahetys ei voi korvata Solkin suoritusta samalla tunnisteella`() {
+        postSuoritus(arvioitava("777001", Lahdejarjestelma.Solki)) { isOk() }
+
+        postSuoritus(arvioitava("777001", Lahdejarjestelma.OPHTesti)) { status { isConflict() } }
+
+        assertEquals(
+            "yki.777001",
+            suoritusRepository.findLatestBySolkiIds(listOf(777001)).single().lahdejarjestelmanTunnus,
+        )
+    }
+
+    @Test
+    fun `Solkin suoritus korvaa testisuorituksen samalla tunnisteella`() {
+        postSuoritus(arvioitava("777002", Lahdejarjestelma.OPHTesti)) { isOk() }
+
+        postSuoritus(arvioitava("777002", Lahdejarjestelma.Solki)) { isOk() }
+
+        assertEquals(
+            "yki.777002",
+            suoritusRepository.findLatestBySolkiIds(listOf(777002)).single().lahdejarjestelmanTunnus,
+        )
+    }
+
+    @Test
+    fun `opiskeluoikeuksien haku ei kaadu JDBC-ajurin parametrirajaan`() {
+        assertEquals(emptyMap(), suoritusRepository.findOpiskeluoikeusOidsBySolkiIds((1..70_000).map { -it }))
+    }
+
     private fun postSuoritus(
         suoritus: Henkilosuoritus<*>,
         block: MockMvcResultMatchersDsl.() -> Unit,
