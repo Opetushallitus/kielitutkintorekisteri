@@ -76,8 +76,12 @@ jobs:
       - name: deploy
         working-directory: infra
         run: |
-          aws logs start-live-tail --log-group-identifiers arn:aws:logs:eu-west-1:${{ vars.account_id }}:log-group:KituService &
-          npx cdk deploy --require-approval=never --exclusively '${{ inputs.environment }}/${{ inputs.stacks }}'
+          aws logs start-live-tail --log-group-identifiers "arn:aws:logs:eu-west-1:${ACCOUNT_ID}:log-group:KituService" &
+          npx cdk deploy --require-approval=never --exclusively "${TARGET_ENVIRONMENT}/${STACKS}"
+        env:
+          ACCOUNT_ID: ${{ vars.account_id }}
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          STACKS: ${{ inputs.stacks }}
 
   # Ilman environmentia PR-työn OIDC-subject on <repo>:pull_request, johon
   # luottaa vain kitu-github-actions-diff-role (pelkät CloudFormation-pohjien
@@ -123,11 +127,15 @@ jobs:
         # deployroolin. CDK varoittaa, ettei lookup-roolia voi ottaa, ja
         # jatkaa diff-roolin tunnuksilla (konteksti on cdk.context.json:ssa).
         run: |
-          npx cdk diff --method=template --exclusively '${{ inputs.environment }}/${{ inputs.stacks }}' &> >(tee cdk.log)
-          if [ -n "${{ github.event.number }}" ]; then
-            cdk-notifier --log-file cdk.log --vcs github --repo kielitutkintorekisteri --owner ${{ github.repository_owner }} --pull-request-id ${{ github.event.number }} --template extendedWithResources --tag-id ${{ inputs.environment }} --suppress-hash-changes --suppress-hash-changes-regex '[+-].*?[a-fA-F0-9]{40}'
+          npx cdk diff --method=template --exclusively "${TARGET_ENVIRONMENT}/${STACKS}" &> >(tee cdk.log)
+          if [ -n "$PR_NUMBER" ]; then
+            cdk-notifier --log-file cdk.log --vcs github --repo kielitutkintorekisteri --owner "$REPOSITORY_OWNER" --pull-request-id "$PR_NUMBER" --template extendedWithResources --tag-id "$TARGET_ENVIRONMENT" --suppress-hash-changes --suppress-hash-changes-regex '[+-].*?[a-fA-F0-9]{40}'
           else
             echo "::notice::Skipping cdk-notifier PR comment — no PR associated with this run. Diff output is in the job log above."
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          STACKS: ${{ inputs.stacks }}
+          PR_NUMBER: ${{ github.event.number }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}

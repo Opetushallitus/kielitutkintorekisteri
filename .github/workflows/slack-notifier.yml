@@ -11,16 +11,18 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-26.04
-    if: github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion == 'failure'
+    if: >-
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.conclusion == 'failure'
     steps:
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         id: failed-jobs
         with:
           script: |
             const run = await github.rest.actions.listJobsForWorkflowRun({
-              owner: "${{ github.event.workflow_run.head_repository.owner.login }}",
-              repo: "${{ github.event.workflow_run.head_repository.name }}",
-              run_id: "${{ github.event.workflow_run.id }}"
+              ...context.repo,
+              run_id: context.payload.workflow_run.id,
             })
             return run.data.jobs.filter(job => job.conclusion === "failure").map(job => job.html_url).join(", ")
       - uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4
@@ -29,7 +31,7 @@ jobs:
           webhook-type: webhook-trigger
           errors: true
           payload: |
-            name: "${{ github.event.workflow_run.name }}" 
-            title: "${{ github.event.workflow_run.display_title }}"
-            url: "${{ github.event.workflow_run.html_url }}"
+            name: ${{ toJSON(github.event.workflow_run.name) }}
+            title: ${{ toJSON(github.event.workflow_run.display_title) }}
+            url: ${{ toJSON(github.event.workflow_run.html_url) }}
             failed_jobs: ${{ steps.failed-jobs.outputs.result }}
