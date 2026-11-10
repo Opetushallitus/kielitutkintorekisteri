@@ -9,12 +9,14 @@ import java.time.LocalDate
 object Kausiprojektio {
     /**
      * Voimassa oleva kausi voittaa tulevan ja tuleva paattyneen: arvioija jolla on tuleva kausi on
-     * "Alkaa myohemmin", ei "Passivoitu".
+     * "Alkaa myohemmin", ei "Passivoitu". Passivointi katkaisee myos tulevan kauden tahan paivaan,
+     * jolloin se paattyy ennen alkuaan; sellainen kausi ei ole koskaan ollut voimassa eika kelpaa.
      */
     fun projisoitava(
-        kaudet: List<YkiArviointikausiEntity>,
+        kaikki: List<YkiArviointikausiEntity>,
         tanaan: LocalDate,
     ): YkiArviointikausiEntity? {
+        val kaudet = kaikki.filterNot { it.paattymispaiva?.isBefore(it.alkupaiva) == true }.ifEmpty { kaikki }
         val voimassa = kaudet.filter { alkanut(it, tanaan) && !paattynyt(it, tanaan) }
         if (voimassa.isNotEmpty()) return voimassa.maxWith(compareBy({ it.alkupaiva }, { it.tunniste }))
 

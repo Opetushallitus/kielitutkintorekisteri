@@ -47,6 +47,15 @@ class KausiprojektioTest {
     }
 
     @Test
+    fun `passivoinnissa katkaistua tulevaa kautta ei projisoida`() {
+        val passivointipaiva = tanaan.minusDays(1)
+        val katkaistu = kausi(1, LocalDate.of(2025, 1, 1), passivointipaiva, Tutkintokieli.FIN)
+        val tulevaKatkaistu = kausi(2, LocalDate.of(2026, 12, 1), passivointipaiva, Tutkintokieli.FIN)
+
+        assertEquals(katkaistu, Kausiprojektio.projisoitava(listOf(katkaistu, tulevaKatkaistu), tanaan))
+    }
+
+    @Test
     fun `tuleva kausi voittaa paattyneen`() {
         val tuleva = kausi(2, LocalDate.of(2027, 1, 1), LocalDate.of(2032, 1, 1), Tutkintokieli.FIN)
         val paattynyt = kausi(1, LocalDate.of(2015, 1, 1), LocalDate.of(2020, 1, 1), Tutkintokieli.FIN)
