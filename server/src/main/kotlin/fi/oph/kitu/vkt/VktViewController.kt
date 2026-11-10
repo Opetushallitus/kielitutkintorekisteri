@@ -24,6 +24,7 @@ import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusParams
 import fi.oph.kitu.vkt.uusintaoikeus.VktUusintaoikeusService
 import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.webmvc.ResourceNotFoundException
+import fi.oph.kitu.webmvc.VirheellinenPyyntoException
 import kotlinx.html.a
 import kotlinx.html.br
 import org.springframework.beans.factory.annotation.Qualifier
@@ -160,18 +161,11 @@ class VktViewController(
         form: VktErinomaisenArviointiPage.ArvosanaFormData,
         viewMessage: ViewMessage,
     ): RedirectView {
-        form.toEntries().forEach {
-            if (it.merkittyPoistettavaksi) {
-                vktSuoritukset.deleteOsakoe(osakoeId = it.id)
-            } else {
-                vktSuoritukset.setOsakoeArvosana(
-                    osakoeId = it.id,
-                    arvosana = it.arvosana,
-                    arviointipaiva = it.arviointipaiva,
-                )
-            }
-        }
-        vktSuoritukset.requestTransferToKoski(CustomVktSuoritusRepository.Tutkintoryhma(oppijanumero, kieli, taso))
+        vktSuoritukset
+            .tallennaErinomaisenArviointi(
+                CustomVktSuoritusRepository.Tutkintoryhma(oppijanumero, kieli, taso),
+                form.toEntries(),
+            ).onLeft { throw VktArviointiEiKelpaa(it) }
         viewMessage.showSuccess(UiText.Vkt.muutoksetTallennettu.toString())
         return RedirectView(Links.Vkt.ilmoittautuneenArviointi(oppijanumero, kieli, taso))
     }
@@ -252,3 +246,7 @@ class VktViewController(
 }
 
 class VktSuoritusNotFoundError : ResourceNotFoundException("VKT suoritusta ei löytynyt")
+
+class VktArviointiEiKelpaa(
+    virhe: VktArviointivirhe,
+) : VirheellinenPyyntoException("VKT-arviointia ei tallennettu: $virhe")

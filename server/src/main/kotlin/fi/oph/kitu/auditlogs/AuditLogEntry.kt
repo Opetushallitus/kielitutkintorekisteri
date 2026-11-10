@@ -33,6 +33,7 @@ enum class AuditLogOperation(
 ) {
     KielitestiSuoritusViewed("KielitestiSuoritusViewed"),
     VktSuoritusViewed("VktSuoritusViewed"),
+    VktArviointiTallennettu("VktArviointiTallennettu"),
     YkiSuoritusViewed("YkiSuoritusViewed"),
     YkiTarkistusarviointiHyvaksytty("YkiTarkistusarviointiHyvaksytty"),
     YkiArvioijaViewed("YkiArvioijaViewed"),
