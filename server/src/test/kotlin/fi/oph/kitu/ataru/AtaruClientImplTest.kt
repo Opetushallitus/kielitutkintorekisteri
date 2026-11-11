@@ -242,4 +242,35 @@ class AtaruClientImplTest {
             .andRespond(withSuccess("""{"hakemusOid":"h1"}""", MediaType.APPLICATION_JSON))
         assertIs<AtaruException.MalformedResponse>(client.haeHakemukset(listOf("h1")).leftOrNull())
     }
+
+    @Test
+    fun `maksut haetaan hakemukselle eika maksulinkin salaisuutta tai nimia jasenneta`() {
+        server
+            .expect(requestTo("$serviceUrl/api/maksut/list/1.2.246.562.11.1"))
+            .andExpect(method(HttpMethod.GET))
+            .andRespond(
+                withSuccess(
+                    """[{"order_id":"YKI1","first_name":"Testi","last_name":"Hakija","amount":"100.00",
+                        "due_date":"2026-10-15","status":"paid","secret":"salainen","paid_at":"2026-10-03",
+                        "origin":"astu","reference":"RF1","metadata":{"form-name":{"fi":"YKI"}}}]""",
+                    MediaType.APPLICATION_JSON,
+                ),
+            )
+
+        val laskut = client.haeMaksut("1.2.246.562.11.1").getOrNull()
+
+        assertEquals(listOf(AtaruLasku("YKI1", "paid", "astu", "2026-10-15", "2026-10-03")), laskut)
+        assertFalse(laskut.toString().contains("salainen"))
+        assertFalse(laskut.toString().contains("Hakija"))
+        server.verify()
+    }
+
+    @Test
+    fun `epaonnistunut maksujen listaus palautetaan vasempana`() {
+        server
+            .expect(requestTo("$serviceUrl/api/maksut/list/1.2.246.562.11.1"))
+            .andRespond(withStatus(HttpStatus.NOT_FOUND))
+
+        assertIs<AtaruException.BadRequest>(client.haeMaksut("1.2.246.562.11.1").leftOrNull())
+    }
 }

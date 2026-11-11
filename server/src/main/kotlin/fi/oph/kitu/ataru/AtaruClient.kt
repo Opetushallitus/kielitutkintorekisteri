@@ -21,6 +21,9 @@ interface AtaruClient {
     ): Either<AtaruException, List<HakemusOtsake>>
 
     fun haeHakemukset(avaimet: List<String>): Either<AtaruException, List<Either<SiirtoJasennysvirhe, SiirtoHakemus>>>
+
+    /** Hakemuksen maksut-palvelun laskut atarun virkailija-UI:n reitilta; ei sovittu ulkoinen rajapinta. */
+    fun haeMaksut(hakemusOid: String): Either<AtaruException, List<AtaruLasku>>
 }
 
 open class AtaruClientImpl(
@@ -65,17 +68,29 @@ open class AtaruClientImpl(
             }
         }
 
+    @WithSpan
+    override fun haeMaksut(hakemusOid: String): Either<AtaruException, List<AtaruLasku>> =
+        kutsu(HttpMethod.GET, "api/maksut/list/$hakemusOid", null, Array<AtaruLasku>::class.java).map { it.toList() }
+
     private fun <T> post(
         endpoint: String,
         body: Any,
         responseType: Class<T>,
     ): Either<AtaruException, T> =
+        kutsu(HttpMethod.POST, endpoint, defaultObjectMapper.writeValueAsString(body), responseType)
+
+    private fun <T> kutsu(
+        httpMethod: HttpMethod,
+        endpoint: String,
+        body: String?,
+        responseType: Class<T>,
+    ): Either<AtaruException, T> =
         Either
             .catch {
                 restClient.fetchOphService(
-                    httpMethod = HttpMethod.POST,
+                    httpMethod = httpMethod,
                     uri = URI.create("$serviceUrl/$endpoint"),
-                    body = defaultObjectMapper.writeValueAsString(body),
+                    body = body,
                     emptyRequest = "",
                     responseType = responseType,
                     nullResponse = { AtaruException.NullResponse(endpoint) },

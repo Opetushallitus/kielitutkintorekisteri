@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
+import fi.oph.kitu.ataru.AtaruLasku
 import fi.oph.kitu.ataru.SiirtoJasennysvirhe
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.oid.Oid
@@ -136,6 +137,36 @@ class ArvioijahakemusHakuServiceTest(
         assertNull(arvioijaRepository.findByArvioijaOid(oid(PETRO_OID)))
         assertEquals(emptyList(), repository.haeKaikki())
         assertEquals(listOf("lomake"), ataru.listauskutsut)
+    }
+
+    @Test
+    fun `tarkistettavalle haetaan paatosmaksun tila joka paivittyy joka haulla`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        ataru.hakemukset = listOf(siirtoHakemus("h1", PETRO_OID))
+
+        hae(timeService)
+        assertEquals(Maksutieto(Maksuntila.EI_LASKUA), tarkistettavat().getValue("h1").maksu)
+
+        ataru.maksut = mapOf("h1" to listOf(AtaruLasku("YKI1", "paid", "astu", "2026-05-20", "2026-05-15")))
+        hae(timeService, kello = MYOHEMMIN)
+
+        assertEquals(
+            Maksutieto(Maksuntila.MAKSETTU, maksettu = LocalDate.of(2026, 5, 15), erapaiva = LocalDate.of(2026, 5, 20)),
+            tarkistettavat().getValue("h1").maksu,
+        )
+    }
+
+    @Test
+    fun `epaonnistunut maksujen haku ei esta tarkistettavaksi tuloa`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        ataru.hakemukset = listOf(siirtoHakemus("h1", PETRO_OID))
+        ataru.maksutEpaonnistuvat = true
+
+        assertEquals(Hakuyhteenveto(tarkistettavia = 1), hae(timeService))
+
+        assertEquals(Maksutieto.EI_TIEDOSSA, tarkistettavat().getValue("h1").maksu)
     }
 
     @Test

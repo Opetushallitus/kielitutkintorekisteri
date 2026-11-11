@@ -1,9 +1,11 @@
 package fi.oph.kitu.yki.arvioijat.hakemus
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import fi.oph.kitu.ataru.AtaruClient
 import fi.oph.kitu.ataru.AtaruException
+import fi.oph.kitu.ataru.AtaruLasku
 import fi.oph.kitu.ataru.HakemusOtsake
 import fi.oph.kitu.ataru.OptionAnswer
 import fi.oph.kitu.ataru.SiirtoHakemus
@@ -104,15 +106,26 @@ object ArvioijahakemusTestidata {
 class FakeAtaruClient : AtaruClient {
     var hakemukset: List<SiirtoHakemus> = emptyList()
     var jasentymattomat: List<SiirtoJasennysvirhe> = emptyList()
+    var maksut: Map<String, List<AtaruLasku>> = emptyMap()
+    var maksutEpaonnistuvat = false
     val siirtokutsut = mutableListOf<List<String>>()
     val listauskutsut = mutableListOf<String>()
 
     fun tyhjenna() {
         hakemukset = emptyList()
         jasentymattomat = emptyList()
+        maksut = emptyMap()
+        maksutEpaonnistuvat = false
         siirtokutsut.clear()
         listauskutsut.clear()
     }
+
+    override fun haeMaksut(hakemusOid: String): Either<AtaruException, List<AtaruLasku>> =
+        if (maksutEpaonnistuvat) {
+            AtaruException.NullResponse("api/maksut/list/$hakemusOid").left()
+        } else {
+            maksut[hakemusOid].orEmpty().right()
+        }
 
     override fun haeHakemusavaimet(
         formKey: String,

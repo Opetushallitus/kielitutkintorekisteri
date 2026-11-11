@@ -34,6 +34,9 @@ describe("Yleisen kielitutkinnon arvioijahakemusten tarkistus", () => {
     await expect(rivi).toContainText("Kivinen-Testi, Petro Testi")
     await expect(rivi).toContainText("suomi: PT, KT")
     await expect(rivi).toContainText("ruotsi: YT")
+    await expect(rivi.getByTestId("maksunTila")).toHaveText(
+      "Maksettu 3.10.2026",
+    )
     await expect(
       ykiArvioijahakemuksetPage.keskeneraiset.getByTestId(YKSILOIMATON_HAKEMUS),
     ).toContainText("Odottaa yksilöintiä")
@@ -58,6 +61,14 @@ describe("Yleisen kielitutkinnon arvioijahakemusten tarkistus", () => {
     await ykiArvioijahakemuksetPage.tarkista(PETRON_HAKEMUS)
 
     await ykiArvioijaLomakePage.expectLomakeVisible()
+    await expect(
+      ykiArvioijaLomakePage.page.getByTestId("maksunTila"),
+    ).toHaveText("Maksettu 3.10.2026")
+    await expect(
+      ykiArvioijaLomakePage.page.getByText(
+        "Päätösmaksua ei ole kirjattu maksetuksi",
+      ),
+    ).toHaveCount(0)
     await expect(ykiArvioijaLomakePage.field("sahkopostiosoite")).toHaveValue(
       "kivinen-testi@oph.fi",
     )

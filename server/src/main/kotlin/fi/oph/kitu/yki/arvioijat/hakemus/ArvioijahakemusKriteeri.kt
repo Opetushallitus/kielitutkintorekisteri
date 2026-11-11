@@ -11,6 +11,11 @@ import fi.oph.kitu.ataru.StatesAndFilters
  * passivoimattomat hakemukset. Muuttuvat ehdot kuuluvat atarun puolelle, koska vahvistettua hakemusta ei
  * haeta uudelleen ja atarun listaukselta poistunut tarkistettava hakemus poistuu kitusta seuraavalla haulla.
  * Siirto jattaa lisaksi itse pois passivoidut ja henkilottomat hakemukset.
+ *
+ * Paatosmaksu: ASTU-maksullisella lomakkeella atarun maksupolleri siirtaa hakemuksen tilasta
+ * `decision-fee-outstanding` tilaan `processed` vasta maksun jalkeen, joten `processed` odottaa maksua.
+ * Virkailija voi kuitenkin asettaa `processed`-tilan myos kasin, joten kitu nayttaa maksun tilan
+ * tarkistuksessa ([Maksutieto]) eika pida tilaa todisteena maksusta.
  */
 object ArvioijahakemusKriteeri {
     val atarunSuodatus: List<OptionAnswer> = emptyList()

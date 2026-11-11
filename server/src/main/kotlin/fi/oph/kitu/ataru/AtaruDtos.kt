@@ -127,6 +127,21 @@ data class SiirtoHakemus(
     }
 }
 
+/**
+ * Atarun `GET /api/maksut/list/{hakemus}` -vastauksen lasku. Vastauksessa on myos maksulinkin `secret`
+ * ja maksajan nimet, joita ei kartoiteta, joten niita ei voi vahingossa tallentaa eika lokittaa.
+ */
+data class AtaruLasku(
+    @param:JsonProperty("order_id")
+    val orderId: String,
+    val status: String,
+    val origin: String,
+    @param:JsonProperty("due_date")
+    val dueDate: String? = null,
+    @param:JsonProperty("paid_at")
+    val paidAt: String? = null,
+)
+
 /** Ei Jacksonin virheviestia: se voi toistaa syotteen arvon, esimerkiksi hetun. */
 data class SiirtoJasennysvirhe(
     val hakemusOid: String?,
