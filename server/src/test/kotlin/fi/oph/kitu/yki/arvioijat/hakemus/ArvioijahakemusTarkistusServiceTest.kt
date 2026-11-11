@@ -260,6 +260,7 @@ class ArvioijahakemusTarkistusServiceTest(
                     arvioijaId: Int?,
                     kaudenAlkupaiva: LocalDate,
                     hetki: OffsetDateTime,
+                    syy: String?,
                 ): Unit = throw IllegalStateException("kaatui kesken")
             }
         val kaatuva =

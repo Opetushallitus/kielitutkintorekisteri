@@ -85,7 +85,7 @@ class ArvioijahakemusViewControllerTest(
         assertContains(html, "Kivinen-Testi, Petro Testi")
         assertContains(html, "odottava-hakemus")
         assertContains(html, "Henkilöä ei ole yksilöity")
-        assertContains(html, "Käsittely keskeytyi")
+        assertContains(html, "Käsittely kesken")
         assertFalse(html.contains("/yki/arvioijat/hakemukset/keskeytynyt-hakemus/tarkista"))
         assertFalse(html.contains("kasitelty-hakemus"))
         assertFalse(html.contains("/yki/arvioijat/hakemukset/virheet"), "ei virheitä, ei virheilmoitusta")

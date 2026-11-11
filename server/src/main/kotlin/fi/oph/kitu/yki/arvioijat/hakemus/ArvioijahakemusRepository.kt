@@ -80,6 +80,7 @@ class ArvioijahakemusRepository(
         arvioijaId: Int?,
         kaudenAlkupaiva: LocalDate,
         hetki: OffsetDateTime,
+        syy: String? = null,
     ) {
         jdbc.update(
             """
@@ -88,6 +89,7 @@ class ArvioijahakemusRepository(
                 henkilo_oid = :henkiloOid,
                 arvioija_id = :arvioijaId,
                 kauden_alkupaiva = :kaudenAlkupaiva,
+                syy = :syy,
                 kasitelty = :hetki
             WHERE hakemus_oid = :hakemusOid AND tila = 'KASITTELYSSA'
             """.trimIndent(),
@@ -96,9 +98,18 @@ class ArvioijahakemusRepository(
                 .addValue("henkiloOid", henkiloOid)
                 .addValue("arvioijaId", arvioijaId)
                 .addValue("kaudenAlkupaiva", kaudenAlkupaiva)
+                .addValue("syy", syy)
                 .addValue("hetki", hetki),
         )
     }
+
+    @WithSpan
+    fun haeKeskeytyneet(varattuEnnen: OffsetDateTime): List<ArvioijahakemusEntity> =
+        jdbc.query(
+            "SELECT * FROM yki_arvioijahakemus WHERE tila = 'KASITTELYSSA' AND kasitelty < :raja ORDER BY kasitelty",
+            MapSqlParameterSource("raja", varattuEnnen),
+            ArvioijahakemusEntity.fromRow,
+        )
 
     @WithSpan
     fun hae(hakemusOid: String): ArvioijahakemusEntity? =
