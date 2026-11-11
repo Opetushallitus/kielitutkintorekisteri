@@ -17,8 +17,8 @@ class ArvioijahakemusScheduledTasks(
     lateinit var schedule: String
 
     @Bean
-    fun tuoArvioijahakemukset(service: ArvioijahakemusTuontiService): Task<Void> =
-        tracer.recurringTask("Tuo YKI-arvioijahakemukset atarusta", schedule) {
-            service.tuo()
+    fun haeArvioijahakemukset(service: ArvioijahakemusHakuService): Task<Void> =
+        tracer.recurringTask("Hae YKI-arvioijahakemukset atarusta", schedule) {
+            service.hae()
         }
 }

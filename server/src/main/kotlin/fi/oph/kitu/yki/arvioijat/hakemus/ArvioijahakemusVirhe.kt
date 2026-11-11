@@ -17,7 +17,6 @@ enum class ArvioijahakemuksenVirhetyyppi {
     VAARA_TIETOTYYPPI,
     VALIDOINTIVIRHE,
     HENKILOA_EI_LOYDY,
-    OSOITE_PUUTTUU,
     ;
 
     val nimi: LocalizedString
@@ -30,7 +29,6 @@ enum class ArvioijahakemuksenVirhetyyppi {
                 VAARA_TIETOTYYPPI -> UiText.Yki.Arvioijahakemus.Virhe.vaaraTietotyyppi
                 VALIDOINTIVIRHE -> UiText.Yki.Arvioijahakemus.Virhe.validointivirhe
                 HENKILOA_EI_LOYDY -> UiText.Yki.Arvioijahakemus.Virhe.henkiloaEiLoydy
-                OSOITE_PUUTTUU -> UiText.Yki.Arvioijahakemus.Virhe.osoitePuuttuu
             }
 }
 

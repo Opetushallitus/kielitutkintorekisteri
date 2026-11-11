@@ -83,6 +83,17 @@ class YkiArvioijaMuokkauskytkinTest(
     }
 
     @Test
+    fun `arvioijahakemusten tarkistus ja haku ovat suljettuja`() {
+        mockMvc
+            .perform(get("/yki/arvioijat/hakemukset/h1/tarkista").session(session()))
+            .andExpect(status().isForbidden)
+        listOf(
+            post("/yki/arvioijat/hakemukset/h1/tarkista"),
+            post("/yki/arvioijat/hakemukset/hae"),
+        ).forEach { mockMvc.perform(it.session(session()).with(csrf())).andExpect(status().isForbidden) }
+    }
+
+    @Test
     fun `tallennus on suljettu`() {
         mockMvc
             .perform(post("/yki/arvioijat/uusi").session(session()).with(csrf()))

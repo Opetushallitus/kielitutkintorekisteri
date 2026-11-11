@@ -49,6 +49,7 @@ class DashboardServiceTest(
         assertEquals(null, yki.latestReceivedAt)
         assertEquals(0L, yki.koskiErrorCount)
         assertEquals(null, yki.arvioijahakemusVirheCount, "hakemusten tuonti ei ole kaytossa")
+        assertEquals(null, yki.arvioijahakemusTarkistettavaCount, "hakemusten tuonti ei ole kaytossa")
 
         val vkt = dashboardService.getVktStats()
         assertEquals(0L, vkt.suoritusCount)

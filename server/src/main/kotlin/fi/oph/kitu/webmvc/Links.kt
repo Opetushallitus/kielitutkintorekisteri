@@ -209,6 +209,12 @@ object Links {
 
         fun arvioijahakemusVirheet(): String =
             linkTo(methodOn(ArvioijahakemusViewController::class.java).virheetView()).toString()
+
+        fun haeArvioijahakemukset(): String =
+            linkTo(methodOn(ArvioijahakemusViewController::class.java).haeUudet()).toString()
+
+        fun tarkistaArvioijahakemus(hakemusOid: String): String =
+            linkTo(methodOn(ArvioijahakemusViewController::class.java).tarkistaView(hakemusOid)).toString()
     }
 
     object Kielitesti {

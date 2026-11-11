@@ -11,6 +11,7 @@ import fi.oph.kitu.util.scheduling.SchedulerStatsRepository
 import fi.oph.kitu.vkt.CustomVktSuoritusRepository
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
+import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemusTarkistettavaRepository
 import fi.oph.kitu.yki.arvioijat.hakemus.ArvioijahakemusVirheRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -31,6 +32,7 @@ class DashboardService(
     private val schedulerStatsRepository: SchedulerStatsRepository,
     private val koskiErrorService: KoskiErrorService,
     private val arvioijahakemusVirheRepository: ArvioijahakemusVirheRepository,
+    private val arvioijahakemusTarkistettavaRepository: ArvioijahakemusTarkistettavaRepository,
     private val arvioijarekisteriAsetukset: ArvioijarekisteriAsetukset,
     /**
      * Konstruktorissa eika @Value-kenttana, koska valimuistit alustetaan property-initialisoijissa
@@ -72,6 +74,10 @@ class DashboardService(
             koskiErrorCount = koskiErrorService.countByEntity(YkiMappingId.ENTITY, hidden = false).toLong(),
             arvioijahakemusVirheCount =
                 arvioijahakemusVirheRepository.takeIf { arvioijarekisteriAsetukset.hakemustenTuontiKaytossa }?.count(),
+            arvioijahakemusTarkistettavaCount =
+                arvioijahakemusTarkistettavaRepository
+                    .takeIf { arvioijarekisteriAsetukset.hakemustenTuontiKaytossa }
+                    ?.count(),
         )
 
     private fun computeVkt(): VktStats {
@@ -109,6 +115,7 @@ data class YkiStats(
     val latestReceivedAt: Instant?,
     val koskiErrorCount: Long,
     val arvioijahakemusVirheCount: Long?,
+    val arvioijahakemusTarkistettavaCount: Long?,
 )
 
 data class VktStats(
