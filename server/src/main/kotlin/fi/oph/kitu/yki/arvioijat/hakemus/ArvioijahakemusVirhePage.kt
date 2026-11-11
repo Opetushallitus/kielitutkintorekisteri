@@ -28,7 +28,7 @@ object ArvioijahakemusVirhePage {
         ) {
             h1 { +UiText.Nav.yki }
             h2 { +UiText.Yki.Arvioijahakemus.Virheet.otsikko }
-            p { +UiText.Yki.Arvioijahakemus.Virheet.kuvaus }
+            p { +UiText.Yki.Arvioijahakemus.Virheet.kuvausTarkistettavaksi }
 
             if (rivit.isEmpty()) {
                 p { +UiText.Yki.Arvioijahakemus.Virheet.eiRiveja }
