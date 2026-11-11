@@ -639,6 +639,17 @@ object UiText {
             ) = tr("yki.arvioijahakemus.hakuValmis")
                 .interpolate("tarkistettavia" to tarkistettavia, "virheellisia" to virheellisia)
 
+            object Maksu {
+                val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.maksu.otsikko")
+                val maksettu: LocalizedString get() = tr("yki.arvioijahakemus.maksu.maksettu")
+                val avoinna: LocalizedString get() = tr("yki.arvioijahakemus.maksu.avoinna")
+                val eraantynyt: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eraantynyt")
+                val eiLaskua: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eiLaskua")
+                val eiTiedossa: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eiTiedossa")
+                val erapaiva: LocalizedString get() = tr("yki.arvioijahakemus.maksu.erapaiva")
+                val eiMaksettuVaroitus: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eiMaksettuVaroitus")
+            }
+
             object Tarkistus {
                 val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.otsikko")
                 val ohje: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.ohje")

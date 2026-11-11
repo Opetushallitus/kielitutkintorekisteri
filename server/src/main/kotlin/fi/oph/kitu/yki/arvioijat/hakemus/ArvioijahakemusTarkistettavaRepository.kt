@@ -1,5 +1,7 @@
 package fi.oph.kitu.yki.arvioijat.hakemus
 
+import fi.oph.kitu.jdbc.getEnum
+import fi.oph.kitu.jdbc.getLocalDateOrNull
 import fi.oph.kitu.util.defaultObjectMapper
 import fi.oph.kitu.yki.arvioijat.Arviointioikeusvalinta
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
@@ -20,6 +22,7 @@ data class TarkistettavaHakemus(
     val hakemus: Arvioijahakemus,
     val ensimmainenHaku: OffsetDateTime,
     val viimeisinHaku: OffsetDateTime,
+    val maksu: Maksutieto = Maksutieto.EI_TIEDOSSA,
     val rekisterinArvioijaId: Int? = null,
 ) {
     companion object {
@@ -42,6 +45,12 @@ data class TarkistettavaHakemus(
                         ),
                     ensimmainenHaku = rs.getObject("ensimmainen_haku", OffsetDateTime::class.java),
                     viimeisinHaku = rs.getObject("viimeisin_haku", OffsetDateTime::class.java),
+                    maksu =
+                        Maksutieto(
+                            tila = rs.getEnum("maksun_tila"),
+                            maksettu = rs.getLocalDateOrNull("maksettu"),
+                            erapaiva = rs.getLocalDateOrNull("maksun_erapaiva"),
+                        ),
                     rekisterinArvioijaId = rs.getObject("rekisterin_arvioija_id") as Int?,
                 )
             }
@@ -72,9 +81,11 @@ class ArvioijahakemusTarkistettavaRepository(
             """
             INSERT INTO yki_arvioijahakemus_tarkistettava
                 (hakemus_oid, henkilo_oid, arvioija_oid, sukunimi, etunimet, arviointioikeudet,
-                 sahkopostiosoite, katuosoite, postinumero, postitoimipaikka, ensimmainen_haku, viimeisin_haku)
+                 sahkopostiosoite, katuosoite, postinumero, postitoimipaikka, ensimmainen_haku, viimeisin_haku,
+                 maksun_tila, maksettu, maksun_erapaiva)
             SELECT :hakemusOid, :henkiloOid, :arvioijaOid, :sukunimi, :etunimet, :arviointioikeudet::jsonb,
-                   :sahkopostiosoite, :katuosoite, :postinumero, :postitoimipaikka, :hetki, :hetki
+                   :sahkopostiosoite, :katuosoite, :postinumero, :postitoimipaikka, :hetki, :hetki,
+                   :maksunTila, :maksettu, :maksunErapaiva
             WHERE NOT EXISTS (
                 SELECT 1 FROM yki_arvioijahakemus k
                 WHERE k.hakemus_oid = :hakemusOid AND k.tila <> 'ODOTTAA_YKSILOINTIA'
@@ -89,7 +100,10 @@ class ArvioijahakemusTarkistettavaRepository(
                 katuosoite = EXCLUDED.katuosoite,
                 postinumero = EXCLUDED.postinumero,
                 postitoimipaikka = EXCLUDED.postitoimipaikka,
-                viimeisin_haku = EXCLUDED.viimeisin_haku
+                viimeisin_haku = EXCLUDED.viimeisin_haku,
+                maksun_tila = EXCLUDED.maksun_tila,
+                maksettu = EXCLUDED.maksettu,
+                maksun_erapaiva = EXCLUDED.maksun_erapaiva
             """.trimIndent(),
             MapSqlParameterSource()
                 .addValue("hakemusOid", rivi.hakemusOid)
@@ -106,6 +120,9 @@ class ArvioijahakemusTarkistettavaRepository(
                 .addValue("katuosoite", rivi.hakemus.katuosoite)
                 .addValue("postinumero", rivi.hakemus.postinumero)
                 .addValue("postitoimipaikka", rivi.hakemus.postitoimipaikka)
+                .addValue("maksunTila", rivi.maksu.tila.name)
+                .addValue("maksettu", rivi.maksu.maksettu)
+                .addValue("maksunErapaiva", rivi.maksu.erapaiva)
                 .addValue("hetki", hetki),
         )
     }

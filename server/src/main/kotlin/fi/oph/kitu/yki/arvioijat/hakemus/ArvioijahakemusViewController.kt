@@ -4,6 +4,7 @@ import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.html.FormErrors
 import fi.oph.kitu.html.ViewMessage
 import fi.oph.kitu.html.copyable
+import fi.oph.kitu.html.warningMessage
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import fi.oph.kitu.security.CurrentUser
@@ -187,10 +188,19 @@ class ArvioijahakemusViewController(
             tallennaTeksti = UiText.Yki.Arvioijahakemus.Tarkistus.vahvista,
             peruutusLinkki = Links.Yki.arvioijahakemukset(),
             johdanto = {
+                val maksu = tarkistettavaRepository.hae(hakemusOid)?.maksu ?: Maksutieto.EI_TIEDOSSA
+                if (maksu.tila != Maksuntila.MAKSETTU) {
+                    warningMessage(UiText.Yki.Arvioijahakemus.Maksu.eiMaksettuVaroitus)
+                }
                 p {
                     +UiText.Yki.Arvioijahakemus.hakemus
                     +": "
                     copyable(hakemusOid)
+                }
+                p {
+                    +UiText.Yki.Arvioijahakemus.Maksu.otsikko
+                    +": "
+                    maksunTila(maksu)
                 }
                 p { +UiText.Yki.Arvioijahakemus.Tarkistus.ohje }
             },

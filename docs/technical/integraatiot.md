@@ -225,6 +225,20 @@ heti olemassa olevan kauden jälkeen (`TallennaArvioija.automaattinenJatkokausi`
 palvelimella). Kitussa hakemusta ei voi hylätä: hakemus pudotetaan muuttamalla sen tila atarussa,
 jolloin se poistuu seuraavalla haulla.
 
+**Päätösmaksu.** Hakemusta ei saa tuoda ennen kuin se on maksettu. Maksu on atarun ASTU-päätösmaksu:
+
+1. Virkailija lähettää laskun atarusta OPH:n `maksut`-palvelun kautta. Hakemus siirtyy tilaan `decision-fee-outstanding`.
+2. Hakija maksaa Paytrailissa.
+3. Atarun maksupolleri (5 minuutin välein) siirtää hakemuksen tilaan `processed`.
+
+Kitun `processed`-ehto odottaa siis maksua. Virkailija voi kuitenkin asettaa `processed`-tilan käsin, joten kitu ei pidä
+sitä todisteena maksusta. Haku hakee tarkistettavalle hakemukselle laskujen tilan reitiltä
+`GET /lomake-editori/api/maksut/list/{hakemus}` ja näyttää sen listalla ja tarkistuslomakkeella. Lomake varoittaa, jos
+maksua ei ole kirjattu, mutta ei estä vahvistusta. Reitti on atarun virkailija-UI:n reitti, ei sovittu ulkoinen
+rajapinta. Sen vastauksessa on maksulinkin salaisuus ja maksajan nimet, joita kitu ei kartoita eikä tallenna.
+**Riippuvuus:** atarussa ja maksut-palvelussa ei ole vielä YKI-tilausnumeron etuliitettä, joten YKI-lomakkeelle ei voi
+vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
+
 - **Lomakkeen kartoitus on ympäristökohtainen asetus** `kitu.ataru.arvioijahakemus.*`
   (`ArvioijahakemusLomake`) tiedostossa `server/src/main/resources/arvioijahakemuslomake.yml`,
   yksi YAML-dokumentti ympäristöä kohden (`spring.config.activate.on-profile`). Jokaisessa
@@ -327,6 +341,7 @@ jolloin se poistuu seuraavalla haulla.
 | `ATARU_HAKEMUS` READ (`APP_ATARU_HAKEMUS_READ_<org>`) palvelukäyttäjälle `koto-rekisteri` | lomakkeen omistava OPH:n alaorganisaatio | Ilman oikeutta ataru **pudottaa hakemukset hiljaa** — tyhjä vastaus, ei virhettä. Oikeutta ei myönnetä OPH:n juuriorganisaatioon, koska se tekisi käyttäjästä ataru-superuserin.          |
 | CAS-kirjautuminen palvelukäyttäjälle `koto-rekisteri`                                     | Otuva CAS REST (`/cas/v1/tickets`)       | Käyttää `kitu.palvelukayttaja.username/password`-arvoja (`palvelukayttaja-password`); uutta tunnusta tai salaisuutta ei tarvita.                                                          |
 | ONR                                                                                       | —                                        | Nykyiset oikeudet riittävät (samat kutsut kuin arvioijalomakkeella).                                                                                                                      |
+| Atarun maksulistaus `GET /lomake-editori/api/maksut/list/{hakemus}`                       | —                                        | Ei lisäoikeuksia: reitillä ei ole käyttöoikeustarkistusta, joten palvelukäyttäjän CAS-istunto riittää. Ataru kysyy laskut omilla tunnuksillaan maksut-palvelusta.                         |
 | Kitussa `YKI_ARVIOIJAREKISTERI`                                                           | `/yki/arvioijat/hakemukset/**`           | Tarkistettavien, käsittelemättömien ja virheellisten hakemusten näkymät. Haku-nappi ja tarkistuslomake vaativat lisäksi muokkauskytkimen (`kitu.yki.arvioijarekisteri.muokkaus.enabled`). |
 
 `yki_arvioijahakemus` on pelkkä kirjanpito, eikä sillä ole säilytysaikaa: vahvistetun hakemuksen

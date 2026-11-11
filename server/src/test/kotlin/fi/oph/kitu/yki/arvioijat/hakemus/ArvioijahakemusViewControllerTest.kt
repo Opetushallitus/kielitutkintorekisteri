@@ -145,6 +145,29 @@ class ArvioijahakemusViewControllerTest(
     }
 
     @Test
+    fun `paatosmaksun tila naytetaan listalla ja maksamattomasta varoitetaan tarkistuksessa`() {
+        tarkistettavaRepository.tallenna(
+            tarkistettava(
+                "maksettu",
+            ).copy(maksu = Maksutieto(Maksuntila.MAKSETTU, maksettu = LocalDate.of(2026, 10, 3))),
+            OffsetDateTime.now(),
+        )
+        tarkistettavaRepository.tallenna(
+            tarkistettava("maksamaton").copy(maksu = Maksutieto(Maksuntila.EI_LASKUA)),
+            OffsetDateTime.now(),
+        )
+
+        val lista = sivu("/yki/arvioijat/hakemukset")
+        assertContains(lista, "Päätösmaksu")
+        assertContains(lista, "Maksettu 3.10.2026")
+        assertContains(lista, "Ei laskua")
+
+        val varoitus = "Päätösmaksua ei ole kirjattu maksetuksi"
+        assertFalse(sivu("/yki/arvioijat/hakemukset/maksettu/tarkista").contains(varoitus))
+        assertContains(sivu("/yki/arvioijat/hakemukset/maksamaton/tarkista"), varoitus)
+    }
+
+    @Test
     fun `epaonnistunut haku naytetaan ilmoituksena`() {
         val vastaus =
             mockMvc

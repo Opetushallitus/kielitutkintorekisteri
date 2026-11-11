@@ -208,6 +208,16 @@ class ArvioijahakemusHakuService(
             arvioijaService.haeHenkilotiedot(hakemus.personOid).getOrElse {
                 return henkilotietovirhe(hakemus, it, hetki)
             }
+        val maksu =
+            ataru.haeMaksut(hakemus.hakemusOid).fold(
+                ifLeft = {
+                    logger.warn(
+                        "Arvioijahakemuksen ${hakemus.hakemusOid} maksutietoja ei saatu atarusta: ${it.javaClass.simpleName}",
+                    )
+                    Maksutieto.EI_TIEDOSSA
+                },
+                ifRight = Maksutieto::koosta,
+            )
         val rivi =
             TarkistettavaHakemus(
                 hakemusOid = hakemus.hakemusOid,
@@ -218,6 +228,7 @@ class ArvioijahakemusHakuService(
                 hakemus = kartoitettu,
                 ensimmainenHaku = hetki,
                 viimeisinHaku = hetki,
+                maksu = maksu,
             )
         virheRepository.poista(hakemus.hakemusOid)
         repository.poista(hakemus.hakemusOid, ArvioijahakemuksenTila.ODOTTAA_YKSILOINTIA)
