@@ -49,7 +49,7 @@
   <rect class="tausta" x="0" y="0" width="1600" height="804"/>
   <g id="otsikko">
     <text class="otsikko" x="24" y="34">YKI – arvioijarekisteri: tietovirrat</text>
-    <text class="alaotsikko" x="24" y="54">Kielitutkintorekisteri (kitu) on YKI-arvioijarekisterin master · tilanne 30.10.2026</text>
+    <text class="alaotsikko" x="24" y="54">Kielitutkintorekisteri (kitu) on YKI-arvioijarekisterin master · tilanne 11.11.2026</text>
   </g>
   <g id="selite">
     <g class="laatikko kitu">
@@ -143,10 +143,10 @@
   <g id="kitu-hakee-atarusta" class="nuoli pull ei-kaytossa">
     <path d="M 710,170 L 1100,320" marker-end="url(#karki-pull)"/>
     <g class="nuolen-teksti">
-      <rect x="752" y="218" width="306" height="34" rx="3"/>
+      <rect x="719" y="218" width="372" height="34" rx="3"/>
       <text x="905" y="232" text-anchor="middle">
-        <tspan x="905" y="232">arvioijahakemukset → uusi arvioija tai jatkokausi</tspan>
-        <tspan x="905" y="246">kitu hakee · CAS · öisin · ei vielä käytössä</tspan>
+        <tspan x="905" y="232">arvioijahakemukset → virkailijan tarkistettaviksi</tspan>
+        <tspan x="905" y="246">kitu hakee · CAS · öisin ja pyydettäessä · ei vielä käytössä</tspan>
       </text>
     </g>
   </g>
@@ -174,9 +174,10 @@
   <g id="virkailija-kitu" class="nuoli kayttaja">
     <path d="M 135,456 L 135,560 L 1190,560 L 1190,470" marker-end="url(#karki-kayttaja)"/>
     <g class="nuolen-teksti">
-      <rect x="438" y="540" width="445" height="20" rx="3"/>
+      <rect x="456" y="540" width="408" height="34" rx="3"/>
       <text x="660" y="554" text-anchor="middle">
-        <tspan x="660" y="554">arvioijat, kaudet, passivointi ja käsin lähetys Solkiin · virkailija-CAS</tspan>
+        <tspan x="660" y="554">arvioijat, kaudet, passivointi, hakemusten tarkistus ja vahvistus,</tspan>
+        <tspan x="660" y="568">käsin lähetys Solkiin · virkailija-CAS</tspan>
       </text>
     </g>
   </g>
