@@ -67,6 +67,7 @@ class YkiTarkistusarvioinnitViewTest(
     @param:Autowired private val jdbc: JdbcTemplate,
 ) {
     private lateinit var mockMvc: MockMvc
+    private var seuraavaSolkiId = 100_000
 
     @BeforeEach
     fun setup() {
@@ -97,6 +98,7 @@ class YkiTarkistusarvioinnitViewTest(
     ): YkiSuoritusEntity =
         generateRandomYkiSuoritusEntity()
             .copy(
+                solkiId = seuraavaSolkiId++,
                 suorittajanOID = oppijanumero,
                 sukunimi = sukunimi,
                 etunimet = "Testi",
