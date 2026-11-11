@@ -210,7 +210,7 @@ class YkiArvioijaKausiService(
     ) {
         kausiRepository.paivitaEnsimmainenRekisterointipaiva(arvioijaId)
         val muuttui = kausiRepository.paivitaProjektio(arvioijaId, tanaan)
-        kausiRepository.poistaPassivointileimaJosAktiivinen(arvioijaId, tanaan)
+        kausiRepository.poistaPassivointileimaJosKausiVoimassaTaiTulossa(arvioijaId, tanaan)
         if (muuttui) {
             kausiRepository.merkitseMuuttuneeksi(arvioijaId, tekija)
             lahetaSolkiinCommitinJalkeen(arvioijaId)

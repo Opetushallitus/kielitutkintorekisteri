@@ -328,15 +328,16 @@ class YkiArvioijaKausiRepository(
     }
 
     /**
-     * Sailytysajan alkuhetki nollataan kun merkinta on jalleen voimassa: uusi kausi on uusi
-     * rekisterointi, joka kumoaa aiemman passivoinnin.
+     * Sailytysajan alkuhetki nollataan kun merkinnalla on voimassa oleva tai tuleva kausi: uusi
+     * kausi on uusi rekisterointi, joka kumoaa aiemman passivoinnin. Tulevakin kausi kumoaa, koska
+     * muuten kauden paatyttya sailytysaika laskettaisiin vanhasta leimasta ja merkinta poistuisi heti.
      *
      * Ehto luetaan masterista ja ohittaa passivoidut kaudet. Tanaan katkaistu kausi on
      * paattymispaivan inklusiivisuuden takia viela tanaan AKTIIVINEN, joten projektiosta luettuna
      * mika tahansa saman paivan muokkaus pyyhkisi juuri asetetun leiman.
      */
     @WithSpan
-    fun poistaPassivointileimaJosAktiivinen(
+    fun poistaPassivointileimaJosKausiVoimassaTaiTulossa(
         arvioijaId: Int,
         tanaan: LocalDate,
     ) {
@@ -349,7 +350,6 @@ class YkiArvioijaKausiRepository(
                   SELECT 1 FROM yki_arvioija_arviointikausi kausi
                   WHERE kausi.arvioija_id = yki_arvioija.id
                     AND kausi.passivoitu IS NULL
-                    AND kausi.alkupaiva <= :tanaan
                     AND (kausi.paattymispaiva IS NULL OR kausi.paattymispaiva >= :tanaan)
               )
             """.trimIndent(),
@@ -471,8 +471,30 @@ class YkiArvioijaKausiRepository(
         alkupaiva: LocalDate,
         paattymispaiva: LocalDate?,
         tekija: Oid?,
-    ): Int =
-        jdbcTemplate.queryForObject(
+    ): Int {
+        val olemassa =
+            jdbcTemplate
+                .queryForList(
+                    "SELECT id FROM yki_arvioija_arviointikausi WHERE arvioija_id = ? AND alkupaiva = ? ORDER BY id",
+                    Int::class.java,
+                    arvioijaId,
+                    alkupaiva,
+                ).firstOrNull()
+        if (olemassa != null) {
+            jdbcTemplate.update(
+                """
+                UPDATE yki_arvioija_arviointikausi
+                SET paattymispaiva = ?, muokattu = now(), muokkaaja_oid = ?
+                WHERE id = ? AND passivoitu IS NULL AND paattymispaiva IS DISTINCT FROM ?
+                """.trimIndent(),
+                paattymispaiva,
+                tekija?.toString(),
+                olemassa,
+                paattymispaiva,
+            )
+            return olemassa
+        }
+        return jdbcTemplate.queryForObject(
             """
             INSERT INTO yki_arvioija_arviointikausi
                 (arvioija_id, alkupaiva, paattymispaiva, luoja_oid, muokkaaja_oid)
@@ -488,6 +510,7 @@ class YkiArvioijaKausiRepository(
             tekija?.toString(),
             tekija?.toString(),
         )!!
+    }
 
     /**
      * Kirjaa lokiin vain ne kielet joiden kausi tosiasiassa muuttui: pelkka yhteystiedon korjaus
