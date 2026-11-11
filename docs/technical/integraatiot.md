@@ -294,12 +294,14 @@ jolloin se poistuu seuraavalla haulla.
   - **Virheellinen** (`yki_arvioijahakemus_virhe`, ks. alla).
   - **Kirjanpidossa** (`yki_arvioijahakemus.tila`):
     - `ODOTTAA_YKSILOINTIA`: henkilöä ei ole vielä yksilöity ONR:ssä; haetaan joka haulla uudelleen.
-    - `KASITTELYSSA`: vahvistus on kesken tai keskeytyi arvioijan tallennuksen jälkeen. Tarkistettava
-      käsin; hakemusta ei voi vahvistaa uudelleen.
+    - `KASITTELYSSA` ("Käsittely kesken"): vahvistus on käynnissä tai kaatui arvioijan tallennuksen
+      aikana. Hakemusta ei voi vahvistaa uudelleen. Haku selvittää yli 10 minuuttia vanhan varauksen:
+      jos henkilöllä on kausi, joka alkaa varauksen alkupäivänä tai on luotu varauksen jälkeen, hakemus
+      kirjataan tilaan `KASITELTY`; muuten varaus vapautetaan ja hakemus palaa tarkistettavaksi.
     - `KASITELTY`: virkailija on vahvistanut hakemuksen rekisteriin.
 
   Haku kirjoittaa vain tarkistettavat, virheet ja `ODOTTAA_YKSILOINTIA`n, eikä se koskaan kirjoita
-  vahvistuksen rivien yli. Vahvistus varaa hakemuksen tilaan `KASITTELYSSA` ennen arvioijan
+  vahvistuksen rivien yli — paitsi selvittäessään kesken jääneen vahvistuksen. Vahvistus varaa hakemuksen tilaan `KASITTELYSSA` ennen arvioijan
   tallennusta, joten samaa hakemusta ei voi vahvistaa kahdesti. Validointivirhe näytetään lomakkeella
   ja vapauttaa varauksen.
 

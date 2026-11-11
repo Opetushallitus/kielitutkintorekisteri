@@ -653,7 +653,7 @@ object UiText {
             object Tila {
                 val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasitelty")
                 val odottaaYksilointia: LocalizedString get() = tr("yki.arvioijahakemus.tila.odottaaYksilointia")
-                val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
+                val kesken: LocalizedString get() = tr("yki.arvioijahakemus.tila.kesken")
             }
 
             object Virheet {

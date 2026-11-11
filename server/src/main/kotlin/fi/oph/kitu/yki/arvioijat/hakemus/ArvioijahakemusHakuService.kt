@@ -8,15 +8,19 @@ import fi.oph.kitu.ataru.SiirtoHakemus
 import fi.oph.kitu.ataru.SiirtoJasennysvirhe
 import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.config.ConditionalOnNonEmptyProperty
+import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.Validation
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaError
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaService
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -32,7 +36,8 @@ data class Hakuyhteenveto(
  * Hakee atarun arvioijahakemukset virkailijan tarkistettaviksi (`yki_arvioijahakemus_tarkistettava`).
  * Haku ei koskaan luo arvioijaa: rekisteriin hakemus tulee vasta [ArvioijahakemusTarkistusService.vahvista]lla.
  * Hakemus on aina vain yhdessa tilassa: tarkistettavana, virheissa tai kirjanpidossa
- * ([ArvioijahakemuksenTila]). Haku kirjoittaa kirjanpitoon vain tilan ODOTTAA_YKSILOINTIA.
+ * ([ArvioijahakemuksenTila]). Haku kirjoittaa kirjanpitoon tilan ODOTTAA_YKSILOINTIA ja selvittaa
+ * kesken jaaneet vahvistukset ([selvitaKeskenJaaneetVahvistukset]).
  */
 @Service
 @ConditionalOnNonEmptyProperty("kitu.ataru.service.url")
@@ -43,6 +48,8 @@ class ArvioijahakemusHakuService(
     private val tarkistettavaRepository: ArvioijahakemusTarkistettavaRepository,
     private val virheRepository: ArvioijahakemusVirheRepository,
     private val arvioijaService: YkiArvioijaService,
+    private val arvioijaRepository: YkiArvioijaRepository,
+    private val kausiRepository: YkiArvioijaKausiRepository,
     private val timeService: TimeService,
     private val auditLogger: AuditLogger,
 ) {
@@ -54,6 +61,7 @@ class ArvioijahakemusHakuService(
         check(puutteet.isEmpty()) {
             "Arvioijahakemuslomakkeen asetukset (kitu.ataru.arvioijahakemus) ovat puutteelliset: ${puutteet.joinToString()}"
         }
+        selvitaKeskenJaaneetVahvistukset()
         val avaimet =
             ataru
                 .haeHakemusavaimet(
@@ -113,6 +121,55 @@ class ArvioijahakemusHakuService(
             "${yhteenveto.epaonnistui} arvioijahakemuksen käsittely epäonnistui, ks. lokit"
         }
         return yhteenveto
+    }
+
+    /**
+     * Kaatunut vahvistus jattaa KASITTELYSSA-varauksen voimaan. Kausi, joka alkaa varauksen
+     * alkupaivana tai on luotu varauksen jalkeen, tarkoittaa etta arvioija ehti tallentua.
+     */
+    private fun selvitaKeskenJaaneetVahvistukset() {
+        val nyt = timeService.now()
+        var kirjattu = 0
+        var vapautettu = 0
+        val varattuEnnen = nyt.minus(KESKEN_JAANEEN_VAHVISTUKSEN_ODOTUS).atOffset(ZoneOffset.UTC)
+        repository.haeKeskeytyneet(varattuEnnen).forEach { rivi ->
+            val henkiloOid = rivi.henkiloOid?.let { Oid.parse(it).getOrNull() }
+            val alkupaiva = rivi.kaudenAlkupaiva
+            if (henkiloOid == null || alkupaiva == null) {
+                logger.warn("Kesken jäänyttä arvioijahakemuksen ${rivi.hakemusOid} vahvistusta ei voi selvittää")
+                return@forEach
+            }
+            val arvioija = arvioijaRepository.findByArvioijaOid(henkiloOid)
+            val kausi =
+                arvioija?.id?.toInt()?.let(kausiRepository::findKaudet)?.firstOrNull { kausi ->
+                    kausi.alkupaiva == alkupaiva || kausi.luotu?.let { !it.isBefore(rivi.kasitelty) } == true
+                }
+            if (arvioija != null && kausi != null) {
+                repository.merkitseKasitellyksi(
+                    rivi.hakemusOid,
+                    henkiloOid.toString(),
+                    arvioija.id?.toInt(),
+                    alkupaiva,
+                    nyt.atOffset(ZoneOffset.UTC),
+                    syy = "Kesken jäänyt vahvistus: kausi löytyi rekisteristä",
+                )
+                if (kausi.ashaNumero == null) {
+                    logger.warn("Arvioijahakemuksen ${rivi.hakemusOid} kesken jääneeltä kaudelta puuttuu ASHA-numero")
+                }
+                kirjattu++
+            } else {
+                repository.poista(rivi.hakemusOid, ArvioijahakemuksenTila.KASITTELYSSA)
+                vapautettu++
+            }
+            logger.info(
+                "Arvioijahakemuksen ${rivi.hakemusOid} kesken jäänyt vahvistus selvitetty: " +
+                    if (kausi != null) "kirjattu käsitellyksi" else "palautettu tarkistettavaksi",
+            )
+        }
+        Span.current().apply {
+            setAttribute("arvioijahakemus.keskenJaaneitaKirjattu", kirjattu.toLong())
+            setAttribute("arvioijahakemus.keskenJaaneitaVapautettu", vapautettu.toLong())
+        }
     }
 
     private fun kirjaaJasennysvirhe(
@@ -239,6 +296,10 @@ class ArvioijahakemusHakuService(
             }.distinct().joinToString()}",
         )
         return Kasittelytulos.Virhe
+    }
+
+    companion object {
+        val KESKEN_JAANEEN_VAHVISTUKSEN_ODOTUS: Duration = Duration.ofMinutes(10)
     }
 
     private sealed interface Kasittelytulos {

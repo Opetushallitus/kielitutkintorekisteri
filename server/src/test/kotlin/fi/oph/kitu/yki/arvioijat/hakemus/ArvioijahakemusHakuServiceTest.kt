@@ -13,6 +13,7 @@ import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.tyhjennaArvioijahakemukset
 import fi.oph.kitu.util.defaultObjectMapper
+import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.PaivitaArvioijanTiedotValidation
@@ -45,7 +46,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
+import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -89,6 +92,8 @@ class ArvioijahakemusHakuServiceTest(
                 tarkistettavaRepository,
                 virheRepository,
                 arvioijat,
+                arvioijaRepository,
+                kausiRepository,
                 timeService,
                 auditLogger,
             ).hae()
@@ -200,6 +205,87 @@ class ArvioijahakemusHakuServiceTest(
         assertEquals(PETRO_OID, rivit.getValue("h1").henkiloOid)
         assertEquals(ArvioijahakemuksenTila.KASITELTY, rivit.getValue("h2").tila)
         assertEquals(0, tarkistettaviaKannassa())
+    }
+
+    private fun luoPetro(alkupaiva: LocalDate) =
+        arvioijaService
+            .luoArvioija(
+                TallennaArvioija(
+                    arvioijaOid = oid(PETRO_OID),
+                    sukunimi = "Kivinen-Testi",
+                    etunimet = "Petro Testi",
+                    sahkopostiosoite = null,
+                    katuosoite = "Katu 1",
+                    postinumero = "00100",
+                    postitoimipaikka = "HELSINKI",
+                    kaudenAlkupaiva = alkupaiva,
+                    ashaNumero = "OPH-1-2026",
+                    arviointioikeudet =
+                        listOf(TallennaArvioija.Arviointioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.PT))),
+                ),
+                tekija = null,
+            ).getOrThrow()
+
+    private val vanhaVaraus = HETKI.minus(Duration.ofMinutes(11)).atOffset(ZoneOffset.UTC)
+
+    @Test
+    fun `kesken jaanyt vahvistus kirjataan kasitellyksi kun kausi loytyi rekisterista`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        val arvioija = timeService.runWithFixedClock(HETKI) { luoPetro(TANAAN) }
+        tarkistettavaRepository.tallenna(tarkistettava("h1"), vanhaVaraus)
+        repository.varaa("h1", PETRO_OID, TANAAN, vanhaVaraus)
+        ataru.hakemukset = listOf(siirtoHakemus("h1", PETRO_OID))
+
+        assertEquals(Hakuyhteenveto(), hae(timeService))
+
+        val rivi = repository.haeKaikki().single()
+        assertEquals(ArvioijahakemuksenTila.KASITELTY, rivi.tila)
+        assertEquals(arvioija.id?.toInt(), rivi.arvioijaId)
+        assertContains(rivi.syy.orEmpty(), "Kesken jäänyt vahvistus")
+        assertEquals(emptyList(), ataru.siirtokutsut, "kasiteltya ei haeta")
+        assertEquals(0, tarkistettaviaKannassa())
+    }
+
+    @Test
+    fun `kesken jaanyt vahvistus kirjataan kasitellyksi kun kausi on luotu varauksen jalkeen`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        repository.varaa("h1", PETRO_OID, TANAAN, vanhaVaraus)
+        timeService.runWithFixedClock(HETKI) { luoPetro(TANAAN.minusDays(30)) }
+        ataru.hakemukset = listOf(siirtoHakemus("h1", PETRO_OID))
+
+        hae(timeService)
+
+        assertEquals(ArvioijahakemuksenTila.KASITELTY, repository.haeKaikki().single().tila)
+    }
+
+    @Test
+    fun `kesken jaanyt vahvistus ilman kautta palaa tarkistettavaksi samassa haussa`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        tarkistettavaRepository.tallenna(tarkistettava("h1"), vanhaVaraus)
+        repository.varaa("h1", PETRO_OID, TANAAN, vanhaVaraus)
+        ataru.hakemukset = listOf(siirtoHakemus("h1", PETRO_OID))
+
+        assertEquals(Hakuyhteenveto(tarkistettavia = 1), hae(timeService))
+
+        assertEquals(emptyList(), repository.haeKaikki())
+        assertEquals(setOf("h1"), tarkistettavat().keys)
+        assertEquals(vanhaVaraus.toInstant(), tarkistettavat().getValue("h1").ensimmainenHaku.toInstant())
+    }
+
+    @Test
+    fun `tuoreeseen varaukseen ei kosketa koska vahvistus voi olla kaynnissa`(
+        @Autowired timeService: TestTimeService,
+    ) {
+        repository.varaa("h1", PETRO_OID, TANAAN, HETKI.minus(Duration.ofMinutes(9)).atOffset(ZoneOffset.UTC))
+        ataru.hakemukset = listOf(siirtoHakemus("h1", PETRO_OID))
+
+        hae(timeService)
+
+        assertEquals(ArvioijahakemuksenTila.KASITTELYSSA, repository.haeKaikki().single().tila)
+        assertEquals(emptyMap(), tarkistettavat())
     }
 
     @Test
