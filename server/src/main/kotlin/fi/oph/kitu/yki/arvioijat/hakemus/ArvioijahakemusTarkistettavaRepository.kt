@@ -23,7 +23,6 @@ data class TarkistettavaHakemus(
     val ensimmainenHaku: OffsetDateTime,
     val viimeisinHaku: OffsetDateTime,
     val maksu: Maksutieto = Maksutieto.EI_TIEDOSSA,
-    val rekisterinArvioijaId: Int? = null,
 ) {
     companion object {
         val fromRow =
@@ -51,7 +50,6 @@ data class TarkistettavaHakemus(
                             maksettu = rs.getLocalDateOrNull("maksettu"),
                             erapaiva = rs.getLocalDateOrNull("maksun_erapaiva"),
                         ),
-                    rekisterinArvioijaId = rs.getObject("rekisterin_arvioija_id") as Int?,
                 )
             }
 
@@ -186,9 +184,8 @@ class ArvioijahakemusTarkistettavaRepository(
 
         private const val SELECT_NAKYVAT =
             """
-            SELECT t.*, a.id AS rekisterin_arvioija_id
+            SELECT t.*
             FROM yki_arvioijahakemus_tarkistettava t
-            LEFT JOIN yki_arvioija a ON a.arvioija_oid = t.arvioija_oid
             WHERE $EI_KIRJANPITORIVIA
             """
     }

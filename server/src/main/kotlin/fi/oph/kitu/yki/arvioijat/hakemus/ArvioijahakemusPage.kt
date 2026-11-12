@@ -16,7 +16,6 @@ import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
-import kotlinx.html.a
 import kotlinx.html.br
 import kotlinx.html.button
 import kotlinx.html.h1
@@ -84,7 +83,6 @@ object ArvioijahakemusPage {
                         th { +UiText.Yki.Arvioijahakemus.nimi }
                         th { +UiText.Yki.Arvioijahakemus.henkilo }
                         th { +UiText.Yki.Arvioija.arviointioikeudet }
-                        th { +UiText.Yki.Arvioijahakemus.rekisterissa }
                         th { +UiText.Yki.Arvioijahakemus.Maksu.otsikko }
                         th { +UiText.Yki.Arvioijahakemus.hakemus }
                         th { +UiText.Yki.Arvioijahakemus.haettu }
@@ -98,11 +96,6 @@ object ArvioijahakemusPage {
                             td { +"${rivi.sukunimi}, ${rivi.etunimet}" }
                             td { copyable(rivi.arvioijaOid) }
                             td { arviointioikeudet(rivi.hakemus.arviointioikeudet) }
-                            td {
-                                rivi.rekisterinArvioijaId?.let { id ->
-                                    a(href = Links.Yki.arvioija(id)) { +UiText.Yki.Arvioijahakemus.onRekisterissa }
-                                }
-                            }
                             td { maksunTila(rivi.maksu) }
                             td { copyable(rivi.hakemusOid) }
                             td { finnishDateTime(rivi.ensimmainenHaku.toInstant()) }

@@ -403,8 +403,6 @@
   "yki.arvioijahakemus.henkilo": "Oppijanumero",
   "yki.arvioijahakemus.nimi": "Nimi",
   "yki.arvioijahakemus.haettu": "Haettu",
-  "yki.arvioijahakemus.rekisterissa": "Rekisterissä",
-  "yki.arvioijahakemus.onRekisterissa": "Jo rekisterissä",
   "yki.arvioijahakemus.tarkista": "Tarkista",
   "yki.arvioijahakemus.haeUudet": "Hae uudet hakemukset",
   "yki.arvioijahakemus.hakuValmis": "Hakemukset haettu. Tarkistettavia: {tarkistettavia}. Virheellisiä: {virheellisia}.",

@@ -127,9 +127,6 @@ describe("Yleisen kielitutkinnon arvioijahakemusten tarkistus", () => {
     await indexPage.login()
     await ykiArvioijahakemuksetPage.open()
     await ykiArvioijahakemuksetPage.haeUudet()
-    await expect(
-      ykiArvioijahakemuksetPage.tarkistettava(PETRON_HAKEMUS),
-    ).toContainText("Jo rekisterissä")
     await ykiArvioijahakemuksetPage.tarkista(PETRON_HAKEMUS)
 
     await expect(ykiArvioijaLomakePage.getPageContent()).toContainText(

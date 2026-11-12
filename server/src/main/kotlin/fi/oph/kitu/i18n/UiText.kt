@@ -624,8 +624,6 @@ object UiText {
             val henkilo: LocalizedString get() = tr("yki.arvioijahakemus.henkilo")
             val nimi: LocalizedString get() = tr("yki.arvioijahakemus.nimi")
             val haettu: LocalizedString get() = tr("yki.arvioijahakemus.haettu")
-            val rekisterissa: LocalizedString get() = tr("yki.arvioijahakemus.rekisterissa")
-            val onRekisterissa: LocalizedString get() = tr("yki.arvioijahakemus.onRekisterissa")
             val tarkista: LocalizedString get() = tr("yki.arvioijahakemus.tarkista")
             val haeUudet: LocalizedString get() = tr("yki.arvioijahakemus.haeUudet")
             val hakuEpaonnistui: LocalizedString get() = tr("yki.arvioijahakemus.hakuEpaonnistui")
