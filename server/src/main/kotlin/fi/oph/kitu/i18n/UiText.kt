@@ -30,6 +30,8 @@ object UiText {
             get() = tr("etusivu.arvioijienSolkiVirheet")
         val virheellisetArvioijahakemukset: LocalizedString
             get() = tr("etusivu.virheellisetArvioijahakemukset")
+        val tarkistettavatArvioijahakemukset: LocalizedString
+            get() = tr("etusivu.tarkistettavatArvioijahakemukset")
         val koskiSiirronVirheet: LocalizedString
             get() = tr("etusivu.koskiSiirronVirheet")
         val tuonninVirheet: LocalizedString get() = tr("etusivu.tuonninVirheet")
@@ -613,24 +615,62 @@ object UiText {
 
         object Arvioijahakemus {
             val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.otsikko")
-            val kasittelemattomienKuvaus: LocalizedString get() = tr("yki.arvioijahakemus.kasittelemattomienKuvaus")
-            val eiRiveja: LocalizedString get() = tr("yki.arvioijahakemus.eiRiveja")
+            val tarkistettavienKuvaus: LocalizedString get() = tr("yki.arvioijahakemus.tarkistettavienKuvaus")
+            val eiTarkistettavia: LocalizedString get() = tr("yki.arvioijahakemus.eiTarkistettavia")
+            val keskeneraisetOtsikko: LocalizedString get() = tr("yki.arvioijahakemus.keskeneraisetOtsikko")
+            val keskeneraistenKuvaus: LocalizedString get() = tr("yki.arvioijahakemus.keskeneraistenKuvaus")
             val linkki: LocalizedString get() = tr("yki.arvioijahakemus.linkki")
             val hakemus: LocalizedString get() = tr("yki.arvioijahakemus.hakemus")
             val henkilo: LocalizedString get() = tr("yki.arvioijahakemus.henkilo")
+            val nimi: LocalizedString get() = tr("yki.arvioijahakemus.nimi")
+            val haettu: LocalizedString get() = tr("yki.arvioijahakemus.haettu")
+            val tarkista: LocalizedString get() = tr("yki.arvioijahakemus.tarkista")
+            val haeUudet: LocalizedString get() = tr("yki.arvioijahakemus.haeUudet")
+            val hakuEpaonnistui: LocalizedString get() = tr("yki.arvioijahakemus.hakuEpaonnistui")
             val tila: LocalizedString get() = tr("yki.arvioijahakemus.tila")
             val syy: LocalizedString get() = tr("yki.arvioijahakemus.syy")
             val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.kasitelty")
 
+            fun hakuValmis(
+                tarkistettavia: Long,
+                virheellisia: Long,
+            ) = tr("yki.arvioijahakemus.hakuValmis")
+                .interpolate("tarkistettavia" to tarkistettavia, "virheellisia" to virheellisia)
+
+            object Maksu {
+                val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.maksu.otsikko")
+                val maksettu: LocalizedString get() = tr("yki.arvioijahakemus.maksu.maksettu")
+                val avoinna: LocalizedString get() = tr("yki.arvioijahakemus.maksu.avoinna")
+                val eraantynyt: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eraantynyt")
+                val eiLaskua: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eiLaskua")
+                val eiTiedossa: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eiTiedossa")
+                val erapaiva: LocalizedString get() = tr("yki.arvioijahakemus.maksu.erapaiva")
+                val eiMaksettuVaroitus: LocalizedString get() = tr("yki.arvioijahakemus.maksu.eiMaksettuVaroitus")
+            }
+
+            object Tarkistus {
+                val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.otsikko")
+                val ohje: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.ohje")
+                val vahvista: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.vahvista")
+                val alkupaivaPakollinen: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.alkupaivaPakollinen")
+                val ashaPakollinen: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.ashaPakollinen")
+                val joKasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tarkistus.joKasittelyssa")
+                val henkilotiedotEpaonnistui: LocalizedString
+                    get() = tr("yki.arvioijahakemus.tarkistus.henkilotiedotEpaonnistui")
+            }
+
             object Tila {
                 val kasitelty: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasitelty")
                 val odottaaYksilointia: LocalizedString get() = tr("yki.arvioijahakemus.tila.odottaaYksilointia")
-                val kasittelyssa: LocalizedString get() = tr("yki.arvioijahakemus.tila.kasittelyssa")
+                val kesken: LocalizedString get() = tr("yki.arvioijahakemus.tila.kesken")
             }
 
             object Virheet {
                 val otsikko: LocalizedString get() = tr("yki.arvioijahakemus.virheet.otsikko")
-                val kuvaus: LocalizedString get() = tr("yki.arvioijahakemus.virheet.kuvaus")
+                val kuvausTarkistettavaksi: LocalizedString get() =
+                    tr(
+                        "yki.arvioijahakemus.virheet.kuvausTarkistettavaksi",
+                    )
                 val eiRiveja: LocalizedString get() = tr("yki.arvioijahakemus.virheet.eiRiveja")
                 val virheet: LocalizedString get() = tr("yki.arvioijahakemus.virheet.virheet")
                 val ensimmainenYritys: LocalizedString get() = tr("yki.arvioijahakemus.virheet.ensimmainenYritys")
@@ -646,7 +686,6 @@ object UiText {
                 val vaaraTietotyyppi: LocalizedString get() = tr("yki.arvioijahakemus.virhe.vaaraTietotyyppi")
                 val validointivirhe: LocalizedString get() = tr("yki.arvioijahakemus.virhe.validointivirhe")
                 val henkiloaEiLoydy: LocalizedString get() = tr("yki.arvioijahakemus.virhe.henkiloaEiLoydy")
-                val osoitePuuttuu: LocalizedString get() = tr("yki.arvioijahakemus.virhe.osoitePuuttuu")
             }
         }
     }

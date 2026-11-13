@@ -23,8 +23,8 @@ Paketit hakemistossa `server/src/main/kotlin/fi/oph/kitu/` on jaoteltu **toimint
 ### Toiminta-alueet
 
 - **`vkt/`** — Valtionhallinnon kielitutkinnot
-- **`yki/`** — Yleiset kielitutkinnot (suoritukset ja arvioijat; arvioijahakemusten tuonti atarusta
-  paketissa `yki/arvioijat/hakemus/`)
+- **`yki/`** — Yleiset kielitutkinnot (suoritukset ja arvioijat; arvioijahakemusten haku atarusta ja
+  virkailijan tarkistus paketissa `yki/arvioijat/hakemus/`)
 - **`kotoutumiskoulutus/`** — Kotoutumiskoulutuksen päättötestit; sisältää Koealusta-integraation
   ja Moodle-XML-tehtäväpakettien tuonnin (`koealusta/tehtavapankki/`)
 - **`koski/`** — Lähtevä KOSKI-integraatio (YKI- ja VKT-suoritukset)

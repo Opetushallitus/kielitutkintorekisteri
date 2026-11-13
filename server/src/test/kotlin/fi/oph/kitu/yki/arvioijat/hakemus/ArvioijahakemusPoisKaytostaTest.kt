@@ -13,10 +13,12 @@ import org.springframework.mock.web.MockHttpSession
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -48,6 +50,15 @@ class ArvioijahakemusPoisKaytostaTest(
         mockMvc
             .perform(get("/yki/arvioijat/hakemukset/virheet").session(session()))
             .andExpect(status().isNotFound)
+        mockMvc
+            .perform(get("/yki/arvioijat/hakemukset/h1/tarkista").session(session()))
+            .andExpect(status().isNotFound)
+        mockMvc
+            .perform(post("/yki/arvioijat/hakemukset/h1/tarkista").session(session()).with(csrf()))
+            .andExpect(status().isNotFound)
+        mockMvc
+            .perform(post("/yki/arvioijat/hakemukset/hae").session(session()).with(csrf()))
+            .andExpect(status().isNotFound)
     }
 
     @Test
@@ -59,7 +70,7 @@ class ArvioijahakemusPoisKaytostaTest(
                 .andReturn()
                 .response.contentAsString
 
-        assertFalse(html.contains("/yki/arvioijat/hakemukset/virheet"))
+        assertFalse(html.contains("/yki/arvioijat/hakemukset"))
     }
 
     @Test

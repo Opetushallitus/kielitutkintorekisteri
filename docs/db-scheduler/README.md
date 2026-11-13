@@ -108,18 +108,24 @@ tosiasiassa muuttuneet arvot, jottei koko rekisteri leimaudu muokatuksi.
 Rakentaa kausimasterin olemassa olevista arviointioikeuksista. **Tarkoitettu ajettavaksi käsin
 tästä käyttöliittymästä** ennen kuin Solki-integraation kytkin avataan.
 
-### Tuo YKI-arvioijahakemukset atarusta
+### Hae YKI-arvioijahakemukset atarusta
 
 Hakee atarun (hakemuspalvelu) arvioijahakemukset, jotka virkailija on atarussa merkinnyt
-käsitellyiksi ja hakukelpoisiksi, ja luo niistä arvioijamerkinnät. Käsitelty
-hakemus kirjataan tauluun `yki_arvioijahakemus`, eikä sitä haeta uudelleen, paitsi jos se odottaa
-henkilön yksilöintiä. Hakemus, jonka käsittely epäonnistui (esim. lomakekartoitus ei tunne
-vastausta tai ONR ei tunne henkilöä), kirjataan tauluun `yki_arvioijahakemus_virhe` ja haetaan joka
-ajolla uudelleen; virheet näkyvät näkymässä `/yki/arvioijat/hakemukset/virheet` eivätkä kaada ajoa.
-Yksittäisen hakemuksen odottamaton poikkeus ei pysäytä muita, mutta ajo merkitään epäonnistuneeksi.
-Tehtävä on olemassa vain, kun `kitu.ataru.service.url`
-on asetettu; ajastus `kitu.ataru.arvioijahakemus.schedule`. Ajo kaatuu heti alkuun, jos
-ympäristön lomakekartoitus (`arvioijahakemuslomake.yml`) on puutteellinen.
+käsitellyiksi ja hakukelpoisiksi, **virkailijan tarkistettaviksi** (taulu
+`yki_arvioijahakemus_tarkistettava`, näkymä `/yki/arvioijat/hakemukset`). Tehtävä ei luo
+arvioijamerkintöjä: virkailija tarkistaa hakemuksen, korjaa kauden alkupäivän hallintopäätöksen
+mukaiseksi ja syöttää ASHA-numeron, ja vasta vahvistus tallentaa arvioijan. Sama haku ajetaan myös
+näkymän "Hae uudet hakemukset" -napista. Vahvistettu hakemus kirjataan tauluun `yki_arvioijahakemus`,
+eikä sitä haeta uudelleen; tarkistettavat, virheelliset ja henkilön yksilöintiä odottavat haetaan
+joka ajolla uudelleen. Hakemus, jota ei voitu ottaa tarkistettavaksi (esim. lomakekartoitus ei tunne
+vastausta tai ONR ei tunne henkilöä), kirjataan tauluun `yki_arvioijahakemus_virhe`; virheet näkyvät
+näkymässä `/yki/arvioijat/hakemukset/virheet` eivätkä kaada ajoa. Ajo selvittää myös yli 10 minuuttia
+sitten kesken jääneet vahvistukset: hakemus kirjataan käsitellyksi, jos arvioijan kausi löytyy
+rekisteristä, ja palaa muuten tarkistettavaksi. Yksittäisen hakemuksen odottamaton
+poikkeus ei pysäytä muita, mutta ajo merkitään epäonnistuneeksi. Tehtävä on olemassa vain, kun
+`kitu.ataru.service.url` on asetettu; ajastus `kitu.ataru.arvioijahakemus.schedule`. Ajo kaatuu heti
+alkuun, jos ympäristön lomakekartoitus (`arvioijahakemuslomake.yml`) on puutteellinen. Tehtävän nimi
+oli aiemmin "Tuo YKI-arvioijahakemukset atarusta"; V141 poisti vanhan nimen rivin.
 
 ## Läpileikkaavat
 

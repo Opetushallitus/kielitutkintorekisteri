@@ -67,9 +67,12 @@ object YkiArvioijaLomakePage {
         action: String = Links.Yki.uusiArvioija(),
         tallennaTeksti: LocalizedString = UiText.Yki.Arvioija.tallenna,
         peruutusLinkki: String? = null,
+        johdanto: (FlowContent.() -> Unit)? = null,
     ): String =
         Page.renderHtml(ohje = UiText.Ohje.Yki.arvioijaLomake) {
             h1 { +otsikko }
+
+            johdanto?.invoke(this)
 
             if (form.onOlemassa) {
                 warningMessage(UiText.Yki.Arvioija.jorekisterissa)

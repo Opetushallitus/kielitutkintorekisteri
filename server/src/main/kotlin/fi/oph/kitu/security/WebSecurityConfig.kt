@@ -165,6 +165,7 @@ class WebSecurityConfig {
                     } else {
                         denyAll
                     }
+                authorize(GET, "/yki/arvioijat/hakemukset/*/tarkista", arvioijarekisterinMuokkaus)
                 authorize(GET, "/yki/arvioijat/hakemukset/**", hasAuthority(Authority.YKI_ARVIOIJAREKISTERI.role()))
                 authorize(GET, "/yki/arvioijat/uusi", arvioijarekisterinMuokkaus)
                 authorize(GET, "/yki/arvioijat/*/muokkaa", arvioijarekisterinMuokkaus)

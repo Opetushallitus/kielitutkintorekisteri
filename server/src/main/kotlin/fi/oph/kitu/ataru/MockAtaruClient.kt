@@ -29,6 +29,19 @@ class MockAtaruClient : AtaruClient {
                 }
             }.right()
 
+    private val maksut: Map<String, List<AtaruLasku>> by lazy {
+        ClassPathResource("opintopolku-mocks/ataru/maksut.json").inputStream.use {
+            defaultObjectMapper
+                .readValue(it, Array<JsonNode>::class.java)
+                .groupBy({ lasku -> lasku.path("hakemusOid").stringValue() }) { lasku ->
+                    defaultObjectMapper.treeToValue(lasku, AtaruLasku::class.java)
+                }
+        }
+    }
+
+    override fun haeMaksut(hakemusOid: String): Either<AtaruException, List<AtaruLasku>> =
+        maksut[hakemusOid].orEmpty().right()
+
     override fun haeHakemukset(
         avaimet: List<String>,
     ): Either<AtaruException, List<Either<SiirtoJasennysvirhe, SiirtoHakemus>>> =

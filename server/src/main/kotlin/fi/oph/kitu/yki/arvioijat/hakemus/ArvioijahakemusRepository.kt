@@ -4,6 +4,8 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
+import java.time.OffsetDateTime
 
 @Repository
 class ArvioijahakemusRepository(
@@ -27,30 +29,96 @@ class ArvioijahakemusRepository(
         }
 
     @WithSpan
-    fun tallenna(hakemus: ArvioijahakemusEntity) {
+    fun odottaaYksilointia(
+        hakemusOid: String,
+        henkiloOid: String?,
+        syy: String,
+        hetki: OffsetDateTime,
+    ) {
         jdbc.update(
             """
-            INSERT INTO yki_arvioijahakemus
-                (hakemus_oid, henkilo_oid, tila, syy, arvioija_id, kauden_alkupaiva, kasitelty)
-            VALUES (:hakemusOid, :henkiloOid, :tila, :syy, :arvioijaId, :kaudenAlkupaiva, :kasitelty)
+            INSERT INTO yki_arvioijahakemus (hakemus_oid, henkilo_oid, tila, syy, kasitelty)
+            VALUES (:hakemusOid, :henkiloOid, 'ODOTTAA_YKSILOINTIA', :syy, :hetki)
             ON CONFLICT (hakemus_oid) DO UPDATE SET
                 henkilo_oid = EXCLUDED.henkilo_oid,
-                tila = EXCLUDED.tila,
                 syy = EXCLUDED.syy,
-                arvioija_id = EXCLUDED.arvioija_id,
-                kauden_alkupaiva = EXCLUDED.kauden_alkupaiva,
                 kasitelty = EXCLUDED.kasitelty
+            WHERE yki_arvioijahakemus.tila = 'ODOTTAA_YKSILOINTIA'
             """.trimIndent(),
             MapSqlParameterSource()
-                .addValue("hakemusOid", hakemus.hakemusOid)
-                .addValue("henkiloOid", hakemus.henkiloOid)
-                .addValue("tila", hakemus.tila.name)
-                .addValue("syy", hakemus.syy)
-                .addValue("arvioijaId", hakemus.arvioijaId)
-                .addValue("kaudenAlkupaiva", hakemus.kaudenAlkupaiva)
-                .addValue("kasitelty", hakemus.kasitelty),
+                .addValue("hakemusOid", hakemusOid)
+                .addValue("henkiloOid", henkiloOid)
+                .addValue("syy", syy)
+                .addValue("hetki", hetki),
         )
     }
+
+    @WithSpan
+    fun varaa(
+        hakemusOid: String,
+        henkiloOid: String,
+        kaudenAlkupaiva: LocalDate,
+        hetki: OffsetDateTime,
+    ): Boolean =
+        jdbc.update(
+            """
+            INSERT INTO yki_arvioijahakemus (hakemus_oid, henkilo_oid, tila, kauden_alkupaiva, kasitelty)
+            VALUES (:hakemusOid, :henkiloOid, 'KASITTELYSSA', :kaudenAlkupaiva, :hetki)
+            ON CONFLICT (hakemus_oid) DO NOTHING
+            """.trimIndent(),
+            MapSqlParameterSource()
+                .addValue("hakemusOid", hakemusOid)
+                .addValue("henkiloOid", henkiloOid)
+                .addValue("kaudenAlkupaiva", kaudenAlkupaiva)
+                .addValue("hetki", hetki),
+        ) == 1
+
+    @WithSpan
+    fun merkitseKasitellyksi(
+        hakemusOid: String,
+        henkiloOid: String,
+        arvioijaId: Int?,
+        kaudenAlkupaiva: LocalDate,
+        hetki: OffsetDateTime,
+        syy: String? = null,
+    ) {
+        jdbc.update(
+            """
+            UPDATE yki_arvioijahakemus
+            SET tila = 'KASITELTY',
+                henkilo_oid = :henkiloOid,
+                arvioija_id = :arvioijaId,
+                kauden_alkupaiva = :kaudenAlkupaiva,
+                syy = :syy,
+                kasitelty = :hetki
+            WHERE hakemus_oid = :hakemusOid AND tila = 'KASITTELYSSA'
+            """.trimIndent(),
+            MapSqlParameterSource()
+                .addValue("hakemusOid", hakemusOid)
+                .addValue("henkiloOid", henkiloOid)
+                .addValue("arvioijaId", arvioijaId)
+                .addValue("kaudenAlkupaiva", kaudenAlkupaiva)
+                .addValue("syy", syy)
+                .addValue("hetki", hetki),
+        )
+    }
+
+    @WithSpan
+    fun haeKeskeytyneet(varattuEnnen: OffsetDateTime): List<ArvioijahakemusEntity> =
+        jdbc.query(
+            "SELECT * FROM yki_arvioijahakemus WHERE tila = 'KASITTELYSSA' AND kasitelty < :raja ORDER BY kasitelty",
+            MapSqlParameterSource("raja", varattuEnnen),
+            ArvioijahakemusEntity.fromRow,
+        )
+
+    @WithSpan
+    fun hae(hakemusOid: String): ArvioijahakemusEntity? =
+        jdbc
+            .query(
+                "SELECT * FROM yki_arvioijahakemus WHERE hakemus_oid = :oid",
+                MapSqlParameterSource("oid", hakemusOid),
+                ArvioijahakemusEntity.fromRow,
+            ).firstOrNull()
 
     @WithSpan
     fun haeKasittelemattomat(): List<ArvioijahakemusEntity> =
@@ -77,5 +145,16 @@ class ArvioijahakemusRepository(
                 .addValue("oid", hakemusOid)
                 .addValue("tila", tila.name),
         )
+    }
+
+    @WithSpan
+    fun poistaVanhentuneetYksiloimattomat(listatut: Collection<String>) {
+        if (listatut.isEmpty()) return
+        jdbc.jdbcOperations.update({ connection ->
+            connection
+                .prepareStatement(
+                    "DELETE FROM yki_arvioijahakemus WHERE tila = 'ODOTTAA_YKSILOINTIA' AND hakemus_oid <> ALL (?)",
+                ).apply { setArray(1, connection.createArrayOf("text", listatut.toTypedArray())) }
+        })
     }
 }

@@ -29,7 +29,7 @@ enum class ArvioijahakemuksenTila {
             when (this) {
                 KASITELTY -> UiText.Yki.Arvioijahakemus.Tila.kasitelty
                 ODOTTAA_YKSILOINTIA -> UiText.Yki.Arvioijahakemus.Tila.odottaaYksilointia
-                KASITTELYSSA -> UiText.Yki.Arvioijahakemus.Tila.kasittelyssa
+                KASITTELYSSA -> UiText.Yki.Arvioijahakemus.Tila.kesken
             }
 }
 

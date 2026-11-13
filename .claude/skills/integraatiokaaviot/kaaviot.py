@@ -186,7 +186,7 @@ LEGEND_BASE = [
     ("toimija", "Käyttäjä"),
 ]
 
-PAIVAYS = "30.10.2026"
+PAIVAYS = "11.11.2026"
 SUB = f"Kielitutkintorekisterin (kitu) ja KIOS-ilmoittautumisjärjestelmän integraatiot · tilanne {PAIVAYS}"
 
 
@@ -405,7 +405,7 @@ def yki_arvioijat():
     s.arrow(
         "kitu-hakee-atarusta",
         [(710, 170), (1100, 320)],
-        ["arvioijahakemukset → uusi arvioija tai jatkokausi", "kitu hakee · CAS · öisin · ei vielä käytössä"],
+        ["arvioijahakemukset → virkailijan tarkistettaviksi", "kitu hakee · CAS · öisin ja pyydettäessä · ei vielä käytössä"],
         905,
         232,
         extra_cls="ei-kaytossa",
@@ -430,7 +430,7 @@ def yki_arvioijat():
     s.arrow(
         "virkailija-kitu",
         [(135, 456), (135, 560), (1190, 560), (1190, 470)],
-        ["arvioijat, kaudet, passivointi ja käsin lähetys Solkiin · virkailija-CAS"],
+        ["arvioijat, kaudet, passivointi, hakemusten tarkistus ja vahvistus,", "käsin lähetys Solkiin · virkailija-CAS"],
         660,
         554,
         kind="kayttaja",
