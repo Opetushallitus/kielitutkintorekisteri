@@ -332,7 +332,9 @@ vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
   Vahvistus ei kysy atarua uudelleen, joten hakemuksen tila kannattaa päivittää napista ennen
   tarkistusta.
 - `kitu.ataru.service.url` tyhjä = integraatio pois päältä (ei asiakasta, hakupalvelua eikä eräajoa;
-  hakemusnäkymät ovat 404).
+  hakemusnäkymät ovat 404). Osoite on asetettu vain QA:ssa
+  (`https://virkailija.testiopintopolku.fi/lomake-editori`); untuvassa ja tuotannossa integraatio on
+  pois päältä, eikä niillä ole lomakkeen kartoitusta.
 
 ### Vaaditut käyttöoikeudet
 
