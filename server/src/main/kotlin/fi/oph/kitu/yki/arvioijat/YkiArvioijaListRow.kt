@@ -39,6 +39,7 @@ data class YkiArvioijaListRow(
     val solkiinLahetetty: OffsetDateTime?,
     val solkiLahetysvirhe: String?,
     val solkiLahetysyritykset: Int,
+    val puhelinnumero: String?,
 ) {
     val osoite: String get() = "$katuosoite, $postinumero $postitoimipaikka"
 
@@ -74,6 +75,7 @@ data class YkiArvioijaListRow(
                     solkiinLahetetty = rs.getOffsetDateTimeOrNull("solkiin_lahetetty"),
                     solkiLahetysvirhe = rs.getString("solki_lahetysvirhe"),
                     solkiLahetysyritykset = rs.getInt("solki_lahetysyritykset"),
+                    puhelinnumero = rs.getString("puhelinnumero"),
                 )
             }
     }

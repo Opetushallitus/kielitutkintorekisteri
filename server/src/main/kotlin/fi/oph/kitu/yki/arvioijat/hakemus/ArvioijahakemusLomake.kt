@@ -35,6 +35,7 @@ class ArvioijahakemusLomake(
 
     class Yhteystietokentat(
         val sahkoposti: String = "email",
+        val puhelinnumero: String = "phone",
         val katuosoite: String = "address",
         val postinumero: String = "postal-code",
         val postitoimipaikka: String = "postal-office",
@@ -92,6 +93,7 @@ class ArvioijahakemusLomake(
                 }
 
                 val sahkopostiosoite by accumulating { yhteystieto(hakemus, kentat.sahkoposti) }
+                val puhelinnumero by accumulating { yhteystieto(hakemus, kentat.puhelinnumero) }
                 val katuosoite by accumulating { yhteystieto(hakemus, kentat.katuosoite) }
                 val postinumero by accumulating { yhteystieto(hakemus, kentat.postinumero) }
                 val postitoimipaikka by accumulating { yhteystieto(hakemus, kentat.postitoimipaikka) }
@@ -104,6 +106,7 @@ class ArvioijahakemusLomake(
                             .toSortedMap()
                             .map { (kieli, tasot) -> TallennaArvioija.Arviointioikeus(kieli, tasot.flatten().toSet()) },
                     sahkopostiosoite = sahkopostiosoite,
+                    puhelinnumero = puhelinnumero,
                     katuosoite = katuosoite,
                     postinumero = postinumero,
                     postitoimipaikka = postitoimipaikka,

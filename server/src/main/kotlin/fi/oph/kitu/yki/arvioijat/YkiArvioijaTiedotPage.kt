@@ -89,6 +89,7 @@ object YkiArvioijaTiedotPage {
                         UiText.Yki.Arvioija.sukunimi to { +arvioija.sukunimi },
                         UiText.Yki.Arvioija.etunimet to { +arvioija.etunimet },
                         UiText.Yki.Arvioija.sahkopostiosoite to { +arvioija.sahkopostiosoite.orEmpty() },
+                        UiText.Yki.Arvioija.puhelinnumero to { +arvioija.puhelinnumero.orEmpty() },
                         UiText.Yki.Arvioija.katuosoite to { +arvioija.katuosoite },
                         UiText.Yki.Arvioija.postinumero to { +arvioija.postinumero },
                         UiText.Yki.Arvioija.postitoimipaikka to { +arvioija.postitoimipaikka },

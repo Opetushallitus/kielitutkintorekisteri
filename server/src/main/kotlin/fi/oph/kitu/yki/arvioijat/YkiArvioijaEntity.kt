@@ -29,6 +29,7 @@ data class YkiArvioijaEntity(
     val katuosoite: String,
     val postinumero: String,
     val postitoimipaikka: String,
+    val puhelinnumero: String? = null,
     val arvioijanEnsimmainenRekisterointipaiva: LocalDate? = null,
     val passivoitu: OffsetDateTime? = null,
     val luotu: OffsetDateTime? = null,
@@ -56,6 +57,7 @@ data class YkiArvioijaEntity(
                     katuosoite = rs.getString("katuosoite"),
                     postinumero = rs.getString("postinumero"),
                     postitoimipaikka = rs.getString("postitoimipaikka"),
+                    puhelinnumero = rs.getString("puhelinnumero"),
                     arvioijanEnsimmainenRekisterointipaiva =
                         rs.getLocalDateOrNull("arvioijan_ensimmainen_rekisterointipaiva"),
                     passivoitu = rs.getOffsetDateTimeOrNull("passivoitu"),

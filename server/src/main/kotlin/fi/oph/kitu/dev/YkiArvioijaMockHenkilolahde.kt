@@ -79,6 +79,7 @@ class YkiArvioijaMockHenkilolahde(
             yhteystieto =
                 listOfNotNull(
                     yhteystieto("YHTEYSTIETO_SAHKOPOSTI", arvioija.sahkopostiosoite),
+                    yhteystieto("YHTEYSTIETO_MATKAPUHELINNUMERO", arvioija.puhelinnumero),
                     yhteystieto("YHTEYSTIETO_KATUOSOITE", arvioija.katuosoite),
                     yhteystieto("YHTEYSTIETO_POSTINUMERO", arvioija.postinumero),
                     yhteystieto("YHTEYSTIETO_KAUPUNKI", arvioija.postitoimipaikka),

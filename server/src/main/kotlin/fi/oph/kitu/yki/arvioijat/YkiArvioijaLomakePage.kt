@@ -99,6 +99,7 @@ object YkiArvioijaLomakePage {
                             form.sahkopostiosoite,
                             errors,
                         )
+                        tekstikentta(UiText.Yki.Arvioija.puhelinnumero, "puhelinnumero", form.puhelinnumero, errors)
                         tekstikentta(UiText.Yki.Arvioija.katuosoite, "katuosoite", form.katuosoite, errors)
                         tekstikentta(UiText.Yki.Arvioija.postinumero, "postinumero", form.postinumero, errors)
                         tekstikentta(

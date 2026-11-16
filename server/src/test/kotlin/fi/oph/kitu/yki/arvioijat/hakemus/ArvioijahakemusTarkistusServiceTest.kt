@@ -86,6 +86,7 @@ class ArvioijahakemusTarkistusServiceTest(
                         sukunimi = "Kivinen-Testi",
                         etunimet = "Petro Testi",
                         sahkopostiosoite = null,
+                        puhelinnumero = null,
                         katuosoite = "Vanha katu 1",
                         postinumero = "00100",
                         postitoimipaikka = "HELSINKI",
@@ -107,13 +108,14 @@ class ArvioijahakemusTarkistusServiceTest(
     fun `lomake esitaytetaan hakemukselta ja oppijanumerorekisterista ja kausi ehdotetaan alkamaan tanaan`() {
         porrasta(
             hakemus =
-                tarkistettava("h1").hakemus.copy(sahkopostiosoite = "hakemus@oph.fi"),
+                tarkistettava("h1").hakemus.copy(sahkopostiosoite = "hakemus@oph.fi", puhelinnumero = "040 123 4567"),
         )
 
         val form = lomake()
 
         assertEquals(PETRO_OID, form.arvioijaOid)
         assertEquals("hakemus@oph.fi", form.sahkopostiosoite, "hakemuksen yhteystieto voittaa ONR:n")
+        assertEquals("040 123 4567", form.puhelinnumero)
         assertEquals("Kivinenkatu 2 A 3", form.katuosoite, "puuttuva yhteystieto taydennetaan ONR:sta")
         assertEquals(TANAAN, form.kaudenAlkupaiva)
         assertNull(form.ashaNumero)

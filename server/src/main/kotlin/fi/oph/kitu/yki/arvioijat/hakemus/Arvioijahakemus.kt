@@ -13,6 +13,7 @@ import java.time.OffsetDateTime
 data class Arvioijahakemus(
     val arviointioikeudet: List<TallennaArvioija.Arviointioikeus>,
     val sahkopostiosoite: String?,
+    val puhelinnumero: String?,
     val katuosoite: String?,
     val postinumero: String?,
     val postitoimipaikka: String?,

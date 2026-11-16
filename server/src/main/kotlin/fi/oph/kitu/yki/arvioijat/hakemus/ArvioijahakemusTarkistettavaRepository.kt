@@ -38,6 +38,7 @@ data class TarkistettavaHakemus(
                             arviointioikeudet =
                                 arviointioikeudet(defaultObjectMapper.readValue(rs.getString("arviointioikeudet"))),
                             sahkopostiosoite = rs.getString("sahkopostiosoite"),
+                            puhelinnumero = rs.getString("puhelinnumero"),
                             katuosoite = rs.getString("katuosoite"),
                             postinumero = rs.getString("postinumero"),
                             postitoimipaikka = rs.getString("postitoimipaikka"),
@@ -80,10 +81,10 @@ class ArvioijahakemusTarkistettavaRepository(
             INSERT INTO yki_arvioijahakemus_tarkistettava
                 (hakemus_oid, henkilo_oid, arvioija_oid, sukunimi, etunimet, arviointioikeudet,
                  sahkopostiosoite, katuosoite, postinumero, postitoimipaikka, ensimmainen_haku, viimeisin_haku,
-                 maksun_tila, maksettu, maksun_erapaiva)
+                 maksun_tila, maksettu, maksun_erapaiva, puhelinnumero)
             SELECT :hakemusOid, :henkiloOid, :arvioijaOid, :sukunimi, :etunimet, :arviointioikeudet::jsonb,
                    :sahkopostiosoite, :katuosoite, :postinumero, :postitoimipaikka, :hetki, :hetki,
-                   :maksunTila, :maksettu, :maksunErapaiva
+                   :maksunTila, :maksettu, :maksunErapaiva, :puhelinnumero
             WHERE NOT EXISTS (
                 SELECT 1 FROM yki_arvioijahakemus k
                 WHERE k.hakemus_oid = :hakemusOid AND k.tila <> 'ODOTTAA_YKSILOINTIA'
@@ -95,6 +96,7 @@ class ArvioijahakemusTarkistettavaRepository(
                 etunimet = EXCLUDED.etunimet,
                 arviointioikeudet = EXCLUDED.arviointioikeudet,
                 sahkopostiosoite = EXCLUDED.sahkopostiosoite,
+                puhelinnumero = EXCLUDED.puhelinnumero,
                 katuosoite = EXCLUDED.katuosoite,
                 postinumero = EXCLUDED.postinumero,
                 postitoimipaikka = EXCLUDED.postitoimipaikka,
@@ -115,6 +117,7 @@ class ArvioijahakemusTarkistettavaRepository(
                         TarkistettavaHakemus.valinnat(rivi.hakemus.arviointioikeudet),
                     ),
                 ).addValue("sahkopostiosoite", rivi.hakemus.sahkopostiosoite)
+                .addValue("puhelinnumero", rivi.hakemus.puhelinnumero)
                 .addValue("katuosoite", rivi.hakemus.katuosoite)
                 .addValue("postinumero", rivi.hakemus.postinumero)
                 .addValue("postitoimipaikka", rivi.hakemus.postitoimipaikka)

@@ -365,6 +365,7 @@ object UiText {
             val oppijanumero: LocalizedString get() = tr("yki.arvioija.oppijanumero")
             val sahkopostiosoite: LocalizedString
                 get() = tr("yki.arvioija.sahkopostiosoite")
+            val puhelinnumero: LocalizedString get() = tr("yki.arvioija.puhelinnumero")
             val katuosoite: LocalizedString get() = tr("yki.arvioija.katuosoite")
             val postinumero: LocalizedString get() = tr("yki.arvioija.postinumero")
             val postitoimipaikka: LocalizedString
@@ -552,6 +553,7 @@ object UiText {
             val kansalaisuus: LocalizedString get() = tr("yki.sarake.kansalaisuus")
             val osoite: LocalizedString get() = tr("yki.sarake.osoite")
             val sahkoposti: LocalizedString get() = tr("yki.sarake.sahkoposti")
+            val puhelinnumero: LocalizedString get() = tr("yki.sarake.puhelinnumero")
             val tutkintopaiva: LocalizedString get() = tr("yki.sarake.tutkintopaiva")
             val tutkintokieli: LocalizedString get() = tr("yki.sarake.tutkintokieli")
             val tutkintotaso: LocalizedString get() = tr("yki.sarake.tutkintotaso")
