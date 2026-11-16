@@ -297,9 +297,16 @@ jobs:
         id: login-ecr
         if: github.ref_name == 'main'
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      # Päivä rikkoo Dockerfilen dnf upgrade -kerroksen välimuistin kerran
+      # vuorokaudessa, jotta AL2023:n tietoturvakorjaukset päätyvät imageen.
+      - name: Determine OS patch date
+        id: os_patch_date
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           push: ${{ github.ref_name == 'main' }}
+          build-args: |
+            OS_PATCH_DATE=${{ steps.os_patch_date.outputs.date }}
           tags: ${{
             steps.login-ecr.outputs.registry
             && format('{0}/{1}', steps.login-ecr.outputs.registry, 'kitu')

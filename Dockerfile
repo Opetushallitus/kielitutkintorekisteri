@@ -8,7 +8,17 @@ WORKDIR /kitu/server
 
 RUN mvn package -DskipTests
 
-FROM amazoncorretto:25.0.5-al2023
+FROM amazoncorretto:25.0.5-al2023-headless
+
+# AL2023 lukitsee releaseverin pohjaimagen versioon, joten ilman
+# --releasever=latest -valitsinta dnf upgrade ei päivitä mitään.
+# OS_PATCH_DATE vaihtuu päivittäin (build.yml) ja rikkoo kerrosvälimuistin,
+# jotta tietoturvakorjaukset päätyvät imageen ilman uutta pohjaimagen tagia.
+ARG OS_PATCH_DATE=unset
+RUN echo "OS-päivitykset: ${OS_PATCH_DATE}" \
+ && dnf -y upgrade --releasever=latest \
+ && dnf clean all \
+ && rm -rf /var/cache/dnf
 
 # amazoncorretto:*-al2023 on minimaalinen AL2023 -image ilman
 # shadow-utils-pakettia, joten lisätään ei-root-käyttäjä suoraan
