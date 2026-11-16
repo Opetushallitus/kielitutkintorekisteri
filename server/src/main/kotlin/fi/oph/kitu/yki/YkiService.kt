@@ -132,6 +132,20 @@ class YkiService(
     }
 
     @WithSpan
+    fun taydennaPuuttuvatHetut(suoritukset: List<YkiSuoritusEntity>): List<YkiSuoritusEntity> {
+        val oidit = suoritukset.filter { it.hetu == null }.mapNotNull { it.suorittajanOID }.toSet()
+        if (oidit.isEmpty()) return suoritukset
+        val henkilot = oppijanumeroService.getHenkilotByHenkiloOids(oidit).getOrThrow()
+        return suoritukset.map { suoritus ->
+            if (suoritus.hetu == null) {
+                suoritus.copy(hetu = henkilot[suoritus.suorittajanOID]?.hetu?.ifBlank { null })
+            } else {
+                suoritus
+            }
+        }
+    }
+
+    @WithSpan
     fun countSuoritukset(
         filter: YkiSuoritusFilter = YkiSuoritusFilter(),
         versionHistory: Boolean = false,

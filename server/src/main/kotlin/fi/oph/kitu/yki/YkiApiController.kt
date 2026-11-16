@@ -72,10 +72,11 @@ class YkiApiController(
             csvAttachmentResponse<YkiSuoritusColumn, _>(
                 filename = withSearch.csvFileName(),
                 data =
-                    service.allSuorituksetIncludingOpiskeluoikeusOid(
-                        withSearch.versionHistory,
-                        service.extendFilterWithLinkedOidsOrThrow(withSearch.toFilter()),
-                    ),
+                    service
+                        .allSuorituksetIncludingOpiskeluoikeusOid(
+                            withSearch.versionHistory,
+                            service.extendFilterWithLinkedOidsOrThrow(withSearch.toFilter()),
+                        ).let { if (withSearch.hetutTaydennetaan()) service.taydennaPuuttuvatHetut(it) else it },
                 excludeTags = withSearch.excludeTags(),
             )
         }

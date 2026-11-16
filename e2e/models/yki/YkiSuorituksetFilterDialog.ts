@@ -20,6 +20,14 @@ export class YkiSuorituksetFilterDialog {
       .setChecked(state)
   }
 
+  async fillMissingHetut(state: boolean) {
+    await this.modal
+      .getByRole("checkbox", {
+        name: "Täydennä puuttuvat henkilötunnukset oppijanumerorekisteristä (CSV)",
+      })
+      .setChecked(state)
+  }
+
   async setTuontiaika(alku: string, loppu: string) {
     await this.modal.getByLabel("Rekisteriintuontiaika alkaen").fill(alku)
     await this.modal.getByLabel("Rekisteriintuontiaika päättyen").fill(loppu)

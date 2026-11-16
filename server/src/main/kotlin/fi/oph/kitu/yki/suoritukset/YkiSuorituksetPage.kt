@@ -41,6 +41,7 @@ import kotlinx.html.h2
 import kotlinx.html.header
 import kotlinx.html.li
 import kotlinx.html.section
+import kotlinx.html.small
 import kotlinx.html.table
 import org.springframework.security.web.csrf.CsrfToken
 import java.time.LocalDate
@@ -200,6 +201,10 @@ fun FlowContent.ykiSuoritusFilterButton(
                 UiText.Yki.piilotaVanhentuneet.toString(),
                 params.piilotaVanhentuneetTiedot,
             )
+        }
+        fieldSet {
+            toggleFilter("taydennaHetut", UiText.Yki.taydennaHetut.toString(), params.taydennaHetut)
+            small { +UiText.Yki.taydennaHetutOhje }
         }
     }
 }

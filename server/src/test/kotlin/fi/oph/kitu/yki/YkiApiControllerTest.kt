@@ -1,7 +1,11 @@
 package fi.oph.kitu.yki
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import fi.oph.kitu.DBContainerConfiguration
 import fi.oph.kitu.TestTimeService
+import fi.oph.kitu.auditlogs.AuditLogger
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.dev.mockdata.toInstant
 import fi.oph.kitu.html.table.ColumnTag
@@ -11,6 +15,9 @@ import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.isBadRequest
 import fi.oph.kitu.isOk
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.oppijanumero.OppijanumeroException
+import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
 import fi.oph.kitu.tiedontuontischema.Henkilo
 import fi.oph.kitu.tiedontuontischema.Henkilosuoritus
 import fi.oph.kitu.tiedontuontischema.Lahdejarjestelma
@@ -34,6 +41,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -67,6 +75,8 @@ class YkiApiControllerTest(
     @param:Autowired val suoritusRepository: YkiSuoritusRepository,
     @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired val ykiApiController: YkiApiController,
+    @param:Autowired private val auditLogger: AuditLogger,
+    @param:Autowired private val oppijanumeroService: OppijanumeroService,
 ) {
     @Autowired
     private lateinit var context: WebApplicationContext
@@ -844,6 +854,145 @@ class YkiApiControllerTest(
 
         assertContains(csv, "Tuontirajauksessa")
         assertFalse(csv.contains("Tuontirajauksenulkopuolella"))
+    }
+
+    private fun hetutSukunimittain(params: YkiSuorituksetParams): Map<String, String> {
+        val csv =
+            ByteArrayOutputStream()
+                .also { ykiApiController.getSuorituksetAsCsv(params, MockHttpSession()).body!!.writeTo(it) }
+                .toString(Charsets.UTF_8)
+        val rivit = csv.trim().lines().map { it.split(DisplayTableCsvRenderer.SEPARATOR) }
+        val sukunimi =
+            rivit.first().indexOf(
+                YkiSuoritusColumn.Sukunimi.uiHeaderValue
+                    .toString(),
+            )
+        val hetu =
+            rivit.first().indexOf(
+                YkiSuoritusColumn.Hetu.uiHeaderValue
+                    .toString(),
+            )
+        return rivit.drop(1).associate { it[sukunimi] to it[hetu] }
+    }
+
+    private fun hetutonSuoritus(
+        sukunimi: String,
+        oid: String?,
+    ) = generateRandomYkiSuoritusEntity().copy(
+        sukunimi = sukunimi,
+        suorittajanOID = oid?.let { Oid.parse(it).getOrThrow() },
+        hetu = null,
+    )
+
+    @Test
+    fun `CSV-vienti täydentää puuttuvat henkilötunnukset oppijanumerorekisteristä`() {
+        jdbcTemplate.tyhjennaYkiSuoritukset()
+        suoritusRepository.saveAllNewEntities(
+            listOf(
+                hetutonSuoritus("Taydennettava", "1.2.246.562.24.33342764709"),
+                hetutonSuoritus("Hetutononrissa", "1.2.246.562.24.10691606777"),
+                hetutonSuoritus("Tuntematon", "1.2.246.562.24.12345678910"),
+                hetutonSuoritus("Oppijanumeroton", null),
+                hetutonSuoritus("Tallennettu", "1.2.246.562.24.33342764709").copy(
+                    hetu = "010180-9026",
+                    tutkintopaiva = LocalDate.of(2020, 5, 1),
+                ),
+            ),
+        )
+
+        assertEquals(
+            mapOf(
+                "Taydennettava" to "010866-9260",
+                "Hetutononrissa" to "",
+                "Tuntematon" to "",
+                "Oppijanumeroton" to "",
+                "Tallennettu" to "010180-9026",
+            ),
+            hetutSukunimittain(YkiSuorituksetParams(taydennaHetut = true)),
+        )
+    }
+
+    @Test
+    fun `CSV-vienti ei täydennä henkilötunnuksia ilman valintaa`() {
+        jdbcTemplate.tyhjennaYkiSuoritukset()
+        suoritusRepository.saveAllNewEntities(listOf(hetutonSuoritus("Taydennettava", "1.2.246.562.24.33342764709")))
+
+        assertEquals(mapOf("Taydennettava" to ""), hetutSukunimittain(YkiSuorituksetParams()))
+    }
+
+    @Test
+    fun `CSV-vienti täydentää henkilötunnuksen versiohistorian jokaiselle riville`() {
+        jdbcTemplate.tyhjennaYkiSuoritukset()
+        val vanhempi =
+            hetutonSuoritus("Vanhempiversio", "1.2.246.562.24.33342764709").copy(
+                lastModified = Instant.parse("2025-01-01T10:00:00Z"),
+            )
+        suoritusRepository.saveAllNewEntities(
+            listOf(
+                vanhempi,
+                vanhempi.copy(sukunimi = "Uudempiversio", lastModified = Instant.parse("2025-02-01T10:00:00Z")),
+            ),
+        )
+
+        assertEquals(
+            mapOf("Vanhempiversio" to "010866-9260", "Uudempiversio" to "010866-9260"),
+            hetutSukunimittain(YkiSuorituksetParams(taydennaHetut = true, versionHistory = true)),
+        )
+    }
+
+    @Test
+    fun `henkilötunnuksia ei täydennetä kun henkilötiedot on piilotettu`() {
+        assertFalse(YkiSuorituksetParams(taydennaHetut = true, piilotaHenkilotiedot = true).hetutTaydennetaan())
+        assertEquals(
+            "true",
+            YkiSuorituksetParams(taydennaHetut = true).toMap()["taydennaHetut"],
+        )
+        assertNull(YkiSuorituksetParams().toMap()["taydennaHetut"])
+    }
+
+    private fun palvelu(
+        haeHenkilot: (Collection<Oid>) -> Either<OppijanumeroException, Map<Oid, OppijanumerorekisteriHenkilo>>,
+    ) = YkiService(
+        suoritusRepository,
+        auditLogger,
+        object : OppijanumeroService by oppijanumeroService {
+            override fun getHenkilotByHenkiloOids(henkiloOids: Collection<Oid>) = haeHenkilot(henkiloOids)
+        },
+        timeService,
+        "0s",
+    )
+
+    @Test
+    fun `henkilötunnusten täydennys kaatuu kun oppijanumerorekisteri ei vastaa`() {
+        val suoritukset = listOf(hetutonSuoritus("Taydennettava", "1.2.246.562.24.33342764709"))
+
+        assertThrows<OppijanumeroException> {
+            palvelu {
+                OppijanumeroException.MalformedOppijanumero(oppijanumero = "virhe").left()
+            }.taydennaPuuttuvatHetut(suoritukset)
+        }
+        assertThrows<IllegalStateException> {
+            palvelu { error("ei yhteyttä") }.taydennaPuuttuvatHetut(suoritukset)
+        }
+    }
+
+    @Test
+    fun `henkilötunnusten täydennys kysyy vain hetuttomien oppijanumerot`() {
+        var kysytyt: Collection<Oid>? = null
+        val hetullinen = hetutonSuoritus("Tallennettu", "1.2.246.562.24.20281155246").copy(hetu = "010180-9026")
+
+        palvelu {
+            kysytyt = it
+            emptyMap<Oid, OppijanumerorekisteriHenkilo>().right()
+        }.taydennaPuuttuvatHetut(listOf(hetullinen, hetutonSuoritus("Taydennettava", "1.2.246.562.24.33342764709")))
+        assertEquals(listOf("1.2.246.562.24.33342764709"), kysytyt?.map { it.toString() })
+
+        kysytyt = null
+        palvelu {
+            kysytyt = it
+            emptyMap<Oid, OppijanumerorekisteriHenkilo>().right()
+        }.taydennaPuuttuvatHetut(listOf(hetullinen, hetutonSuoritus("Oppijanumeroton", null)))
+        assertNull(kysytyt)
     }
 
     @Test
