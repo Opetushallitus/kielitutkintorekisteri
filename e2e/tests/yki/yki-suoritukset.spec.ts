@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, test } from "../../fixtures/baseFixture"
+import SQL from "sql-template-strings"
+import { peopleFixture } from "../../fixtures/basePeopleFixture"
 import { enumerate } from "../../util/arrays"
 
 describe('"YKI Suoritukset" -page', () => {
@@ -367,6 +369,34 @@ describe('"YKI Suoritukset" -page', () => {
         "Solki-tunniste",
       ].join(";") + "\n",
     )
+  })
+
+  test("CSV täydentää puuttuvan henkilötunnuksen oppijanumerorekisteristä vain valittaessa", async ({
+    db,
+    page,
+    ykiSuorituksetPage,
+  }) => {
+    const onrHetu = "010180U943H"
+    const tallennettuHetu = peopleFixture.petro.hetu
+    await db.dbClient.query(
+      SQL`UPDATE yki_suoritus SET hetu = NULL WHERE suorittajan_oid = ${peopleFixture.ranja.oppijanumero}`,
+    )
+    await ykiSuorituksetPage.open()
+
+    const ilmanTaydennysta = await ykiSuorituksetPage.downloadCSV()
+    expect(ilmanTaydennysta).not.toContain(onrHetu)
+    expect(ilmanTaydennysta).toContain(tallennettuHetu)
+
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await dialog.fillMissingHetut(true)
+    await dialog.submit()
+    await expect(
+      page.getByText("Puuttuvat henkilötunnukset täydennetään CSV-tiedostoon"),
+    ).toBeVisible()
+
+    const taydennettyna = await ykiSuorituksetPage.downloadCSV()
+    expect(taydennettyna).toContain(onrHetu)
+    expect(taydennettyna).toContain(tallennettuHetu)
   })
 
   test("should download yki suoritukset without henkilötiedot CSV and verify its content", async ({

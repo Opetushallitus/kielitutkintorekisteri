@@ -267,6 +267,9 @@ object UiText {
             get() = tr("yki.vanhentuneetPiilotettu")
         val piilotaVanhentuneet: LocalizedString
             get() = tr("yki.piilotaVanhentuneet")
+        val taydennaHetut: LocalizedString get() = tr("yki.taydennaHetut")
+        val taydennaHetutOhje: LocalizedString get() = tr("yki.taydennaHetutOhje")
+        val hetutTaydennetaan: LocalizedString get() = tr("yki.hetutTaydennetaan")
         val odottavatHyvaksyntaa: LocalizedString
             get() = tr("yki.odottavatHyvaksyntaa")
         val merkitseHyvaksynta: LocalizedString

@@ -39,6 +39,7 @@ data class YkiSuorituksetParams(
     var tutkintotaso: List<Tutkintotaso> = emptyList(),
     override var piilotaHenkilotiedot: Boolean = false,
     val piilotaVanhentuneetTiedot: Boolean = false,
+    val taydennaHetut: Boolean = false,
     val arviointitila: List<Arviointitila> = emptyList(),
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var tuontialku: LocalDate? = null,
@@ -62,6 +63,7 @@ data class YkiSuorituksetParams(
             "tutkintotaso" to tutkintotaso.toUrlParam(),
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
             "piilotaVanhentuneetTiedot" to piilotaVanhentuneetTiedot.toTrueOrNull(),
+            "taydennaHetut" to taydennaHetut.toTrueOrNull(),
             "arviointitila" to arviointitila.toUrlParam(),
             "tuontialku" to tuontialku?.toString(),
             "tuontiloppu" to tuontiloppu?.toString(),
@@ -139,6 +141,8 @@ data class YkiSuorituksetParams(
                 if (versionHistory) null else ColumnTag.VERSION_HISTORY_ONLY,
             )
 
+    fun hetutTaydennetaan() = taydennaHetut && !piilotaHenkilotiedot
+
     fun csvFileName() =
         buildCsvFilename(
             "yki_suoritukset",
@@ -178,5 +182,6 @@ data class YkiSuorituksetParams(
             if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
             if (piilotaVanhentuneetTiedot) UiText.Yki.vanhentuneetPiilotettu.toString() else null,
             if (versionHistory) UiText.Yki.naytaVersiohistoria.toString() else null,
+            if (hetutTaydennetaan()) UiText.Yki.hetutTaydennetaan.toString() else null,
         )
 }
