@@ -137,6 +137,7 @@ class YkiArvioijaMuokkausTest(
                 .perform(
                     muokkaus(id, petro)
                         .param("postitoimipaikka", "TAMPERE")
+                        .param("puhelinnumero", " +358 40 123 4567 ")
                         .param("arviointioikeus", "FIN:PT"),
                 ).andReturn()
 
@@ -145,6 +146,7 @@ class YkiArvioijaMuokkausTest(
 
         val paivitetty = repository.findArvioijaById(id)!!
         assertEquals("TAMPERE", paivitetty.postitoimipaikka)
+        assertEquals("+358 40 123 4567", paivitetty.puhelinnumero)
         assertEquals("Muokattu Sukunimi", paivitetty.sukunimi)
     }
 
@@ -167,10 +169,12 @@ class YkiArvioijaMuokkausTest(
                 muokkaus(id, petro)
                     .param("postitoimipaikka", "Testilä")
                     .param("postinumero", "1")
+                    .param("puhelinnumero", "soita illalla")
                     .param("arviointioikeus", "FIN:PT"),
             )
 
         assertContains(html, "Postinumeron on oltava viisi numeroa")
+        assertContains(html, "Puhelinnumero on virheellinen")
         assertContains(html, """value="Muokattu Sukunimi"""")
         assertEquals("Kivinen-Testi", repository.findArvioijaById(id)!!.sukunimi, "kantaa ei saa muuttaa")
     }

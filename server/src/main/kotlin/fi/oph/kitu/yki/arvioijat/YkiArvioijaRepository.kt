@@ -188,6 +188,7 @@ class CustomYkiArvioijaRepositoryImpl(
             if (lahde == Tallennuslahde.KITU) {
                 """
                 passivoitu = EXCLUDED.passivoitu,
+                puhelinnumero = EXCLUDED.puhelinnumero,
                 """.trimIndent()
             } else {
                 ""
@@ -204,6 +205,7 @@ class CustomYkiArvioijaRepositoryImpl(
                 add(arvioija.katuosoite)
                 add(arvioija.postinumero)
                 add(arvioija.postitoimipaikka)
+                add(arvioija.puhelinnumero)
                 add(arvioija.passivoitu)
                 add(tekija?.toString())
                 add(tekija?.toString())
@@ -222,6 +224,7 @@ class CustomYkiArvioijaRepositoryImpl(
                     katuosoite,
                     postinumero,
                     postitoimipaikka,
+                    puhelinnumero,
                     passivoitu,
                     luotu,
                     luoja_oid,
@@ -230,7 +233,7 @@ class CustomYkiArvioijaRepositoryImpl(
                     solkiin_lahetetty,
                     solki_lahetysvirhe,
                     solki_lahetysyritykset
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), ?, now(), ?, $uudenRivinLahetysleima, NULL, 0)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), ?, now(), ?, $uudenRivinLahetysleima, NULL, 0)
                 ON CONFLICT (arvioija_oid) DO UPDATE
                 SET
                     -- henkilotunnus paivitetaan EXCLUDED-arvosta, jotta validoinnin
@@ -564,6 +567,7 @@ data class YkiArvioijaArviointioikeus(
     val katuosoite: String,
     val postinumero: String,
     val postitoimipaikka: String,
+    val puhelinnumero: String? = null,
     val kieli: Tutkintokieli,
     val tasot: Set<Tutkintotaso>,
     val tila: YkiArvioijaTila?,
@@ -588,6 +592,7 @@ data class YkiArvioijaArviointioikeus(
                     katuosoite = arvioija.katuosoite,
                     postinumero = arvioija.postinumero,
                     postitoimipaikka = arvioija.postitoimipaikka,
+                    puhelinnumero = arvioija.puhelinnumero,
                     kieli = arviointioikeus.kieli,
                     tasot = arviointioikeus.tasot,
                     tila = arviointioikeus.tila,

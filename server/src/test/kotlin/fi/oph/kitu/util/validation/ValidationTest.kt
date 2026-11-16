@@ -706,6 +706,7 @@ class ValidationTest(
             sukunimi = "Kivinen-Testi",
             etunimet = "Petro Testi",
             sahkopostiosoite = "devnull-2@oph.fi",
+            puhelinnumero = "+358 40 123 4567",
             katuosoite = "Haltin vanha autiotupa",
             postinumero = "99490",
             postitoimipaikka = "Enontekiö",
@@ -742,6 +743,16 @@ class ValidationTest(
         val result = tallennaArvioijaValidation.validate(validiTallennaArvioija.copy(postinumero = "994"))
 
         assertEquals(fail(listOf("postinumero"), "Postinumeron on oltava viisi numeroa"), result)
+    }
+
+    @Test
+    fun `Arvioijan puhelinnumero on vapaaehtoinen mutta sen muoto tarkistetaan`() {
+        val ilman = validiTallennaArvioija.copy(puhelinnumero = null)
+        assertEquals(ilman.right(), tallennaArvioijaValidation.validate(ilman))
+
+        val result = tallennaArvioijaValidation.validate(validiTallennaArvioija.copy(puhelinnumero = "soita illalla"))
+
+        assertEquals(fail(listOf("puhelinnumero"), "Puhelinnumero on virheellinen"), result)
     }
 
     @Test

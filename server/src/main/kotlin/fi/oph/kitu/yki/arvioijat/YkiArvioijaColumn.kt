@@ -154,4 +154,12 @@ enum class YkiArvioijaColumn(
         getValue = { it.muokattu?.toString().orEmpty() },
         renderHtml = { row -> row.muokattu?.toInstant()?.let { finnishDateTime(it) } },
     ),
+
+    @ColumnTags(ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
+    Puhelinnumero(
+        entityName = "puhelinnumero",
+        uiHeaderValue = UiText.Yki.Sarake.puhelinnumero,
+        urlParam = "puhelinnumero",
+        getValue = { it.puhelinnumero.orEmpty() },
+    ),
 }

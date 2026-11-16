@@ -77,6 +77,7 @@ object ArvioijahakemusTestidata {
                         TallennaArvioija.Arviointioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.PT, Tutkintotaso.KT)),
                     ),
                 sahkopostiosoite = null,
+                puhelinnumero = null,
                 katuosoite = null,
                 postinumero = null,
                 postitoimipaikka = null,

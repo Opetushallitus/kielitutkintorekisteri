@@ -205,6 +205,7 @@ class YkiArvioijaRepositoryTest(
         val kitunMerkinta =
             testiarvioija(arviointioikeus(Tutkintokieli.SWE)).copy(
                 passivoitu = OffsetDateTime.parse("2026-02-01T00:00:00Z"),
+                puhelinnumero = "040 123 4567",
             )
         arvioijaRepository.tallenna(kitunMerkinta)
 
@@ -213,6 +214,7 @@ class YkiArvioijaRepositoryTest(
 
         val tallennettu = arvioijaRepository.findByArvioijaOid(oid)
         assertNotNull(tallennettu?.passivoitu, "passivointihetki on sailytysajan laskennan alkupiste")
+        assertEquals("040 123 4567", tallennettu?.puhelinnumero)
     }
 
     @Test

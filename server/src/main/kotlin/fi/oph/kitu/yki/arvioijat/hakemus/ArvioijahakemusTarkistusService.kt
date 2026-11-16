@@ -62,6 +62,7 @@ class ArvioijahakemusTarkistusService(
             val pohja = ArvioijaFormData.of(esitaytto)
             pohja.copy(
                 sahkopostiosoite = hakemus.sahkopostiosoite ?: pohja.sahkopostiosoite,
+                puhelinnumero = hakemus.puhelinnumero ?: pohja.puhelinnumero,
                 katuosoite = hakemus.katuosoite ?: pohja.katuosoite,
                 postinumero = hakemus.postinumero ?: pohja.postinumero,
                 postitoimipaikka = hakemus.postitoimipaikka ?: pohja.postitoimipaikka,

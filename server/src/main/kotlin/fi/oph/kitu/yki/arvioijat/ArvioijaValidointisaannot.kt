@@ -84,7 +84,16 @@ internal fun Raise<ValidationError>.validateSahkopostiosoite(sahkoposti: String?
     }
 }
 
+internal fun Raise<ValidationError>.validatePuhelinnumero(puhelinnumero: String?) {
+    ensure(puhelinnumero.isNullOrBlank() || onKelvollinenPuhelinnumero(puhelinnumero)) {
+        ValidationError(listOf("puhelinnumero"), "Puhelinnumero on virheellinen")
+    }
+}
+
+internal fun onKelvollinenPuhelinnumero(puhelinnumero: String): Boolean = PUHELINNUMERO.matches(puhelinnumero)
+
 private val POSTINUMERO = Regex("""\d{5}""")
+private val PUHELINNUMERO = Regex("""\+?[0-9 ()-]{5,30}""")
 private val SAHKOPOSTI = Regex("""[^@\s]+@[^@\s.]+(\.[^@\s.]+)+""")
 
 /**

@@ -112,7 +112,13 @@ class ArvioijahakemusHakuServiceTest(
         @Autowired timeService: TestTimeService,
     ) {
         ataru.hakemukset =
-            listOf(siirtoHakemus("h1", PETRO_OID, """{"kielet_0":"0","tasot_0":"0","email":"hakemus@oph.fi"}"""))
+            listOf(
+                siirtoHakemus(
+                    "h1",
+                    PETRO_OID,
+                    """{"kielet_0":"0","tasot_0":"0","email":"hakemus@oph.fi","phone":"040 123 4567"}""",
+                ),
+            )
 
         assertEquals(Hakuyhteenveto(tarkistettavia = 1), hae(timeService))
 
@@ -127,6 +133,7 @@ class ArvioijahakemusHakuServiceTest(
                         TallennaArvioija.Arviointioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.PT, Tutkintotaso.KT)),
                     ),
                 sahkopostiosoite = "hakemus@oph.fi",
+                puhelinnumero = "040 123 4567",
                 katuosoite = null,
                 postinumero = null,
                 postitoimipaikka = null,
@@ -246,6 +253,7 @@ class ArvioijahakemusHakuServiceTest(
                     sukunimi = "Kivinen-Testi",
                     etunimet = "Petro Testi",
                     sahkopostiosoite = null,
+                    puhelinnumero = null,
                     katuosoite = "Katu 1",
                     postinumero = "00100",
                     postitoimipaikka = "HELSINKI",

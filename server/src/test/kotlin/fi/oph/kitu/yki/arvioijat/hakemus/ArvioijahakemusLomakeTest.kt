@@ -79,6 +79,7 @@ class ArvioijahakemusLomakeTest {
                         "${suomenTasot}_1" to "1",
                         "address" to "Katu 1",
                         "email" to "a@b.fi",
+                        "phone" to "040 123 4567",
                     ),
                 ).getOrNull()!!
 
@@ -91,6 +92,7 @@ class ArvioijahakemusLomakeTest {
         )
         assertEquals("Katu 1", tulos.katuosoite)
         assertEquals("a@b.fi", tulos.sahkopostiosoite)
+        assertEquals("040 123 4567", tulos.puhelinnumero)
         assertEquals(null, tulos.postinumero)
     }
 

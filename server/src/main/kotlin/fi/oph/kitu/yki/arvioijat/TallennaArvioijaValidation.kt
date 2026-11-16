@@ -29,6 +29,7 @@ class TallennaArvioijaValidation(
             )
             accumulating { validatePostinumero(value.postinumero) }
             accumulating { validateSahkopostiosoite(value.sahkopostiosoite) }
+            accumulating { validatePuhelinnumero(value.puhelinnumero) }
             if (!value.automaattinenJatkokausi) {
                 accumulating { validateKaudenAlkupaiva(value.kaudenAlkupaiva, timeService.today(), "kaudenAlkupaiva") }
             }

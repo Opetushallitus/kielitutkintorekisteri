@@ -22,6 +22,7 @@ class PaivitaArvioijanTiedotValidation(
             )
             accumulating { validatePostinumero(value.postinumero) }
             accumulating { validateSahkopostiosoite(value.sahkopostiosoite) }
+            accumulating { validatePuhelinnumero(value.puhelinnumero) }
         }
     }
 }
