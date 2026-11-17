@@ -114,7 +114,7 @@
   </g>
   <g id="ataru" class="laatikko oph ei-kaytossa">
     <rect x="430" y="120" width="280" height="76" rx="8"/>
-    <text class="nimi" x="570" y="147" text-anchor="middle">Ataru</text>
+    <text class="nimi" x="570" y="147" text-anchor="middle">Hakemuspalvelu</text>
     <text class="lisatieto" x="570" y="164" text-anchor="middle">arvioijahakemuslomake</text>
     <text class="lisatieto" x="570" y="179" text-anchor="middle">integraatio ei vielä käytössä</text>
   </g>
@@ -195,6 +195,6 @@
     <rect x="808.0" y="694" width="758" height="76" rx="8"/>
     <text class="nimi" x="822.0" y="718">Otuva</text>
     <text class="lisatieto" x="822.0" y="740">virkailijoiden CAS-kirjautuminen</text>
-    <text class="lisatieto" x="822.0" y="756">OAuth2-token Solkille, CAS-tunnus Ataruun</text>
+    <text class="lisatieto" x="822.0" y="756">OAuth2-token Solkille, CAS-tunnus Hakemuspalveluun</text>
   </g>
 </svg>

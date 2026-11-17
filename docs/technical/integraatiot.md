@@ -8,7 +8,8 @@ kullekin integraatiolle paketin, suunnan, asiakaskerroksen ja virhemallin.
 Tietovirrat tutkinnoittain, mukaan lukien KIOS-ilmoittautumisjärjestelmän
 ([kieli-ja-kaantajatutkinnot](https://github.com/Opetushallitus/kieli-ja-kaantajatutkinnot) ja
 vanha YKI-taustapalvelu [yki](https://github.com/Opetushallitus/yki)) omat integraatiot. Kaaviot
-ovat muokattavia SVG-tiedostoja hakemistossa `kaaviot/`.
+ovat muokattavia SVG-tiedostoja hakemistossa `kaaviot/`. YKI-arvioijarekisteristä on lisäksi kaksi
+prosessikaaviota, jotka kuvaavat hakemuksen etenemisen toimijalta toiselle.
 
 ### YKI — suoritukset
 
@@ -20,6 +21,66 @@ näyttää kansalaiselle tämän omalla sivulla.
 ### YKI — arvioijarekisteri
 
 [![YKI-arvioijarekisteri — tietovirrat](./kaaviot/yki-arvioijat.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/yki-arvioijat.svg)
+
+### YKI — uuden arvioijan hakuprosessi
+
+[![YKI — uuden arvioijan hakuprosessi](./kaaviot/yki-arvioijahakemus-prosessi.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/yki-arvioijahakemus-prosessi.svg)
+
+Kaavio kuvaa tavoitetilan, josta OPH ja Solki sopivat 11/2026. Päätösmaksu laskutetaan jokaisesta
+hakemuksesta ennen hallintopäätöstä, myös silloin kun päätös on kielteinen: jos koulutustausta ei
+riitä, hakemus siirtyy suoraan laskutukseen ilman arvioijakoulutusta. OPH-virkailija ilmoittaa
+päätöksestä hakijalle. Myönteisen päätöksen jälkeen hakemus etenee kitussa nykyisen toteutuksen
+mukaisesti (ks. [Hakemuspalvelu (ataru) — YKI-arvioijahakemukset](#hakemuspalvelu-ataru--yki-arvioijahakemukset)):
+kitu hakee Hakemuspalvelussa käsitellyksi ja hakukelpoiseksi merkityt hakemukset. Päätösmaksua ei
+voi vielä laskuttaa YKI-lomakkeelta. Kaavion `?`-merkinnät viittaavat
+selvitettäviin asioihin:
+
+1. Kitu lähettäisi hakukelpoiseksi merkittyjen hakijoiden tiedot (haetut kielet ja tasot)
+   automaattisesti Solkin testiympäristöön, jotta Solki voi kutsua hakijat arvioijakoulutukseen.
+   Siirtoa ei ole sovittu Solkin kanssa eikä toteutettu.
+2. Arvioijakoulutuksen harjoitusarvioinnit tehdään oikeista tutkintosuorituksista, ja
+   harjoittelija näkee tutkinnon suorittajan nimen. Selvitettävänä ovat käyttöoikeudet
+   koulutusympäristöön, harjoitusmateriaalit ja henkilötietojen käsittely.
+3. Miten Solki toimittaa OPH:lle koulutuksen tulokset (esimerkiksi sähköpostilla)?
+4. Jos hakija hakee oikeutta usean kielen arviointiin, odotetaanko jokaisen koulutuksen tulosta
+   ennen merkintää? OPH arvioi tapauskohtaisesti, ja asia ratkaistaan ohjeistuksessa.
+5. Tallennetaanko ensimmäinen rekisteröintipäivä eli ensimmäisen arviointikauden alkupäivä?
+   Solki käyttää sitä kausien yhteispituuden hahmottamiseen, OPH ei tarvitse sitä.
+6. Miten arvioijan yhteystiedot (postiosoite, sähköpostiosoite, puhelinnumero) päivitetään kauden
+   aikana? Jos kitu lähettää Solkiin muuttuneen sähköpostiosoitteen, syntyykö Solkiin uusi
+   arvioija vai päivittyykö olemassa oleva?
+
+### YKI — arvioijan jatkohakemuksen prosessi
+
+[![YKI — arvioijan jatkohakemuksen prosessi](./kaaviot/yki-arvioijan-jatkohakemus-prosessi.svg)](https://raw.githubusercontent.com/Opetushallitus/kielitutkintorekisteri/refs/heads/main/docs/technical/kaaviot/yki-arvioijan-jatkohakemus-prosessi.svg)
+
+Jatkokautta haetaan samalla lomakkeella kuin uutta arviointioikeutta, ja hakija valitsee
+lomakkeella, onko hakemus uusi vai jatkohakemus. Hakemus tarvitaan aina, myös silloin kun
+edellinen kausi on jo päättynyt, ja ilman hakemusta arviointioikeus päättyy kauden lopussa.
+Arvioijakoulutuksen korvaa Solkin todistus arviointiaktiivisuudesta, eikä OPH vertaa todistusta
+arvioijan arviointiraporttiin. Jos arvioija ei ole ollut riittävän aktiivinen, Solki joko
+edellyttää koulutuksen uusimista tai ilmoittaa OPH:lle, ettei todistusta anneta:
+
+- Koulutuksen uusiminen: kitu lähettää hakijan tiedot Solkin testiympäristöön, ja prosessi jatkuu
+  kuten uudella arvioijalla.
+- Ei todistusta: hakemus etenee laskutukseen ja päätökseen, joka on kielteinen. Päätösmaksu
+  laskutetaan myös kielteisestä päätöksestä.
+
+Selvitettävät asiat:
+
+1. Miten Solki saa tiedon jatkohakemuksesta, miten se toimittaa todistuksen
+   arviointiaktiivisuudesta OPH:lle ja millä perusteella henkilötiedot luovutetaan? Kaaviossa
+   OPH-virkailija pyytää todistuksen Solkilta.
+2. Milloin aiemmin arvioijana toimineen on käytävä arvioijakoulutus uudestaan? Solki ehdottaa
+   aikarajan, ja se kirjataan hakemusten käsittelyohjeeseen. Lisäksi on sovittava, miten tieto
+   koulutuksen uusimisesta päätyy kituun, jotta siirto Solkin testiympäristöön käynnistyy.
+3. Kitu tallentaa jatkokauden uutena kautena. Mitä muutoksia tämä vaatii Solkin päässä, jonka
+   nykyinen käyttöliittymä korvaa aiemman kauden?
+4. Jos arvioija saa kesken kauden oikeuden uuteen kieleen tai tasoon, saako se oman, eri aikaan
+   päättyvän kautensa vai merkitäänkö yksi yhteinen kausi? Kitussa kausi on arvioijakohtainen.
+
+Lisäksi on selvitettävä, päättyykö arvioijan käyttöoikeus Solkin YKI-sovellukseen automaattisesti,
+kun arviointikausi päättyy.
 
 ### VKT — erinomainen taitotaso
 
@@ -209,7 +270,7 @@ Ohjaa molempia suuntia sekä yöllistä `paivitaArvioijaProjektiot`-ajoa (`DAILY
   `SolkiArvioijaClientImpl` ja `SolkiArvioijaServiceImpl` ovat ehdottomia beaneja ja kytkin luetaan
   vasta palvelun sisällä. Painike itsessään on **muokkauskytkimen** takana.
 
-## Ataru — YKI-arvioijahakemukset
+## Hakemuspalvelu (ataru) — YKI-arvioijahakemukset
 
 **Paketit:** `ataru/` (asiakas), `yki/arvioijat/hakemus/` (haku ja tarkistus) · **Suunta:** haku
 
@@ -222,27 +283,27 @@ Virkailija korjaa alkupäivän hallintopäätöksen mukaiseksi ja syöttää hal
 ASHA-numeron, joka on tässä pakollinen. Vahvistus luo YKI-arvioijamerkinnän (uusi arvioija tai
 jatkokausi) virkailijan nimissä. Lomakkeen vuoden raja alkupäivälle ei koske jatkokautta, joka alkaa
 heti olemassa olevan kauden jälkeen (`TallennaArvioija.automaattinenJatkokausi`, johdetaan
-palvelimella). Kitussa hakemusta ei voi hylätä: hakemus pudotetaan muuttamalla sen tila atarussa,
+palvelimella). Kitussa hakemusta ei voi hylätä: hakemus pudotetaan muuttamalla sen tila Hakemuspalvelussa,
 jolloin se poistuu seuraavalla haulla.
 
-**Päätösmaksu.** Hakemusta ei saa tuoda ennen kuin se on maksettu. Maksu on atarun ASTU-päätösmaksu:
+**Päätösmaksu.** Hakemusta ei saa tuoda ennen kuin se on maksettu. Maksu on Hakemuspalvelun ASTU-päätösmaksu:
 
-1. Virkailija lähettää laskun atarusta OPH:n `maksut`-palvelun kautta. Hakemus siirtyy tilaan `decision-fee-outstanding`.
+1. Virkailija lähettää laskun Hakemuspalvelusta OPH:n `maksut`-palvelun kautta. Hakemus siirtyy tilaan `decision-fee-outstanding`.
 2. Hakija maksaa Paytrailissa.
-3. Atarun maksupolleri (5 minuutin välein) siirtää hakemuksen tilaan `processed`.
+3. Hakemuspalvelun maksupolleri (5 minuutin välein) siirtää hakemuksen tilaan `processed`.
 
 Kitun `processed`-ehto odottaa siis maksua. Virkailija voi kuitenkin asettaa `processed`-tilan käsin, joten kitu ei pidä
 sitä todisteena maksusta. Haku hakee tarkistettavalle hakemukselle laskujen tilan reitiltä
 `GET /lomake-editori/api/maksut/list/{hakemus}` ja näyttää sen listalla ja tarkistuslomakkeella. Lomake varoittaa, jos
-maksua ei ole kirjattu, mutta ei estä vahvistusta. Reitti on atarun virkailija-UI:n reitti, ei sovittu ulkoinen
+maksua ei ole kirjattu, mutta ei estä vahvistusta. Reitti on Hakemuspalvelun virkailija-UI:n reitti, ei sovittu ulkoinen
 rajapinta. Sen vastauksessa on maksulinkin salaisuus ja maksajan nimet, joita kitu ei kartoita eikä tallenna.
-**Riippuvuus:** atarussa ja maksut-palvelussa ei ole vielä YKI-tilausnumeron etuliitettä, joten YKI-lomakkeelle ei voi
+**Riippuvuus:** Hakemuspalvelussa ja maksut-palvelussa ei ole vielä YKI-tilausnumeron etuliitettä, joten YKI-lomakkeelle ei voi
 vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
 
 - **Lomakkeen kartoitus on ympäristökohtainen asetus** `kitu.ataru.arvioijahakemus.*`
   (`ArvioijahakemusLomake`) tiedostossa `server/src/main/resources/arvioijahakemuslomake.yml`,
   yksi YAML-dokumentti ympäristöä kohden (`spring.config.activate.on-profile`). Jokaisessa
-  ympäristössä on oma lomake, ja ataru generoi kenttien id:t ja vaihtoehtojen arvot lomakkeelle:
+  ympäristössä on oma lomake, ja Hakemuspalvelu generoi kenttien id:t ja vaihtoehtojen arvot lomakkeelle:
 
   ```yaml
   kitu.ataru.arvioijahakemus:
@@ -260,10 +321,10 @@ vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
   Avaimet ovat vaihtoehtojen arvoja. Tasot valitaan kielikohtaisesti: jokaisella kielivaihtoehdolla
   on oma jatkokysymyksensä, ja yksi vaihtoehto voi antaa useita tasoja ("perus- ja keskitaso" =
   PT + KT). Yhteystiedot (`kentat.*`) ovat oletuksena henkilötietomoduulin vakioavaimet `email`,
-  `address`, `postal-code` ja `postal-office`. Puutteellinen kartoitus kaataa haun ennen atarun
+  `address`, `postal-code` ja `postal-office`. Puutteellinen kartoitus kaataa haun ennen Hakemuspalvelun
   kutsua, jottei jokainen hakemus päädy virheeksi, ja `ArvioijahakemusLomakeTest` sitoo
   tiedoston jokaisen dokumentin ja vaatii sen ehjäksi. Hyväksymisehdot ovat koodissa
-  (`ArvioijahakemusKriteeri`), koska atarun tilojen nimet ovat kaikissa ympäristöissä samat.
+  (`ArvioijahakemusKriteeri`), koska Hakemuspalvelun tilojen nimet ovat kaikissa ympäristöissä samat.
 
 - **Siirron `keyValues` on litistetty**: arvot ovat aina merkkijonoja, eivät koskaan taulukoita.
   Monivalinnan jokainen valittu vaihtoehto on oma avaimensa `<kentän id>_<vaihtoehdon arvo>`,
@@ -279,14 +340,14 @@ vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
   jolle ei ole valittu tasoa, ja yhteystieto, joka ei ole tekstiä. Kaikki hakemuksen kartoitusvirheet
   kerätään yhteen.
 - `AtaruClient.haeHakemusavaimet(...)` → `POST /lomake-editori/api/applications/list`
-  (`form-key`, `option-answers`, sivukursori `sort.offset`). Tämä on atarun virkailija-UI:n reitti,
+  (`form-key`, `option-answers`, sivukursori `sort.offset`). Tämä on Hakemuspalvelun virkailija-UI:n reitti,
   ei sovittu ulkoinen rajapinta. Pyynnössä on oltava myös `states-and-filters`
-  (`StatesAndFilters`), vaikka atarun skeema sallii sen puuttumisen: ilman sitä listaus kaatuu
+  (`StatesAndFilters`), vaikka Hakemuspalvelun skeema sallii sen puuttumisen: ilman sitä listaus kaatuu
   500:aan (`IllegalArgumentException`), ja puuttuva käsittely- tai liitetilalista pudottaa hiljaa
-  kaikki hakemukset. Kitu hakee vain virkailijan atarussa **käsitellyksi ja hakukelpoiseksi**
+  kaikki hakemukset. Kitu hakee vain virkailijan Hakemuspalvelussa **käsitellyksi ja hakukelpoiseksi**
   merkitsemät, passivoimattomat hakemukset (`ArvioijahakemusKriteeri.atarunTilat`). Muuttuvat ehdot
-  rajataan atarussa, koska vahvistettua hakemusta ei haeta uudelleen: myöhemmin hyväksytty tai
-  uudelleen aktivoitu hakemus tulee näin tarkistettavaksi seuraavalla haulla, ja atarussa peruttu
+  rajataan Hakemuspalvelussa, koska vahvistettua hakemusta ei haeta uudelleen: myöhemmin hyväksytty tai
+  uudelleen aktivoitu hakemus tulee näin tarkistettavaksi seuraavalla haulla, ja Hakemuspalvelussa peruttu
   tarkistettava hakemus poistuu.
 - `AtaruClient.haeHakemukset(...)` → `POST /lomake-editori/api/external/siirto?salliYksiloimattomat=true`
   (runkona hakemusavaimet, 200 kerrallaan). Ilman parametria yksikin yksilöimätön hakija kaataa
@@ -299,7 +360,7 @@ vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
   erän muita hakemuksia. Alkio, jota ei voi liittää pyydettyyn hakemukseen, kaataa ajon lopuksi. Vain
   kokonaan jäsentymätön vastaus on `MalformedResponse`.
 - Virhetyypit: `BadRequest`, `UnexpectedError`, `MalformedResponse`, `NullResponse`, `Unauthorized`.
-- **Autentikointi on CAS, ei OAuth2**: ataru ei hyväksy Bearer-tokenia. `security/cas/client/`
+- **Autentikointi on CAS, ei OAuth2**: Hakemuspalvelu ei hyväksy Bearer-tokenia. `security/cas/client/`
   kirjautuu palvelukäyttäjänä (`/cas/v1/tickets` → ST palvelulle `/lomake-editori/auth/cas` →
   eväste `ring-session`) ja kirjautuu uudelleen 401:n jälkeen.
 - **Hakemuksen tilat.** Hakemus on aina vain yhdessä tilassa:
@@ -327,9 +388,9 @@ vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
   yrityksellä (`yrityksia`, `viimeisin_yritys`; `ensimmainen_yritys` säilyy) ja poistetaan, kun
   hakemus siirtyy toiseen tilaan. Ohimenevät virheet (ONR ei vastaa) jätetään kirjaamatta, eivätkä
   kirjatut virheet kaada hakua.
-- Tarkistettavat, virheelliset ja yksilöintiä odottavat poistetaan, kun hakemus ei enää ole atarun
+- Tarkistettavat, virheelliset ja yksilöintiä odottavat poistetaan, kun hakemus ei enää ole Hakemuspalvelun
   listauksessa — paitsi kun listaus on tyhjä, koska puuttuva käyttöoikeus näkyy tyhjänä vastauksena.
-  Vahvistus ei kysy atarua uudelleen, joten hakemuksen tila kannattaa päivittää napista ennen
+  Vahvistus ei kysy Hakemuspalvelua uudelleen, joten hakemuksen tila kannattaa päivittää napista ennen
   tarkistusta.
 - `kitu.ataru.service.url` tyhjä = integraatio pois päältä (ei asiakasta, hakupalvelua eikä eräajoa;
   hakemusnäkymät ovat 404). Osoite on asetettu vain QA:ssa
@@ -338,19 +399,19 @@ vielä kytkeä ASTU-maksua. Siihen asti jokainen hakemus näyttää "Ei laskua".
 
 ### Vaaditut käyttöoikeudet
 
-| Oikeus                                                                                    | Missä                                    | Huom                                                                                                                                                                                      |
-| ----------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ATARU_HAKEMUS` READ (`APP_ATARU_HAKEMUS_READ_<org>`) palvelukäyttäjälle `koto-rekisteri` | lomakkeen omistava OPH:n alaorganisaatio | Ilman oikeutta ataru **pudottaa hakemukset hiljaa** — tyhjä vastaus, ei virhettä. Oikeutta ei myönnetä OPH:n juuriorganisaatioon, koska se tekisi käyttäjästä ataru-superuserin.          |
-| CAS-kirjautuminen palvelukäyttäjälle `koto-rekisteri`                                     | Otuva CAS REST (`/cas/v1/tickets`)       | Käyttää `kitu.palvelukayttaja.username/password`-arvoja (`palvelukayttaja-password`); uutta tunnusta tai salaisuutta ei tarvita.                                                          |
-| ONR                                                                                       | —                                        | Nykyiset oikeudet riittävät (samat kutsut kuin arvioijalomakkeella).                                                                                                                      |
-| Atarun maksulistaus `GET /lomake-editori/api/maksut/list/{hakemus}`                       | —                                        | Ei lisäoikeuksia: reitillä ei ole käyttöoikeustarkistusta, joten palvelukäyttäjän CAS-istunto riittää. Ataru kysyy laskut omilla tunnuksillaan maksut-palvelusta.                         |
-| Kitussa `YKI_ARVIOIJAREKISTERI`                                                           | `/yki/arvioijat/hakemukset/**`           | Tarkistettavien, käsittelemättömien ja virheellisten hakemusten näkymät. Haku-nappi ja tarkistuslomake vaativat lisäksi muokkauskytkimen (`kitu.yki.arvioijarekisteri.muokkaus.enabled`). |
+| Oikeus                                                                                    | Missä                                    | Huom                                                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ATARU_HAKEMUS` READ (`APP_ATARU_HAKEMUS_READ_<org>`) palvelukäyttäjälle `koto-rekisteri` | lomakkeen omistava OPH:n alaorganisaatio | Ilman oikeutta Hakemuspalvelu **pudottaa hakemukset hiljaa** — tyhjä vastaus, ei virhettä. Oikeutta ei myönnetä OPH:n juuriorganisaatioon, koska se tekisi käyttäjästä Hakemuspalvelu-superuserin. |
+| CAS-kirjautuminen palvelukäyttäjälle `koto-rekisteri`                                     | Otuva CAS REST (`/cas/v1/tickets`)       | Käyttää `kitu.palvelukayttaja.username/password`-arvoja (`palvelukayttaja-password`); uutta tunnusta tai salaisuutta ei tarvita.                                                                   |
+| ONR                                                                                       | —                                        | Nykyiset oikeudet riittävät (samat kutsut kuin arvioijalomakkeella).                                                                                                                               |
+| Hakemuspalvelun maksulistaus `GET /lomake-editori/api/maksut/list/{hakemus}`              | —                                        | Ei lisäoikeuksia: reitillä ei ole käyttöoikeustarkistusta, joten palvelukäyttäjän CAS-istunto riittää. Hakemuspalvelu kysyy laskut omilla tunnuksillaan maksut-palvelusta.                         |
+| Kitussa `YKI_ARVIOIJAREKISTERI`                                                           | `/yki/arvioijat/hakemukset/**`           | Tarkistettavien, käsittelemättömien ja virheellisten hakemusten näkymät. Haku-nappi ja tarkistuslomake vaativat lisäksi muokkauskytkimen (`kitu.yki.arvioijarekisteri.muokkaus.enabled`).          |
 
 `yki_arvioijahakemus` on pelkkä kirjanpito, eikä sillä ole säilytysaikaa: vahvistetun hakemuksen
 rivin poistaminen toisi saman hakemuksen uudelleen tarkistettavaksi. `yki_arvioijahakemus_tarkistettava`
 sisältää hakemuksen kartoitetut kielet ja tasot ja hakemuksen omat yhteystiedot sekä ONR:n nimet
 listausta varten (ei hetua eikä ONR:n osoitetta). Sen säilytysaika on rivin elinkaari: rivi poistuu, kun
-hakemus vahvistetaan, siirtyy virheisiin tai yksilöintiä odottamaan, tai poistuu atarun listaukselta.
+hakemus vahvistetaan, siirtyy virheisiin tai yksilöintiä odottamaan, tai poistuu Hakemuspalvelun listaukselta.
 
 `ATARU_EDITORI`-, `VALINTA_*`- tai CRUD-oikeuksia ei tarvita, koska kitu vain lukee. Siirto
 palauttaa hetun, mutta kitu ei tallenna sitä, eikä tauluun `yki_arvioijahakemus` kirjoiteta vastauksia.
@@ -359,7 +420,7 @@ kartoitetuille kysymyksille ja yhteystiedoille. Rakennevirheestä talletetaan va
 Jacksonin virheviesti voi toistaa syötteen arvon. Henkilötunnuksen näköinen arvo, `ssn`- ja
 `birth-date`-kenttä sekä yli 500 merkin arvo jätetään aina pois (`ArvioijahakemuksenVirhe.tallennettava`),
 eikä siirron `person`-tietoja jäsennetä lainkaan. Virherivin säilytysaika on sen elinkaari: se poistuu,
-kun hakemus siirtyy toiseen tilaan tai poistuu atarun listaukselta.
+kun hakemus siirtyy toiseen tilaan tai poistuu Hakemuspalvelun listaukselta.
 
 ## CAS + OAuth2 — virkailija-autentikointi
 
