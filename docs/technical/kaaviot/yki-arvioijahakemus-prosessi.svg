@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1220" viewBox="0 0 1600 1220">
+  <title>YKI – uuden arvioijan hakuprosessi</title>
+  <defs>
+    <style>
+    text { font-family: Helvetica, Arial, sans-serif; fill: #1f2937; }
+    .tausta { fill: #ffffff; }
+    .otsikko { font-size: 24px; font-weight: bold; }
+    .alaotsikko { font-size: 13px; fill: #4b5563; }
+    .kaista { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1; }
+    .kaistan-nimi { font-size: 12px; font-weight: bold; fill: #64748b; letter-spacing: 0.5px; }
+    .laatikko rect { stroke-width: 1.5; }
+    .nimi { font-size: 14px; font-weight: bold; }
+    .lisatieto { font-size: 11px; fill: #4b5563; }
+    .kitu rect { fill: #dbeafe; stroke: #1e40af; stroke-width: 3; }
+    .kios rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 2.5; }
+    .oph rect { fill: #eff6ff; stroke: #60a5fa; }
+    .ulkoinen rect { fill: #fff7ed; stroke: #ea580c; }
+    .infra rect { fill: #f0fdf4; stroke: #16a34a; }
+    .toimija rect { fill: #f3f4f6; stroke: #6b7280; }
+    .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+    .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
+    .heti path { stroke: #0e7490; stroke-width: 2.2; }
+    .ajastettu path { stroke: #a16207; stroke-width: 2.2; }
+    .pull path { stroke-dasharray: 7 4; }
+    .kayttaja path { stroke: #9ca3af; stroke-width: 1.4; }
+    .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
+    .nuolen-teksti text { font-size: 11.5px; }
+    .ei-kaytossa { opacity: 0.5; }
+    .selite { font-size: 11.5px; }
+    .vaihe-nimi { font-size: 12.5px; font-weight: bold; }
+    .numero circle { fill: #374151; }
+    .numero text { fill: #ffffff; font-size: 11px; font-weight: bold; }
+    .kysymys circle { fill: #7c3aed; stroke: #ffffff; stroke-width: 1.5; }
+    .kysymys text { fill: #ffffff; font-size: 10.5px; font-weight: bold; }
+    .valinta polygon { fill: #fffbeb; stroke: #92400e; stroke-width: 1.5; }
+    .loppu rect { fill: #ecfdf5; stroke: #15803d; stroke-width: 2; }
+    .kielteinen rect { fill: #fef2f2; stroke: #b91c1c; }
+    .jatkuu rect { fill: #f3f4f6; stroke: #6b7280; stroke-dasharray: 5 3; }
+    .vaiheen-otsikko { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+    </style>
+    <marker id="karki-heti" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#0e7490"/>
+    </marker>
+    <marker id="karki-ajastettu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#a16207"/>
+    </marker>
+    <marker id="karki-push" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="karki-pull" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="karki-kayttaja" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect class="tausta" x="0" y="0" width="1600" height="1220"/>
+  <g id="otsikko">
+    <text class="otsikko" x="24" y="34">YKI – uuden arvioijan hakuprosessi</text>
+    <text class="alaotsikko" x="24" y="54">Tavoitetila, sovittu Solkin kanssa 11/2026 · tilanne 17.11.2026</text>
+  </g>
+  <g id="selite">
+    <g class="laatikko ulkoinen">
+      <rect x="660" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="688" y="25">Solki</text>
+    <g class="laatikko toimija">
+      <rect x="740.1875" y="14" width="22" height="14" rx="7"/>
+    </g>
+    <text class="selite" x="768.1875" y="25">Hakija tai virkailija</text>
+    <g class="laatikko oph">
+      <rect x="916.9749999999999" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="944.9749999999999" y="25">Hakemuspalvelu</text>
+    <g class="laatikko kitu">
+      <rect x="1051.5" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="1079.5" y="25">Kielitutkintorekisteri</text>
+    <g class="numero">
+      <circle cx="670" cy="44" r="10"/>
+      <text x="670" y="48" text-anchor="middle">1</text>
+    </g>
+    <text class="selite" x="686" y="48">vaihe</text>
+    <g class="valinta">
+      <polygon points="738.1875,44 752.1875,35 766.1875,44 752.1875,53"/>
+    </g>
+    <text class="selite" x="772.1875" y="48">valinta</text>
+    <g id="kysymys-selite-1" class="kysymys">
+      <circle cx="844.45" cy="44" r="12"/>
+      <text x="844.45" y="48" text-anchor="middle">?1</text>
+    </g>
+    <text class="selite" x="862.45" y="48">selvitettävä asia, numero viittaa kaavion alla olevaan listaan</text>
+    <text class="selite" x="1255" y="48">nuoli = prosessin eteneminen</text>
+  </g>
+  <text id="vaihe-1" class="vaiheen-otsikko" x="24" y="92">1 · Hakemus ja arvioijakoulutus</text>
+  <g id="kaista-hakemus-solki">
+    <rect class="kaista" x="20" y="102" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="122">SOLKI</text>
+  </g>
+  <g id="kaista-hakemus-hakija">
+    <rect class="kaista" x="20" y="208" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="228">HAKIJA</text>
+  </g>
+  <g id="kaista-hakemus-oph">
+    <rect class="kaista" x="20" y="314" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="334">OPH-VIRKAILIJA</text>
+  </g>
+  <g id="kaista-hakemus-hakemuspalvelu">
+    <rect class="kaista" x="20" y="420" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="440">HAKEMUSPALVELU</text>
+  </g>
+  <g id="kaista-hakemus-kitu">
+    <rect class="kaista" x="20" y="526" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="546">KITU</text>
+  </g>
+  <g id="tarve" class="laatikko ulkoinen">
+    <rect x="164" y="116" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="239" y="133" text-anchor="middle">Tunnistaa</text>
+    <text class="vaihe-nimi" x="239" y="148" text-anchor="middle">arvioijatarpeen</text>
+    <text class="lisatieto" x="239" y="163" text-anchor="middle">kartoittaa ehdokkaat</text>
+    <text class="lisatieto" x="239" y="178" text-anchor="middle">kielen ja tason mukaan</text>
+    <g class="numero">
+      <circle cx="173" cy="117" r="10"/>
+      <text x="173" y="121" text-anchor="middle">1</text>
+    </g>
+  </g>
+  <g id="linkki" class="laatikko ulkoinen">
+    <rect x="342" y="116" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="417" y="133" text-anchor="middle">Lähettää suljetun</text>
+    <text class="vaihe-nimi" x="417" y="148" text-anchor="middle">hakemuslinkin</text>
+    <text class="lisatieto" x="417" y="163" text-anchor="middle">henkilöille, joilla on</text>
+    <text class="lisatieto" x="417" y="178" text-anchor="middle">sopiva kielitausta</text>
+    <g class="numero">
+      <circle cx="351" cy="117" r="10"/>
+      <text x="351" y="121" text-anchor="middle">2</text>
+    </g>
+  </g>
+  <g id="hakemus" class="laatikko toimija">
+    <rect x="520" y="222" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="595" y="246.5" text-anchor="middle">Täyttää hakemuksen</text>
+    <text class="lisatieto" x="595" y="261.5" text-anchor="middle">kielet ja tasot,</text>
+    <text class="lisatieto" x="595" y="276.5" text-anchor="middle">tutkintotodistukset</text>
+    <g class="numero">
+      <circle cx="529" cy="223" r="10"/>
+      <text x="529" y="227" text-anchor="middle">3</text>
+    </g>
+  </g>
+  <g id="vastaanotto" class="laatikko oph">
+    <rect x="520" y="434" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="595" y="458.5" text-anchor="middle">Vastaanottaa</text>
+    <text class="vaihe-nimi" x="595" y="473.5" text-anchor="middle">hakemuksen</text>
+    <text class="lisatieto" x="595" y="488.5" text-anchor="middle">arvioijahakemuslomake</text>
+    <g class="numero">
+      <circle cx="529" cy="435" r="10"/>
+      <text x="529" y="439" text-anchor="middle">4</text>
+    </g>
+  </g>
+  <g id="tausta" class="laatikko toimija">
+    <rect x="698" y="328" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="773" y="345" text-anchor="middle">Tarkistaa</text>
+    <text class="vaihe-nimi" x="773" y="360" text-anchor="middle">koulutustaustan</text>
+    <text class="lisatieto" x="773" y="375" text-anchor="middle">merkitsee hakukelpoiseksi</text>
+    <text class="lisatieto" x="773" y="390" text-anchor="middle">Hakemuspalvelussa</text>
+    <g class="numero">
+      <circle cx="707" cy="329" r="10"/>
+      <text x="707" y="333" text-anchor="middle">5</text>
+    </g>
+  </g>
+  <g id="riittaako" class="valinta">
+    <polygon points="886,364 951,324 1016,364 951,404"/>
+    <text class="vaihe-nimi" x="951" y="360" text-anchor="middle">Koulutustausta</text>
+    <text class="vaihe-nimi" x="951" y="375" text-anchor="middle">riittää?</text>
+  </g>
+  <g id="testisiirto" class="laatikko kitu">
+    <rect x="1054" y="540" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="1129" y="557" text-anchor="middle">Lähettää hakijan</text>
+    <text class="vaihe-nimi" x="1129" y="572" text-anchor="middle">tiedot Solkiin</text>
+    <text class="lisatieto" x="1129" y="587" text-anchor="middle">Solkin testiympäristö,</text>
+    <text class="lisatieto" x="1129" y="602" text-anchor="middle">automaattisesti</text>
+    <g class="numero">
+      <circle cx="1063" cy="541" r="10"/>
+      <text x="1063" y="545" text-anchor="middle">6</text>
+    </g>
+    <g id="kysymys-testisiirto-1" class="kysymys">
+      <circle cx="1188" cy="541" r="12"/>
+      <text x="1188" y="545" text-anchor="middle">?1</text>
+    </g>
+  </g>
+  <g id="kutsu" class="laatikko ulkoinen">
+    <rect x="1054" y="116" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="1129" y="148" text-anchor="middle">Kutsuu</text>
+    <text class="vaihe-nimi" x="1129" y="163" text-anchor="middle">arvioijakoulutukseen</text>
+    <g class="numero">
+      <circle cx="1063" cy="117" r="10"/>
+      <text x="1063" y="121" text-anchor="middle">7</text>
+    </g>
+  </g>
+  <g id="koulutus" class="laatikko toimija">
+    <rect x="1232" y="222" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="1307" y="246.5" text-anchor="middle">Suorittaa</text>
+    <text class="vaihe-nimi" x="1307" y="261.5" text-anchor="middle">arvioijakoulutuksen</text>
+    <text class="lisatieto" x="1307" y="276.5" text-anchor="middle">harjoitusarvioinnit</text>
+    <g class="numero">
+      <circle cx="1241" cy="223" r="10"/>
+      <text x="1241" y="227" text-anchor="middle">8</text>
+    </g>
+    <g id="kysymys-koulutus-2" class="kysymys">
+      <circle cx="1366" cy="223" r="12"/>
+      <text x="1366" y="227" text-anchor="middle">?2</text>
+    </g>
+  </g>
+  <g id="tulos" class="laatikko ulkoinen">
+    <rect x="1410" y="116" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="1485" y="140.5" text-anchor="middle">Ilmoittaa tuloksen</text>
+    <text class="vaihe-nimi" x="1485" y="155.5" text-anchor="middle">OPH:lle</text>
+    <text class="lisatieto" x="1485" y="170.5" text-anchor="middle">kielittäin ja tasoittain</text>
+    <g class="numero">
+      <circle cx="1419" cy="117" r="10"/>
+      <text x="1419" y="121" text-anchor="middle">9</text>
+    </g>
+    <g id="kysymys-tulos-3" class="kysymys">
+      <circle cx="1544" cy="117" r="12"/>
+      <text x="1544" y="121" text-anchor="middle">?3</text>
+    </g>
+  </g>
+  <g id="tarve-linkki" class="nuoli push">
+    <path d="M 314,152 L 342,152" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="linkki-hakemus" class="nuoli push">
+    <path d="M 492,152 L 595,152 L 595,222" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="hakemus-vastaanotto" class="nuoli push">
+    <path d="M 595,294 L 595,434" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="vastaanotto-tausta" class="nuoli push">
+    <path d="M 670,470 L 773,470 L 773,400" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="tausta-riittaako" class="nuoli push">
+    <path d="M 848,364 L 886,364" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="riittaako-testisiirto" class="nuoli push">
+    <path d="M 951,404 L 951,576 L 1054,576" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="955" y="405" width="40" height="20" rx="3"/>
+      <text x="960" y="419" text-anchor="start">
+        <tspan x="960" y="419">kyllä</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="testisiirto-kutsu" class="nuoli push">
+    <path d="M 1129,540 L 1129,188" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="kutsu-koulutus" class="nuoli push">
+    <path d="M 1204,152 L 1307,152 L 1307,222" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="koulutus-tulos" class="nuoli push">
+    <path d="M 1382,258 L 1485,258 L 1485,188" marker-end="url(#karki-push)"/>
+  </g>
+  <text id="vaihe-2" class="vaiheen-otsikko" x="24" y="662">2 · Päätös ja rekisteröinti</text>
+  <g id="kaista-paatos-solki">
+    <rect class="kaista" x="20" y="672" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="692">SOLKI</text>
+  </g>
+  <g id="kaista-paatos-hakija">
+    <rect class="kaista" x="20" y="778" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="798">HAKIJA</text>
+  </g>
+  <g id="kaista-paatos-oph">
+    <rect class="kaista" x="20" y="884" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="904">OPH-VIRKAILIJA</text>
+  </g>
+  <g id="kaista-paatos-hakemuspalvelu">
+    <rect class="kaista" x="20" y="990" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="1010">HAKEMUSPALVELU</text>
+  </g>
+  <g id="kaista-paatos-kitu">
+    <rect class="kaista" x="20" y="1096" width="1560" height="100" rx="10"/>
+    <text class="kaistan-nimi" x="34" y="1116">KITU</text>
+  </g>
+  <g id="lasku" class="laatikko toimija">
+    <rect x="164" y="898" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="239" y="922.5" text-anchor="middle">Lähettää</text>
+    <text class="vaihe-nimi" x="239" y="937.5" text-anchor="middle">päätösmaksun laskun</text>
+    <text class="lisatieto" x="239" y="952.5" text-anchor="middle">75 € · Hakemuspalvelusta</text>
+    <g class="numero">
+      <circle cx="173" cy="899" r="10"/>
+      <text x="173" y="903" text-anchor="middle">10</text>
+    </g>
+  </g>
+  <g id="maksu" class="laatikko toimija">
+    <rect x="342" y="792" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="417" y="816.5" text-anchor="middle">Maksaa</text>
+    <text class="vaihe-nimi" x="417" y="831.5" text-anchor="middle">päätösmaksun</text>
+    <text class="lisatieto" x="417" y="846.5" text-anchor="middle">Paytrail</text>
+    <g class="numero">
+      <circle cx="351" cy="793" r="10"/>
+      <text x="351" y="797" text-anchor="middle">11</text>
+    </g>
+  </g>
+  <g id="kasitelty" class="laatikko oph">
+    <rect x="520" y="1004" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="595" y="1028.5" text-anchor="middle">Merkitsee hakemuksen</text>
+    <text class="vaihe-nimi" x="595" y="1043.5" text-anchor="middle">käsitellyksi</text>
+    <text class="lisatieto" x="595" y="1058.5" text-anchor="middle">kun maksu on kirjautunut</text>
+    <g class="numero">
+      <circle cx="529" cy="1005" r="10"/>
+      <text x="529" y="1009" text-anchor="middle">12</text>
+    </g>
+  </g>
+  <g id="paatos" class="laatikko toimija">
+    <rect x="698" y="898" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="773" y="915" text-anchor="middle">Tekee</text>
+    <text class="vaihe-nimi" x="773" y="930" text-anchor="middle">hallintopäätöksen</text>
+    <text class="lisatieto" x="773" y="945" text-anchor="middle">päätös ASHAssa,</text>
+    <text class="lisatieto" x="773" y="960" text-anchor="middle">ilmoittaa hakijalle</text>
+    <g class="numero">
+      <circle cx="707" cy="899" r="10"/>
+      <text x="707" y="903" text-anchor="middle">13</text>
+    </g>
+  </g>
+  <g id="myonteinen" class="valinta">
+    <polygon points="886,934 951,894 1016,934 951,974"/>
+    <text class="vaihe-nimi" x="951" y="930" text-anchor="middle">Myönteinen</text>
+    <text class="vaihe-nimi" x="951" y="945" text-anchor="middle">päätös?</text>
+    <g id="kysymys-myonteinen-4" class="kysymys">
+      <circle cx="994" cy="906" r="12"/>
+      <text x="994" y="910" text-anchor="middle">?4</text>
+    </g>
+  </g>
+  <g id="ei-merkintaa" class="loppu kielteinen">
+    <rect x="876" y="802" width="150" height="52" rx="26"/>
+    <text class="vaihe-nimi" x="951" y="824" text-anchor="middle">Kielteinen päätös</text>
+    <text class="lisatieto" x="951" y="839" text-anchor="middle">ei merkintää</text>
+  </g>
+  <g id="haku" class="laatikko kitu">
+    <rect x="876" y="1110" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="951" y="1134.5" text-anchor="middle">Hakee hakemuksen</text>
+    <text class="vaihe-nimi" x="951" y="1149.5" text-anchor="middle">tarkistettavaksi</text>
+    <text class="lisatieto" x="951" y="1164.5" text-anchor="middle">öisin tai pyydettäessä</text>
+    <g class="numero">
+      <circle cx="885" cy="1111" r="10"/>
+      <text x="885" y="1115" text-anchor="middle">14</text>
+    </g>
+  </g>
+  <g id="vahvistus" class="laatikko toimija">
+    <rect x="1054" y="898" width="150" height="72" rx="28"/>
+    <text class="vaihe-nimi" x="1129" y="915" text-anchor="middle">Tarkistaa ja</text>
+    <text class="vaihe-nimi" x="1129" y="930" text-anchor="middle">vahvistaa hakemuksen</text>
+    <text class="lisatieto" x="1129" y="945" text-anchor="middle">kauden alkupäivä,</text>
+    <text class="lisatieto" x="1129" y="960" text-anchor="middle">ASHA-numero</text>
+    <g class="numero">
+      <circle cx="1063" cy="899" r="10"/>
+      <text x="1063" y="903" text-anchor="middle">15</text>
+    </g>
+  </g>
+  <g id="rekisterointi" class="laatikko kitu">
+    <rect x="1232" y="1110" width="150" height="72" rx="8"/>
+    <text class="vaihe-nimi" x="1307" y="1134.5" text-anchor="middle">Luo arvioijan</text>
+    <text class="vaihe-nimi" x="1307" y="1149.5" text-anchor="middle">ja arviointikauden</text>
+    <text class="lisatieto" x="1307" y="1164.5" text-anchor="middle">lähettää tiedot Solkiin</text>
+    <g class="numero">
+      <circle cx="1241" cy="1111" r="10"/>
+      <text x="1241" y="1115" text-anchor="middle">16</text>
+    </g>
+    <g id="kysymys-rekisterointi-5" class="kysymys">
+      <circle cx="1366" cy="1111" r="12"/>
+      <text x="1366" y="1115" text-anchor="middle">?5</text>
+    </g>
+  </g>
+  <g id="valmis" class="loppu">
+    <rect x="1410" y="696" width="150" height="52" rx="26"/>
+    <text class="vaihe-nimi" x="1485" y="718" text-anchor="middle">Arvioija voi</text>
+    <text class="vaihe-nimi" x="1485" y="733" text-anchor="middle">aloittaa arvioinnit</text>
+    <g id="kysymys-valmis-6" class="kysymys">
+      <circle cx="1544" cy="697" r="12"/>
+      <text x="1544" y="701" text-anchor="middle">?6</text>
+    </g>
+  </g>
+  <g id="lasku-maksu" class="nuoli push">
+    <path d="M 314,934 L 417,934 L 417,864" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="maksu-kasitelty" class="nuoli push">
+    <path d="M 492,828 L 595,828 L 595,1004" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="kasitelty-paatos" class="nuoli push">
+    <path d="M 670,1040 L 773,1040 L 773,970" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="paatos-myonteinen" class="nuoli push">
+    <path d="M 848,934 L 886,934" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="myonteinen-ei-merkintaa" class="nuoli push">
+    <path d="M 951,894 L 951,854" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="955" y="872" width="22" height="20" rx="3"/>
+      <text x="960" y="886" text-anchor="start">
+        <tspan x="960" y="886">ei</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="myonteinen-haku" class="nuoli push">
+    <path d="M 951,974 L 951,1110" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="955" y="975" width="40" height="20" rx="3"/>
+      <text x="960" y="989" text-anchor="start">
+        <tspan x="960" y="989">kyllä</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="haku-vahvistus" class="nuoli push">
+    <path d="M 1026,1146 L 1129,1146 L 1129,970" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="vahvistus-rekisterointi" class="nuoli push">
+    <path d="M 1204,934 L 1307,934 L 1307,1110" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="rekisterointi-valmis" class="nuoli push">
+    <path d="M 1382,1146 L 1485,1146 L 1485,748" marker-end="url(#karki-push)"/>
+  </g>
+  <g id="riittaako-lasku" class="nuoli push">
+    <path d="M 1016,364 L 1307,364 L 1307,640 L 239,640 L 239,898" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="1014" y="341" width="22" height="20" rx="3"/>
+      <text x="1019" y="355" text-anchor="start">
+        <tspan x="1019" y="355">ei</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="tulos-lasku" class="nuoli push">
+    <path d="M 1560,152 L 1571,152 L 1571,640 L 239,640 L 239,898" marker-end="url(#karki-push)"/>
+  </g>
+</svg>

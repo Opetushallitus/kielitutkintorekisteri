@@ -34,6 +34,18 @@ STYLE = """
     .selite { font-size: 11.5px; }
 """
 
+PROSESSI_STYLE = """    .vaihe-nimi { font-size: 12.5px; font-weight: bold; }
+    .numero circle { fill: #374151; }
+    .numero text { fill: #ffffff; font-size: 11px; font-weight: bold; }
+    .kysymys circle { fill: #7c3aed; stroke: #ffffff; stroke-width: 1.5; }
+    .kysymys text { fill: #ffffff; font-size: 10.5px; font-weight: bold; }
+    .valinta polygon { fill: #fffbeb; stroke: #92400e; stroke-width: 1.5; }
+    .loppu rect { fill: #ecfdf5; stroke: #15803d; stroke-width: 2; }
+    .kielteinen rect { fill: #fef2f2; stroke: #b91c1c; }
+    .jatkuu rect { fill: #f3f4f6; stroke: #6b7280; stroke-dasharray: 5 3; }
+    .vaiheen-otsikko { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+"""
+
 
 NUOLITYYPIT = (
     ("heti", "push heti"),
@@ -62,6 +74,7 @@ class Svg:
         self.out = []
         self.title = title
         self.subtitle = subtitle
+        self.extra_style = ""
 
     def add(self, s, indent=1):
         self.out.append("  " * indent + s)
@@ -151,13 +164,94 @@ class Svg:
         )
         self.add("</g>")
 
+    def process_legend(self, items):
+        self.extra_style = PROSESSI_STYLE
+        self.add('<g id="selite">')
+        x = 660
+        for cls, name in items:
+            self.add(f'<g class="laatikko {cls}">', 2)
+            rx = 7 if cls == "toimija" else 3
+            self.add(f'<rect x="{x}" y="14" width="22" height="14" rx="{rx}"/>', 3)
+            self.add("</g>", 2)
+            self.add(f'<text class="selite" x="{x + 28}" y="25">{escape(name)}</text>', 2)
+            x += 28 + tw(name) + 22
+        x = 670
+        self.number_badge(x, 44, 1)
+        self.add(f'<text class="selite" x="{x + 16}" y="48">vaihe</text>', 2)
+        x += 16 + tw("vaihe") + 22
+        self.add('<g class="valinta">', 2)
+        self.add(f'<polygon points="{x},44 {x + 14},35 {x + 28},44 {x + 14},53"/>', 3)
+        self.add("</g>", 2)
+        self.add(f'<text class="selite" x="{x + 34}" y="48">valinta</text>', 2)
+        x += 34 + tw("valinta") + 30
+        self.question_badge("selite", x, 44, 1)
+        name = "selvitettävä asia, numero viittaa kaavion alla olevaan listaan"
+        self.add(f'<text class="selite" x="{x + 18}" y="48">{escape(name)}</text>', 2)
+        x += 18 + tw(name) + 18
+        self.add(f'<text class="selite" x="{x:.0f}" y="48">nuoli = prosessin eteneminen</text>', 2)
+        self.add("</g>")
+
+    def number_badge(self, x, y, n):
+        self.add('<g class="numero">', 2)
+        self.add(f'<circle cx="{x:g}" cy="{y:g}" r="10"/>', 3)
+        self.add(f'<text x="{x:g}" y="{y + 4:g}" text-anchor="middle">{n}</text>', 3)
+        self.add("</g>", 2)
+
+    def question_badge(self, id_, x, y, n):
+        self.add(f'<g id="kysymys-{id_}-{n}" class="kysymys">', 2)
+        self.add(f'<circle cx="{x:g}" cy="{y:g}" r="12"/>', 3)
+        self.add(f'<text x="{x:g}" y="{y + 4:g}" text-anchor="middle">?{n}</text>', 3)
+        self.add("</g>", 2)
+
+    def centered_text(self, cx, cy, title, lines):
+        total = 15 * (len(title) + len(lines))
+        y = cy - total / 2 + 11
+        for ln in title:
+            self.add(f'<text class="vaihe-nimi" x="{cx:g}" y="{y:g}" text-anchor="middle">{escape(ln)}</text>', 2)
+            y += 15
+        for ln in lines:
+            self.add(f'<text class="lisatieto" x="{cx:g}" y="{y:g}" text-anchor="middle">{escape(ln)}</text>', 2)
+            y += 15
+
+    def step(self, id_, cls, x, y, w, h, n, title, lines=(), questions=()):
+        rx = 28 if cls == "toimija" else 8
+        self.add(f'<g id="{id_}" class="laatikko {cls}">')
+        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w}" height="{h}" rx="{rx}"/>', 2)
+        self.centered_text(x + w / 2, y + h / 2, title, lines)
+        if n is not None:
+            self.number_badge(x + 9, y + 1, n)
+        for i, q in enumerate(reversed(questions)):
+            self.question_badge(id_, x + w - 16 - i * 27, y + 1, q)
+        self.add("</g>")
+
+    def decision(self, id_, x, y, w, h, lines, questions=()):
+        cx, cy = x + w / 2, y + h / 2
+        self.add(f'<g id="{id_}" class="valinta">')
+        self.add(f'<polygon points="{x:g},{cy:g} {cx:g},{y:g} {x + w:g},{cy:g} {cx:g},{y + h:g}"/>', 2)
+        self.centered_text(cx, cy, lines, ())
+        for i, q in enumerate(reversed(questions)):
+            self.question_badge(id_, x + w - 22 - i * 27, y + 12, q)
+        self.add("</g>")
+
+    def end(self, id_, x, y, w, h, title, lines=(), negative=False, questions=()):
+        c = "loppu kielteinen" if negative is True else f"loppu {negative}" if negative else "loppu"
+        self.add(f'<g id="{id_}" class="{c}">')
+        self.add(f'<rect x="{x:g}" y="{y:g}" width="{w}" height="{h}" rx="{h / 2:g}"/>', 2)
+        self.centered_text(x + w / 2, y + h / 2, title, lines)
+        for i, q in enumerate(reversed(questions)):
+            self.question_badge(id_, x + w - 16 - i * 27, y + 1, q)
+        self.add("</g>")
+
+    def phase_title(self, id_, y, name):
+        self.add(f'<text id="{id_}" class="vaiheen-otsikko" x="24" y="{y}">{escape(name)}</text>')
+
     def render(self):
         head = [
             '<?xml version="1.0" encoding="UTF-8"?>',
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{self.w}" height="{self.h}" viewBox="0 0 {self.w} {self.h}">',
             f"  <title>{escape(self.title)}</title>",
             "  <defs>",
-            "    <style>" + STYLE + "    </style>",
+            "    <style>" + STYLE + self.extra_style + "    </style>",
             *[
                 line
                 for kind, color in KARKIVARIT.items()
@@ -376,7 +470,7 @@ def yki_arvioijat():
         120,
         280,
         76,
-        "Ataru",
+        "Hakemuspalvelu",
         ["arvioijahakemuslomake", "integraatio ei vielä käytössä"],
         "ei-kaytossa",
     )
@@ -447,7 +541,7 @@ def yki_arvioijat():
             (
                 "otuva",
                 "Otuva",
-                ["virkailijoiden CAS-kirjautuminen", "OAuth2-token Solkille, CAS-tunnus Ataruun"],
+                ["virkailijoiden CAS-kirjautuminen", "OAuth2-token Solkille, CAS-tunnus Hakemuspalveluun"],
             ),
         ],
     )
@@ -818,11 +912,297 @@ def koto_tehtavapankki():
     return s
 
 
+PROSESSIN_PAIVAYS = "17.11.2026"
+PROSESSIN_SUB = f"Tavoitetila, sovittu Solkin kanssa 11/2026 · tilanne {PROSESSIN_PAIVAYS}"
+PROSESSIN_SELITE = [
+    ("ulkoinen", "Solki"),
+    ("toimija", "Hakija tai virkailija"),
+    ("oph", "Hakemuspalvelu"),
+    ("kitu", "Kielitutkintorekisteri"),
+]
+SARAKE_X = 150
+SARAKE = 178
+VAIHE_W = 150
+VAIHE_H = 72
+VALINTA_W = 130
+VALINTA_H = 80
+RIVI = 50
+ALARIVI = 146
+
+
+class Prosessi:
+    def __init__(self, s):
+        self.s = s
+        self.rivit = {}
+        self.r = {}
+
+    def cx(self, c):
+        return SARAKE_X + SARAKE * c + SARAKE / 2
+
+    def lanes(self, prefix, y, lanes):
+        for key, name, h in lanes:
+            self.s.lane(f"{prefix}-{key}", 20, y, self.s.w - 40, h, name)
+            self.rivit[key] = y
+            y += h + 6
+        return y - 6
+
+    def step(self, id_, cls, lane, c, n, title, lines=(), questions=(), row=RIVI):
+        x = self.cx(c) - VAIHE_W / 2
+        y = self.rivit[lane] + row - VAIHE_H / 2
+        self.s.step(id_, cls, x, y, VAIHE_W, VAIHE_H, n, title, lines, questions)
+        self.r[id_] = (x, y, VAIHE_W, VAIHE_H)
+
+    def decision(self, id_, lane, c, lines, questions=(), row=RIVI):
+        x = self.cx(c) - VALINTA_W / 2
+        y = self.rivit[lane] + row - VALINTA_H / 2
+        self.s.decision(id_, x, y, VALINTA_W, VALINTA_H, lines, questions)
+        self.r[id_] = (x, y, VALINTA_W, VALINTA_H)
+
+    def end(self, id_, lane, c, title, lines=(), negative=False, questions=(), row=RIVI):
+        h = 22 + 15 * (len(title) + len(lines))
+        x = self.cx(c) - VAIHE_W / 2
+        y = self.rivit[lane] + row - h / 2
+        self.s.end(id_, x, y, VAIHE_W, h, title, lines, negative, questions)
+        self.r[id_] = (x, y, VAIHE_W, h)
+
+    def connect(self, a, b, mode, label=None, via=None):
+        ax, ay, aw, ah = self.r[a]
+        bx, by, bw, bh = self.r[b]
+        acx, acy, bcx, bcy = ax + aw / 2, ay + ah / 2, bx + bw / 2, by + bh / 2
+        right = bcx > acx
+        down = bcy > acy
+        a_side = (ax + aw if right else ax, acy)
+        a_end = (acx, ay + ah if down else ay)
+        b_side = (bx if right else bx + bw, bcy)
+        b_end = (bcx, by if down else by + bh)
+        if mode == "h":
+            pts = [a_side, b_side]
+        elif mode == "v":
+            pts = [a_end, b_end]
+        elif mode == "hv":
+            pts = [a_side, (bcx, acy), b_end]
+        elif mode == "vh":
+            pts = [a_end, (acx, bcy), b_side]
+        elif mode == "kierto":
+            vx, vy = via
+            pts = [(ax + aw, acy), (vx, acy), (vx, vy), (bcx, vy), (bcx, by)]
+        elif mode == "oikea":
+            pts = [(ax + aw, acy), (via, acy), (via, bcy), (bx + bw, bcy)]
+        else:
+            pts = [(acx, ay + ah), (acx, via), (bcx, via), (bcx, by + bh if mode == "ala" else by)]
+        lx = ly = 0
+        anchor = "start"
+        if label:
+            (sx, sy), (nx, ny) = pts[0], pts[1]
+            if sy == ny:
+                anchor = "start" if nx > sx else "end"
+                lx = sx + (3 if nx > sx else -3)
+                ly = sy - 9
+            else:
+                lx = sx + 9
+                ly = sy + (15 if ny > sy else -8)
+        self.s.arrow(f"{a}-{b}", pts, [label] if label else None, lx, ly, anchor=anchor, kind="push")
+
+
+def paatos_ja_rekisterointi(p, y, n, hakija, kasittely, kitu_luo, loppu, paatoksen_kysymykset=()):
+    s = p.s
+    s.phase_title("vaihe-2", y - 10, "2 · Päätös ja rekisteröinti")
+    bottom = p.lanes(
+        "paatos",
+        y,
+        [
+            ("solki", "Solki", 100),
+            ("hakija", hakija, 100),
+            ("oph", "OPH-virkailija", 100),
+            ("hakemuspalvelu", "Hakemuspalvelu", 100),
+            ("kitu", "Kitu", 100),
+        ],
+    )
+    p.step("lasku", "toimija", "oph", 0, n, *kasittely)
+    p.step("maksu", "toimija", "hakija", 1, n + 1, ["Maksaa", "päätösmaksun"], ["Paytrail"])
+    p.step(
+        "kasitelty",
+        "oph",
+        "hakemuspalvelu",
+        2,
+        n + 2,
+        ["Merkitsee hakemuksen", "käsitellyksi"],
+        ["kun maksu on kirjautunut"],
+    )
+    p.step("paatos", "toimija", "oph", 3, n + 3, ["Tekee", "hallintopäätöksen"], ["päätös ASHAssa,", "ilmoittaa hakijalle"])
+    p.decision("myonteinen", "oph", 4, ["Myönteinen", "päätös?"], paatoksen_kysymykset)
+    p.end("ei-merkintaa", "hakija", 4, ["Kielteinen päätös"], ["ei merkintää"], negative=True)
+    p.step(
+        "haku",
+        "kitu",
+        "kitu",
+        4,
+        n + 4,
+        ["Hakee hakemuksen", "tarkistettavaksi"],
+        ["öisin tai pyydettäessä"],
+    )
+    p.step(
+        "vahvistus",
+        "toimija",
+        "oph",
+        5,
+        n + 5,
+        ["Tarkistaa ja", "vahvistaa hakemuksen"],
+        ["kauden alkupäivä,", "ASHA-numero"],
+    )
+    p.step("rekisterointi", "kitu", "kitu", 6, n + 6, *kitu_luo)
+    p.end("valmis", "solki", 7, *loppu)
+    p.connect("lasku", "maksu", "hv")
+    p.connect("maksu", "kasitelty", "hv")
+    p.connect("kasitelty", "paatos", "hv")
+    p.connect("paatos", "myonteinen", "h")
+    p.connect("myonteinen", "ei-merkintaa", "v", "ei")
+    p.connect("myonteinen", "haku", "v", "kyllä")
+    p.connect("haku", "vahvistus", "hv")
+    p.connect("vahvistus", "rekisterointi", "hv")
+    p.connect("rekisterointi", "valmis", "hv")
+    s.h = bottom + 24
+
+
+def yki_arvioijahakemus_prosessi():
+    s = Svg(0, "YKI – uuden arvioijan hakuprosessi", PROSESSIN_SUB)
+    s.process_legend(PROSESSIN_SELITE)
+    p = Prosessi(s)
+    s.phase_title("vaihe-1", 92, "1 · Hakemus ja arvioijakoulutus")
+    bottom = p.lanes(
+        "hakemus",
+        102,
+        [
+            ("solki", "Solki", 100),
+            ("hakija", "Hakija", 100),
+            ("oph", "OPH-virkailija", 100),
+            ("hakemuspalvelu", "Hakemuspalvelu", 100),
+            ("kitu", "Kitu", 100),
+        ],
+    )
+    p.step("tarve", "ulkoinen", "solki", 0, 1, ["Tunnistaa", "arvioijatarpeen"], ["kartoittaa ehdokkaat", "kielen ja tason mukaan"])
+    p.step("linkki", "ulkoinen", "solki", 1, 2, ["Lähettää suljetun", "hakemuslinkin"], ["henkilöille, joilla on", "sopiva kielitausta"])
+    p.step("hakemus", "toimija", "hakija", 2, 3, ["Täyttää hakemuksen"], ["kielet ja tasot,", "tutkintotodistukset"])
+    p.step("vastaanotto", "oph", "hakemuspalvelu", 2, 4, ["Vastaanottaa", "hakemuksen"], ["arvioijahakemuslomake"])
+    p.step("tausta", "toimija", "oph", 3, 5, ["Tarkistaa", "koulutustaustan"], ["merkitsee hakukelpoiseksi", "Hakemuspalvelussa"])
+    p.decision("riittaako", "oph", 4, ["Koulutustausta", "riittää?"])
+    p.step(
+        "testisiirto",
+        "kitu",
+        "kitu",
+        5,
+        6,
+        ["Lähettää hakijan", "tiedot Solkiin"],
+        ["Solkin testiympäristö,", "automaattisesti"],
+        [1],
+    )
+    p.step("kutsu", "ulkoinen", "solki", 5, 7, ["Kutsuu", "arvioijakoulutukseen"])
+    p.step("koulutus", "toimija", "hakija", 6, 8, ["Suorittaa", "arvioijakoulutuksen"], ["harjoitusarvioinnit"], [2])
+    p.step(
+        "tulos",
+        "ulkoinen",
+        "solki",
+        7,
+        9,
+        ["Ilmoittaa tuloksen", "OPH:lle"],
+        ["kielittäin ja tasoittain"],
+        [3],
+    )
+    p.connect("tarve", "linkki", "h")
+    p.connect("linkki", "hakemus", "hv")
+    p.connect("hakemus", "vastaanotto", "v")
+    p.connect("vastaanotto", "tausta", "hv")
+    p.connect("tausta", "riittaako", "h")
+    p.connect("riittaako", "testisiirto", "vh", "kyllä")
+    p.connect("testisiirto", "kutsu", "v")
+    p.connect("kutsu", "koulutus", "hv")
+    p.connect("koulutus", "tulos", "hv")
+    paatos_ja_rekisterointi(
+        p,
+        bottom + 46,
+        10,
+        "Hakija",
+        (["Lähettää", "päätösmaksun laskun"], ["75 € · Hakemuspalvelusta"]),
+        (["Luo arvioijan", "ja arviointikauden"], ["lähettää tiedot Solkiin"], [5]),
+        (["Arvioija voi", "aloittaa arvioinnit"], (), False, [6]),
+        [4],
+    )
+    p.connect("riittaako", "lasku", "kierto", "ei", via=(p.cx(6), bottom + 14))
+    p.connect("tulos", "lasku", "kierto", via=(1571, bottom + 14))
+    return s
+
+
+def yki_arvioijan_jatkohakemus_prosessi():
+    s = Svg(0, "YKI – arvioijan jatkohakemuksen prosessi", PROSESSIN_SUB)
+    s.process_legend(PROSESSIN_SELITE)
+    p = Prosessi(s)
+    s.phase_title("vaihe-1", 92, "1 · Hakemus ja todistus")
+    bottom = p.lanes(
+        "hakemus",
+        102,
+        [
+            ("solki", "Solki", 196),
+            ("hakija", "Arvioija", 100),
+            ("oph", "OPH-virkailija", 100),
+            ("hakemuspalvelu", "Hakemuspalvelu", 100),
+            ("kitu", "Kitu", 100),
+        ],
+    )
+    p.step("hakemus", "toimija", "hakija", 0, 1, ["Täyttää hakemuksen"], ["sama lomake, valinta:", "jatkohakemus"])
+    p.step("vastaanotto", "oph", "hakemuspalvelu", 0, 2, ["Vastaanottaa", "hakemuksen"], ["arvioijahakemuslomake"])
+    p.step("pyynto", "toimija", "oph", 1, 3, ["Pyytää Solkilta", "todistuksen"], ["arviointiaktiivisuudesta"], [1])
+    p.step("aktiivisuus", "ulkoinen", "solki", 2, 4, ["Tarkistaa", "arviointiaktiivisuuden"], ["kuluva tai edellinen kausi"])
+    p.decision("aktiivinen", "solki", 3, ["Aktiivinen ja", "säännöllinen?"])
+    p.decision("uudestaan", "solki", 4, ["Koulutus", "uudestaan?"], [2], row=ALARIVI)
+    p.step("ei-todistusta", "ulkoinen", "solki", 5, None, ["Ilmoittaa OPH:lle"], ["ei todistusta"], row=ALARIVI)
+    p.step("todistus", "ulkoinen", "solki", 4, 5, ["Toimittaa todistuksen", "OPH:lle"])
+    p.step(
+        "testisiirto",
+        "kitu",
+        "kitu",
+        4,
+        None,
+        ["Lähettää hakijan", "tiedot Solkiin"],
+        ["Solkin testiympäristö,", "automaattisesti"],
+    )
+    p.end(
+        "koulutukseen",
+        "kitu",
+        5,
+        ["Arvioijakoulutus"],
+        ["jatkuu uuden arvioijan", "prosessin vaiheesta 7"],
+        negative="jatkuu",
+    )
+    p.connect("hakemus", "vastaanotto", "v")
+    p.connect("vastaanotto", "pyynto", "hv")
+    p.connect("pyynto", "aktiivisuus", "hv")
+    p.connect("aktiivisuus", "aktiivinen", "h")
+    p.connect("aktiivinen", "todistus", "h", "kyllä")
+    p.connect("aktiivinen", "uudestaan", "vh", "ei")
+    p.connect("uudestaan", "testisiirto", "v", "kyllä")
+    p.connect("uudestaan", "ei-todistusta", "h", "ei")
+    p.connect("testisiirto", "koulutukseen", "h")
+    paatos_ja_rekisterointi(
+        p,
+        bottom + 46,
+        6,
+        "Arvioija",
+        (["Käsittelee", "hakemuksen"], ["Solkin todistus,", "päätösmaksun lasku 75 €"]),
+        (["Lisää jatkokauden", "uutena kautena"], ["lähettää tiedot Solkiin"], [3, 4]),
+        (["Arviointioikeus", "jatkuu"],),
+    )
+    p.connect("todistus", "lasku", "kierto", via=(1571, bottom + 14))
+    p.connect("ei-todistusta", "lasku", "kierto", via=(1571, bottom + 14))
+    return s
+
+
 if __name__ == "__main__":
     outdir = sys.argv[1]
     for name, fn in (
         ("yki-suoritukset", yki_suoritukset),
         ("yki-arvioijat", yki_arvioijat),
+        ("yki-arvioijahakemus-prosessi", yki_arvioijahakemus_prosessi),
+        ("yki-arvioijan-jatkohakemus-prosessi", yki_arvioijan_jatkohakemus_prosessi),
         ("vkt-erinomainen", vkt_et),
         ("vkt-hyva-ja-tyydyttava", vkt_htt),
         ("kotoutumiskoulutus-suoritukset", koto_suoritukset),

@@ -1,6 +1,6 @@
 ---
 name: integraatiokaaviot
-description: Update the six integration data-flow diagrams (docs/technical/kaaviot/*.svg — YKI suoritukset, YKI arvioijarekisteri, VKT erinomainen, VKT hyvä & tyydyttävä, kotoutumiskoulutus suoritukset, kotoutumiskoulutus tehtäväpankki) when an integration between kitu, KIOS, Solki, Koealusta/Mediamaisteri, KOSKI (todistukset, Tiedotuspalvelu), ONR etc. changes, or when asked to refresh/verify them.
+description: Update the six integration data-flow diagrams (docs/technical/kaaviot/*.svg — YKI suoritukset, YKI arvioijarekisteri, VKT erinomainen, VKT hyvä & tyydyttävä, kotoutumiskoulutus suoritukset, kotoutumiskoulutus tehtäväpankki) and the two YKI-arvioija process diagrams (uuden arvioijan hakuprosessi, jatkohakemus) when an integration between kitu, KIOS, Solki, Koealusta/Mediamaisteri, KOSKI (todistukset, Tiedotuspalvelu), ONR etc. changes, or when asked to refresh/verify them, or when the arvioija application process changes.
 ---
 
 # Integraatiokaaviot: update the data-flow diagrams
@@ -11,13 +11,20 @@ Six hand-editable SVGs in `docs/technical/kaaviot/`, embedded in
 | File                                   | Scope                                                                       |
 | -------------------------------------- | --------------------------------------------------------------------------- |
 | `yki-suoritukset.svg`                  | YKI results: KIOS ↔ Solki → kitu → KOSKI (todistus, tiedote, Suomi.fi)      |
-| `yki-arvioijat.svg`                    | YKI arvioijarekisteri: Solki ↔ kitu, Ataru, virkailija                      |
+| `yki-arvioijat.svg`                    | YKI arvioijarekisteri: Solki ↔ kitu, Hakemuspalvelu, virkailija             |
 | `vkt-erinomainen.svg`                  | VKT ET: KIOS sends ilmoittautuminen without arvosanat, arvosanat in kitu    |
 | `vkt-hyva-ja-tyydyttava.svg`           | VKT HTT: tutkinnon vastaanottaja grades in KIOS, KIOS sends finished result |
 | `kotoutumiskoulutus-suoritukset.svg`   | Koealusta (Moodle, Mediamaisteri) → kitu: valmiit + keskeneräiset           |
 | `kotoutumiskoulutus-tehtavapankki.svg` | Koealusta → kitu → S3; virkailija downloads files via presigned S3 URL      |
 
-They are **generated** by `kaaviot.py` in this skill directory. The script is the source of
+Two **process diagrams** live in the same directory and the same section of the page:
+
+| File                                      | Scope                                                                  |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| `yki-arvioijahakemus-prosessi.svg`        | New arvioija: need → closed link → application → training → fee → kitu |
+| `yki-arvioijan-jatkohakemus-prosessi.svg` | Jatkohakemus: same form → Solki's activity certificate, or retraining  |
+
+All eight are **generated** by `kaaviot.py` in this skill directory. The script is the source of
 truth for layout; every coordinate is set by hand in it (no auto-layout).
 
 ## Workflow
@@ -83,6 +90,7 @@ truth for layout; every coordinate is set by hand in it (no auto-layout).
     KOSKI is a pull, not a "julkaisu" push).
   - `kayttaja` (light grey): a person's action in a UI. It's not a system push, so it never uses
     the three push styles.
+- Ataru is labelled **Hakemuspalvelu** in every diagram; "ataru" is only the name in code.
 - Classes: `kitu`, `kios`, `oph` (other OPH service), `ulkoinen` (Solki, Koealusta, Paytrail,
   Suomi.fi), `infra` (S3), `toimija` (people). `ei-kaytossa` greys out integrations that exist in
   code but are off in every real environment (currently Ataru: `kitu.ataru.service.url` empty).
@@ -100,6 +108,29 @@ truth for layout; every coordinate is set by hand in it (no auto-layout).
   `/blob/` file-viewer page. That can't be configured, but GitHub keeps an explicit link. The
   relative `src` keeps the image working on both github.com and Pages. Check with
   `gh api markdown -f mode=gfm -F text=@file`.
+
+## Process diagrams
+
+The two `*-prosessi.svg` files show who does what in which order, not data flows, and follow
+their own rules:
+
+- Built with the `Prosessi` helper: horizontal lanes per party (Solki, Hakija/Arvioija,
+  OPH-virkailija, Hakemuspalvelu, Kitu), steps on an eight-column grid (`p.step(id, cls, lane,
+column, number, title, lines, questions)`), `p.decision`, `p.end`, and `p.connect(a, b, mode)`
+  for elbow arrows (`h`, `v`, `hv`, `vh`, or `ala`/`yla`/`oikea`/`kierto` with a `via=` coordinate).
+  Title lines fit about 19 characters and detail lines about 23.
+- Arrow = **order of the process**, always `kind="push"`; the only arrow labels are "kyllä"/"ei".
+  `s.process_legend(...)` replaces `s.legend(...)` and switches on `PROSESSI_STYLE`, so the
+  data-flow SVGs don't change when a process diagram does.
+- Both diagrams share phase 2 (`paatos_ja_rekisterointi`): fee → payment → Hakemuspalvelu marks
+  the application processed → hallintopäätös → "Myönteinen päätös?" → kitu fetches → virkailija
+  confirms. **The fee is charged for negative decisions too**, so every branch of phase 1 leads
+  to the fee step and the only negative end state is after the decision.
+- **`?N` badges are the one allowed annotation**: each marks an unresolved question, and the
+  numbered "selvitettävät asiat" list under the diagram in `integraatiot.md` must have exactly
+  the same numbers. Remove the badge and the list item together when a question is settled.
+- They describe a **target state** agreed with Solki (11/2026), dated by `PROSESSIN_PAIVAYS`,
+  which is separate from `PAIVAYS` — bump only the one whose diagrams you re-verified.
 
 ## Facts that are easy to get wrong
 
