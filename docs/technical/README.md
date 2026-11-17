@@ -18,4 +18,5 @@ suunnitteluratkaisut ja konventiot.
   [QA](https://opetushallitus.github.io/kielitutkintorekisteri/uml/qa) ·
   [Tuotanto](https://opetushallitus.github.io/kielitutkintorekisteri/uml/prod)
 - [Eräajot](../db-scheduler) — db-scheduler-pohjaisten ajastettujen tehtävien dokumentaatio
+- [Perehdytys](../perehdytys/) — tutoriaalit, jotka käyvät yhden osa-alueen läpi toimialasta koodiin
 - [Ulkoiset rajapintakuvaukset](https://virkailija.testiopintopolku.fi/kielitutkinnot/api-docs)

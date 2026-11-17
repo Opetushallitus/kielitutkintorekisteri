@@ -405,14 +405,18 @@ jobs:
         # Skripti kirjoittaa repon juuren uml/-hakemistoon ja luo sen itse.
         run: docs/build-uml.sh untuva qa prod
       - name: Verify technical documentation pages exist
-        # docs/technical/ on käsinkirjoitettu tekninen dokumentaatio,
-        # jonka jekyll-vaihe rendaa automaattisesti. Tämä tarkistus pysäyttää
-        # CI:n, mikäli kansio tai jokin odotetuista sivuista on poistettu
-        # vahingossa.
+        # docs/technical/ ja docs/perehdytys/ ovat käsinkirjoitettua
+        # dokumentaatiota, jonka jekyll-vaihe rendaa automaattisesti. Tämä
+        # tarkistus pysäyttää CI:n, mikäli kansio tai jokin odotetuista
+        # sivuista on poistettu vahingossa.
         run: |
           test -d docs/technical
           for page in README.md arkkitehtuuri.md koodikonventiot.md integraatiot.md yllapito.md; do
             test -f "docs/technical/$page" || { echo "::error::docs/technical/$page puuttuu"; exit 1; }
+          done
+          test -d docs/perehdytys
+          for page in README.md yki-suoritukset.md; do
+            test -f "docs/perehdytys/$page" || { echo "::error::docs/perehdytys/$page puuttuu"; exit 1; }
           done
       - name: Build html files from markdown files
         uses: actions/jekyll-build-pages@44a6e6beabd48582f863aeeb6cb2151cc1716697 # v1
