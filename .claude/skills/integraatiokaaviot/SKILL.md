@@ -24,7 +24,18 @@ Two **process diagrams** live in the same directory and the same section of the 
 | `yki-arvioijahakemus-prosessi.svg`        | New arvioija: need → closed link → application → training → fee → kitu |
 | `yki-arvioijan-jatkohakemus-prosessi.svg` | Jatkohakemus: same form → Solki's activity certificate, or retraining  |
 
-All eight are **generated** by `kaaviot.py` in this skill directory. The script is the source of
+One more belongs to the onboarding tutorial `docs/perehdytys/yki-suoritukset.md`, which embeds
+it (and `yki-suoritukset.svg`) from the same directory (`../technical/kaaviot/`):
+
+| File                     | Scope                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `yki-arviointitilat.svg` | State diagram of `Arviointitila`: who sets each state, which states go to KOSKI |
+
+It is dated by `PEREHDYTYKSEN_PAIVAYS` and uses `s.legend` with its own arrow list, where arrow
+colour means who causes the transition. Re-verify the states against `yki/Arviointitila.kt` and
+`tiedontuontischema/YkiSuoritusValidation.kt`.
+
+All nine are **generated** by `kaaviot.py` in this skill directory. The script is the source of
 truth for layout; every coordinate is set by hand in it (no auto-layout).
 
 ## Workflow

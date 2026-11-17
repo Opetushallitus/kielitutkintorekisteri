@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1630" height="450" viewBox="0 0 1630 450">
+  <title>YKI – suorituksen arviointitilat</title>
+  <defs>
+    <style>
+    text { font-family: Helvetica, Arial, sans-serif; fill: #1f2937; }
+    .tausta { fill: #ffffff; }
+    .otsikko { font-size: 24px; font-weight: bold; }
+    .alaotsikko { font-size: 13px; fill: #4b5563; }
+    .kaista { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1; }
+    .kaistan-nimi { font-size: 12px; font-weight: bold; fill: #64748b; letter-spacing: 0.5px; }
+    .laatikko rect { stroke-width: 1.5; }
+    .nimi { font-size: 14px; font-weight: bold; }
+    .lisatieto { font-size: 11px; fill: #4b5563; }
+    .kitu rect { fill: #dbeafe; stroke: #1e40af; stroke-width: 3; }
+    .kios rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 2.5; }
+    .oph rect { fill: #eff6ff; stroke: #60a5fa; }
+    .ulkoinen rect { fill: #fff7ed; stroke: #ea580c; }
+    .infra rect { fill: #f0fdf4; stroke: #16a34a; }
+    .toimija rect { fill: #f3f4f6; stroke: #6b7280; }
+    .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+    .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
+    .heti path { stroke: #0e7490; stroke-width: 2.2; }
+    .ajastettu path { stroke: #a16207; stroke-width: 2.2; }
+    .pull path { stroke-dasharray: 7 4; }
+    .kayttaja path { stroke: #9ca3af; stroke-width: 1.4; }
+    .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
+    .nuolen-teksti text { font-size: 11.5px; }
+    .ei-kaytossa { opacity: 0.5; }
+    .selite { font-size: 11.5px; }
+    </style>
+    <marker id="karki-heti" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#0e7490"/>
+    </marker>
+    <marker id="karki-ajastettu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#a16207"/>
+    </marker>
+    <marker id="karki-push" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="karki-pull" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="karki-kayttaja" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+  <rect class="tausta" x="0" y="0" width="1630" height="450"/>
+  <g id="otsikko">
+    <text class="otsikko" x="24" y="34">YKI – suorituksen arviointitilat</text>
+    <text class="alaotsikko" x="24" y="54">Perehdytys: YKI-suoritukset · tilanne 17.11.2026</text>
+  </g>
+  <g id="selite">
+    <g class="laatikko ulkoinen">
+      <rect x="660" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="688" y="25">Solkin lähettämä tila</text>
+    <g class="laatikko kitu">
+      <rect x="836.7874999999999" y="14" width="22" height="14" rx="3"/>
+    </g>
+    <text class="selite" x="864.7874999999999" y="25">Kielitutkintorekisterin oma tila</text>
+    <g class="nuoli push">
+      <path d="M 660,44 L 690,44" marker-end="url(#karki-push)"/>
+    </g>
+    <text class="selite" x="696" y="48">Solkin lähetys</text>
+    <g class="nuoli kayttaja">
+      <path d="M 798.525,44 L 828.525,44" marker-end="url(#karki-kayttaja)"/>
+    </g>
+    <text class="selite" x="834.525" y="48">virkailijan toiminto</text>
+    <g class="nuoli ajastettu">
+      <path d="M 973.275,44 L 1003.275,44" marker-end="url(#karki-ajastettu)"/>
+    </g>
+    <text class="selite" x="1009.275" y="48">Kielitutkintorekisteri kirjoittaa itse</text>
+    <text class="selite" x="1256.6999999999998" y="48">nuoli = tavallinen siirtymä, järjestystä ei valvota</text>
+  </g>
+  <g id="koski-siirto">
+    <rect class="ryhma" x="700" y="84" width="910" height="346" rx="12"/>
+    <text class="ryhman-nimi" x="714" y="106">Siirretään KOSKI-järjestelmään</text>
+  </g>
+  <g id="ilmoittautunut" class="laatikko ulkoinen">
+    <rect x="40" y="140" width="190" height="70" rx="8"/>
+    <text class="nimi" x="135" y="164" text-anchor="middle">ILMOITTAUTUNUT</text>
+    <text class="lisatieto" x="135" y="181" text-anchor="middle">Ilmoittautunut</text>
+    <text class="lisatieto" x="135" y="196" text-anchor="middle">ei arvosanoja</text>
+  </g>
+  <g id="arvioitava" class="laatikko ulkoinen">
+    <rect x="380" y="140" width="190" height="70" rx="8"/>
+    <text class="nimi" x="475" y="164" text-anchor="middle">ARVIOITAVA</text>
+    <text class="lisatieto" x="475" y="181" text-anchor="middle">Suoritus arvioitavana</text>
+    <text class="lisatieto" x="475" y="196" text-anchor="middle">arvosanoja puuttuu</text>
+  </g>
+  <g id="arvioitu" class="laatikko ulkoinen">
+    <rect x="720" y="140" width="190" height="70" rx="8"/>
+    <text class="nimi" x="815" y="164" text-anchor="middle">ARVIOITU</text>
+    <text class="lisatieto" x="815" y="181" text-anchor="middle">Arviointi valmis</text>
+    <text class="lisatieto" x="815" y="196" text-anchor="middle">kaikilla osakokeilla arvosana</text>
+  </g>
+  <g id="tarkistusarvioitava" class="laatikko ulkoinen">
+    <rect x="1060" y="140" width="190" height="70" rx="8"/>
+    <text class="nimi" x="1155" y="171.5" text-anchor="middle">TARKISTUSARVIOITAVA</text>
+    <text class="lisatieto" x="1155" y="188.5" text-anchor="middle">Suoritus tarkistusarvioitavana</text>
+  </g>
+  <g id="tarkistusarvioitu" class="laatikko ulkoinen">
+    <rect x="1400" y="140" width="190" height="70" rx="8"/>
+    <text class="nimi" x="1495" y="164" text-anchor="middle">TARKISTUSARVIOITU</text>
+    <text class="lisatieto" x="1495" y="181" text-anchor="middle">Tarkistusarviointi tehty</text>
+    <text class="lisatieto" x="1495" y="196" text-anchor="middle">odottaa hyväksyntää</text>
+  </g>
+  <g id="peruttu" class="laatikko ulkoinen">
+    <rect x="40" y="340" width="190" height="70" rx="8"/>
+    <text class="nimi" x="135" y="364" text-anchor="middle">PERUTTU</text>
+    <text class="lisatieto" x="135" y="381" text-anchor="middle">Ilmoittautuminen peruttu</text>
+    <text class="lisatieto" x="135" y="396" text-anchor="middle">ei arvosanoja</text>
+  </g>
+  <g id="ei-suoritusta" class="laatikko ulkoinen">
+    <rect x="380" y="340" width="190" height="70" rx="8"/>
+    <text class="nimi" x="475" y="364" text-anchor="middle">EI_SUORITUSTA</text>
+    <text class="lisatieto" x="475" y="381" text-anchor="middle">Ei suoritusta</text>
+    <text class="lisatieto" x="475" y="396" text-anchor="middle">kaikki arvosanat 9–12</text>
+  </g>
+  <g id="hyvaksytty" class="laatikko kitu">
+    <rect x="1310" y="340" width="280" height="70" rx="8"/>
+    <text class="nimi" x="1450" y="371.5" text-anchor="middle">TARKISTUSARVIOINTI_HYVAKSYTTY</text>
+    <text class="lisatieto" x="1450" y="388.5" text-anchor="middle">Tarkistusarviointi hyväksytty</text>
+  </g>
+  <g id="ilmoittautunut-arvioitava" class="nuoli push">
+    <path d="M 230,175 L 380,175" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="249" y="131" width="113" height="34" rx="3"/>
+      <text x="305" y="145" text-anchor="middle">
+        <tspan x="305" y="145">tutkinto pidetty,</tspan>
+        <tspan x="305" y="159">arviointi kesken</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="arvioitava-arvioitu" class="nuoli push">
+    <path d="M 570,175 L 720,175" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="592" y="131" width="107" height="34" rx="3"/>
+      <text x="645" y="145" text-anchor="middle">
+        <tspan x="645" y="145">viimeinenkin</tspan>
+        <tspan x="645" y="159">arvosana annettu</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="arvioitu-tarkistusarvioitava" class="nuoli push">
+    <path d="M 910,175 L 1060,175" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="926" y="131" width="119" height="34" rx="3"/>
+      <text x="985" y="145" text-anchor="middle">
+        <tspan x="985" y="145">tarkistusarviointi</tspan>
+        <tspan x="985" y="159">tilattu</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="tarkistusarvioitava-tarkistusarvioitu" class="nuoli push">
+    <path d="M 1250,175 L 1400,175" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="1278" y="131" width="95" height="34" rx="3"/>
+      <text x="1325" y="145" text-anchor="middle">
+        <tspan x="1325" y="145">käsittelypäivä</tspan>
+        <tspan x="1325" y="159">kirjattu</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="ilmoittautunut-peruttu" class="nuoli push">
+    <path d="M 100,210 L 100,340" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="39" y="260" width="58" height="20" rx="3"/>
+      <text x="92" y="274" text-anchor="end">
+        <tspan x="92" y="274">peruutus</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="ilmoittautunut-ei-suoritusta" class="nuoli ajastettu">
+    <path d="M 190,210 L 420,340" marker-end="url(#karki-ajastettu)"/>
+    <g class="nuolen-teksti">
+      <rect x="270" y="254" width="76" height="34" rx="3"/>
+      <text x="308" y="268" text-anchor="middle">
+        <tspan x="308" y="268">yöajo 14 pv</tspan>
+        <tspan x="308" y="282">tutkinnosta</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="arvioitava-ei-suoritusta" class="nuoli push">
+    <path d="M 510,210 L 510,340" marker-end="url(#karki-push)"/>
+    <g class="nuolen-teksti">
+      <rect x="515" y="254" width="113" height="34" rx="3"/>
+      <text x="520" y="268" text-anchor="start">
+        <tspan x="520" y="268">yksikään arvosana</tspan>
+        <tspan x="520" y="282">ei ole oikea</tspan>
+      </text>
+    </g>
+  </g>
+  <g id="tarkistusarvioitu-hyvaksytty" class="nuoli kayttaja">
+    <path d="M 1495,210 L 1495,340" marker-end="url(#karki-kayttaja)"/>
+    <g class="nuolen-teksti">
+      <rect x="1367" y="254" width="125" height="34" rx="3"/>
+      <text x="1487" y="268" text-anchor="end">
+        <tspan x="1487" y="268">virkailija hyväksyy</tspan>
+        <tspan x="1487" y="282">tarkistusarvioinnin</tspan>
+      </text>
+    </g>
+  </g>
+</svg>

@@ -141,7 +141,7 @@ class Svg:
             self.add("</g>", 2)
         self.add("</g>")
 
-    def legend(self, items):
+    def legend(self, items, nuolet=NUOLITYYPIT, loppu="nuoli = tiedon kulkusuunta"):
         self.add('<g id="selite">')
         x = 660
         for cls, name in items:
@@ -152,14 +152,14 @@ class Svg:
             self.add(f'<text class="selite" x="{x + 28}" y="25">{escape(name)}</text>', 2)
             x += 28 + tw(name) + 22
         x = 660
-        for kind, name in NUOLITYYPIT:
+        for kind, name in nuolet:
             self.add(f'<g class="nuoli {kind}">', 2)
             self.add(f'<path d="M {x},44 L {x + 30},44" marker-end="url(#karki-{kind})"/>', 3)
             self.add("</g>", 2)
             self.add(f'<text class="selite" x="{x + 36}" y="48">{escape(name)}</text>', 2)
             x += 36 + tw(name) + 18
         self.add(
-            f'<text class="selite" x="{x}" y="48">nuoli = tiedon kulkusuunta</text>',
+            f'<text class="selite" x="{x}" y="48">{escape(loppu)}</text>',
             2,
         )
         self.add("</g>")
@@ -1196,10 +1196,78 @@ def yki_arvioijan_jatkohakemus_prosessi():
     return s
 
 
+PEREHDYTYKSEN_PAIVAYS = "17.11.2026"
+PEREHDYTYKSEN_SUB = f"Perehdytys: YKI-suoritukset · tilanne {PEREHDYTYKSEN_PAIVAYS}"
+
+
+def yki_arviointitilat():
+    s = Svg(450, "YKI – suorituksen arviointitilat", PEREHDYTYKSEN_SUB, width=1630)
+    s.legend(
+        [("ulkoinen", "Solkin lähettämä tila"), ("kitu", "Kielitutkintorekisterin oma tila")],
+        nuolet=(
+            ("push", "Solkin lähetys"),
+            ("kayttaja", "virkailijan toiminto"),
+            ("ajastettu", "Kielitutkintorekisteri kirjoittaa itse"),
+        ),
+        loppu="nuoli = tavallinen siirtymä, järjestystä ei valvota",
+    )
+    w, h = 190, 70
+    y1, y2 = 140, 340
+    x = [40, 380, 720, 1060, 1400]
+    s.group("koski-siirto", 700, 84, 910, 346, "Siirretään KOSKI-järjestelmään")
+    s.box("ilmoittautunut", "ulkoinen", x[0], y1, w, h, "ILMOITTAUTUNUT", ["Ilmoittautunut", "ei arvosanoja"])
+    s.box("arvioitava", "ulkoinen", x[1], y1, w, h, "ARVIOITAVA", ["Suoritus arvioitavana", "arvosanoja puuttuu"])
+    s.box("arvioitu", "ulkoinen", x[2], y1, w, h, "ARVIOITU", ["Arviointi valmis", "kaikilla osakokeilla arvosana"])
+    s.box("tarkistusarvioitava", "ulkoinen", x[3], y1, w, h, "TARKISTUSARVIOITAVA", ["Suoritus tarkistusarvioitavana"])
+    s.box("tarkistusarvioitu", "ulkoinen", x[4], y1, w, h, "TARKISTUSARVIOITU", ["Tarkistusarviointi tehty", "odottaa hyväksyntää"])
+    s.box("peruttu", "ulkoinen", x[0], y2, w, h, "PERUTTU", ["Ilmoittautuminen peruttu", "ei arvosanoja"])
+    s.box("ei-suoritusta", "ulkoinen", x[1], y2, w, h, "EI_SUORITUSTA", ["Ei suoritusta", "kaikki arvosanat 9–12"])
+    s.box("hyvaksytty", "kitu", x[4] - 90, y2, w + 90, h, "TARKISTUSARVIOINTI_HYVAKSYTTY", ["Tarkistusarviointi hyväksytty"])
+    cy = y1 + h / 2
+    for i, (id_, label) in enumerate(
+        (
+            ("ilmoittautunut-arvioitava", ["tutkinto pidetty,", "arviointi kesken"]),
+            ("arvioitava-arvioitu", ["viimeinenkin", "arvosana annettu"]),
+            ("arvioitu-tarkistusarvioitava", ["tarkistusarviointi", "tilattu"]),
+            ("tarkistusarvioitava-tarkistusarvioitu", ["käsittelypäivä", "kirjattu"]),
+        )
+    ):
+        s.arrow(id_, [(x[i] + w, cy), (x[i + 1], cy)], label, x[i] + w + 75, cy - 30, kind="push")
+    s.arrow("ilmoittautunut-peruttu", [(x[0] + 60, y1 + h), (x[0] + 60, y2)], ["peruutus"], x[0] + 52, 274, anchor="end", kind="push")
+    s.arrow(
+        "ilmoittautunut-ei-suoritusta",
+        [(x[0] + 150, y1 + h), (x[1] + 40, y2)],
+        ["yöajo 14 pv", "tutkinnosta"],
+        x[0] + 268,
+        268,
+        kind="ajastettu",
+    )
+    s.arrow(
+        "arvioitava-ei-suoritusta",
+        [(x[1] + 130, y1 + h), (x[1] + 130, y2)],
+        ["yksikään arvosana", "ei ole oikea"],
+        x[1] + 140,
+        268,
+        anchor="start",
+        kind="push",
+    )
+    s.arrow(
+        "tarkistusarvioitu-hyvaksytty",
+        [(x[4] + 95, y1 + h), (x[4] + 95, y2)],
+        ["virkailija hyväksyy", "tarkistusarvioinnin"],
+        x[4] + 87,
+        268,
+        anchor="end",
+        kind="kayttaja",
+    )
+    return s
+
+
 if __name__ == "__main__":
     outdir = sys.argv[1]
     for name, fn in (
         ("yki-suoritukset", yki_suoritukset),
+        ("yki-arviointitilat", yki_arviointitilat),
         ("yki-arvioijat", yki_arvioijat),
         ("yki-arvioijahakemus-prosessi", yki_arvioijahakemus_prosessi),
         ("yki-arvioijan-jatkohakemus-prosessi", yki_arvioijan_jatkohakemus_prosessi),
