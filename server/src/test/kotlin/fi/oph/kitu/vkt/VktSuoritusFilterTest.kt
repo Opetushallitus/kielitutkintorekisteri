@@ -3,6 +3,7 @@ package fi.oph.kitu.vkt
 import fi.oph.kitu.koodisto.Koodisto
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -60,6 +61,37 @@ class VktSuoritusFilterTest {
         assertTrue(
             where.startsWith("WHERE ((osakokeet.arviointeja > 0) OR (vkt_osakoe.arvosana IS NULL"),
             "Got: $where",
+        )
+    }
+
+    @Test
+    fun `nakyma on rajattu kun rajaus tai haku on kaytossa`() {
+        assertFalse(VktSuoritusFilter().onRajattu())
+        assertFalse(VktSuoritusFilter(search = "").onRajattu())
+        assertTrue(VktSuoritusFilter(search = "fiona").onRajattu())
+        assertTrue(VktSuoritusFilter(merkittyPoistettavaksi = false).onRajattu())
+        assertTrue(VktSuoritusFilter.HYVAN_JA_TYYDYTTAVAN_TASON_SUORITUKSET.onRajattu())
+    }
+
+    @Test
+    fun `esivalinnan oma rajaus ei ole rajaus ja poisto palaa siihen`() {
+        val esivalittu = VktEsivalinta.ErinomaisenIlmoittautuneet.rajaus()
+
+        assertFalse(esivalittu.onRajattu())
+        assertTrue(esivalittu.copy(search = "fiona").onRajattu())
+        assertTrue(esivalittu.copy(arvioitu = emptyList()).onRajattu())
+        assertEquals(
+            mapOf(
+                "taitotaso" to "Erinomainen",
+                "arvioitu" to "ArviointejaPuuttuu",
+                "esivalinta" to "ErinomaisenIlmoittautuneet",
+            ),
+            esivalittu
+                .copy(
+                    search = "fiona",
+                    tutkintokieli = listOf(Koodisto.Tutkintokieli.FIN),
+                ).ilmanRajauksia()
+                .toMap(),
         )
     }
 }

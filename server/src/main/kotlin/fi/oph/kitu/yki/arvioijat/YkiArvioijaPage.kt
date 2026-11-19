@@ -15,6 +15,7 @@ import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.testId
@@ -51,6 +52,7 @@ object YkiArvioijaPage {
                 numberOfItems = pagination.numberOfItems,
                 csvHref = Links.Yki.arvioijatCsv() + httpParams(params.toMap()),
                 filterDescriptions = params.filterDescriptions(),
+                resetHref = rajaustenPoistoHref(params.onRajattu(), params.ilmanRajauksia().toMap()),
                 extraActions = {
                     if (CurrentUser.hasAuthority(Authority.YKI_ARVIOIJAREKISTERI)) {
                         li {

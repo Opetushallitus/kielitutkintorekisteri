@@ -10,6 +10,7 @@ import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.i18n.LocalizedString
@@ -60,6 +61,7 @@ object VktUusintaoikeudetPage {
                 numberOfItems = raportti.rivit.size,
                 csvHref = Links.Vkt.uusintaoikeudetCsv() + httpParams(params.toMap()),
                 filterDescriptions = params.filterDescriptions(),
+                resetHref = rajaustenPoistoHref(params.onRajattu(raportti.tanaan), params.ilmanRajauksia().toMap()),
             ) { rajausDialogi(params, raportti.tarkastelupaiva) }
 
             card(overflowAuto = true, compact = true) {

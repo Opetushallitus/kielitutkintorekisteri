@@ -16,6 +16,7 @@ import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.toggleFilter
 import fi.oph.kitu.html.testId
@@ -88,6 +89,8 @@ object YkiSuorituksetPage {
                                 }
                             }
                         },
+                        resetHref =
+                            rajaustenPoistoHref(filterParams.onRajattu(), filterParams.ilmanRajauksia().toMap()),
                     ) { ykiSuoritusFilterButton(filterParams) }
                     filterDescriptionList(filterParams.filterDescriptions())
                 }

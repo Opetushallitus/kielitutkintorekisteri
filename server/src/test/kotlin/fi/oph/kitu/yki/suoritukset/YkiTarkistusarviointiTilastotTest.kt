@@ -6,6 +6,8 @@ import fi.oph.kitu.yki.Tutkintotaso
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import fi.oph.kitu.yki.suoritukset.YkiTarkistusarviointiTilastoKohde as Kohde
 
 class YkiTarkistusarviointiTilastotTest {
@@ -177,6 +179,23 @@ class YkiTarkistusarviointiTilastotTest {
         assertEquals(
             Tarkistusarvioinnintila.entries.map { it.arviointitila },
             YkiTarkistusarviointiTilastoValinnat().tilat(),
+        )
+    }
+
+    @Test
+    fun `tarkistusarviointien nakyma on rajattu kun rajaus tai haku on kaytossa`() {
+        assertFalse(YkiTarkistusarvioinnitParams(page = 2, limit = 10).onRajattu())
+        assertTrue(YkiTarkistusarvioinnitParams(search = "oph-1").onRajattu())
+        assertTrue(YkiTarkistusarvioinnitParams(arvosanaMuuttui = false).onRajattu())
+        assertEquals(
+            YkiTarkistusarvioinnitParams(limit = 10, sortColumn = YkiTarkistusarviointiColumn.Sukunimi),
+            YkiTarkistusarvioinnitParams(
+                search = "oph-1",
+                osa = listOf(TutkinnonOsa.PU),
+                limit = 10,
+                page = 2,
+                sortColumn = YkiTarkistusarviointiColumn.Sukunimi,
+            ).ilmanRajauksia(),
         )
     }
 }

@@ -31,6 +31,7 @@ data class VktSuoritusFilter(
     val arvioitu: List<VktArvioinninTila> = emptyList(),
     val merkittyPoistettavaksi: Boolean? = null,
     override val piilotaHenkilotiedot: Boolean = false,
+    val esivalinta: VktEsivalinta? = null,
 ) : SqlFilter(),
     ListViewParams {
     fun toMap(): Map<String, String?> =
@@ -43,7 +44,12 @@ data class VktSuoritusFilter(
             "arvioitu" to arvioitu.toUrlParam(),
             "merkittyPoistettavaksi" to merkittyPoistettavaksi?.toString(),
             "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
+            "esivalinta" to esivalinta?.name,
         ).filterValues { it != null }
+
+    fun ilmanRajauksia() = esivalinta?.rajaus() ?: VktSuoritusFilter()
+
+    fun onRajattu() = copy(search = search?.trim()?.ifEmpty { null }) != ilmanRajauksia()
 
     fun filterDescriptions(): List<String> =
         listOfNotNull(
@@ -130,6 +136,20 @@ data class VktSuoritusFilter(
                 taitotaso = listOf(Koodisto.VktTaitotaso.HyväJaTyydyttävä),
             )
     }
+}
+
+enum class VktEsivalinta {
+    ErinomaisenIlmoittautuneet,
+    ErinomaisenArvioidut,
+    HyvaJaTyydyttava,
+    ;
+
+    fun rajaus(): VktSuoritusFilter =
+        when (this) {
+            ErinomaisenIlmoittautuneet -> VktSuoritusFilter.ERINOMAISEN_TASON_ILMOITTAUTUNEET
+            ErinomaisenArvioidut -> VktSuoritusFilter.ERINOMAISEN_TASON_SUORITUKSET
+            HyvaJaTyydyttava -> VktSuoritusFilter.HYVAN_JA_TYYDYTTAVAN_TASON_SUORITUKSET
+        }.copy(esivalinta = this)
 }
 
 data class VktSuoritusOrder(

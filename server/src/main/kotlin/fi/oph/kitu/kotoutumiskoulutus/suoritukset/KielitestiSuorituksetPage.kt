@@ -16,6 +16,7 @@ import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.enumRadioFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.i18n.UiText
@@ -64,6 +65,8 @@ object KielitestiSuorituksetPage {
                         countLabel = UiText.Koto.suorituksiaYhteensa,
                         numberOfItems = numberOfSuoritukset,
                         csvHref = Links.Kielitesti.suorituksetCsv() + httpParams(filterParams.toMap()),
+                        resetHref =
+                            rajaustenPoistoHref(filterParams.onRajattu(), filterParams.ilmanRajauksia().toMap()),
                     ) { kielitestiSuoritusFilterButton(filterParams) }
                     filterDescriptionList(filterParams.filterDescriptions())
                 }

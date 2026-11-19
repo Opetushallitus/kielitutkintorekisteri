@@ -921,6 +921,7 @@ object UiText {
         val tiedonRajaus: LocalizedString get() = tr("filter.tiedonRajaus")
         val rajaa: LocalizedString get() = tr("filter.rajaa")
         val peruuta: LocalizedString get() = tr("filter.peruuta")
+        val poistaRajaukset: LocalizedString get() = tr("filter.poistaRajaukset")
         val kaikki: LocalizedString get() = tr("filter.kaikki")
         val kylla: LocalizedString get() = tr("filter.kylla")
         val ei: LocalizedString get() = tr("filter.ei")

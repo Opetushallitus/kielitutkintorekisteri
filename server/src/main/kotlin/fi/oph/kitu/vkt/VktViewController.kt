@@ -80,15 +80,15 @@ class VktViewController(
 
     @GetMapping("/erinomainen/ilmoittautuneet", produces = ["text/html"])
     fun erinomaisenTaitotasonIlmoittautuneetView(): RedirectView =
-        redirectToSuorituksetView(VktSuoritusFilter.ERINOMAISEN_TASON_ILMOITTAUTUNEET)
+        redirectToSuorituksetView(VktEsivalinta.ErinomaisenIlmoittautuneet.rajaus())
 
     @GetMapping("/erinomainen/arvioidut", produces = ["text/html"])
     fun erinomaisenTaitotasonArvioidutSuorituksetView(): RedirectView =
-        redirectToSuorituksetView(VktSuoritusFilter.ERINOMAISEN_TASON_SUORITUKSET)
+        redirectToSuorituksetView(VktEsivalinta.ErinomaisenArvioidut.rajaus())
 
     @GetMapping("/hyvajatyydyttava/suoritukset", produces = ["text/html"])
     fun hyvanJaTyydyttavanTaitotasonSuorituksetView(): RedirectView =
-        redirectToSuorituksetView(VktSuoritusFilter.HYVAN_JA_TYYDYTTAVAN_TASON_SUORITUKSET)
+        redirectToSuorituksetView(VktEsivalinta.HyvaJaTyydyttava.rajaus())
 
     @GetMapping("/uusintaoikeudet", produces = ["text/html"])
     fun uusintaoikeudetView(

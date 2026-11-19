@@ -25,7 +25,8 @@ class VktUusintaoikeusService(
 
     @WithSpan("VktUusintaoikeusService.findUusintaanOikeutetut")
     fun findUusintaanOikeutetut(params: VktUusintaoikeusParams): VktUusintaoikeusraportti {
-        val tarkastelupaiva = params.tarkastelupaiva ?: timeService.today()
+        val tanaan = timeService.today()
+        val tarkastelupaiva = params.tarkastelupaiva ?: tanaan
         val translations =
             localizationService
                 .translationBuilder()
@@ -43,6 +44,7 @@ class VktUusintaoikeusService(
         return VktUusintaoikeusraportti(
             tarkastelupaiva = tarkastelupaiva,
             rivit = VktUusintaoikeusColumn.jarjesta(rivit, params.sortColumn, params.sortDirection),
+            tanaan = tanaan,
         )
     }
 

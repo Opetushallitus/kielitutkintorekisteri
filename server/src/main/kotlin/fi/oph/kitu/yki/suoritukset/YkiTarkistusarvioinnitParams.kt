@@ -126,6 +126,11 @@ data class YkiTarkistusarvioinnitParams(
             "solki_id",
         ).joinToString(", ")
 
+    fun ilmanRajauksia() =
+        YkiTarkistusarvioinnitParams(limit = limit, sortColumn = sortColumn, sortDirection = sortDirection)
+
+    fun onRajattu() = copy(page = 1, search = search.trim()) != ilmanRajauksia()
+
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             search.trim().takeIf { it.isNotEmpty() }?.let { "${UiText.Yki.hakusanaTarkistusarviointi}: $it" },
