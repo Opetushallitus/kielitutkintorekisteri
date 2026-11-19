@@ -207,11 +207,11 @@ class VktViewController(
         @PathVariable oppijanumero: String,
         @PathVariable kieli: Koodisto.Tutkintokieli,
         @PathVariable taso: Koodisto.VktTaitotaso,
-    ): ResponseEntity<String> =
+    ): ResponseEntity<ByteArray> =
         vktSuoritukset
             .getOppijanSuoritukset(CustomVktSuoritusRepository.Tutkintoryhma(oppijanumero, kieli, taso))
             ?.let { koskiVktRequestMapper.vktSuoritusToKoskiRequest(it).getOrNull() }
-            ?.let { ResponseEntity.ok(koskiObjectMapper.writeValueAsString(it)) }
+            ?.let { ResponseEntity.ok(koskiObjectMapper.writeValueAsBytes(it)) }
             ?: ResponseEntity.notFound().build()
 
     private fun getMessages(): List<ViewMessageData> =

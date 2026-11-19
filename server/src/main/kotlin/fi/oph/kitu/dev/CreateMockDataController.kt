@@ -16,6 +16,7 @@ import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
 import jakarta.annotation.PostConstruct
 import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.WebApplicationContext
 
 @RestController
-@RequestMapping("/dev")
+@RequestMapping("/dev", produces = [MediaType.APPLICATION_JSON_VALUE])
 @Profile("local", "e2e")
 class CreateMockDataController(
     private val environment: Environment,
