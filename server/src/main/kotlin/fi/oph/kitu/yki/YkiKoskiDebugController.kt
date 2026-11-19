@@ -26,11 +26,11 @@ class YkiKoskiDebugController(
     @GetMapping("/koski-request/{suoritusId}", produces = ["application/json"])
     fun koskiRequestJson(
         @PathVariable suoritusId: Int,
-    ): ResponseEntity<String> =
+    ): ResponseEntity<ByteArray> =
         ykiService
             .findLatestBySolkiIds(listOf(suoritusId))
             .firstOrNull()
-            ?.let { koskiYkiRequestMapper.ykiSuoritusToKoskiRequest(it) }
-            ?.let { ResponseEntity.ok(koskiObjectMapper.writeValueAsString(it)) }
+            ?.let { koskiYkiRequestMapper.ykiSuoritusToKoskiRequest(it).fold(ifLeft = { it }, ifRight = { it }) }
+            ?.let { ResponseEntity.ok(koskiObjectMapper.writeValueAsBytes(it)) }
             ?: ResponseEntity.notFound().build()
 }
