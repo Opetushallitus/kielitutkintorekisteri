@@ -1,12 +1,15 @@
 package fi.oph.kitu.yki
 
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusAikaryhmittely
+import fi.oph.kitu.yki.suoritukset.YkiSuoritusColumn
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusTilastoColumn
 import org.junit.jupiter.api.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -134,5 +137,50 @@ class YkiSuorituksetParamsTest {
             "${UiText.Yki.Sarake.tutkintotaso}: ${UiText.Yki.Taso.perustaso}, ${UiText.Yki.Taso.ylinTaso}",
         )
         assertContains(params.csvFileName(), "_FIN-SWE_PT-YT_")
+    }
+
+    @Test
+    fun `oletusnäkymä ei ole rajattu vaikka järjestys sivu ja ryhmittely poikkeavat oletuksesta`() {
+        assertFalse(YkiSuorituksetParams().onRajattu())
+        assertFalse(
+            YkiSuorituksetParams(
+                page = 3,
+                sortColumn = YkiSuoritusColumn.Sukunimi,
+                sortDirection = SortDirection.ASC,
+                recallSearch = true,
+                aikaryhmittely = YkiSuoritusAikaryhmittely.Tutkintovuosi,
+                ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintokieli),
+            ).onRajattu(),
+        )
+    }
+
+    @Test
+    fun `rajaus haku ja näyttövalinta tekevät näkymästä rajatun`() {
+        assertTrue(YkiSuorituksetParams(tutkintokieli = listOf(Tutkintokieli.FIN)).onRajattu())
+        assertTrue(YkiSuorituksetParams(search = "virtanen").onRajattu())
+        assertTrue(YkiSuorituksetParams(versionHistory = true).onRajattu())
+        assertTrue(YkiSuorituksetParams(piilotaHenkilotiedot = true).onRajattu())
+        assertFalse(YkiSuorituksetParams(search = "  ").onRajattu())
+    }
+
+    @Test
+    fun `rajausten poisto säilyttää järjestyksen ja ryhmittelyn mutta ei hakua eikä rajauksia`() {
+        val params =
+            YkiSuorituksetParams(
+                page = 3,
+                search = "virtanen",
+                tutkintokieli = listOf(Tutkintokieli.FIN),
+                sortColumn = YkiSuoritusColumn.Sukunimi,
+                sortDirection = SortDirection.ASC,
+                aikaryhmittely = YkiSuoritusAikaryhmittely.Tutkintovuosi,
+                ryhmittely = listOf(YkiSuoritusTilastoColumn.Tutkintokieli),
+            )
+
+        assertEquals(
+            "?sortColumn=${YkiSuoritusColumn.Sukunimi.urlParam}&sortDirection=ASC" +
+                "&aikaryhmittely=Tutkintovuosi&ryhmittely=${YkiSuoritusTilastoColumn.Tutkintokieli.urlParam}",
+            rajaustenPoistoHref(params.onRajattu(), params.ilmanRajauksia().toMap()),
+        )
+        assertNull(rajaustenPoistoHref(false, params.ilmanRajauksia().toMap()))
     }
 }

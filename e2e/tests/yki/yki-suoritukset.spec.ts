@@ -293,6 +293,33 @@ describe('"YKI Suoritukset" -page', () => {
     await expect(suoritukset).toHaveCount(1)
   })
 
+  test("reset button clears the search and the filters", async ({
+    indexPage,
+    ykiSuorituksetPage,
+  }) => {
+    await indexPage.open()
+    await ykiSuorituksetPage.openFromNavigation()
+
+    const reset = ykiSuorituksetPage
+      .getPageContent()
+      .getByTestId("poista-rajaukset")
+    await expect(reset).toBeHidden()
+
+    await ykiSuorituksetPage.setSearchTerm("ranja")
+    await ykiSuorituksetPage.filterSuoritukset()
+    await expect(reset).toBeVisible()
+
+    const dialog = await ykiSuorituksetPage.openFilterDialog()
+    await dialog.setVersionHistory(true)
+    await dialog.submit()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(2)
+
+    await reset.click()
+
+    await expect(reset).toBeHidden()
+    await expect(ykiSuorituksetPage.getSuoritusRow()).toHaveCount(3)
+  })
+
   test("yki suoritukset search with version history", async ({
     indexPage,
     ykiSuorituksetPage,

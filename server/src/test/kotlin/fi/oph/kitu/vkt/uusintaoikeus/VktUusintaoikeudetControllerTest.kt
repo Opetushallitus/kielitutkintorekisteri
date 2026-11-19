@@ -323,4 +323,16 @@ class VktUusintaoikeudetControllerTest(
         private const val YHTEYSTIEDOLLINEN = "1.2.246.562.24.77777777777"
         private val TARKASTELUHETKI = Instant.parse("2026-10-21T09:00:00Z")
     }
+
+    @Test
+    fun `rajausten poistopainike nakyy vain rajatussa nakymassa`() {
+        val painike = """data-testid="poista-rajaukset""""
+
+        assertFalse(getHtml("/vkt/uusintaoikeudet").contains(painike))
+        assertFalse(getHtml("/vkt/uusintaoikeudet?tarkastelupaiva=2026-10-21&sortDirection=DESC").contains(painike))
+        assertContains(
+            getHtml("/vkt/uusintaoikeudet?tarkastelupaiva=2028-03-15&tutkintokieli=FIN&sortDirection=DESC"),
+            """<a href="?sortColumn=${VktUusintaoikeusColumn.Sukunimi.urlParam}&amp;sortDirection=DESC" """,
+        )
+    }
 }

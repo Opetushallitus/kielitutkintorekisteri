@@ -1,6 +1,7 @@
 package fi.oph.kitu.html
 
 import fi.oph.kitu.i18n.LocalizedString
+import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
 import kotlinx.html.FlowContent
 import kotlinx.html.UL
@@ -37,6 +38,7 @@ fun FlowContent.listViewActions(
     numberOfItems: Number,
     csvHref: String?,
     extraActions: (UL.() -> Unit)? = null,
+    resetHref: String? = null,
     filterButton: FlowContent.() -> Unit,
 ) {
     nav {
@@ -51,6 +53,15 @@ fun FlowContent.listViewActions(
             }
             csvHref?.let { li { csvDownloadButton(it) } }
             li { filterButton() }
+            resetHref?.let {
+                li {
+                    a(href = it, classes = "secondary outline") {
+                        attributes["role"] = "button"
+                        testId("poista-rajaukset")
+                        +UiText.Filter.poistaRajaukset
+                    }
+                }
+            }
             extraActions?.invoke(this)
         }
     }
@@ -66,11 +77,12 @@ fun FlowContent.listViewHeader(
     csvHref: String?,
     filterDescriptions: List<String>,
     extraActions: (UL.() -> Unit)? = null,
+    resetHref: String? = null,
     filterButton: FlowContent.() -> Unit,
 ) {
     article {
         header {
-            listViewActions(countLabel, numberOfItems, csvHref, extraActions, filterButton)
+            listViewActions(countLabel, numberOfItems, csvHref, extraActions, resetHref, filterButton)
         }
         filterDescriptionList(filterDescriptions)
     }

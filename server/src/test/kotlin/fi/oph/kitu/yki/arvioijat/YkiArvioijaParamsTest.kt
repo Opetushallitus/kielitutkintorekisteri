@@ -1,10 +1,13 @@
 package fi.oph.kitu.yki.arvioijat
 
 import fi.oph.kitu.i18n.UiText
+import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class YkiArvioijaParamsTest {
     @Test
@@ -23,6 +26,18 @@ class YkiArvioijaParamsTest {
                 "${UiText.Yki.Sarake.taso}: ${UiText.Yki.Taso.perustaso}",
             ),
             params.filterDescriptions(),
+        )
+    }
+
+    @Test
+    fun `näkymä on rajattu kun rajaus tai haku on käytössä mutta ei pelkästä järjestyksestä`() {
+        assertFalse(YkiArvioijaParams(page = 2, sortDirection = SortDirection.DESC).onRajattu())
+        assertTrue(YkiArvioijaParams(search = "kivinen").onRajattu())
+        assertTrue(YkiArvioijaParams(vainSolkiVirheet = true).onRajattu())
+        assertEquals(
+            YkiArvioijaParams(sortDirection = SortDirection.DESC),
+            YkiArvioijaParams(search = "kivinen", kieli = listOf(Tutkintokieli.FIN), sortDirection = SortDirection.DESC)
+                .ilmanRajauksia(),
         )
     }
 }

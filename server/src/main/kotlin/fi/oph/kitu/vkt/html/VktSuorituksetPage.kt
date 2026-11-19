@@ -13,6 +13,7 @@ import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
 import fi.oph.kitu.html.testId
@@ -21,6 +22,7 @@ import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.unaryPlus
+import fi.oph.kitu.jdbc.toMap
 import fi.oph.kitu.koodisto.Koodisto
 import fi.oph.kitu.vkt.VktSuoritusColumn
 import fi.oph.kitu.vkt.VktSuoritusFilter
@@ -62,6 +64,7 @@ object VktSuorituksetPage {
                 numberOfItems = pagination.numberOfItems,
                 csvHref = Links.Vkt.suorituksetCsv() + httpParams(filter.toMap()),
                 filterDescriptions = filter.filterDescriptions(),
+                resetHref = rajaustenPoistoHref(filter.onRajattu(), order.toMap() + filter.ilmanRajauksia().toMap()),
             ) { vktSuoritusFilterButton(filter) }
             vktKaikkiSuorituksetTable(suoritukset, filter, order, pagination, translations)
         }
@@ -98,6 +101,7 @@ fun FlowContent.vktKaikkiSuorituksetTable(
 fun FlowContent.vktSuoritusFilterButton(filter: VktSuoritusFilter) {
     tableFilterDialog("") {
         filter.search?.let { hiddenValue("search", filter.search) }
+        filter.esivalinta?.let { hiddenValue("esivalinta", it.name) }
         fieldSet(classes = "grid") {
             dateFilter("alkupaiva", UiText.Vkt.alkaen.toString(), filter.alkupaiva)
             dateFilter("loppupaiva", UiText.Vkt.paattyen.toString(), filter.loppupaiva)

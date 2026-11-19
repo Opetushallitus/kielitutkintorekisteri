@@ -472,6 +472,68 @@ describe("Valtionkielitutkinnon suoritukset page", () => {
       ).toBeVisible()
     })
 
+    test("Reset button clears filters and search but keeps the sorting order", async ({
+      page,
+      vktSuorituksetPage,
+    }) => {
+      await vktSuorituksetPage.login()
+      await vktSuorituksetPage.openKaikkiSuoritukset()
+
+      const reset = vktSuorituksetPage
+        .getPageContent()
+        .getByTestId("poista-rajaukset")
+      await expect(reset).toBeHidden()
+      const countBefore = await vktSuorituksetPage.getNumberOfRows()
+
+      const dialog = await vktSuorituksetPage.openFilterDialog()
+      await dialog.setTutkintokieli(["FIN"])
+      await dialog.setTaitotaso(["Erinomainen"])
+      await dialog.submit()
+      await vktSuorituksetPage.search("eriksson")
+      await vktSuorituksetPage.table.head
+        .getByTestId("Etunimet")
+        .getByRole("link")
+        .click()
+
+      await expect(reset).toHaveText("Poista rajaukset")
+      await reset.click()
+
+      await expect(reset).toBeHidden()
+      await expect(vktSuorituksetPage.searchField).toHaveValue("")
+      await expect(
+        vktSuorituksetPage.getPageContent().getByText("Tutkintokieli: Suomi"),
+      ).toBeHidden()
+      expect(await vktSuorituksetPage.getNumberOfRows()).toBe(countBefore)
+      expect(page.url()).toContain("sortColumn=Etunimet")
+    })
+
+    test("Reset button returns a preset view to its preset filters", async ({
+      page,
+      vktSuorituksetPage,
+    }) => {
+      await vktSuorituksetPage.login()
+      await vktSuorituksetPage.openErinomainenIlmoittautuneet()
+
+      const content = vktSuorituksetPage.getPageContent()
+      const reset = content.getByTestId("poista-rajaukset")
+      await expect(reset).toBeHidden()
+      await expect(content.getByText("Taitotaso: Erinomainen")).toBeVisible()
+      const countBefore = await vktSuorituksetPage.getNumberOfRows()
+
+      const dialog = await vktSuorituksetPage.openFilterDialog()
+      await dialog.setTutkintokieli(["FIN"])
+      await dialog.submit()
+      await expect(content.getByText("Tutkintokieli: Suomi")).toBeVisible()
+
+      await reset.click()
+
+      await expect(reset).toBeHidden()
+      await expect(content.getByText("Tutkintokieli: Suomi")).toBeHidden()
+      await expect(content.getByText("Taitotaso: Erinomainen")).toBeVisible()
+      expect(await vktSuorituksetPage.getNumberOfRows()).toBe(countBefore)
+      expect(page.url()).toContain("esivalinta=ErinomaisenIlmoittautuneet")
+    })
+
     test("Filter settings are preserved when user changes pagination page", async ({
       vktSuorituksetPage,
     }) => {

@@ -172,6 +172,19 @@ data class YkiSuorituksetParams(
             tuontiloppu?.let { "tuonti_$it" },
         )
 
+    fun ilmanRajauksia() =
+        YkiSuorituksetParams(
+            limit = limit,
+            sortColumn = sortColumn,
+            sortDirection = sortDirection,
+            tilastoSortColumn = tilastoSortColumn,
+            tilastoSortDirection = tilastoSortDirection,
+            aikaryhmittely = aikaryhmittely,
+            ryhmittely = ryhmittely,
+        )
+
+    fun onRajattu() = copy(page = 1, recallSearch = false, search = search.trim()) != ilmanRajauksia()
+
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             aikarajausDescription(tutkintoalku, tutkintoloppu),

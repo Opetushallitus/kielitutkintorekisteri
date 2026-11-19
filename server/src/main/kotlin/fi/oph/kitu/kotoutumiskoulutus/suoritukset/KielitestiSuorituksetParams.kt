@@ -64,6 +64,11 @@ data class KielitestiSuorituksetParams(
             suoritusloppu?.toString(),
         )
 
+    fun ilmanRajauksia() =
+        KielitestiSuorituksetParams(limit = limit, sortColumn = sortColumn, sortDirection = sortDirection)
+
+    fun onRajattu() = copy(page = 1, search = search.trim()) != ilmanRajauksia()
+
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             aikarajausDescription(suoritusalku, suoritusloppu),

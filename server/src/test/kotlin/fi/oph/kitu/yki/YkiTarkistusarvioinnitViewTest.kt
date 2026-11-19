@@ -52,6 +52,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import ch.qos.logback.classic.Logger as LogbackLogger
 
@@ -184,7 +185,7 @@ class YkiTarkistusarvioinnitViewTest(
     private fun MvcResult.csvRivit(): List<String> =
         response
             .getContentAsString(Charsets.UTF_8)
-            .removePrefix("﻿")
+            .removePrefix("\uFEFF")
             .lines()
             .filter { it.isNotBlank() }
 
@@ -1101,5 +1102,21 @@ class YkiTarkistusarvioinnitViewTest(
             assertContains(location, "sortDirection=ASC")
             assertFalse(location.contains("hyvaksyttyPvm"))
         }
+    }
+
+    @Test
+    fun `rajausten poistopainike nakyy vain rajatussa nakymassa ja sailyttaa jarjestyksen`() {
+        tallenna("Virtanen")
+
+        fun painike(url: String) = Jsoup.parse(getHtml(url)).selectFirst("a[data-testid=poista-rajaukset]")
+
+        assertNull(painike("/yki/tarkistusarvioinnit?sortColumn=sukunimi&sortDirection=ASC&page=1"))
+        assertEquals(
+            "?sortColumn=sukunimi&sortDirection=ASC",
+            painike("/yki/tarkistusarvioinnit?search=virt&tutkintokieli=FIN&sortColumn=sukunimi&sortDirection=ASC")
+                ?.attr("href"),
+        )
+        assertNotNull(painike("/yki/tarkistusarvioinnit/tilastot?tila=Hyvaksytty"))
+        assertNull(painike("/yki/tarkistusarvioinnit/tilastot?aikaryhmittely=Tutkintovuosi"))
     }
 }

@@ -44,3 +44,13 @@ fun <E : Enum<E>> valintaDescription(
             transform = ::enumValueName,
         )
     }
+
+fun rajaustenPoistoHref(
+    rajattu: Boolean,
+    sailytettavat: Map<String, String?>,
+): String? =
+    if (rajattu) {
+        httpParams((sailytettavat - "page" - "pageNumber").filterValues { !it.isNullOrEmpty() })
+    } else {
+        null
+    }

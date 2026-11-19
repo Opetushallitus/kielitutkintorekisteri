@@ -10,6 +10,7 @@ import fi.oph.kitu.html.table.DisplayTableColumn
 import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.varhaisinPaiva
 import fi.oph.kitu.html.viewMessage
@@ -77,6 +78,8 @@ object YkiSuoritusTilastotPage {
                                 }
                             }
                         },
+                        resetHref =
+                            rajaustenPoistoHref(filterParams.onRajattu(), filterParams.ilmanRajauksia().toMap()),
                     ) {
                         ykiSuoritusFilterButton(
                             filterParams,

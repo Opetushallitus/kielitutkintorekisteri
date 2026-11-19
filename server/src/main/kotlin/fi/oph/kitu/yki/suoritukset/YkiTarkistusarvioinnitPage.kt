@@ -15,6 +15,7 @@ import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
 import fi.oph.kitu.html.testId
@@ -139,6 +140,7 @@ object YkiTarkistusarvioinnitPage {
             numberOfItems = pagination.numberOfItems,
             csvHref = csvHref,
             filterDescriptions = params.filterDescriptions(),
+            resetHref = rajaustenPoistoHref(params.onRajattu(), params.ilmanRajauksia().toMap()),
             extraActions = {
                 li {
                     a(href = tilastotHref) {

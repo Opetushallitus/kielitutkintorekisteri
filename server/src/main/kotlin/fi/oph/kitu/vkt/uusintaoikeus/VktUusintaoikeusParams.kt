@@ -31,6 +31,11 @@ data class VktUusintaoikeusParams(
             "sortDirection" to sortDirection.name,
         ).filterValues { it != null }
 
+    fun ilmanRajauksia() = VktUusintaoikeusParams(sortColumn = sortColumn, sortDirection = sortDirection)
+
+    fun onRajattu(tanaan: LocalDate) =
+        copy(tarkastelupaiva = tarkastelupaiva.takeIf { it != tanaan }) != ilmanRajauksia()
+
     fun filterDescriptions(): List<String> =
         listOfNotNull(
             valintaDescription(UiText.Vkt.Sarake.tutkintokieli, tutkintokieli),

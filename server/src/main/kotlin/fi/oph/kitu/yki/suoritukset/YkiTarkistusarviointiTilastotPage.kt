@@ -11,6 +11,7 @@ import fi.oph.kitu.html.table.displayTableBody
 import fi.oph.kitu.html.table.displayTableHeader
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.viewMessage
 import fi.oph.kitu.i18n.UiText
@@ -65,6 +66,11 @@ object YkiTarkistusarviointiTilastotPage {
                                 }
                             }
                         },
+                        resetHref =
+                            rajaustenPoistoHref(
+                                params.onRajattu() || valinnat.tila.isNotEmpty(),
+                                params.ilmanRajauksia().toCsvMap() + (valinnat.toMap() - "tila"),
+                            ),
                     ) {
                         tarkistusarviointiFilterButton(
                             params = params,

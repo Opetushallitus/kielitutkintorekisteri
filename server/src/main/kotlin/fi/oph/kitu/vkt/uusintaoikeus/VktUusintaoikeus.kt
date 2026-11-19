@@ -42,6 +42,7 @@ data class VktUusintaoikeus(
 data class VktUusintaoikeusraportti(
     val tarkastelupaiva: LocalDate,
     val rivit: List<VktUusintaoikeus>,
+    val tanaan: LocalDate = tarkastelupaiva,
 ) {
     val yhteenveto: VktUusintaoikeusyhteenveto get() = VktUusintaoikeusyhteenveto.laske(rivit)
 }
