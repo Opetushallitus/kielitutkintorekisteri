@@ -30,6 +30,12 @@ export class YkiTarkistusarvioinnitFilterDialog {
     await this.modal.getByLabel("Tulos hyväksytty päättyen").fill(loppu)
   }
 
+  async hideHenkilotiedot(state: boolean) {
+    await this.modal
+      .getByRole("checkbox", { name: "Piilota henkilötiedot" })
+      .setChecked(state)
+  }
+
   async submit() {
     const loaded = this.modal.page().waitForEvent("load")
     await this.modal.getByRole("button", { name: "Rajaa" }).click()

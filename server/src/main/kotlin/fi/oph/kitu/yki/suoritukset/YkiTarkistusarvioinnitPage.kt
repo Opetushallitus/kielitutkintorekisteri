@@ -15,6 +15,7 @@ import fi.oph.kitu.html.table.dateFilter
 import fi.oph.kitu.html.table.displayTable
 import fi.oph.kitu.html.table.enumFilter
 import fi.oph.kitu.html.table.httpParams
+import fi.oph.kitu.html.table.piilotaHenkilotiedotFilter
 import fi.oph.kitu.html.table.rajaustenPoistoHref
 import fi.oph.kitu.html.table.tableFilterDialog
 import fi.oph.kitu.html.table.trueFalseOrAllFilter
@@ -112,7 +113,9 @@ object YkiTarkistusarvioinnitPage {
     private fun tilastotHref(
         params: YkiTarkistusarvioinnitParams,
         tila: Tarkistusarvioinnintila,
-    ): String = Links.Yki.tarkistusarviointiTilastot() + httpParams(params.toCsvMap() + ("tila" to tila.name))
+    ): String =
+        Links.Yki.tarkistusarviointiTilastot() +
+            httpParams(params.toCsvMap() - "piilotaHenkilotiedot" + ("tila" to tila.name))
 
     private fun FlowContent.ykiTarkistusarviointiTable(
         title: String,
@@ -149,7 +152,7 @@ object YkiTarkistusarvioinnitPage {
                     }
                 }
             },
-        ) { tarkistusarviointiFilterButton(params, naytaHyvaksymispaiva) }
+        ) { tarkistusarviointiFilterButton(params, naytaHyvaksymispaiva, naytaHenkilotietojenPiilotus = true) }
 
         if (suoritukset.isNotEmpty()) {
             formPost(action = "") {
@@ -175,7 +178,7 @@ object YkiTarkistusarvioinnitPage {
                     displayTable(
                         rows = suoritukset,
                         columns =
-                            YkiTarkistusarviointiColumn.listaSarakkeet(naytaHyvaksymispaiva),
+                            YkiTarkistusarviointiColumn.listaSarakkeet(naytaHyvaksymispaiva, params.excludeTags()),
                         sortedBy = params.sortColumn,
                         sortDirection = params.sortDirection,
                         urlParams = params.toMap(),
@@ -196,6 +199,7 @@ internal fun FlowContent.tarkistusarviointiFilterButton(
     params: YkiTarkistusarvioinnitParams,
     naytaHyvaksymispaiva: Boolean,
     sailytettavatParametrit: Map<String, String?> = emptyMap(),
+    naytaHenkilotietojenPiilotus: Boolean = false,
     lisakentat: FlowContent.() -> Unit = {},
 ) {
     tableFilterDialog("") {
@@ -252,6 +256,11 @@ internal fun FlowContent.tarkistusarviointiFilterButton(
                 UiText.Yki.arvosanaMuuttui.toString(),
                 params.arvosanaMuuttui,
             )
+        }
+        if (naytaHenkilotietojenPiilotus) {
+            fieldSet {
+                piilotaHenkilotiedotFilter(params.piilotaHenkilotiedot)
+            }
         }
     }
 }

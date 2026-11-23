@@ -23,7 +23,7 @@ enum class YkiTarkistusarviointiColumn(
     override val getValue: (YkiSuoritusEntity) -> String,
     override val renderHtml: (FlowContent.(YkiSuoritusEntity) -> Unit)? = null,
 ) : RenderableDisplayTableEnum<YkiSuoritusEntity> {
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
     SuorittajanOid(
         entityName = "suorittajan_oid",
         uiHeaderValue = UiText.Yki.Sarake.oppijanumero,
@@ -32,7 +32,7 @@ enum class YkiTarkistusarviointiColumn(
         renderHtml = { it.suorittajanOID?.let { oid -> copyable(oid.toString()) } },
     ),
 
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
     Sukunimi(
         entityName = "sukunimi",
         uiHeaderValue = UiText.Yki.Sarake.sukunimi,
@@ -40,7 +40,7 @@ enum class YkiTarkistusarviointiColumn(
         getValue = { it.sukunimi },
     ),
 
-    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT)
+    @ColumnTags(ColumnTag.LIST_VIEW, ColumnTag.CSV_EXPORT, ColumnTag.PERSONAL_DATA)
     Etunimet(
         entityName = "etunimet",
         uiHeaderValue = UiText.Yki.Sarake.etunimet,
@@ -153,9 +153,12 @@ enum class YkiTarkistusarviointiColumn(
     ;
 
     companion object {
-        fun listaSarakkeet(naytaHyvaksymispaiva: Boolean): List<DisplayTableColumn<YkiSuoritusEntity>> =
+        fun listaSarakkeet(
+            naytaHyvaksymispaiva: Boolean,
+            excludeTags: Set<ColumnTag> = emptySet(),
+        ): List<DisplayTableColumn<YkiSuoritusEntity>> =
             RenderableDisplayTableEnum
-                .getByTags<YkiTarkistusarviointiColumn, YkiSuoritusEntity>(setOf(ColumnTag.LIST_VIEW))
+                .getByTags<YkiTarkistusarviointiColumn, YkiSuoritusEntity>(setOf(ColumnTag.LIST_VIEW), excludeTags)
                 .filter { naytaHyvaksymispaiva || it != Hyvaksymispaiva }
                 .map { sarake ->
                     DisplayTableColumn(

@@ -4,6 +4,7 @@ import arrow.core.Either
 import fi.oph.kitu.csv.buildCsvFilename
 import fi.oph.kitu.csv.toCsvFilenameSegment
 import fi.oph.kitu.html.Pagination
+import fi.oph.kitu.html.table.ListViewParams
 import fi.oph.kitu.html.table.httpParams
 import fi.oph.kitu.html.table.valintaDescription
 import fi.oph.kitu.i18n.UiText
@@ -16,6 +17,7 @@ import fi.oph.kitu.jdbc.addSearchTerms
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.util.SearchTerms
+import fi.oph.kitu.webmvc.toTrueOrNull
 import fi.oph.kitu.webmvc.toUrlParam
 import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
@@ -53,11 +55,12 @@ data class YkiTarkistusarvioinnitParams(
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     var hyvaksyttyloppu: LocalDate? = null,
     var arvosanaMuuttui: Boolean? = null,
+    override var piilotaHenkilotiedot: Boolean = false,
     var sortColumn: YkiTarkistusarviointiColumn = YkiTarkistusarviointiColumn.Kasittelypaiva,
     var sortDirection: SortDirection = SortDirection.DESC,
     var page: Int = 1,
     var limit: Int = OLETUSSIVUKOKO,
-) {
+) : ListViewParams {
     fun toFilter(): YkiTarkistusarviointiFilter = YkiTarkistusarviointiFilter(this, SearchTerms.from(search))
 
     fun sivukoko(): Int = limit.coerceAtLeast(1)
@@ -87,6 +90,7 @@ data class YkiTarkistusarvioinnitParams(
             "hyvaksyttyalku" to hyvaksyttyalku?.toString(),
             "hyvaksyttyloppu" to hyvaksyttyloppu?.toString(),
             "arvosanaMuuttui" to arvosanaMuuttui?.toString(),
+            "piilotaHenkilotiedot" to piilotaHenkilotiedot.toTrueOrNull(),
             "sortColumn" to sortColumn.urlParam,
             "sortDirection" to sortDirection.name,
             "page" to page.toString(),
@@ -95,7 +99,7 @@ data class YkiTarkistusarvioinnitParams(
 
     fun csvFileName(
         prefix: String,
-        henkilotiedot: Boolean = true,
+        henkilotiedot: Boolean = !piilotaHenkilotiedot,
     ): String =
         buildCsvFilename(
             prefix,
@@ -146,6 +150,7 @@ data class YkiTarkistusarvioinnitParams(
                 false -> UiText.Yki.arvosanaEiMuuttunut.toString()
                 null -> null
             },
+            if (piilotaHenkilotiedot) UiText.Filter.henkilotiedotPiilotettu.toString() else null,
         )
 }
 

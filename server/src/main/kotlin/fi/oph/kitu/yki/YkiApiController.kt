@@ -127,6 +127,7 @@ class YkiApiController(
                     Arviointitila.TARKISTUSARVIOITU,
                     service.extendFilterWithLinkedOidsOrThrow(params.toFilter()),
                 ),
+            excludeTags = params.excludeTags(),
             includeColumn = { it != YkiTarkistusarviointiColumn.Hyvaksymispaiva },
         )
 
@@ -141,6 +142,7 @@ class YkiApiController(
                     Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY,
                     service.extendFilterWithLinkedOidsOrThrow(params.toFilter()),
                 ),
+            excludeTags = params.excludeTags(),
         )
 
     @GetMapping("/tarkistusarvioinnit/tilastot", produces = ["text/csv"])
