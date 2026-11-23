@@ -53,7 +53,7 @@ class YkiArvioijaSolkiClientTest {
         postinumero = "40100",
         postitoimipaikka = "Testila",
         ensimmainenRekisterointipaiva = LocalDate.of(2019, 1, 15),
-        arviointioikeudet = emptyList(),
+        arviointikausi = null,
     )
 
     /** Serialisoitu runko: se on ainoa paikka jossa kentan lankamuoto nakyy. */
@@ -167,15 +167,24 @@ class YkiArvioijaSolkiClientTest {
     fun `runko vastaa Solkin dokumentoimaa kenttajoukkoa`() {
         // Kenttien nimet ja taso ovat koko sopimus: vaara nimi ei nay mistaan muusta kuin
         // Solkin 4xx-vastauksesta, ja vaara taso menee lapi hiljaisesti.
-        val oikeus =
-            SolkiArvioijaRequest.Arviointioikeus(
-                kieli = Tutkintokieli.FIN,
-                tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
-                kaudenAlkupaiva = LocalDate.of(2025, 1, 1),
-                kaudenPaattymispaiva = LocalDate.of(2029, 12, 31),
+        val kausi =
+            SolkiArvioijaRequest.Arviointikausi(
+                alkupaiva = LocalDate.of(2025, 1, 1),
+                paattymispaiva = LocalDate.of(2029, 12, 31),
                 jatkorekisterointi = false,
+                arviointioikeudet =
+                    listOf(
+                        SolkiArvioijaRequest.Arviointioikeus(
+                            kieli = Tutkintokieli.FIN,
+                            tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                        ),
+                        SolkiArvioijaRequest.Arviointioikeus(
+                            kieli = Tutkintokieli.SWE,
+                            tasot = listOf(Tutkintotaso.YT),
+                        ),
+                    ),
             )
-        val runko = defaultObjectMapper.readTree(runko(request().copy(arviointioikeudet = listOf(oikeus))))
+        val runko = defaultObjectMapper.readTree(runko(request().copy(arviointikausi = kausi)))
 
         assertEquals(
             listOf(
@@ -189,15 +198,24 @@ class YkiArvioijaSolkiClientTest {
                 "postinumero",
                 "postitoimipaikka",
                 "ensimmainenRekisterointipaiva",
-                "arviointioikeudet",
+                "arviointikausi",
             ),
             runko.propertyNames().asSequence().toList(),
         )
+        val lahetettyKausi = runko["arviointikausi"]
         assertEquals(
-            listOf("kieli", "tasot", "kaudenAlkupaiva", "kaudenPaattymispaiva", "jatkorekisterointi"),
-            runko["arviointioikeudet"][0].propertyNames().asSequence().toList(),
+            listOf("alkupaiva", "paattymispaiva", "jatkorekisterointi", "arviointioikeudet"),
+            lahetettyKausi.propertyNames().asSequence().toList(),
         )
-        assertEquals("fin", runko["arviointioikeudet"][0]["kieli"].asString())
+        assertEquals("2025-01-01", lahetettyKausi["alkupaiva"].asString())
+        assertEquals("2029-12-31", lahetettyKausi["paattymispaiva"].asString())
+        assertEquals(2, lahetettyKausi["arviointioikeudet"].size())
+        assertEquals(
+            listOf("kieli", "tasot"),
+            lahetettyKausi["arviointioikeudet"][0].propertyNames().asSequence().toList(),
+        )
+        assertEquals("fin", lahetettyKausi["arviointioikeudet"][0]["kieli"].asString())
+        assertEquals("YT", lahetettyKausi["arviointioikeudet"][1]["tasot"][0].asString())
     }
 
     @Test

@@ -279,7 +279,8 @@ Tietoryhmän tekninen nimi sanomassa on `opiskeluoikeudet[].suoritukset[].osasuo
 - **Miksi:** Solki tarvitsee ajantasaiset tiedot arvioijista ja heidän arviointioikeuksistaan.
 - **Huomio:** Henkilötunnusta ei lähetetä.
 - **Huomio:** Puhelinnumeroa ei lähetetä.
-- **Huomio:** Arviointioikeuden tilaa (aktiivinen, passivoitu) ei lähetetä, koska se vanhenisi kauden päättyessä. Vastaanottaja päättelee tilan arviointikauden päivistä; kauden päättymispäivä on kauden viimeinen voimassaolopäivä.
+- **Huomio:** Arviointikauden tilaa (aktiivinen, passivoitu) ei lähetetä, koska se vanhenisi kauden päättyessä. Vastaanottaja päättelee tilan arviointikauden päivistä; kauden päättymispäivä on kauden viimeinen voimassaolopäivä.
+- **Huomio:** Käytöstä poistuneiden kielten arviointioikeuksia ei lähetetä.
 - **Huomio:** Syntymäpäivää ei säilytetä Kielitutkintorekisterissä, vaan se haetaan oppijanumerorekisteristä jokaista lähetystä varten.
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
@@ -294,21 +295,31 @@ Tietoryhmän tekninen nimi sanomassa on `opiskeluoikeudet[].suoritukset[].osasuo
 | Arvioijan postinumero | kyllä | teksti | `postinumero` |
 | Arvioijan postitoimipaikka | kyllä | teksti | `postitoimipaikka` |
 | Päivä, jona arvioija on ensimmäisen kerran merkitty arvioijarekisteriin | ei | päivämäärä (vvvv-kk-pp) | `ensimmainenRekisterointipaiva` |
-| Arvioijan arviointioikeudet | kyllä | lista: [tietoryhmä](#solki-arvioija-arviointioikeudet) | `arviointioikeudet[]` |
+| Arvioijan arviointikausi | ei | [tietoryhmä](#solki-arvioija-arviointikausi) | `arviointikausi` |
 
-<a id="solki-arvioija-arviointioikeudet"></a>
+<a id="solki-arvioija-arviointikausi"></a>
 
-### Arvioijan arviointioikeudet
+### Arvioijan arviointikausi
 
-Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sanomassa on `arviointioikeudet[]`.
+Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva tai viimeisin päättynyt. Tyhjä, jos arvioijalla on arviointioikeus vain käytöstä poistuneeseen kieleen. Tietoryhmän tekninen nimi sanomassa on `arviointikausi`.
+
+| Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
+| --- | --- | --- | --- |
+| Arviointikauden ensimmäinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `alkupaiva` |
+| Arviointikauden viimeinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `paattymispaiva` |
+| Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle | kyllä | kyllä tai ei | `jatkorekisterointi` |
+| Arviointikauden arviointioikeudet | kyllä | lista: [tietoryhmä](#solki-arvioija-arviointikausi-arviointioikeudet) | `arviointioikeudet[]` |
+
+<a id="solki-arvioija-arviointikausi-arviointioikeudet"></a>
+
+### Arviointikauden arviointioikeudet
+
+Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sanomassa on `arviointikausi.arviointioikeudet[]`.
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
 | Kieli, jonka tutkintoja arvioija saa arvioida | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi) | `kieli` |
 | Tutkintotasot, joita arvioija saa arvioida tällä kielellä | kyllä | lista: `PT` (Perustaso), `KT` (Keskitaso), `YT` (Ylin taso) | `tasot[]` |
-| Arviointikauden ensimmäinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `kaudenAlkupaiva` |
-| Arviointikauden viimeinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `kaudenPaattymispaiva` |
-| Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle | kyllä | kyllä tai ei | `jatkorekisterointi` |
 
 <a id="ilmoittautumisjarjestelma-arviointitila"></a>
 

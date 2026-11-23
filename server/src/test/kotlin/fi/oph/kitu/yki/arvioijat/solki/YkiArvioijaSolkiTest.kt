@@ -102,7 +102,7 @@ class YkiArvioijaSolkiTest(
         val request = stub.lahetetyt.single()
         assertEquals("1.2.246.562.24.20281155246", request.arvioijaOid)
         assertNotNull(request.versio, "versio = kitun muokattu")
-        val oikeus = request.arviointioikeudet.single()
+        val oikeus = request.arviointikausi!!.arviointioikeudet.single()
         assertEquals(Tutkintokieli.FIN, oikeus.kieli)
         assertEquals(listOf(Tutkintotaso.PT), oikeus.tasot)
         assertEquals(LocalDate.of(1980, 1, 1), request.syntymapaiva, "syntymaaika haetaan ONR:sta")
@@ -150,13 +150,59 @@ class YkiArvioijaSolkiTest(
 
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
 
-        val oikeus =
-            stub.lahetetyt
-                .single()
-                .arviointioikeudet
-                .single()
-        assertEquals(LocalDate.of(2030, 1, 1), oikeus.kaudenAlkupaiva)
-        assertEquals(LocalDate.of(2034, 12, 31), oikeus.kaudenPaattymispaiva)
+        val kausi = stub.lahetetyt.single().arviointikausi!!
+        assertEquals(LocalDate.of(2030, 1, 1), kausi.alkupaiva)
+        assertEquals(LocalDate.of(2034, 12, 31), kausi.paattymispaiva)
+    }
+
+    @Test
+    fun `kauden kielet lahetetaan yhdessa kaudessa omine tasoineen`() {
+        tallenna(
+            kielet =
+                mapOf(
+                    Tutkintokieli.SWE to setOf(Tutkintotaso.YT),
+                    Tutkintokieli.FIN to setOf(Tutkintotaso.KT, Tutkintotaso.PT),
+                ),
+        )
+
+        timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
+
+        val kausi = stub.lahetetyt.single().arviointikausi!!
+        assertEquals(LocalDate.of(2024, 1, 1), kausi.alkupaiva)
+        assertEquals(LocalDate.of(2029, 1, 1), kausi.paattymispaiva)
+        assertEquals(
+            listOf(
+                SolkiArvioijaRequest.Arviointioikeus(Tutkintokieli.FIN, listOf(Tutkintotaso.PT, Tutkintotaso.KT)),
+                SolkiArvioijaRequest.Arviointioikeus(Tutkintokieli.SWE, listOf(Tutkintotaso.YT)),
+            ),
+            kausi.arviointioikeudet,
+        )
+    }
+
+    @Test
+    fun `vanhentunutta kielta ei laheteta`() {
+        val id =
+            tallenna(
+                lahde = Tallennuslahde.SOLKI,
+                kielet =
+                    mapOf(
+                        Tutkintokieli.FIN to setOf(Tutkintotaso.PT),
+                        Tutkintokieli.SWE10 to setOf(Tutkintotaso.PT),
+                    ),
+            )
+
+        val request = SolkiArvioijaRequest.of(repository.findArvioijaById(id)!!, syntymaaika = null)
+
+        assertEquals(listOf(Tutkintokieli.FIN), request.arviointikausi!!.arviointioikeudet.map { it.kieli })
+    }
+
+    @Test
+    fun `pelkka vanhentunut kieli ei muodosta kautta`() {
+        val id = tallenna(lahde = Tallennuslahde.SOLKI, kielet = mapOf(Tutkintokieli.ENG11 to setOf(Tutkintotaso.PT)))
+
+        val request = SolkiArvioijaRequest.of(repository.findArvioijaById(id)!!, syntymaaika = null)
+
+        assertNull(request.arviointikausi)
     }
 
     @Test
@@ -352,6 +398,7 @@ class YkiArvioijaSolkiTest(
         oid: String = "1.2.246.562.24.20281155246",
         kaudenAlkupaiva: LocalDate = LocalDate.of(2024, 1, 1),
         kaudenPaattymispaiva: LocalDate = LocalDate.of(2029, 1, 1),
+        kielet: Map<Tutkintokieli, Set<Tutkintotaso>> = mapOf(Tutkintokieli.FIN to setOf(Tutkintotaso.PT)),
     ): Int =
         repository.tallenna(
             YkiArvioijaEntity(
@@ -365,20 +412,20 @@ class YkiArvioijaSolkiTest(
                 postinumero = "40100",
                 postitoimipaikka = "Testila",
                 arviointioikeudet =
-                    listOf(
+                    kielet.map { (kieli, tasot) ->
                         YkiArviointioikeusEntity(
                             id = null,
                             arvioijaId = null,
-                            kieli = Tutkintokieli.FIN,
-                            tasot = setOf(Tutkintotaso.PT),
+                            kieli = kieli,
+                            tasot = tasot,
                             tila = null,
                             kaudenAlkupaiva = kaudenAlkupaiva,
                             kaudenPaattymispaiva = kaudenPaattymispaiva,
                             jatkorekisterointi = false,
                             ensimmainenRekisterointipaiva = LocalDate.of(2024, 1, 1),
                             rekisteriintuontiaika = null,
-                        ),
-                    ),
+                        )
+                    },
             ),
             lahde = lahde,
         )

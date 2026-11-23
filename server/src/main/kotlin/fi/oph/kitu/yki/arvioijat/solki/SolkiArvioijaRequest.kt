@@ -42,26 +42,36 @@ data class SolkiArvioijaRequest(
     @Kuvaus("Päivä, jona arvioija on ensimmäisen kerran merkitty arvioijarekisteriin")
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val ensimmainenRekisterointipaiva: LocalDate?,
-    @Kuvaus("Arvioijan arviointioikeudet", lisatieto = "Jokaisesta kielestä on oma arviointioikeutensa.")
-    val arviointioikeudet: List<Arviointioikeus>,
+    @Kuvaus(
+        "Arvioijan arviointikausi",
+        lisatieto =
+            "Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva tai viimeisin " +
+                "päättynyt. Tyhjä, jos arvioijalla on arviointioikeus vain käytöstä poistuneeseen kieleen.",
+    )
+    val arviointikausi: Arviointikausi?,
 ) {
     /**
      * Tilaa ei laheteta: se vanhenee kauden umpeutuessa, joten vastaanottaja johtaa sen kauden
      * paivista. Paattymispaiva on inklusiivinen eli kauden viimeinen voimassaolopaiva.
      */
+    data class Arviointikausi(
+        @Kuvaus("Arviointikauden ensimmäinen voimassaolopäivä")
+        @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        val alkupaiva: LocalDate?,
+        @Kuvaus("Arviointikauden viimeinen voimassaolopäivä")
+        @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        val paattymispaiva: LocalDate?,
+        @Kuvaus("Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle")
+        val jatkorekisterointi: Boolean,
+        @Kuvaus("Arviointikauden arviointioikeudet", lisatieto = "Jokaisesta kielestä on oma arviointioikeutensa.")
+        val arviointioikeudet: List<Arviointioikeus>,
+    )
+
     data class Arviointioikeus(
         @Kuvaus("Kieli, jonka tutkintoja arvioija saa arvioida")
         val kieli: Tutkintokieli,
         @Kuvaus("Tutkintotasot, joita arvioija saa arvioida tällä kielellä")
         val tasot: List<Tutkintotaso>,
-        @Kuvaus("Arviointikauden ensimmäinen voimassaolopäivä")
-        @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        val kaudenAlkupaiva: LocalDate?,
-        @Kuvaus("Arviointikauden viimeinen voimassaolopäivä")
-        @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        val kaudenPaattymispaiva: LocalDate?,
-        @Kuvaus("Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle")
-        val jatkorekisterointi: Boolean,
     )
 
     companion object {
@@ -86,16 +96,23 @@ data class SolkiArvioijaRequest(
                 ensimmainenRekisterointipaiva =
                     arvioija.arvioijanEnsimmainenRekisterointipaiva
                         ?: arvioija.arviointioikeudet.minOfOrNull { it.ensimmainenRekisterointipaiva },
-                arviointioikeudet =
-                    arvioija.arviointioikeudet.map { oikeus ->
-                        Arviointioikeus(
-                            kieli = oikeus.kieli,
-                            tasot = oikeus.tasot.sorted(),
-                            kaudenAlkupaiva = oikeus.kaudenAlkupaiva,
-                            kaudenPaattymispaiva = oikeus.kaudenPaattymispaiva,
-                            jatkorekisterointi = oikeus.jatkorekisterointi,
-                        )
-                    },
+                arviointikausi = arviointikausi(arvioija),
             )
+
+        private fun arviointikausi(arvioija: YkiArvioijaEntity): Arviointikausi? {
+            val oikeudet = arvioija.arviointioikeudet.filterNot { it.kieli.isLegacy() }.sortedBy { it.kieli }
+            if (oikeudet.isEmpty()) return null
+            return Arviointikausi(
+                alkupaiva = oikeudet.mapNotNull { it.kaudenAlkupaiva }.minOrNull(),
+                paattymispaiva =
+                    oikeudet
+                        .map { it.kaudenPaattymispaiva }
+                        .takeIf { paivat -> paivat.none { it == null } }
+                        ?.filterNotNull()
+                        ?.max(),
+                jatkorekisterointi = oikeudet.any { it.jatkorekisterointi },
+                arviointioikeudet = oikeudet.map { Arviointioikeus(kieli = it.kieli, tasot = it.tasot.sorted()) },
+            )
+        }
     }
 }
