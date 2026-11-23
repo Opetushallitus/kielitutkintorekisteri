@@ -1,3 +1,4 @@
 e2e/playwright-report/*
 e2e/test-results/*
 server/src/main/resources/static/pico.min.css
+docs/technical/lahtevat-tiedot.md

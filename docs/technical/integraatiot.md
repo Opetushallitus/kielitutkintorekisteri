@@ -111,7 +111,9 @@ ja Solki liity kotoutumiskoulutukseen lainkaan.
 **Paketti:** `koski/` · **Suunta:** lähetys
 
 Onnistuneet YKI- ja VKT-suoritukset lähetetään KOSKI-palveluun, joka julkaisee ne Oma
-Opintopolussa.
+Opintopolussa. Lähetettävät tiedot on lueteltu sivulla Rekisteristä lähtevät tiedot:
+[YKI-suoritukset](./lahtevat-tiedot.md#koski-yki) ja
+[VKT-suoritukset](./lahtevat-tiedot.md#koski-vkt).
 
 - `KoskiService.sendYkiSuorituksetToKoski()` ja `sendVktSuorituksetToKoski()` palauttavat
   `Either<KoskiTechnicalException, KoskiTransferReport>`. Tekniset virheet palautetaan vasempana;
@@ -144,7 +146,8 @@ vastaanotto (VKT)
 YKI-suoritusten arviointitilat ilmoitetaan KIOS:lle heti suoritustiedon päivittyessä
 (`POST /yki/v2/api/oauth2/registration/evaluation`, OAuth2); eräajo
 `Lähetä YKI-arviointitilat KIOS-palveluun` varmistaa perille menon katkosten jälkeen. KIOS näyttää
-tilan kansalaiselle tämän omalla sivulla.
+tilan kansalaiselle tämän omalla sivulla. Lähetettävät tiedot on lueteltu sivulla
+[Rekisteristä lähtevät tiedot](./lahtevat-tiedot.md#ilmoittautumisjarjestelma-arviointitila).
 
 VKT-tiedot KIOS **lähettää** kitulle (`PUT /api/vkt/kios`) tunnin välein ajettavalla eräajolla
 (`SyncRegisterEnrollments` KIOSissa). Erinomaisesta taitotasosta tulee ilmoittautuminen ilman
@@ -212,19 +215,18 @@ Authorization:   Basic (kitu.yki.username/password)
 Idempotency-Key: {arvioijaOid}:{versio}
 ```
 
-Runko on `SolkiArvioijaRequest`; henkilötunnusta ei lähetetä. **`tila`-kenttää ei lähetetä**: tila
-lasketaan kauden päivistä (`Rekisterointitila`), joten lähetetty arvo vanhenisi vastaanottajan
-kopiossa kauden umpeutuessa. Vastaanottaja johtaa tilan `kaudenAlkupaiva`n ja
-`kaudenPaattymispaiva`n välistä, **päättymispäivä mukaan lukien**.
+Runko on `SolkiArvioijaRequest`. Lähetettävät tiedot ja se, mitä ei lähetetä (henkilötunnus,
+puhelinnumero, arviointioikeuden tila), on lueteltu sivulla
+[Rekisteristä lähtevät tiedot](./lahtevat-tiedot.md#solki-arvioija).
 
-`syntymapaiva` haetaan ONR:stä lähetyshetkellä (`OppijanumeroService.getHenkiloByMasterOid`); kitu
-ei säilytä sitä. Kolme tapausta:
+`syntymapaiva` haetaan ONR:stä lähetyshetkellä (`OppijanumeroService.getHenkiloByMasterOid`). Kolme
+tapausta:
 
-| ONR                                                | Kitu tekee                                                                   |
-| -------------------------------------------------- | ---------------------------------------------------------------------------- |
-| vastaa, syntymäaika on                             | lähettää kentän muodossa `yyyy-MM-dd`                                        |
-| vastaa, syntymäaikaa ei ole (yksilöimätön henkilö) | jättää kentän pois (`@JsonInclude(NON_NULL)`) ja merkitsee rivin lähetetyksi |
-| ei vastaa                                          | **ei lähetä lainkaan**: `merkitseLahetysvirhe`, ja rivi jää jonoon           |
+| ONR                                                | Kitu tekee                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------------ |
+| vastaa, syntymäaika on                             | lähettää kentän                                                    |
+| vastaa, syntymäaikaa ei ole (yksilöimätön henkilö) | jättää kentän pois ja merkitsee rivin lähetetyksi                  |
+| ei vastaa                                          | **ei lähetä lainkaan**: `merkitseLahetysvirhe`, ja rivi jää jonoon |
 
 Viimeinen tapaus epäonnistuu tarkoituksella kiinni: vajaana lähtenyt rivi merkittäisiin
 lähetetyksi, jolloin ONR-katko jättäisi pysyvän aukon Solkin kopioon.

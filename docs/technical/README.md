@@ -8,6 +8,7 @@ suunnitteluratkaisut ja konventiot.
 - [Arkkitehtuuri](./arkkitehtuuri.md) — palvelinohjelmiston rakenne, paketit, profiilit, tietokanta
 - [Koodikonventiot](./koodikonventiot.md) — virheenkäsittely Eitherillä, validointi, Jackson 3, RestClient
 - [Integraatiot](./integraatiot.md) — KOSKI, KIOS, Oppijanumerorekisteri ja muut ulkoiset palvelut, tietovirtakaaviot tutkinnoittain
+- [Rekisteristä lähtevät tiedot](./lahtevat-tiedot.md) — mitä tietoja KOSKI-järjestelmään, Solkiin ja ilmoittautumisjärjestelmään lähetetään (tuotettu koodista)
 - [Ylläpito ja havainnointi](./yllapito.md) — telemetria, lokit, salaisuudet, deploy-putki
 
 ## Liittyvät resurssit
