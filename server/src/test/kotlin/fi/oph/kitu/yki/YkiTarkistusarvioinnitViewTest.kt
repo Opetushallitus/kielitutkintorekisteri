@@ -1119,4 +1119,103 @@ class YkiTarkistusarvioinnitViewTest(
         assertNotNull(painike("/yki/tarkistusarvioinnit/tilastot?tila=Hyvaksytty"))
         assertNull(painike("/yki/tarkistusarvioinnit/tilastot?aikaryhmittely=Tutkintovuosi"))
     }
+
+    @Test
+    fun `henkilotietojen piilotus poistaa oppijanumeron ja nimet molempien sivujen taulukosta`() {
+        val hyvaksytty = tallenna("Hyvaksytty")
+        tallenna("Odottava")
+        suoritusRepository.hyvaksyTarkistusarvioinnit(listOf(hyvaksytty.solkiId), LocalDate.of(2025, 5, 1))
+
+        listOf("/yki/tarkistusarvioinnit", "/yki/tarkistusarvioinnit/hyvaksytyt").forEach { polku ->
+            val nakyvissa = Jsoup.parse(getHtml(polku))
+            val piilotettu = Jsoup.parse(getHtml("$polku?piilotaHenkilotiedot=on"))
+
+            listOf("suorittajanoid", "sukunimi", "etunimet").forEach { sarake ->
+                assertEquals(1, nakyvissa.select("td[data-testid=$sarake]").size, "$polku $sarake")
+                assertEquals(0, piilotettu.select("td[data-testid=$sarake]").size, "$polku $sarake")
+            }
+            assertEquals(1, piilotettu.select("td[data-testid=asiatunnus]").size)
+            assertFalse(nakyvissa.selectFirst("input[type=checkbox][name=piilotaHenkilotiedot]")!!.hasAttr("checked"))
+            assertTrue(piilotettu.selectFirst("input[type=checkbox][name=piilotaHenkilotiedot]")!!.hasAttr("checked"))
+            assertContains(piilotettu.select("li").map { it.text() }, "Henkilötiedot piilotettu")
+        }
+    }
+
+    @Test
+    fun `henkilotietojen piilotus sailyy linkeissa mutta ei siirry tilastoihin`() {
+        tallenna("Virtanen")
+
+        val sivu = Jsoup.parse(getHtml("/yki/tarkistusarvioinnit?piilotaHenkilotiedot=true"))
+
+        assertContains(sivu.selectFirst("a[download]")!!.attr("href"), "piilotaHenkilotiedot=true")
+        assertContains(sivu.selectFirst("th a[href*=sortColumn]")!!.attr("href"), "piilotaHenkilotiedot=true")
+        assertFalse(
+            sivu.selectFirst("[data-testid=tilastot-linkki]")!!.attr("href").contains("piilotaHenkilotiedot"),
+        )
+        assertEquals(
+            "?sortColumn=kasitelty&sortDirection=DESC",
+            sivu.selectFirst("a[data-testid=poista-rajaukset]")?.attr("href"),
+        )
+        assertNull(
+            Jsoup
+                .parse(getHtml("/yki/tarkistusarvioinnit/tilastot"))
+                .selectFirst("input[type=checkbox][name=piilotaHenkilotiedot]"),
+        )
+    }
+
+    @Test
+    fun `hyvaksynta palaa nakymaan jossa henkilotiedot ovat yha piilossa`() {
+        val suoritus = tallenna("Virtanen")
+
+        val location =
+            mockMvc
+                .perform(
+                    post("/yki/tarkistusarvioinnit?piilotaHenkilotiedot=true")
+                        .session(virkailijaSession())
+                        .with(csrf())
+                        .param("suoritukset", suoritus.solkiId.toString())
+                        .param("hyvaksyttyPvm", "2025-05-01"),
+                ).andExpect(status().is3xxRedirection)
+                .andReturn()
+                .response
+                .getHeader(HttpHeaders.LOCATION)
+                .orEmpty()
+
+        assertContains(location, "piilotaHenkilotiedot=true")
+    }
+
+    @Test
+    fun `CSV jattaa oppijanumeron ja nimet pois kun henkilotiedot piilotetaan`() {
+        val virtanen = tallenna("Virtanen")
+        suoritusRepository.hyvaksyTarkistusarvioinnit(listOf(tallenna("Hyvaksytty").solkiId), LocalDate.of(2025, 5, 1))
+
+        val odottavat = getCsv("/yki/api/tarkistusarvioinnit?piilotaHenkilotiedot=true")
+        val hyvaksytyt = getCsv("/yki/api/tarkistusarvioinnit/hyvaksytyt?piilotaHenkilotiedot=true")
+
+        assertEquals(
+            "Kieli;Taso;Tutkintopäivä;Saapunut;Käsitelty;Asiatunnus;Osat;Muuttuneet;Perustelu",
+            odottavat.csvRivit().first(),
+        )
+        assertEquals(
+            "Kieli;Taso;Tutkintopäivä;Saapunut;Käsitelty;Hyväksytty;Asiatunnus;Osat;Muuttuneet;Perustelu",
+            hyvaksytyt.csvRivit().first(),
+        )
+        assertEquals(
+            "FIN;PT;1.1.2025;1.2.2025;1.3.2025;OPH-Virtanen;Puhuminen;Puhuminen;Perustelu Virtanen",
+            odottavat.csvRivit().single { it != odottavat.csvRivit().first() },
+        )
+        assertEquals(
+            "FIN;PT;1.1.2025;1.2.2025;1.3.2025;1.5.2025;OPH-Hyvaksytty;Puhuminen;Puhuminen;Perustelu Hyvaksytty",
+            hyvaksytyt.csvRivit().last(),
+        )
+        assertFalse(odottavat.csvRivit().any { it.contains(virtanen.suorittajanOID.toString()) })
+        assertContains(
+            odottavat.response.getHeader(HttpHeaders.CONTENT_DISPOSITION).orEmpty(),
+            "filename=yki_tarkistusarvioinnit.csv",
+        )
+        assertContains(
+            hyvaksytyt.response.getHeader(HttpHeaders.CONTENT_DISPOSITION).orEmpty(),
+            "filename=yki_tarkistusarvioinnit_hyvaksytyt.csv",
+        )
+    }
 }

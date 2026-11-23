@@ -357,6 +357,41 @@ describe("YKI-tarkastusarvioinnit", () => {
     expect(url.searchParams.get("sortColumn")).toBe("sukunimi")
   })
 
+  test("Henkilötietojen piilotus poistaa nimet ja oppijanumeron ja säilyy hyväksynnän yli", async ({
+    ykiTarkistusarvioinnitPage,
+  }) => {
+    const table = ykiTarkistusarvioinnitPage.odottaaTable
+    await expect(table.getCellsOfColumn("etunimet")).toHaveCount(2)
+
+    const dialog = await ykiTarkistusarvioinnitPage.openFilterDialog()
+    await dialog.hideHenkilotiedot(true)
+    await dialog.submit()
+
+    await expect(table.getCellsOfColumn("asiatunnus")).toHaveCount(2)
+    for (const sarake of ["suorittajanoid", "sukunimi", "etunimet"]) {
+      await expect(table.getCellsOfColumn(sarake)).toHaveCount(0)
+    }
+
+    await table.body
+      .getByRole("row")
+      .first()
+      .getByRole("checkbox")
+      .setChecked(true)
+    await ykiTarkistusarvioinnitPage.odottaaDate.fill("2025-11-11")
+    await ykiTarkistusarvioinnitPage.odottaaSubmit.click()
+
+    await expect(ykiTarkistusarvioinnitPage.viewMessage).toHaveText(
+      "1 tarkistusarviointi merkitty hyväksytyksi",
+    )
+    await expect(table.getCellsOfColumn("asiatunnus")).toHaveCount(1)
+    await expect(table.getCellsOfColumn("etunimet")).toHaveCount(0)
+    expect(
+      new URL(ykiTarkistusarvioinnitPage.page.url()).searchParams.get(
+        "piilotaHenkilotiedot",
+      ),
+    ).toBe("true")
+  })
+
   test("Hyväksyttyjä voi rajata ja järjestää hyväksymispäivällä", async ({
     ykiTarkistusarvioinnitPage,
     ykiHyvaksytytTarkistusarvioinnitPage,
