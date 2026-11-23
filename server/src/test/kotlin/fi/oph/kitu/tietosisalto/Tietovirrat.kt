@@ -144,14 +144,15 @@ object Tietovirrat {
                     "Epäonnistunut lähetys yritetään ajastetusti uudelleen.",
             miksi = "Solki tarvitsee ajantasaiset tiedot arvioijista ja heidän arviointioikeuksistaan.",
             juuri = SolkiArvioijaRequest::class,
-            tarkennukset = mapOf("arviointioikeudet[].kieli" to nykyisetKielet),
+            tarkennukset = mapOf("arviointikausi.arviointioikeudet[].kieli" to nykyisetKielet),
             huomiot =
                 listOf(
                     "Henkilötunnusta ei lähetetä.",
                     "Puhelinnumeroa ei lähetetä.",
-                    "Arviointioikeuden tilaa (aktiivinen, passivoitu) ei lähetetä, koska se vanhenisi kauden " +
+                    "Arviointikauden tilaa (aktiivinen, passivoitu) ei lähetetä, koska se vanhenisi kauden " +
                         "päättyessä. Vastaanottaja päättelee tilan arviointikauden päivistä; kauden " +
                         "päättymispäivä on kauden viimeinen voimassaolopäivä.",
+                    "Käytöstä poistuneiden kielten arviointioikeuksia ei lähetetä.",
                     "Syntymäpäivää ei säilytetä Kielitutkintorekisterissä, vaan se haetaan " +
                         "oppijanumerorekisteristä jokaista lähetystä varten.",
                 ),

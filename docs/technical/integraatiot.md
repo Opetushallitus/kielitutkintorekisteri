@@ -219,7 +219,7 @@ Idempotency-Key: {arvioijaOid}:{versio}
 ```
 
 Runko on `SolkiArvioijaRequest`. Lähetettävät tiedot ja se, mitä ei lähetetä (henkilötunnus,
-puhelinnumero, arviointioikeuden tila), on lueteltu sivulla
+puhelinnumero, arviointikauden tila, käytöstä poistuneet kielet), on lueteltu sivulla
 [Rekisteristä lähtevät tiedot](./lahtevat-tiedot.md#solki-arvioija).
 
 `syntymapaiva` haetaan ONR:stä lähetyshetkellä (`OppijanumeroService.getHenkiloByMasterOid`). Kolme

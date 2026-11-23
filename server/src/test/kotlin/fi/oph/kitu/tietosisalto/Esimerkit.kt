@@ -96,15 +96,22 @@ object Esimerkit {
             postinumero = "00100",
             postitoimipaikka = "Helsinki",
             ensimmainenRekisterointipaiva = LocalDate.of(2020, 1, 1),
-            arviointioikeudet =
-                listOf(
-                    SolkiArvioijaRequest.Arviointioikeus(
-                        kieli = Tutkintokieli.FIN,
-                        tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
-                        kaudenAlkupaiva = LocalDate.of(2025, 1, 1),
-                        kaudenPaattymispaiva = LocalDate.of(2029, 12, 31),
-                        jatkorekisterointi = true,
-                    ),
+            arviointikausi =
+                SolkiArvioijaRequest.Arviointikausi(
+                    alkupaiva = LocalDate.of(2025, 1, 1),
+                    paattymispaiva = LocalDate.of(2029, 12, 31),
+                    jatkorekisterointi = true,
+                    arviointioikeudet =
+                        listOf(
+                            SolkiArvioijaRequest.Arviointioikeus(
+                                kieli = Tutkintokieli.FIN,
+                                tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                            ),
+                            SolkiArvioijaRequest.Arviointioikeus(
+                                kieli = Tutkintokieli.SWE,
+                                tasot = listOf(Tutkintotaso.YT),
+                            ),
+                        ),
                 ),
         )
 
