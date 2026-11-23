@@ -10,6 +10,7 @@ viedään KOSKI-palveluun ja siten niitä voidaan näyttää Oma Opintopolun asi
 - [Eräajot](https://opetushallitus.github.io/kielitutkintorekisteri/docs/db-scheduler/)
 - [Tekninen dokumentaatio](https://opetushallitus.github.io/kielitutkintorekisteri/docs/technical/)
 - [Perehdytys](https://opetushallitus.github.io/kielitutkintorekisteri/docs/perehdytys/): tutoriaalit ylläpidon vastaanottavalle kehittäjälle
+- [Rekisteristä lähtevät tiedot](https://opetushallitus.github.io/kielitutkintorekisteri/docs/technical/lahtevat-tiedot.html): mitä tietoja rekisteri lähettää muihin järjestelmiin (tuotettu koodista)
 - [Tietovirtakaaviot](https://opetushallitus.github.io/kielitutkintorekisteri/docs/technical/integraatiot.html#kaaviot): järjestelmien väliset tietovirrat tutkinnoittain (YKI, VKT, kotoutumiskoulutus)
 
 ## Riippuvuudet

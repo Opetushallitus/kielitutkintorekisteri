@@ -53,6 +53,8 @@ jobs:
               - '.dockerignore'
             server: &server
               - 'server/**'
+              - 'docs/technical/lahtevat-tiedot.md'
+              - 'docs/technical/integraatiot.md'
               - '.mise.toml'
               - '.mise.*.toml'
               - '.github/workflows/build.yml'
@@ -406,12 +408,13 @@ jobs:
         run: docs/build-uml.sh untuva qa prod
       - name: Verify technical documentation pages exist
         # docs/technical/ ja docs/perehdytys/ ovat käsinkirjoitettua
-        # dokumentaatiota, jonka jekyll-vaihe rendaa automaattisesti. Tämä
+        # dokumentaatiota (lahtevat-tiedot.md on tuotettu koodista ja
+        # versioitu), jonka jekyll-vaihe rendaa automaattisesti. Tämä
         # tarkistus pysäyttää CI:n, mikäli kansio tai jokin odotetuista
         # sivuista on poistettu vahingossa.
         run: |
           test -d docs/technical
-          for page in README.md arkkitehtuuri.md koodikonventiot.md integraatiot.md yllapito.md; do
+          for page in README.md arkkitehtuuri.md koodikonventiot.md integraatiot.md lahtevat-tiedot.md yllapito.md; do
             test -f "docs/technical/$page" || { echo "::error::docs/technical/$page puuttuu"; exit 1; }
           done
           test -d docs/perehdytys

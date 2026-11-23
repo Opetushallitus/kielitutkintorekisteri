@@ -4,6 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.toNonEmptyListOrNull
 import fi.oph.kitu.oid.Oid
+import fi.oph.kitu.tietosisalto.Kuvaus
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
@@ -14,6 +15,7 @@ import java.time.LocalDate
 sealed interface IlmoittautumisjarjestelmaRequest
 
 data class YkiArvioinninTilaRequest(
+    @Kuvaus("Arviointitilat", lisatieto = "Jokaisesta suorituksesta on oma arviointitilansa.")
     val tilat: NonEmptyList<YkiArvioinninTila>,
 ) : IlmoittautumisjarjestelmaRequest {
     companion object {
@@ -31,7 +33,12 @@ data class YkiArvioinninTilaRequest(
 }
 
 data class YkiArvioinninTila(
+    @Kuvaus(
+        "Suorituksen tunnistetiedot",
+        lisatieto = "Näillä tiedoilla suoritus tunnistetaan ilmoittautumisjärjestelmässä.",
+    )
     val suoritus: YkiSuorituksenTunniste,
+    @Kuvaus("Suorituksen arvioinnin tila")
     val tila: Arviointitila,
 ) {
     companion object {
@@ -47,10 +54,15 @@ data class YkiArvioinninTila(
 }
 
 data class YkiSuorituksenTunniste(
+    @Kuvaus("Suorittajan oppijanumero")
     val oppijanumero: Oid,
+    @Kuvaus("Tutkintopäivä")
     val tutkintopaiva: LocalDate,
+    @Kuvaus("Tutkinnon kieli")
     val tutkintokieli: Tutkintokieli,
+    @Kuvaus("Tutkinnon taso")
     val tutkintotaso: Tutkintotaso,
+    @Kuvaus("Osakokeet, joihin suorittaja on ilmoittautunut tai osallistunut")
     val osakokeet: List<TutkinnonOsa>,
 ) {
     override fun equals(other: Any?): Boolean =

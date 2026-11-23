@@ -2,6 +2,7 @@ package fi.oph.kitu.yki.arvioijat.solki
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
+import fi.oph.kitu.tietosisalto.Kuvaus
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
@@ -16,21 +17,32 @@ import java.time.OffsetDateTime
  * hetun poisto vei silta pohjan. Kitu ei sailyta sita vaan hakee sen ONR:sta lahetyshetkella.
  */
 data class SolkiArvioijaRequest(
+    @Kuvaus("Arvioijan oppijanumero")
     val arvioijaOid: String,
+    @Kuvaus("Hetki, jona arvioijan tietoja on viimeksi muutettu Kielitutkintorekisterissä")
     @param:JsonFormat(shape = JsonFormat.Shape.STRING)
     val versio: OffsetDateTime?,
+    @Kuvaus("Arvioijan sukunimi")
     val sukunimi: String,
+    @Kuvaus("Arvioijan etunimet")
     val etunimet: String,
     /** Muista kentista poiketen jatetaan pois kokonaan kun tietoa ei ole, ks. [of]. */
+    @Kuvaus("Arvioijan syntymäpäivä, joka haetaan oppijanumerorekisteristä lähetyshetkellä")
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @get:JsonInclude(JsonInclude.Include.NON_NULL)
     val syntymapaiva: LocalDate?,
+    @Kuvaus("Arvioijan sähköpostiosoite")
     val sahkopostiosoite: String?,
+    @Kuvaus("Arvioijan katuosoite")
     val katuosoite: String,
+    @Kuvaus("Arvioijan postinumero")
     val postinumero: String,
+    @Kuvaus("Arvioijan postitoimipaikka")
     val postitoimipaikka: String,
+    @Kuvaus("Päivä, jona arvioija on ensimmäisen kerran merkitty arvioijarekisteriin")
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val ensimmainenRekisterointipaiva: LocalDate?,
+    @Kuvaus("Arvioijan arviointioikeudet", lisatieto = "Jokaisesta kielestä on oma arviointioikeutensa.")
     val arviointioikeudet: List<Arviointioikeus>,
 ) {
     /**
@@ -38,12 +50,17 @@ data class SolkiArvioijaRequest(
      * paivista. Paattymispaiva on inklusiivinen eli kauden viimeinen voimassaolopaiva.
      */
     data class Arviointioikeus(
+        @Kuvaus("Kieli, jonka tutkintoja arvioija saa arvioida")
         val kieli: Tutkintokieli,
+        @Kuvaus("Tutkintotasot, joita arvioija saa arvioida tällä kielellä")
         val tasot: List<Tutkintotaso>,
+        @Kuvaus("Arviointikauden ensimmäinen voimassaolopäivä")
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenAlkupaiva: LocalDate?,
+        @Kuvaus("Arviointikauden viimeinen voimassaolopäivä")
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val kaudenPaattymispaiva: LocalDate?,
+        @Kuvaus("Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle")
         val jatkorekisterointi: Boolean,
     )
 
