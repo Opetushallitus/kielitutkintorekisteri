@@ -304,7 +304,7 @@ Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sano
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
-| Kieli, jonka tutkintoja arvioija saa arvioida | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi), `swe10` (ruotsi (vanha koodi)), `eng11` (kaupallinen englanti), `eng12` (tekninen englanti) | `kieli` |
+| Kieli, jonka tutkintoja arvioija saa arvioida | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi) | `kieli` |
 | Tutkintotasot, joita arvioija saa arvioida tällä kielellä | kyllä | lista: `PT` (Perustaso), `KT` (Keskitaso), `YT` (Ylin taso) | `tasot[]` |
 | Arviointikauden ensimmäinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `kaudenAlkupaiva` |
 | Arviointikauden viimeinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `kaudenPaattymispaiva` |
@@ -345,7 +345,7 @@ Näillä tiedoilla suoritus tunnistetaan ilmoittautumisjärjestelmässä. Tietor
 | --- | --- | --- | --- |
 | Suorittajan oppijanumero | kyllä | tunniste (OID) | `oppijanumero` |
 | Tutkintopäivä | kyllä | päivämäärä (vvvv-kk-pp) | `tutkintopaiva` |
-| Tutkinnon kieli | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi), `swe10` (ruotsi (vanha koodi)), `eng11` (kaupallinen englanti), `eng12` (tekninen englanti) | `tutkintokieli` |
+| Tutkinnon kieli | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi) | `tutkintokieli` |
 | Tutkinnon taso | kyllä | `PT` (Perustaso), `KT` (Keskitaso), `YT` (Ylin taso) | `tutkintotaso` |
 | Osakokeet, joihin suorittaja on ilmoittautunut tai osallistunut | kyllä | lista: `PU` (Puhuminen), `KI` (Kirjoittaminen), `TY` (Tekstin ymmärtäminen), `PY` (Puheen ymmärtäminen) | `osakokeet[]` |
 

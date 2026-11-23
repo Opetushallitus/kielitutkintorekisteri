@@ -10,6 +10,7 @@ import fi.oph.kitu.koski.Osasuoritus
 import fi.oph.kitu.koski.VktKielitaito
 import fi.oph.kitu.koski.YkiOsasuoritus
 import fi.oph.kitu.yki.TutkinnonOsa
+import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
 import kotlin.reflect.KClass
 
@@ -49,6 +50,8 @@ object Tietovirrat {
     private const val SUORITUS = "opiskeluoikeudet[].suoritukset[]"
     private const val OSASUORITUS = "$SUORITUS.osasuoritukset[]"
     private const val OSAKOE = "$OSASUORITUS.osasuoritukset[]"
+
+    private val nykyisetKielet = Tarkennus.Arvot(Tutkintokieli.entries - Tutkintokieli.legacyEntries)
 
     private val jaksonTilat =
         Tarkennus.Koodit(Koodisto.OpiskeluoikeudenTila.Lasna, Koodisto.OpiskeluoikeudenTila.Paattynyt)
@@ -141,6 +144,7 @@ object Tietovirrat {
                     "Epäonnistunut lähetys yritetään ajastetusti uudelleen.",
             miksi = "Solki tarvitsee ajantasaiset tiedot arvioijista ja heidän arviointioikeuksistaan.",
             juuri = SolkiArvioijaRequest::class,
+            tarkennukset = mapOf("arviointioikeudet[].kieli" to nykyisetKielet),
             huomiot =
                 listOf(
                     "Henkilötunnusta ei lähetetä.",
@@ -165,6 +169,7 @@ object Tietovirrat {
             juuri = YkiArvioinninTilaRequest::class,
             tarkennukset =
                 mapOf(
+                    "tilat[].suoritus.tutkintokieli" to nykyisetKielet,
                     "tilat[].suoritus.osakokeet[]" to
                         Tarkennus.Arvot(listOf(TutkinnonOsa.PU, TutkinnonOsa.KI, TutkinnonOsa.TY, TutkinnonOsa.PY)),
                 ),
