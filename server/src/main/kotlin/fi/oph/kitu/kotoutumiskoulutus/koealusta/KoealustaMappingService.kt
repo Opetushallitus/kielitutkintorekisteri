@@ -29,13 +29,18 @@ class KoealustaMappingService(
     private val timeService: TimeService,
 ) {
     @WithSpan
-    fun responseStringToKeskenerainenSuoritus(body: String) =
-        convertToKielitestiKeskenerainen(parser.parseKeskenerainen(body))
+    fun responseStringToKeskenerainenSuoritus(
+        body: String,
+        aiemmatVirheet: Collection<KielitestiSuoritusError> = emptyList(),
+    ) = convertToKielitestiKeskenerainen(parser.parseKeskenerainen(body), aiemmatVirheet)
 
     fun convertToKielitestiKeskenerainen(
         suorituksetResponse: KoealustaKeskeneraisetResponse,
+        aiemmatVirheet: Collection<KielitestiSuoritusError> = emptyList(),
     ): Pair<List<KielitestiSuoritus>, ValidationFailure?> {
+        val oppijanumeroExceptions = mutableListOf<KoealustaMappingError>()
         val validationErrors = mutableListOf<KoealustaMappingError>()
+        val tarkistetutOnrVirheet = aiemmatVirheet.tarkistetutOnrVirheet()
 
         val discardedZeroCourseUserIds =
             suorituksetResponse.users
@@ -50,22 +55,31 @@ class KoealustaMappingService(
 
         val keskeneraiset =
             suorituksetResponse.users.map { it.ilmanOhitettaviaOppilaitoksia() }.flatMap { user ->
-                if (!user.isOnrValidateable()) return@flatMap emptyList()
+                if (user.courses.isEmpty() || !user.isOnrValidateable()) return@flatMap emptyList()
+
+                val oppijanumero =
+                    validator.toOppija(user).getOrNull()?.let { oppija ->
+                        oppijanumeroService
+                            .getMasterOid(oppija)
+                            .mapLeft { oppijanumeroFailure(user, oppija, tarkistetutOnrVirheet[oppija], it) }
+                            .onLeft(oppijanumeroExceptions::add)
+                            .getOrNull()
+                    }
 
                 user.courses.mapNotNull { course ->
                     validator
-                        .courseToEntity(user, course)
+                        .courseToEntity(user, course, oppijanumero)
                         .onLeft(validationErrors::add)
                         .getOrNull()
                 }
             }
 
         val validationFailure =
-            if (validationErrors.isNotEmpty()) {
+            if (oppijanumeroExceptions.isNotEmpty() || validationErrors.isNotEmpty()) {
                 ValidationFailure(
                     message =
-                        "Parsing KielitestiSuoritus failed: There were ${validationErrors.size} validation errors.",
-                    oppijanumeroExceptions = emptyList(),
+                        "Parsing KielitestiSuoritus failed: There were ${validationErrors.size} validation errors and ${oppijanumeroExceptions.size} oppijanumero failures.",
+                    oppijanumeroExceptions = oppijanumeroExceptions,
                     validationErrors = validationErrors,
                 )
             } else {
@@ -167,7 +181,7 @@ class KoealustaMappingService(
     }
 
     private fun oppijanumeroFailure(
-        user: KoealustaSuorituksetResponse.User,
+        user: KoealustaOppija,
         oppija: Oppija,
         aiempiVirhe: KielitestiSuoritusError?,
         virhe: OppijanumeroException,

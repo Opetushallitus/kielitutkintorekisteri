@@ -312,6 +312,113 @@ class KoealustaMappingServiceTest {
         return palvelu(onr, nyt).convertErrors(virheet?.oppijanumeroExceptions.orEmpty()).toList()
     }
 
+    private val keskenerainenAntero =
+        KoealustaKeskeneraisetResponse.User(
+            userid = 2,
+            firstnames = "Antero",
+            lastname = "Testi-Moikka",
+            preferredname = "Antero",
+            ssn = "010180-9026",
+            email = "antero.testi@oph.fi",
+            courses =
+                listOf(
+                    KoealustaKeskeneraisetResponse.User.Course(
+                        courseid = 40,
+                        coursename = "Kesken oleva kurssi",
+                        schoolOID = "1.2.246.562.10.42923230015",
+                        teacheremail = "opettaja@testi.oph.fi",
+                    ),
+                ),
+        )
+
+    private fun muunnaKeskenerainen(
+        onr: OppijanumeroService,
+        nyt: Instant,
+        aiemmatVirheet: List<KielitestiSuoritusError> = emptyList(),
+        user: KoealustaKeskeneraisetResponse.User = keskenerainenAntero,
+    ) = palvelu(onr, nyt).convertToKielitestiKeskenerainen(KoealustaKeskeneraisetResponse(listOf(user)), aiemmatVirheet)
+
+    @Test
+    fun `keskeneräinen saa oppijanumeron, kun oppijanumerorekisteri tunnistaa henkilön`() {
+        val onr = LaskevaOnr().apply { oppijanumero = anteronOppijanumero }
+
+        val (suoritukset, virhe) = muunnaKeskenerainen(onr, ensimmainenAjo)
+
+        assertAll(
+            fun() = assertEquals(listOf(anteronOppijanumero), suoritukset.map { it.oppijanumero }),
+            fun() = assertEquals(listOf(false), suoritukset.map { it.completed }),
+            fun() = assertNull(virhe),
+            fun() = assertEquals(1, onr.haut),
+        )
+    }
+
+    @Test
+    fun `keskeneräisen henkilötietovirhe kirjataan ja suoritus tallennetaan ilman oppijanumeroa`() {
+        val onr = LaskevaOnr()
+
+        val (suoritukset, virhe) = muunnaKeskenerainen(onr, ensimmainenAjo)
+        val kirjattu = palvelu(onr, ensimmainenAjo).convertErrors(virhe!!.oppijanumeroExceptions).single()
+
+        assertAll(
+            fun() = assertEquals(listOf<Oid?>(null), suoritukset.map { it.oppijanumero }),
+            fun() = assertEquals(400, kirjattu.onrStatus),
+            fun() = assertEquals("010180-9026", kirjattu.hetu),
+            fun() = assertEquals(40, kirjattu.kurssiId),
+            fun() = assertNull(kirjattu.suoritusaika),
+            fun() = assertTrue(onr.haut > 1, "vianetsintä ajetaan uudelle virheelle"),
+        )
+    }
+
+    @Test
+    fun `keskeneräisen toistuvalle henkilötietovirheelle tehdään vain oppijanumeron haku ilman vianetsintää`() {
+        val onr = LaskevaOnr()
+        val (_, ensimmainen) = muunnaKeskenerainen(onr, ensimmainenAjo)
+        val kirjatut =
+            palvelu(onr, ensimmainenAjo)
+                .convertErrors(ensimmainen!!.oppijanumeroExceptions)
+                .map { it.copy(completed = false) }
+        onr.haut = 0
+
+        val (_, toinen) = muunnaKeskenerainen(onr, toinenAjo, kirjatut)
+        val toistettu = palvelu(onr, toinenAjo).convertErrors(toinen!!.oppijanumeroExceptions).single()
+
+        assertAll(
+            fun() = assertEquals(1, onr.haut),
+            fun() = assertEquals(kirjatut.single().viesti, toistettu.viesti),
+            fun() = assertEquals(kirjatut.single().onrLisatietoja, toistettu.onrLisatietoja),
+        )
+    }
+
+    @Test
+    fun `testioppilaitoksen keskeneräiselle ei tehdä oppijanumeron hakua`() {
+        val onr = LaskevaOnr()
+        val testikurssilla =
+            keskenerainenAntero.copy(
+                courses = keskenerainenAntero.courses.map { it.copy(schoolOID = "1.2.246.562.10.1234567890") },
+            )
+
+        val (suoritukset, virhe) = muunnaKeskenerainen(onr, ensimmainenAjo, user = testikurssilla)
+
+        assertAll(
+            fun() = assertEquals(emptyList(), suoritukset),
+            fun() = assertNull(virhe),
+            fun() = assertEquals(0, onr.haut),
+        )
+    }
+
+    @Test
+    fun `puutteellisin henkilötiedoin ilmoittautuneelle keskeneräiselle ei tehdä oppijanumeron hakua`() {
+        val onr = LaskevaOnr()
+
+        val (suoritukset, virhe) = muunnaKeskenerainen(onr, ensimmainenAjo, user = keskenerainenAntero.copy(ssn = " "))
+
+        assertAll(
+            fun() = assertEquals(emptyList(), suoritukset),
+            fun() = assertNull(virhe),
+            fun() = assertEquals(0, onr.haut),
+        )
+    }
+
     private fun muunna(
         onr: OppijanumeroService,
         nyt: Instant,

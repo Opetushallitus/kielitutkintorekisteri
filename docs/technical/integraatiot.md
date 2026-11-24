@@ -193,6 +193,9 @@ Moodle-pohjainen kielitestialusta, josta haetaan suoritustietoja ja Moodle-XML-t
   virheellisen ajon jälkeen vesileima jää sekuntia ennen varhaisinta epäonnistunutta
   suoritusta, jotta se haetaan uudelleen kunnes se korjaantuu), keskeneräiset korvataan joka ajolla kokonaan ja rajataan ilmoittautumisajan perusteella
   (`enrolledfrom`, ks. [Eräajot](../db-scheduler)).
+- Sekä valmiin että keskeneräisen suorituksen henkilölle haetaan oppijanumero
+  Oppijanumerorekisteristä henkilötunnuksella ja nimillä. Keskeneräisellä haku on ennakkotarkistus:
+  virheellinen nimi tai henkilötunnus näkyy tuonnin virheissä jo ennen testin valmistumista.
 - `KoealustaSuoritusValidator` validoi suoritusten datan →
   `Either<KoealustaMappingError.*Failure, …>`.
 - `tehtavapankki/TehtavapankkiIngestService` lataa XML:t S3:sta, parsii ne ja tallentaa yleiseen

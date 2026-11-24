@@ -1389,9 +1389,9 @@ class KoealustaServiceTests(
     ) = """
         {
           "userid": $userid,
-          "firstnames": "Kesken Testi",
+          "firstnames": "Ranja Testi",
           "lastname": "Öhman-Testi",
-          "preferredname": "Kesken",
+          "preferredname": "Ranja",
           "SSN": "010180-9026",
           "email": "kesken.testi@oph.fi",
           "courses": [
@@ -1480,7 +1480,7 @@ class KoealustaServiceTests(
     }
 
     @Test
-    fun `keskeneräinen import saves suoritukset with null result fields and completed false`(
+    fun `keskeneräinen import saves suoritukset with oppijanumero, null result fields and completed false`(
         @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
         @Autowired koealustaService: KoealustaService,
         @Autowired timeService: TestTimeService,
@@ -1503,7 +1503,7 @@ class KoealustaServiceTests(
         val keskenerainen = suoritukset.first()
         assertAll(
             fun() = assertEquals(false, keskenerainen.completed),
-            fun() = assertEquals(null, keskenerainen.oppijanumero),
+            fun() = assertEquals(Oid.parse("1.2.246.562.24.33342764709").getOrThrow(), keskenerainen.oppijanumero),
             fun() = assertEquals(null, keskenerainen.suoritusaika),
             fun() = assertEquals(null, keskenerainen.luetunYmmartaminen),
             fun() = assertEquals(null, keskenerainen.kuullunYmmartaminen),
@@ -1512,8 +1512,8 @@ class KoealustaServiceTests(
             fun() = assertEquals(null, keskenerainen.testikieli),
             fun() = assertEquals(50, keskenerainen.kurssiId),
             fun() = assertEquals("Kotoutumiskoulutus kesken", keskenerainen.kurssi),
-            fun() = assertEquals("Kesken Testi", keskenerainen.etunimet),
-            fun() = assertEquals("Kesken", keskenerainen.kutsumanimi),
+            fun() = assertEquals("Ranja Testi", keskenerainen.etunimet),
+            fun() = assertEquals("Ranja", keskenerainen.kutsumanimi),
             fun() = assertEquals(Oid.parse("1.2.246.562.10.42923230015").getOrThrow(), keskenerainen.oppilaitosOid),
         )
     }
@@ -1615,9 +1615,9 @@ class KoealustaServiceTests(
               "users": [
                 {
                   "userid": 10,
-                  "firstnames": "Kesken Testi",
+                  "firstnames": "Ranja Testi",
                   "lastname": "Öhman-Testi",
-                  "preferredname": "Kesken",
+                  "preferredname": "Ranja",
                   "SSN": "010180-9026",
                   "email": "kesken.testi@oph.fi",
                   "courses": [
@@ -1658,6 +1658,115 @@ class KoealustaServiceTests(
             fun() = assertEquals(51, virhe.kurssiId),
             fun() = assertEquals("Kurssi B", virhe.kurssi),
             fun() = assertNull(virhe.suoritusaika),
+        )
+    }
+
+    @Test
+    fun `keskeneräisen henkilötiedot tarkistetaan oppijanumerorekisteristä ja virhe kirjataan ratkaisuehdotuksineen`(
+        @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+        @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        mockServer.expectKeskeneraiset(
+            """
+            {
+              "users": [
+                {
+                  "userid": 40,
+                  "firstnames": "Minerva Alli Aniitta",
+                  "lastname": "Marttila",
+                  "preferredname": "Minerva",
+                  "SSN": "040265-9985",
+                  "email": "aniitta.marttila@oph.fi",
+                  "courses": [
+                    {
+                      "courseid": 80,
+                      "coursename": "Kurssi kesken",
+                      "schoolOID": "1.2.246.562.10.42923230015",
+                      "teacheremail": "opettaja@testi.oph.fi"
+                    }
+                  ]
+                }
+              ]
+            }
+            """.trimIndent(),
+        )
+
+        importKeskeneraiset(koealustaService, timeService)
+
+        mockServer.verify()
+
+        val virhe = kielitestiSuoritusErrorRepository.findAll().single()
+        val keskenerainen = customKielitestiSuoritusRepository.findAll().single()
+        assertAll(
+            fun() = assertEquals(false, virhe.completed),
+            fun() = assertEquals("040265-9985", virhe.hetu),
+            fun() =
+                assertEquals(
+                    "Oppijanumeron haku epäonnistui: Henkilöä ei löydy Oppijanumerorekisteristä",
+                    virhe.viesti,
+                ),
+            fun() = assertEquals(404, virhe.onrStatus),
+            fun() = assertEquals(NIMIYHDISTELMA_LOYTYI, virhe.onrLisatietoja),
+            fun() = assertEquals("Aniitta", virhe.onrKutsumanimi),
+            fun() = assertEquals(80, virhe.kurssiId),
+            fun() = assertEquals("opettaja@testi.oph.fi", virhe.teacherEmail),
+            fun() = assertNull(virhe.suoritusaika),
+            fun() = assertEquals(false, keskenerainen.completed),
+            fun() = assertNull(keskenerainen.oppijanumero),
+            fun() = assertEquals(80, keskenerainen.kurssiId),
+        )
+    }
+
+    @Test
+    fun `keskeneräisen henkilötietovirhe poistuu, kun nimet on korjattu koealustalle`(
+        @Autowired kielitestiSuoritusErrorRepository: KielitestiSuoritusErrorRepository,
+        @Autowired customKielitestiSuoritusRepository: CustomKielitestiSuoritusRepository,
+        @Autowired koealustaService: KoealustaService,
+        @Autowired timeService: TestTimeService,
+    ) {
+        fun aniitta(kutsumanimi: String) =
+            """
+            {
+              "users": [
+                {
+                  "userid": 40,
+                  "firstnames": "Minerva Alli Aniitta",
+                  "lastname": "Marttila",
+                  "preferredname": "$kutsumanimi",
+                  "SSN": "040265-9985",
+                  "email": "aniitta.marttila@oph.fi",
+                  "courses": [
+                    {
+                      "courseid": 80,
+                      "coursename": "Kurssi kesken",
+                      "schoolOID": "1.2.246.562.10.42923230015",
+                      "teacheremail": "opettaja@testi.oph.fi"
+                    }
+                  ]
+                }
+              ]
+            }
+            """.trimIndent()
+
+        mockServer.expectKeskeneraiset(aniitta("Minerva"))
+        importKeskeneraiset(koealustaService, timeService)
+        mockServer.verify()
+        assertEquals(1, kielitestiSuoritusErrorRepository.findAll().count())
+
+        mockServer.reset()
+        mockServer.expectKeskeneraiset(aniitta("Aniitta"))
+        importKeskeneraiset(koealustaService, timeService)
+        mockServer.verify()
+
+        assertAll(
+            fun() = assertEquals(emptyList(), kielitestiSuoritusErrorRepository.findAll()),
+            fun() =
+                assertEquals(
+                    Oid.parse("1.2.246.562.24.92472049678").getOrThrow(),
+                    customKielitestiSuoritusRepository.findAll().single().oppijanumero,
+                ),
         )
     }
 
