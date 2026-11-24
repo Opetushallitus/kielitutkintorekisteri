@@ -228,6 +228,11 @@ arviointioikeutta, mutta joka viedään Solkiin arvioijakoulutusta varten: häne
 koulutetaan. Kitu ei vielä lähetä koulutettavia, koska hakuprosessin siirto on sopimatta (ks.
 hakuprosessin selvitettävät asiat).
 
+`arviointikausi`ssa ja sen jokaisessa arviointioikeudessa on `id`, jolla Solki voi päivittää omat
+rivinsä. Tunnisteet ovat kitun kausitaulujen rivien id:t ja pysyvät samoina, kun kautta tai sen
+tasoja muokataan. Ne ovat tyhjiä vain arvioijalla, jonka tiedot ovat tulleet Solkin omasta
+pushista eikä kautta ole tallennettu kitussa.
+
 Kun arvioija poistetaan kitusta säilytysajan päätyttyä, kitu lähettää samaan osoitteeseen
 [poistoilmoituksen](./lahtevat-tiedot.md#solki-arvioija-poisto) (`SolkiArvioijaPoistoRequest`):
 oppijanumero, poistohetki ja `tila: POISTETTU`. Ilmoitus odottaa taulussa `yki_arvioija_poisto`,

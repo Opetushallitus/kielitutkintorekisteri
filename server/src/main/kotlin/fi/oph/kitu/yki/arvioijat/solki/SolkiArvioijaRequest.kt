@@ -6,6 +6,7 @@ import fi.oph.kitu.tietosisalto.Kuvaus
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
+import fi.oph.kitu.yki.arvioijat.YkiArviointikausiEntity
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
@@ -69,6 +70,13 @@ data class SolkiArvioijaRequest(
      * viimeinen voimassaolopaiva.
      */
     data class Arviointikausi(
+        @Kuvaus(
+            "Arviointikauden tunniste Kielitutkintorekisterissä",
+            lisatieto =
+                "Tunniste pysyy samana, kun kautta muokataan. Tyhjä, jos kautta ei ole tallennettu " +
+                    "Kielitutkintorekisterissä.",
+        )
+        val id: Int?,
         @Kuvaus("Arviointikauden ensimmäinen voimassaolopäivä", lisatieto = "Tyhjä koulutettavalla.")
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val alkupaiva: LocalDate?,
@@ -82,6 +90,13 @@ data class SolkiArvioijaRequest(
     )
 
     data class Arviointioikeus(
+        @Kuvaus(
+            "Arviointioikeuden tunniste Kielitutkintorekisterissä",
+            lisatieto =
+                "Tunniste pysyy samana, kun arviointioikeuden tasoja muokataan. Tyhjä, jos kautta ei ole " +
+                    "tallennettu Kielitutkintorekisterissä.",
+        )
+        val id: Int?,
         @Kuvaus("Kieli, jonka tutkintoja arvioija saa arvioida")
         val kieli: Tutkintokieli,
         @Kuvaus("Tutkintotasot, joita arvioija saa arvioida tällä kielellä")
@@ -92,10 +107,13 @@ data class SolkiArvioijaRequest(
         /**
          * @param syntymaaika ONR:sta lahetyshetkella. Tyhja vain jos ONR:ssakaan ei ole tietoa;
          *   ONR-katko on eri asia eika saa paatya tanne, ks. [SolkiArvioijaServiceImpl].
+         * @param kaudet arvioijan kaudet, joista sanoman kauden ja arviointioikeuksien tunnisteet
+         *   haetaan. Sisalto kootaan silti projektiosta.
          */
         fun of(
             arvioija: YkiArvioijaEntity,
             syntymaaika: LocalDate?,
+            kaudet: List<YkiArviointikausiEntity> = emptyList(),
         ): SolkiArvioijaRequest =
             SolkiArvioijaRequest(
                 arvioijaOid = arvioija.arvioijaOid.toString(),
@@ -111,22 +129,41 @@ data class SolkiArvioijaRequest(
                 ensimmainenRekisterointipaiva =
                     arvioija.arvioijanEnsimmainenRekisterointipaiva
                         ?: arvioija.arviointioikeudet.minOfOrNull { it.ensimmainenRekisterointipaiva },
-                arviointikausi = arviointikausi(arvioija),
+                arviointikausi = arviointikausi(arvioija, kaudet),
             )
 
-        private fun arviointikausi(arvioija: YkiArvioijaEntity): Arviointikausi? {
+        private fun arviointikausi(
+            arvioija: YkiArvioijaEntity,
+            kaudet: List<YkiArviointikausiEntity>,
+        ): Arviointikausi? {
             val oikeudet = arvioija.arviointioikeudet.filterNot { it.kieli.isLegacy() }.sortedBy { it.kieli }
             if (oikeudet.isEmpty()) return null
+            val alkupaiva = oikeudet.mapNotNull { it.kaudenAlkupaiva }.minOrNull()
+            val paattymispaiva =
+                oikeudet
+                    .map { it.kaudenPaattymispaiva }
+                    .takeIf { paivat -> paivat.none { it == null } }
+                    ?.filterNotNull()
+                    ?.max()
+            val kausi = kaudet.firstOrNull { it.alkupaiva == alkupaiva && it.paattymispaiva == paattymispaiva }
             return Arviointikausi(
-                alkupaiva = oikeudet.mapNotNull { it.kaudenAlkupaiva }.minOrNull(),
-                paattymispaiva =
-                    oikeudet
-                        .map { it.kaudenPaattymispaiva }
-                        .takeIf { paivat -> paivat.none { it == null } }
-                        ?.filterNotNull()
-                        ?.max(),
+                id = kausi?.id?.toInt(),
+                alkupaiva = alkupaiva,
+                paattymispaiva = paattymispaiva,
                 jatkorekisterointi = oikeudet.any { it.jatkorekisterointi },
-                arviointioikeudet = oikeudet.map { Arviointioikeus(kieli = it.kieli, tasot = it.tasot.sorted()) },
+                arviointioikeudet =
+                    oikeudet.map { oikeus ->
+                        Arviointioikeus(
+                            id =
+                                kausi
+                                    ?.oikeudet
+                                    ?.firstOrNull { it.kieli == oikeus.kieli }
+                                    ?.id
+                                    ?.toInt(),
+                            kieli = oikeus.kieli,
+                            tasot = oikeus.tasot.sorted(),
+                        )
+                    },
             )
         }
     }

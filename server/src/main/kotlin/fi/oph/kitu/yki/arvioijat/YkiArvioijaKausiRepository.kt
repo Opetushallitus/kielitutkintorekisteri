@@ -117,8 +117,7 @@ class YkiArvioijaKausiRepository(
             kausiId,
         )
 
-        jdbcTemplate.update("DELETE FROM yki_arvioija_arviointikausi_oikeus WHERE kausi_id = ?", kausiId)
-        kirjoitaOikeudet(kausiId, oikeudet)
+        korvaaOikeudet(kausiId, oikeudet)
     }
 
     /**
@@ -457,11 +456,7 @@ class YkiArvioijaKausiRepository(
                         oikeudet.maxOf { it.kaudenPaattymispaiva!! }
                     }
                 val kausiId = upsertKausi(arvioijaId, alkupaiva, paattymispaiva, tekija)
-                jdbcTemplate.update(
-                    "DELETE FROM yki_arvioija_arviointikausi_oikeus WHERE kausi_id = ?",
-                    kausiId,
-                )
-                kirjoitaOikeudet(kausiId, oikeudet.map { Kausioikeus(it.kieli, it.tasot) })
+                korvaaOikeudet(kausiId, oikeudet.map { Kausioikeus(it.kieli, it.tasot) })
             }
         paivitaEnsimmainenRekisterointipaiva(arvioijaId)
     }
@@ -559,6 +554,26 @@ class YkiArvioijaKausiRepository(
             a.kaudenPaattymispaiva == b.kaudenPaattymispaiva &&
             a.jatkorekisterointi == b.jatkorekisterointi
 
+    /**
+     * Rivin id lahetetaan Solkiin arviointioikeuden tunnisteena, joten olemassa olevan kielen rivi
+     * paivitetaan paikallaan eika sita poisteta ja lisata uudelleen.
+     */
+    private fun korvaaOikeudet(
+        kausiId: Int,
+        oikeudet: List<Kausioikeus>,
+    ) {
+        jdbcTemplate.update { connection ->
+            connection
+                .prepareStatement(
+                    "DELETE FROM yki_arvioija_arviointikausi_oikeus WHERE kausi_id = ? AND kieli::text <> ALL (?)",
+                ).apply {
+                    setInt(1, kausiId)
+                    setArray(2, connection.createArrayOf("text", oikeudet.map { it.kieli.toString() }.toTypedArray()))
+                }
+        }
+        kirjoitaOikeudet(kausiId, oikeudet)
+    }
+
     private fun kirjoitaOikeudet(
         kausiId: Int,
         oikeudet: List<Kausioikeus>,
@@ -568,6 +583,8 @@ class YkiArvioijaKausiRepository(
             """
             INSERT INTO yki_arvioija_arviointikausi_oikeus (kausi_id, kieli, tasot)
             VALUES (?, ?, ?)
+            ON CONFLICT ON CONSTRAINT yki_arvioija_arviointikausi_oikeus_unique
+                DO UPDATE SET tasot = EXCLUDED.tasot
             """.trimIndent(),
             oikeudet,
             oikeudet.size,

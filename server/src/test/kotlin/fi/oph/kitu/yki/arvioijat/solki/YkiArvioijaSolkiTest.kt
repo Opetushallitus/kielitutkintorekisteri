@@ -11,8 +11,10 @@ import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
+import fi.oph.kitu.yki.arvioijat.Kausioikeus
 import fi.oph.kitu.yki.arvioijat.Tallennuslahde
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoistoRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
@@ -43,6 +45,7 @@ import kotlin.test.assertTrue
 class YkiArvioijaSolkiTest(
     @param:Autowired private val repository: YkiArvioijaRepository,
     @param:Autowired private val poistoRepository: YkiArvioijaPoistoRepository,
+    @param:Autowired private val kausiRepository: YkiArvioijaKausiRepository,
     @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val timeService: TestTimeService,
     @param:Autowired private val oppijanumeroService: OppijanumeroService,
@@ -81,6 +84,7 @@ class YkiArvioijaSolkiTest(
             SolkiArvioijaServiceImpl(
                 repository,
                 poistoRepository,
+                kausiRepository,
                 stub,
                 oppijanumeroService,
                 ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = true),
@@ -187,11 +191,103 @@ class YkiArvioijaSolkiTest(
         assertEquals(LocalDate.of(2029, 1, 1), kausi.paattymispaiva)
         assertEquals(
             listOf(
-                SolkiArvioijaRequest.Arviointioikeus(Tutkintokieli.FIN, listOf(Tutkintotaso.PT, Tutkintotaso.KT)),
-                SolkiArvioijaRequest.Arviointioikeus(Tutkintokieli.SWE, listOf(Tutkintotaso.YT)),
+                Tutkintokieli.FIN to listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                Tutkintokieli.SWE to listOf(Tutkintotaso.YT),
             ),
-            kausi.arviointioikeudet,
+            kausi.arviointioikeudet.map { it.kieli to it.tasot },
         )
+    }
+
+    @Test
+    fun `sanomassa on kauden ja arviointioikeuksien tunnisteet`() {
+        val id =
+            tallenna(
+                kielet =
+                    mapOf(
+                        Tutkintokieli.FIN to setOf(Tutkintotaso.PT),
+                        Tutkintokieli.SWE to setOf(Tutkintotaso.YT),
+                    ),
+            )
+        val tallennettu = kausiRepository.findKaudet(id).single()
+
+        timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
+
+        val kausi = stub.lahetetyt.single().arviointikausi!!
+        assertEquals(tallennettu.id?.toInt(), kausi.id)
+        assertEquals(
+            tallennettu.oikeudet.associate { it.kieli to it.id?.toInt() },
+            kausi.arviointioikeudet.associate { it.kieli to it.id },
+        )
+        assertTrue(kausi.arviointioikeudet.none { it.id == null })
+    }
+
+    @Test
+    fun `tunnisteet ovat tyhjia kun kautta ei ole tallennettu kitussa`() {
+        tallenna(lahde = Tallennuslahde.SOLKI)
+        val id = repository.findByArvioijaOid(Oid.parse("1.2.246.562.24.20281155246").getOrThrow())!!.id!!.toInt()
+        assertEquals(0, kausiRepository.findKaudet(id).size)
+
+        solki.lahetaArvioijaKasin(repository.findArvioijaById(id)!!)
+
+        val kausi = stub.lahetetyt.single().arviointikausi!!
+        assertNull(kausi.id)
+        assertEquals(listOf(null), kausi.arviointioikeudet.map { it.id })
+    }
+
+    @Test
+    fun `arviointioikeuden tunniste sailyy kun arvioija tallennetaan uudelleen`() {
+        val id =
+            tallenna(
+                kielet =
+                    mapOf(
+                        Tutkintokieli.FIN to setOf(Tutkintotaso.PT),
+                        Tutkintokieli.SWE to setOf(Tutkintotaso.YT),
+                    ),
+            )
+        val ennen = kausiRepository.findKaudet(id).single()
+
+        tallenna(
+            kielet =
+                mapOf(
+                    Tutkintokieli.FIN to setOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                    Tutkintokieli.ENG to setOf(Tutkintotaso.PT),
+                ),
+        )
+
+        val jalkeen = kausiRepository.findKaudet(id).single()
+        assertEquals(ennen.id, jalkeen.id)
+        assertEquals(setOf(Tutkintokieli.FIN, Tutkintokieli.ENG), jalkeen.oikeudet.map { it.kieli }.toSet())
+        val fin = jalkeen.oikeudet.single { it.kieli == Tutkintokieli.FIN }
+        assertEquals(ennen.oikeudet.single { it.kieli == Tutkintokieli.FIN }.id, fin.id)
+        assertEquals(setOf(Tutkintotaso.PT, Tutkintotaso.KT), fin.tasot)
+    }
+
+    @Test
+    fun `arviointioikeuden tunniste sailyy kun kautta muokataan`() {
+        val id =
+            tallenna(
+                kielet =
+                    mapOf(
+                        Tutkintokieli.FIN to setOf(Tutkintotaso.PT),
+                        Tutkintokieli.SWE to setOf(Tutkintotaso.YT),
+                    ),
+            )
+        val ennen = kausiRepository.findKaudet(id).single()
+
+        kausiRepository.paivitaKausi(
+            kausiId = ennen.id!!.toInt(),
+            alkupaiva = ennen.alkupaiva,
+            paattymispaiva = LocalDate.of(2030, 1, 1),
+            oikeudet = listOf(Kausioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.KT))),
+            ashaNumero = null,
+            tekija = null,
+        )
+
+        val jalkeen = kausiRepository.findKaudet(id).single()
+        assertEquals(ennen.id, jalkeen.id)
+        val fin = jalkeen.oikeudet.single()
+        assertEquals(ennen.oikeudet.single { it.kieli == Tutkintokieli.FIN }.id, fin.id)
+        assertEquals(setOf(Tutkintotaso.KT), fin.tasot)
     }
 
     @Test
@@ -455,6 +551,7 @@ class YkiArvioijaSolkiTest(
         SolkiArvioijaServiceImpl(
             repository,
             poistoRepository,
+            kausiRepository,
             stub,
             oppijanumeroService,
             ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = false),

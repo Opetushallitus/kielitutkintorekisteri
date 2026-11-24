@@ -4,6 +4,7 @@ import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoisto
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoistoRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
@@ -55,6 +56,7 @@ interface SolkiArvioijaService {
 open class SolkiArvioijaServiceImpl(
     private val repository: YkiArvioijaRepository,
     private val poistoRepository: YkiArvioijaPoistoRepository,
+    private val kausiRepository: YkiArvioijaKausiRepository,
     private val client: SolkiArvioijaClient,
     private val oppijanumeroService: OppijanumeroService,
     private val asetukset: ArvioijarekisteriAsetukset,
@@ -150,7 +152,7 @@ open class SolkiArvioijaServiceImpl(
         syntymaaika: LocalDate?,
     ): Lahetystulos =
         client
-            .laheta(SolkiArvioijaRequest.of(arvioija, syntymaaika))
+            .laheta(SolkiArvioijaRequest.of(arvioija, syntymaaika, kausiRepository.findKaudet(id)))
             .fold(
                 ifLeft = { virhe ->
                     repository.merkitseLahetysvirhe(id, virhe.debugString())

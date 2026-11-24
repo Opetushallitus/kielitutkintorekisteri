@@ -55,6 +55,8 @@ sealed interface Muoto {
 
     data object KyllaEi : Muoto
 
+    data object Kokonaisluku : Muoto
+
     data object EiKaytossa : Muoto
 
     data class Valinta(
@@ -155,6 +157,10 @@ private fun muoto(
 
         luokka == Boolean::class -> {
             eiTarkennusta(Muoto.KyllaEi)
+        }
+
+        luokka == Int::class -> {
+            eiTarkennusta(Muoto.Kokonaisluku)
         }
 
         luokka == LocalDate::class -> {

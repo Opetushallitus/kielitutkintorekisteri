@@ -170,6 +170,10 @@ class LahtevatTiedotDokumenttiTest {
                     arvo.isBoolean
                 }
 
+                Muoto.Kokonaisluku -> {
+                    arvo.isIntegralNumber
+                }
+
                 Muoto.EiKaytossa -> {
                     arvo.isNull
                 }

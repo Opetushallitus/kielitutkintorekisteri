@@ -308,6 +308,7 @@ Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
+| Arviointikauden tunniste Kielitutkintorekisterissä. Tunniste pysyy samana, kun kautta muokataan. Tyhjä, jos kautta ei ole tallennettu Kielitutkintorekisterissä. | ei | kokonaisluku | `id` |
 | Arviointikauden ensimmäinen voimassaolopäivä. Tyhjä koulutettavalla. | ei | päivämäärä (vvvv-kk-pp) | `alkupaiva` |
 | Arviointikauden viimeinen voimassaolopäivä. Tyhjä koulutettavalla. | ei | päivämäärä (vvvv-kk-pp) | `paattymispaiva` |
 | Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle | kyllä | kyllä tai ei | `jatkorekisterointi` |
@@ -321,6 +322,7 @@ Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sano
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
+| Arviointioikeuden tunniste Kielitutkintorekisterissä. Tunniste pysyy samana, kun arviointioikeuden tasoja muokataan. Tyhjä, jos kautta ei ole tallennettu Kielitutkintorekisterissä. | ei | kokonaisluku | `id` |
 | Kieli, jonka tutkintoja arvioija saa arvioida | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi) | `kieli` |
 | Tutkintotasot, joita arvioija saa arvioida tällä kielellä | kyllä | lista: `PT` (Perustaso), `KT` (Keskitaso), `YT` (Ylin taso) | `tasot[]` |
 
