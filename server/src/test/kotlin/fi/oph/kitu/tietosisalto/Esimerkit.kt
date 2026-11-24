@@ -99,25 +99,50 @@ object Esimerkit {
             postinumero = "00100",
             postitoimipaikka = "Helsinki",
             ensimmainenRekisterointipaiva = LocalDate.of(2020, 1, 1),
-            arviointikausi =
-                SolkiArvioijaRequest.Arviointikausi(
-                    id = 412,
-                    alkupaiva = LocalDate.of(2025, 1, 1),
-                    paattymispaiva = LocalDate.of(2029, 12, 31),
-                    jatkorekisterointi = true,
-                    arviointioikeudet =
-                        listOf(
-                            SolkiArvioijaRequest.Arviointioikeus(
-                                id = 981,
-                                kieli = Tutkintokieli.FIN,
-                                tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+            arviointikaudet =
+                listOf(
+                    SolkiArvioijaRequest.Arviointikausi(
+                        id = 207,
+                        alkupaiva = LocalDate.of(2020, 1, 1),
+                        paattymispaiva = LocalDate.of(2024, 12, 31),
+                        jatkorekisterointi = false,
+                        arviointioikeudet =
+                            listOf(
+                                SolkiArvioijaRequest.Arviointioikeus(
+                                    id = 655,
+                                    kieli = Tutkintokieli.FIN,
+                                    tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                                ),
                             ),
-                            SolkiArvioijaRequest.Arviointioikeus(
-                                id = 982,
-                                kieli = Tutkintokieli.SWE,
-                                tasot = listOf(Tutkintotaso.YT),
+                    ),
+                    SolkiArvioijaRequest.Arviointikausi(
+                        id = 412,
+                        alkupaiva = LocalDate.of(2025, 1, 1),
+                        paattymispaiva = LocalDate.of(2029, 12, 31),
+                        jatkorekisterointi = true,
+                        arviointioikeudet =
+                            listOf(
+                                SolkiArvioijaRequest.Arviointioikeus(
+                                    id = 981,
+                                    kieli = Tutkintokieli.FIN,
+                                    tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
+                                ),
                             ),
-                        ),
+                    ),
+                    SolkiArvioijaRequest.Arviointikausi(
+                        id = 430,
+                        alkupaiva = LocalDate.of(2026, 3, 1),
+                        paattymispaiva = LocalDate.of(2031, 2, 28),
+                        jatkorekisterointi = true,
+                        arviointioikeudet =
+                            listOf(
+                                SolkiArvioijaRequest.Arviointioikeus(
+                                    id = 1010,
+                                    kieli = Tutkintokieli.SWE,
+                                    tasot = listOf(Tutkintotaso.YT),
+                                ),
+                            ),
+                    ),
                 ),
         )
 

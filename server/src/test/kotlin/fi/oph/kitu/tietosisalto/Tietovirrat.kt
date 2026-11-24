@@ -151,10 +151,14 @@ object Tietovirrat {
                         Tarkennus.Arvot(
                             listOf(SolkiArvioijaRequest.Tila.ARVIOIJA, SolkiArvioijaRequest.Tila.KOULUTETTAVA),
                         ),
-                    "arviointikausi.arviointioikeudet[].kieli" to nykyisetKielet,
+                    "arviointikaudet[].arviointioikeudet[].kieli" to nykyisetKielet,
                 ),
             huomiot =
                 listOf(
+                    "Lähetyksessä ovat joka kerta arvioijan kaikki arviointikaudet. Kausi tai arviointioikeus, " +
+                        "jota lähetyksessä ei enää ole, on poistettu Kielitutkintorekisteristä.",
+                    "Arvioijalla voi olla samaan aikaan voimassa useampi arviointikausi eri kielille. Samalla " +
+                        "kielellä kaudet eivät ole päällekkäin.",
                     "Koulutettavan arviointikaudessa ei ole päiviä, ja sen arviointioikeudet ovat kielet ja " +
                         "tasot, joihin henkilö koulutetaan. Kielitutkintorekisteri ei vielä lähetä koulutettavia.",
                     "Henkilötunnusta ei lähetetä.",

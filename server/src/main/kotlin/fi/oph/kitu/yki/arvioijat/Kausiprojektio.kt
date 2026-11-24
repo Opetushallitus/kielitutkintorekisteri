@@ -3,8 +3,10 @@ package fi.oph.kitu.yki.arvioijat
 import java.time.LocalDate
 
 /**
- * `yki_arviointioikeus` on johdettu `yki_arvioija_arviointikausi`sta. Valinta riippuu kuluvasta
- * paivasta, joten projektio vanhenee kun tuleva kausi alkaa; sen korjaa yollinen ajo.
+ * `yki_arviointioikeus` on johdettu `yki_arvioija_arviointikausi`sta: jokainen kieli saa rivin
+ * siita kaudesta, joka kielella on voimassa, tulossa tai viimeksi paattynyt. Arvioijalla voi olla
+ * samaan aikaan eri kielilla eri kausi. Valinta riippuu kuluvasta paivasta, joten projektio
+ * vanhenee kun tuleva kausi alkaa; sen korjaa yollinen ajo.
  */
 object Kausiprojektio {
     /**
@@ -35,26 +37,31 @@ object Kausiprojektio {
         nykyiset: List<YkiArviointioikeusEntity>,
         tanaan: LocalDate,
     ): List<YkiArviointioikeusEntity> {
-        val kausi = projisoitava(kaudet, tanaan) ?: return emptyList()
         val ensimmainen =
             listOfNotNull(ensimmainenRekisterointipaiva, kaudet.minOfOrNull { it.alkupaiva })
-                .minOrNull() ?: kausi.alkupaiva
+                .minOrNull() ?: return emptyList()
 
-        return kausi.oikeudet.map { oikeus ->
-            YkiArviointioikeusEntity(
-                id = null,
-                arvioijaId = null,
-                kieli = oikeus.kieli,
-                tasot = oikeus.tasot,
-                tila = null,
-                kaudenAlkupaiva = kausi.alkupaiva,
-                kaudenPaattymispaiva = kausi.paattymispaiva,
-                jatkorekisterointi = kausi.alkupaiva > ensimmainen,
-                ensimmainenRekisterointipaiva = ensimmainen,
-                rekisteriintuontiaika = null,
-                ashaNumero = kausi.ashaNumero,
-            )
-        }
+        return kaudet
+            .flatMap { kausi -> kausi.oikeudet.map { it.kieli } }
+            .distinct()
+            .sorted()
+            .mapNotNull { kieli ->
+                val kausi = projisoitava(kaudet.filter { k -> k.oikeudet.any { it.kieli == kieli } }, tanaan)
+                val oikeus = kausi?.oikeudet?.firstOrNull { it.kieli == kieli } ?: return@mapNotNull null
+                YkiArviointioikeusEntity(
+                    id = null,
+                    arvioijaId = null,
+                    kieli = kieli,
+                    tasot = oikeus.tasot,
+                    tila = null,
+                    kaudenAlkupaiva = kausi.alkupaiva,
+                    kaudenPaattymispaiva = kausi.paattymispaiva,
+                    jatkorekisterointi = kausi.alkupaiva > ensimmainen,
+                    ensimmainenRekisterointipaiva = ensimmainen,
+                    rekisteriintuontiaika = null,
+                    ashaNumero = kausi.ashaNumero,
+                )
+            }
     }
 
     /**

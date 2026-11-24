@@ -127,6 +127,34 @@ class YkiArvioijaKausiLahetysTest(
         )
     }
 
+    @Test
+    fun `paattyneen kauden poisto lahetetaan Solkiin vaikka projektio ei muutu`() {
+        val id = repository.findByArvioijaOid(Oid.parse(petro).getOrThrow())!!.id!!.toInt()
+
+        timeService.runWithFixedClock(Instant.parse("2026-06-01T09:00:00Z")) {
+            kausiService.lisaaKausi(
+                id,
+                TallennaKausi(
+                    arvioijaId = id,
+                    kausiId = null,
+                    alkupaiva = LocalDate.of(2026, 2, 1),
+                    arviointioikeudet = listOf(Kausioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.PT))),
+                    ashaNumero = null,
+                ),
+                null,
+            )
+            val vanha = kausiService.haeKaudet(id).single { it.alkupaiva != LocalDate.of(2026, 2, 1) }
+
+            kausiService.poistaKausi(id, vanha.id!!.toInt(), null)
+        }
+
+        assertEquals(
+            2,
+            TransaktiotaValvovaSolki.kausiNakyvissaLahetettaessa.size,
+            "Solkiin lahtevat kaikki kaudet, joten myos vanhan kauden muutos on lahetettava",
+        )
+    }
+
     private fun testiarvioija() =
         arvioija(
             oid = Oid.parse(petro).getOrThrow(),

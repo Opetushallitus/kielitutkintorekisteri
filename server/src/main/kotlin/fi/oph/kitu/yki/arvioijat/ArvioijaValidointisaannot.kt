@@ -97,33 +97,53 @@ private val PUHELINNUMERO = Regex("""\+?[0-9 ()-]{5,30}""")
 private val SAHKOPOSTI = Regex("""[^@\s]+@[^@\s.]+(\.[^@\s.]+)+""")
 
 /**
- * OPH:n saanto: henkilolla ei voi olla paallekkaisia arviointikausia. Tarkistus on kummallakin
- * kirjoituspolulla, koska lisayslomake toimii myos jatkokauden kirjaamisena.
+ * Henkilolla voi olla samaan aikaan useampi arviointikausi, kunhan niilla ei ole yhteista kielta.
+ * Kahta kautta samoilla paivilla ei sallita: ne olisivat yksi kausi, ja kannan uniikkiehto kattaa
+ * paivaparin. Tarkistus on kummallakin kirjoituspolulla, koska lisayslomake toimii myos
+ * jatkokauden kirjaamisena.
  */
 internal fun Raise<ValidationError>.validateEiPaallekkaisiaKausia(
     kaudet: List<YkiArviointikausiEntity>,
     alkupaiva: LocalDate,
     paattymispaiva: LocalDate?,
+    kielet: Set<Tutkintokieli>,
     ohitaKausiId: Int? = null,
     kentta: String,
 ) {
-    val paallekkainen =
-        kaudet
-            .filter { it.id?.toInt() != ohitaKausiId }
-            .firstOrNull { kausi ->
-                !paattyyEnnen(paattymispaiva, kausi.alkupaiva) &&
-                    !paattyyEnnen(kausi.paattymispaiva, alkupaiva)
-            }
+    val muut = kaudet.filter { it.id?.toInt() != ohitaKausiId }
 
-    ensure(paallekkainen == null) {
-        val jakso = "${paallekkainen.alkupaiva.finnishDate()}–${paallekkainen.paattymispaiva?.finnishDate() ?: ""}"
+    val samatPaivat = muut.firstOrNull { it.alkupaiva == alkupaiva && it.paattymispaiva == paattymispaiva }
+    ensure(samatPaivat == null) {
         ValidationError(
             listOf(kentta),
-            "Kausi menee päällekkäin arviointikauden $jakso kanssa. " +
-                "Henkilöllä ei voi olla päällekkäisiä arviointikausia.",
+            "Henkilöllä on jo arviointikausi ${jakso(samatPaivat)}. Lisää kieli olemassa olevaan kauteen.",
+        )
+    }
+
+    val paallekkainen =
+        muut.firstOrNull { kausi ->
+            kausi.oikeudet.any { it.kieli in kielet } &&
+                !paattyyEnnen(paattymispaiva, kausi.alkupaiva) &&
+                !paattyyEnnen(kausi.paattymispaiva, alkupaiva)
+        }
+
+    ensure(paallekkainen == null) {
+        val yhteiset =
+            paallekkainen.oikeudet
+                .map { it.kieli }
+                .filter { it in kielet }
+                .sorted()
+                .joinToString(", ") { it.nimi.toString() }
+        ValidationError(
+            listOf(kentta),
+            "Kausi menee päällekkäin arviointikauden ${jakso(paallekkainen)} kanssa. " +
+                "Henkilöllä ei voi olla samalla kielellä päällekkäisiä arviointikausia ($yhteiset).",
         )
     }
 }
+
+private fun jakso(kausi: YkiArviointikausiEntity): String =
+    "${kausi.alkupaiva.finnishDate()}–${kausi.paattymispaiva?.finnishDate() ?: ""}"
 
 /** Tyhja paattymispaiva tarkoittaa toistaiseksi voimassa olevaa, joten se ei paaty ennen mitaan. */
 private fun paattyyEnnen(

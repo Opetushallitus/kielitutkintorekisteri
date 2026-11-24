@@ -77,7 +77,8 @@ Selvitettävät asiat:
 3. Kitu tallentaa jatkokauden uutena kautena. Mitä muutoksia tämä vaatii Solkin päässä, jonka
    nykyinen käyttöliittymä korvaa aiemman kauden?
 4. Jos arvioija saa kesken kauden oikeuden uuteen kieleen tai tasoon, saako se oman, eri aikaan
-   päättyvän kautensa vai merkitäänkö yksi yhteinen kausi? Kitussa kausi on arvioijakohtainen.
+   päättyvän kautensa vai merkitäänkö yksi yhteinen kausi? Kitu tukee kumpaakin: uuden kielen voi
+   lisätä olemassa olevaan kauteen tai sille voi kirjata oman, samaan aikaan voimassa olevan kauden.
 
 Lisäksi on selvitettävä, päättyykö arvioijan käyttöoikeus Solkin YKI-sovellukseen automaattisesti,
 kun arviointikausi päättyy.
@@ -224,14 +225,20 @@ puhelinnumero, arviointikauden tila, käytöstä poistuneet kielet), on lueteltu
 
 Sanoman `tila` on `ARVIOIJA` tai `KOULUTETTAVA`. Koulutettava on henkilö, jolla ei vielä ole
 arviointioikeutta, mutta joka viedään Solkiin arvioijakoulutusta varten: hänen
-`arviointikausi`ssaan ei ole päiviä, ja sen arviointioikeudet ovat kielet ja tasot, joihin hänet
+arviointikaudessaan ei ole päiviä, ja sen arviointioikeudet ovat kielet ja tasot, joihin hänet
 koulutetaan. Kitu ei vielä lähetä koulutettavia, koska hakuprosessin siirto on sopimatta (ks.
 hakuprosessin selvitettävät asiat).
 
-`arviointikausi`ssa ja sen jokaisessa arviointioikeudessa on `id`, jolla Solki voi päivittää omat
+Sanoman `arviointikaudet`-listassa ovat joka kerta arvioijan kaikki kaudet: päättyneet, voimassa
+olevat ja tulevat. Lista on täydellinen, eli siitä puuttuva kausi tai arviointioikeus on poistettu
+kitusta. Arvioijalla voi olla samaan aikaan voimassa useampi kausi eri kielille, mutta samalla
+kielellä kaudet eivät ole päällekkäin. Siksi jokainen kausimuutos lähetetään Solkille, myös
+päättyneen kauden korjaus.
+
+Jokaisessa kaudessa ja sen jokaisessa arviointioikeudessa on `id`, jolla Solki voi päivittää omat
 rivinsä. Tunnisteet ovat kitun kausitaulujen rivien id:t ja pysyvät samoina, kun kautta tai sen
 tasoja muokataan. Ne ovat tyhjiä vain arvioijalla, jonka tiedot ovat tulleet Solkin omasta
-pushista eikä kautta ole tallennettu kitussa.
+pushista eikä kautta ole tallennettu kitussa: hänen kautensa kootaan arviointioikeuksien päivistä.
 
 Kun arvioija poistetaan kitusta säilytysajan päätyttyä, kitu lähettää samaan osoitteeseen
 [poistoilmoituksen](./lahtevat-tiedot.md#solki-arvioija-poisto) (`SolkiArvioijaPoistoRequest`):
@@ -279,7 +286,9 @@ kirjoita: nimet tulevat ONR:stä ja kaudet kitusta.
 ### Kytkin `kitu.yki.arvioijarekisteri.integraatio.enabled`
 
 Ohjaa molempia suuntia sekä yöllistä `paivitaArvioijaProjektiot`-ajoa (`DAILY|03:15`), joka pitää
-`yki_arviointioikeus`-projektion ajan tasalla kausimasterin kanssa.
+`yki_arviointioikeus`-projektion ajan tasalla kausimasterin kanssa. Projektiossa jokaisella kielellä
+on rivi siitä kaudesta, joka kielellä on voimassa, tulossa tai viimeksi päättynyt. Ajo ei lähetä
+mitään Solkille, koska sanomassa ovat aina kaikki kaudet.
 
 - **Päällä:** lähetys on käytössä ja sisääntulo kavennetaan yhteystietoihin.
 - **Pois:** lähetettävät rivit jäävät jonoon ja lähtevät takautuvasti kytkimen avautuessa, ja

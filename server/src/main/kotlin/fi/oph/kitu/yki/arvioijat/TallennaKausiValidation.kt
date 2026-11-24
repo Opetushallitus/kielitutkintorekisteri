@@ -77,6 +77,7 @@ class TallennaKausiValidation(
             kaudet = kausiRepository.findKaudet(value.arvioijaId),
             alkupaiva = value.alkupaiva,
             paattymispaiva = value.paattymispaiva,
+            kielet = value.arviointioikeudet.map { it.kieli }.toSet(),
             ohitaKausiId = value.kausiId,
             kentta = "alkupaiva",
         )

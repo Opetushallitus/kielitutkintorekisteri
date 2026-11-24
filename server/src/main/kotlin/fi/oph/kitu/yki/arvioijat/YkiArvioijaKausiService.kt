@@ -28,8 +28,8 @@ class YkiArvioijaKausiService(
 ) {
     /**
      * Projisoitava kausi riippuu kuluvasta paivasta, joten projektio vanhenee kun tuleva kausi
-     * alkaa. Ajo kirjoittaa vain tosiasiassa muuttuneet rivit, jottei koko rekisteri paady
-     * turhaan Solki-lahetysjonoon.
+     * alkaa. Solkiin lahtevat aina kaikki kaudet, joten sanoma ei muutu eika rivia palauteta
+     * lahetysjonoon.
      *
      * Integraatiokytkimen ollessa pois paalta kitu ei ole master, joten projektiota ei kosketa:
      * muuten migraation aikainen tilannekuva yliajaisi Solkin tuoreemman datan.
@@ -40,9 +40,7 @@ class YkiArvioijaKausiService(
         val tanaan = timeService.today()
 
         return kausiRepository.findArvioijaIdt().count { arvioijaId ->
-            val muuttui = kausiRepository.paivitaProjektio(arvioijaId, tanaan)
-            if (muuttui) kausiRepository.merkitseMuuttuneeksi(arvioijaId, null)
-            muuttui
+            kausiRepository.paivitaProjektio(arvioijaId, tanaan)
         }
     }
 
@@ -60,7 +58,7 @@ class YkiArvioijaKausiService(
             if (oikeudet.isEmpty()) {
                 false
             } else {
-                kausiRepository.synkronoiKaudet(arvioijaId, oikeudet, null)
+                kausiRepository.synkronoiKaudet(arvioijaId, oikeudet, null, poistaPuuttuvatKielet = true)
                 true
             }
         }
@@ -199,9 +197,8 @@ class YkiArvioijaKausiService(
     }
 
     /**
-     * Projektio kirjoitetaan uusiksi vasta kausimuutoksen jalkeen. Lahetysjonoon rivi palautetaan
-     * vain jos projektio tosiasiassa muuttui: vanhan, ei-projisoitavan kauden korjaus ei muuta
-     * Solkille lahtevaa sisaltoa.
+     * Projektio kirjoitetaan uusiksi vasta kausimuutoksen jalkeen. Solkiin lahtevat kaikki kaudet,
+     * joten jokainen kausimuutos palauttaa rivin lahetysjonoon, myos paattyneen kauden korjaus.
      */
     private fun paivitaJohdetutTiedot(
         arvioijaId: Int,
@@ -209,12 +206,10 @@ class YkiArvioijaKausiService(
         tanaan: LocalDate,
     ) {
         kausiRepository.paivitaEnsimmainenRekisterointipaiva(arvioijaId)
-        val muuttui = kausiRepository.paivitaProjektio(arvioijaId, tanaan)
+        kausiRepository.paivitaProjektio(arvioijaId, tanaan)
         kausiRepository.poistaPassivointileimaJosKausiVoimassaTaiTulossa(arvioijaId, tanaan)
-        if (muuttui) {
-            kausiRepository.merkitseMuuttuneeksi(arvioijaId, tekija)
-            lahetaSolkiinCommitinJalkeen(arvioijaId)
-        }
+        kausiRepository.merkitseMuuttuneeksi(arvioijaId, tekija)
+        lahetaSolkiinCommitinJalkeen(arvioijaId)
     }
 
     /**

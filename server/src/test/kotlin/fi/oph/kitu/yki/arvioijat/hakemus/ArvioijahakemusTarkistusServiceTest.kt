@@ -195,6 +195,31 @@ class ArvioijahakemusTarkistusServiceTest(
     }
 
     @Test
+    fun `uuden kielen hakemukselle ehdotetaan tata paivaa vaikka toisen kielen kausi on voimassa`() {
+        luoOlemassaoleva(LocalDate.of(2025, 1, 1))
+        porrasta(
+            hakemus =
+                tarkistettava("h1").hakemus.copy(
+                    arviointioikeudet =
+                        listOf(TallennaArvioija.Arviointioikeus(Tutkintokieli.SWE, setOf(Tutkintotaso.YT))),
+                ),
+        )
+
+        val form = lomake()
+        assertEquals(TANAAN, form.kaudenAlkupaiva)
+
+        vahvista(form.copy(ashaNumero = asha)).getOrThrow()
+
+        assertEquals(
+            listOf(
+                LocalDate.of(2025, 1, 1) to listOf(Tutkintokieli.FIN),
+                TANAAN to listOf(Tutkintokieli.SWE),
+            ),
+            kaudet().map { kausi -> kausi.alkupaiva to kausi.oikeudet.map { it.kieli } },
+        )
+    }
+
+    @Test
     fun `muu kuin edellista kautta jatkava alkupaiva ei saa olla yli vuoden paassa`() {
         luoOlemassaoleva(LocalDate.of(2025, 1, 1))
         porrasta()

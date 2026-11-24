@@ -59,6 +59,7 @@ class TallennaArvioijaValidation(
                     kaudet = kaudet,
                     alkupaiva = value.kaudenAlkupaiva,
                     paattymispaiva = value.kaudenPaattymispaiva,
+                    kielet = value.arviointioikeudet.map { it.kieli }.toSet(),
                     kentta = "kaudenAlkupaiva",
                 )
             }

@@ -121,7 +121,11 @@ class YkiArvioijaSolkiTest(
         assertEquals("1.2.246.562.24.20281155246", request.arvioijaOid)
         assertNotNull(request.versio, "versio = kitun muokattu")
         assertEquals(SolkiArvioijaRequest.Tila.ARVIOIJA, request.tila)
-        val oikeus = request.arviointikausi!!.arviointioikeudet.single()
+        val oikeus =
+            request.arviointikaudet
+                .single()
+                .arviointioikeudet
+                .single()
         assertEquals(Tutkintokieli.FIN, oikeus.kieli)
         assertEquals(listOf(Tutkintotaso.PT), oikeus.tasot)
         assertEquals(LocalDate.of(1980, 1, 1), request.syntymapaiva, "syntymaaika haetaan ONR:sta")
@@ -169,7 +173,11 @@ class YkiArvioijaSolkiTest(
 
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
 
-        val kausi = stub.lahetetyt.single().arviointikausi!!
+        val kausi =
+            stub.lahetetyt
+                .single()
+                .arviointikaudet
+                .single()
         assertEquals(LocalDate.of(2030, 1, 1), kausi.alkupaiva)
         assertEquals(LocalDate.of(2034, 12, 31), kausi.paattymispaiva)
     }
@@ -186,7 +194,11 @@ class YkiArvioijaSolkiTest(
 
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
 
-        val kausi = stub.lahetetyt.single().arviointikausi!!
+        val kausi =
+            stub.lahetetyt
+                .single()
+                .arviointikaudet
+                .single()
         assertEquals(LocalDate.of(2024, 1, 1), kausi.alkupaiva)
         assertEquals(LocalDate.of(2029, 1, 1), kausi.paattymispaiva)
         assertEquals(
@@ -212,7 +224,11 @@ class YkiArvioijaSolkiTest(
 
         timeService.runWithFixedClock(hetki) { solki.lahetaLahettamattomat() }
 
-        val kausi = stub.lahetetyt.single().arviointikausi!!
+        val kausi =
+            stub.lahetetyt
+                .single()
+                .arviointikaudet
+                .single()
         assertEquals(tallennettu.id?.toInt(), kausi.id)
         assertEquals(
             tallennettu.oikeudet.associate { it.kieli to it.id?.toInt() },
@@ -229,9 +245,74 @@ class YkiArvioijaSolkiTest(
 
         solki.lahetaArvioijaKasin(repository.findArvioijaById(id)!!)
 
-        val kausi = stub.lahetetyt.single().arviointikausi!!
+        val kausi =
+            stub.lahetetyt
+                .single()
+                .arviointikaudet
+                .single()
         assertNull(kausi.id)
         assertEquals(listOf(null), kausi.arviointioikeudet.map { it.id })
+    }
+
+    @Test
+    fun `sanomassa ovat kaikki kaudet, myos paattyneet ja samanaikaiset`() {
+        val id = tallenna(kaudenAlkupaiva = LocalDate.of(2019, 1, 1), kaudenPaattymispaiva = LocalDate.of(2023, 12, 31))
+        kausiRepository.lisaaKausi(
+            id,
+            LocalDate.of(2024, 1, 1),
+            LocalDate.of(2028, 12, 31),
+            listOf(Kausioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.PT))),
+            null,
+            null,
+        )
+        kausiRepository.lisaaKausi(
+            id,
+            LocalDate.of(2025, 6, 1),
+            LocalDate.of(2030, 5, 31),
+            listOf(Kausioikeus(Tutkintokieli.SWE, setOf(Tutkintotaso.YT))),
+            null,
+            null,
+        )
+
+        solki.lahetaArvioijaKasin(repository.findArvioijaById(id)!!)
+
+        val kaudet = stub.lahetetyt.single().arviointikaudet
+        assertEquals(
+            listOf(LocalDate.of(2019, 1, 1), LocalDate.of(2024, 1, 1), LocalDate.of(2025, 6, 1)),
+            kaudet.map { it.alkupaiva },
+        )
+        assertEquals(
+            listOf(listOf(Tutkintokieli.FIN), listOf(Tutkintokieli.FIN), listOf(Tutkintokieli.SWE)),
+            kaudet.map { kausi -> kausi.arviointioikeudet.map { it.kieli } },
+        )
+        assertEquals(listOf(false, true, true), kaudet.map { it.jatkorekisterointi })
+        assertEquals(
+            kausiRepository.findKaudet(id).map { it.id?.toInt() }.toSet(),
+            kaudet.map { it.id }.toSet(),
+        )
+    }
+
+    @Test
+    fun `ennen alkuaan paattyvaa kautta ei laheteta`() {
+        val id = tallenna()
+        kausiRepository.lisaaKausi(
+            id,
+            LocalDate.of(2030, 1, 1),
+            tanaan,
+            listOf(Kausioikeus(Tutkintokieli.SWE, setOf(Tutkintotaso.YT))),
+            null,
+            null,
+        )
+
+        solki.lahetaArvioijaKasin(repository.findArvioijaById(id)!!)
+
+        assertEquals(
+            listOf(LocalDate.of(2024, 1, 1)),
+            stub.lahetetyt
+                .single()
+                .arviointikaudet
+                .map { it.alkupaiva },
+        )
     }
 
     @Test
@@ -256,7 +337,15 @@ class YkiArvioijaSolkiTest(
 
         val jalkeen = kausiRepository.findKaudet(id).single()
         assertEquals(ennen.id, jalkeen.id)
-        assertEquals(setOf(Tutkintokieli.FIN, Tutkintokieli.ENG), jalkeen.oikeudet.map { it.kieli }.toSet())
+        assertEquals(
+            setOf(Tutkintokieli.FIN, Tutkintokieli.ENG, Tutkintokieli.SWE),
+            jalkeen.oikeudet.map { it.kieli }.toSet(),
+            "tallennus ei poista kauden muita kielia",
+        )
+        assertEquals(
+            ennen.oikeudet.single { it.kieli == Tutkintokieli.SWE }.id,
+            jalkeen.oikeudet.single { it.kieli == Tutkintokieli.SWE }.id,
+        )
         val fin = jalkeen.oikeudet.single { it.kieli == Tutkintokieli.FIN }
         assertEquals(ennen.oikeudet.single { it.kieli == Tutkintokieli.FIN }.id, fin.id)
         assertEquals(setOf(Tutkintotaso.PT, Tutkintotaso.KT), fin.tasot)
@@ -304,7 +393,13 @@ class YkiArvioijaSolkiTest(
 
         val request = SolkiArvioijaRequest.of(repository.findArvioijaById(id)!!, syntymaaika = null)
 
-        assertEquals(listOf(Tutkintokieli.FIN), request.arviointikausi!!.arviointioikeudet.map { it.kieli })
+        assertEquals(
+            listOf(Tutkintokieli.FIN),
+            request.arviointikaudet
+                .single()
+                .arviointioikeudet
+                .map { it.kieli },
+        )
     }
 
     @Test
@@ -313,7 +408,7 @@ class YkiArvioijaSolkiTest(
 
         val request = SolkiArvioijaRequest.of(repository.findArvioijaById(id)!!, syntymaaika = null)
 
-        assertNull(request.arviointikausi)
+        assertEquals(emptyList(), request.arviointikaudet)
     }
 
     @Test

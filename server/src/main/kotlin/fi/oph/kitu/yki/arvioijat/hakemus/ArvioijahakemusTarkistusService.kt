@@ -13,6 +13,7 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.util.TimeService
 import fi.oph.kitu.util.validation.Validation.ValidationError
 import fi.oph.kitu.util.validation.validate
+import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.arvioijat.ArvioijaFormData
 import fi.oph.kitu.yki.arvioijat.ArvioijanEsitaytto
 import fi.oph.kitu.yki.arvioijat.TallennaArvioija
@@ -66,7 +67,7 @@ class ArvioijahakemusTarkistusService(
                 katuosoite = hakemus.katuosoite ?: pohja.katuosoite,
                 postinumero = hakemus.postinumero ?: pohja.postinumero,
                 postitoimipaikka = hakemus.postitoimipaikka ?: pohja.postitoimipaikka,
-                kaudenAlkupaiva = ehdotettuAlkupaiva(esitaytto),
+                kaudenAlkupaiva = ehdotettuAlkupaiva(esitaytto, hakemus.arviointioikeudet.map { it.kieli }.toSet()),
                 ashaNumero = null,
                 arviointioikeus = TarkistettavaHakemus.valinnat(hakemus.arviointioikeudet),
             )
@@ -117,12 +118,19 @@ class ArvioijahakemusTarkistusService(
             arvioija
         }
 
-    /** Jatkokausi alkaa voimassa olevan tai tulevan kauden jalkeen, muuten kausi alkaa tanaan. */
-    fun ehdotettuAlkupaiva(esitaytto: ArvioijanEsitaytto): LocalDate {
+    /**
+     * Jatkokausi alkaa haetun kielen voimassa olevan tai tulevan kauden jalkeen, muuten kausi alkaa
+     * tanaan. Toisen kielen kausi ei siirra alkua, koska eri kielten kaudet saavat olla paallekkain.
+     */
+    fun ehdotettuAlkupaiva(
+        esitaytto: ArvioijanEsitaytto,
+        kielet: Set<Tutkintokieli>,
+    ): LocalDate {
         val tanaan = timeService.today()
         val arvioijaId = esitaytto.olemassaolevaMerkinta?.id?.toInt() ?: return tanaan
         return kausiRepository
             .findKaudet(arvioijaId)
+            .filter { kausi -> kausi.oikeudet.any { it.kieli in kielet } }
             .mapNotNull { it.paattymispaiva }
             .filterNot { it.isBefore(tanaan) }
             .maxOrNull()

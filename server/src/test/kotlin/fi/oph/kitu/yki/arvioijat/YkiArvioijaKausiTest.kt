@@ -6,6 +6,7 @@ import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.security.Authority
 import fi.oph.kitu.security.cas.CasUserDetails
 import fi.oph.kitu.util.result.getOrThrow
+import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.Kausitoimenpide
 import fi.oph.kitu.yki.arvioijat.Rekisterointitila
@@ -295,6 +296,96 @@ class YkiArvioijaKausiTest(
 
             assertContains(html, "päällekkäin")
             assertEquals(1, kausiRepository.findKaudet(id).size, "paallekkaista kautta ei tallenneta")
+        }
+    }
+
+    @Test
+    fun `paallekkainen kausi eri kielelle tallennetaan ja kieli saa oman kautensa`() {
+        val id = idOf(petro)
+
+        timeService.runWithFixedClock(HETKI) {
+            lisaaKausi(id, "2026-02-01", "FIN:PT")
+            lisaaKausi(id, "2026-05-01", "SWE:YT")
+
+            assertEquals(3, kausiRepository.findKaudet(id).size)
+            val oikeudet = kausiRepository.findArviointioikeudet(id).associateBy { it.kieli }
+            assertEquals(setOf(Tutkintokieli.FIN, Tutkintokieli.SWE), oikeudet.keys)
+            assertEquals(LocalDate.of(2026, 2, 1), oikeudet.getValue(Tutkintokieli.FIN).kaudenAlkupaiva)
+            assertEquals(LocalDate.of(2026, 5, 1), oikeudet.getValue(Tutkintokieli.SWE).kaudenAlkupaiva)
+            assertEquals(LocalDate.of(2031, 4, 30), oikeudet.getValue(Tutkintokieli.SWE).kaudenPaattymispaiva)
+        }
+    }
+
+    @Test
+    fun `samoille paiville ei voi kirjata toista kautta`() {
+        val id = idOf(petro)
+
+        timeService.runWithFixedClock(HETKI) {
+            lisaaKausi(id, "2026-02-01", "FIN:PT")
+
+            val html =
+                mockMvc
+                    .perform(
+                        post("/yki/arvioijat/$id/kaudet")
+                            .session(session())
+                            .with(csrf())
+                            .param("alkupaiva", "2026-02-01")
+                            .param("arviointioikeus", "SWE:YT"),
+                    ).andExpect(status().isOk)
+                    .andReturn()
+                    .response.contentAsString
+
+            assertContains(html, "Lisää kieli olemassa olevaan kauteen")
+            assertEquals(2, kausiRepository.findKaudet(id).size)
+        }
+    }
+
+    @Test
+    fun `arvioijan tallennus ei poista paattyneen kauden kielia`() {
+        val id = idOf(petro)
+        val vanha = kausiRepository.findKaudet(id).single()
+        kausiRepository.paivitaKausi(
+            kausiId = vanha.id!!.toInt(),
+            alkupaiva = vanha.alkupaiva,
+            paattymispaiva = vanha.paattymispaiva,
+            oikeudet =
+                listOf(
+                    Kausioikeus(Tutkintokieli.FIN, setOf(Tutkintotaso.PT)),
+                    Kausioikeus(Tutkintokieli.ENG, setOf(Tutkintotaso.YT)),
+                ),
+            ashaNumero = null,
+            tekija = null,
+        )
+
+        timeService.runWithFixedClock(HETKI) {
+            lisaaKausi(id, "2026-02-01", "FIN:PT")
+            assertEquals(
+                VANHA_ALKU,
+                kausiRepository.findArviointioikeudet(id).single { it.kieli == Tutkintokieli.ENG }.kaudenAlkupaiva,
+                "englanti jaa projektioon paattyneen kautensa paivilla",
+            )
+
+            repository.tallenna(repository.findArvioijaById(id)!!, null)
+
+            val kaudet = kausiRepository.findKaudet(id).associateBy { it.alkupaiva }
+            assertEquals(2, kaudet.size)
+            assertEquals(
+                setOf(Tutkintokieli.FIN, Tutkintokieli.ENG),
+                kaudet
+                    .getValue(VANHA_ALKU)
+                    .oikeudet
+                    .map { it.kieli }
+                    .toSet(),
+                "kielikohtaisesta projektiosta synkronointi ei saa pyyhkia kauden muita kielia",
+            )
+            assertEquals(
+                setOf(Tutkintokieli.FIN),
+                kaudet
+                    .getValue(LocalDate.of(2026, 2, 1))
+                    .oikeudet
+                    .map { it.kieli }
+                    .toSet(),
+            )
         }
     }
 
