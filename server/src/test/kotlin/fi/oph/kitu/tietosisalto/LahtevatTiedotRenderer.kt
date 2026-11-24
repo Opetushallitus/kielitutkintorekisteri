@@ -131,6 +131,7 @@ private fun muoto(
             Muoto.Paivamaara -> "päivämäärä (vvvv-kk-pp)"
             Muoto.Aikaleima -> "päivämäärä ja kellonaika"
             Muoto.KyllaEi -> "kyllä tai ei"
+            Muoto.Kokonaisluku -> "kokonaisluku"
             Muoto.EiKaytossa -> error("Käyttämätöntä kenttää ${kentta.polku} ei tulosteta")
             is Muoto.Valinta -> muoto.arvot.joinToString(", ") { arvo(it) }
             is Muoto.Koodi -> koodi(muoto)

@@ -201,16 +201,19 @@ class YkiArvioijaSolkiClientTest {
         // Solkin 4xx-vastauksesta, ja vaara taso menee lapi hiljaisesti.
         val kausi =
             SolkiArvioijaRequest.Arviointikausi(
+                id = 412,
                 alkupaiva = LocalDate.of(2025, 1, 1),
                 paattymispaiva = LocalDate.of(2029, 12, 31),
                 jatkorekisterointi = false,
                 arviointioikeudet =
                     listOf(
                         SolkiArvioijaRequest.Arviointioikeus(
+                            id = 981,
                             kieli = Tutkintokieli.FIN,
                             tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
                         ),
                         SolkiArvioijaRequest.Arviointioikeus(
+                            id = null,
                             kieli = Tutkintokieli.SWE,
                             tasot = listOf(Tutkintotaso.YT),
                         ),
@@ -237,16 +240,19 @@ class YkiArvioijaSolkiClientTest {
         )
         val lahetettyKausi = runko["arviointikausi"]
         assertEquals(
-            listOf("alkupaiva", "paattymispaiva", "jatkorekisterointi", "arviointioikeudet"),
+            listOf("id", "alkupaiva", "paattymispaiva", "jatkorekisterointi", "arviointioikeudet"),
             lahetettyKausi.propertyNames().asSequence().toList(),
         )
+        assertEquals(412, lahetettyKausi["id"].asInt())
         assertEquals("2025-01-01", lahetettyKausi["alkupaiva"].asString())
         assertEquals("2029-12-31", lahetettyKausi["paattymispaiva"].asString())
         assertEquals(2, lahetettyKausi["arviointioikeudet"].size())
         assertEquals(
-            listOf("kieli", "tasot"),
+            listOf("id", "kieli", "tasot"),
             lahetettyKausi["arviointioikeudet"][0].propertyNames().asSequence().toList(),
         )
+        assertEquals(981, lahetettyKausi["arviointioikeudet"][0]["id"].asInt())
+        assertTrue(lahetettyKausi["arviointioikeudet"][1]["id"].isNull, "tyhja tunniste lahetetaan nullina")
         assertEquals("fin", lahetettyKausi["arviointioikeudet"][0]["kieli"].asString())
         assertEquals("YT", lahetettyKausi["arviointioikeudet"][1]["tasot"][0].asString())
     }

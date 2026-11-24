@@ -101,16 +101,19 @@ object Esimerkit {
             ensimmainenRekisterointipaiva = LocalDate.of(2020, 1, 1),
             arviointikausi =
                 SolkiArvioijaRequest.Arviointikausi(
+                    id = 412,
                     alkupaiva = LocalDate.of(2025, 1, 1),
                     paattymispaiva = LocalDate.of(2029, 12, 31),
                     jatkorekisterointi = true,
                     arviointioikeudet =
                         listOf(
                             SolkiArvioijaRequest.Arviointioikeus(
+                                id = 981,
                                 kieli = Tutkintokieli.FIN,
                                 tasot = listOf(Tutkintotaso.PT, Tutkintotaso.KT),
                             ),
                             SolkiArvioijaRequest.Arviointioikeus(
+                                id = 982,
                                 kieli = Tutkintokieli.SWE,
                                 tasot = listOf(Tutkintotaso.YT),
                             ),

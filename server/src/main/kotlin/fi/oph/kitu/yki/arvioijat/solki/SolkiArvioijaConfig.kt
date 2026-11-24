@@ -2,6 +2,7 @@ package fi.oph.kitu.yki.arvioijat.solki
 
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaKausiRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoistoRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import org.springframework.context.annotation.Bean
@@ -20,9 +21,17 @@ class SolkiArvioijaConfig {
     fun solkiArvioijaLahetys(
         repository: YkiArvioijaRepository,
         poistoRepository: YkiArvioijaPoistoRepository,
+        kausiRepository: YkiArvioijaKausiRepository,
         client: SolkiArvioijaClient,
         oppijanumeroService: OppijanumeroService,
         asetukset: ArvioijarekisteriAsetukset,
     ): SolkiArvioijaService =
-        SolkiArvioijaServiceImpl(repository, poistoRepository, client, oppijanumeroService, asetukset)
+        SolkiArvioijaServiceImpl(
+            repository,
+            poistoRepository,
+            kausiRepository,
+            client,
+            oppijanumeroService,
+            asetukset,
+        )
 }
