@@ -165,9 +165,9 @@
     <g class="nuolen-teksti">
       <rect x="740" y="377" width="270" height="48" rx="3"/>
       <text x="875" y="391" text-anchor="middle">
-        <tspan x="875" y="391">arvioijarekisteri: kaudet ja kielet</tspan>
+        <tspan x="875" y="391">arvioijarekisteri: tila, kausi ja kielet</tspan>
         <tspan x="875" y="405">POST /oph/arvioija · Basic · tallennuksesta</tspan>
-        <tspan x="875" y="419">vastauksena Solkin arvioijatunnus</tspan>
+        <tspan x="875" y="419">poistoilmoitus säilytysajan päätyttyä</tspan>
       </text>
     </g>
   </g>

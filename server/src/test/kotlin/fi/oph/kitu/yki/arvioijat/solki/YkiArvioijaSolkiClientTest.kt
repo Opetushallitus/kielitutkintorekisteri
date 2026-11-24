@@ -8,6 +8,7 @@ import fi.oph.kitu.yki.arvioijat.arvioija
 import fi.oph.kitu.yki.arvioijat.arvioijaOid
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClientImpl
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
+import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaPoistoRequest
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -45,6 +46,7 @@ class YkiArvioijaSolkiClientTest {
     ) = SolkiArvioijaRequest(
         arvioijaOid = "1.2.246.562.24.20281155246",
         versio = versio,
+        tila = SolkiArvioijaRequest.Tila.ARVIOIJA,
         sukunimi = "Öhman-Testi",
         etunimet = "Ranja Testi",
         syntymapaiva = syntymapaiva,
@@ -68,6 +70,36 @@ class YkiArvioijaSolkiClientTest {
         client.laheta(request)
 
         return runko
+    }
+
+    @Test
+    fun `poistoilmoituksessa on vain oppijanumero, poistohetki ja tila`() {
+        val (client, server) = clientJaServer()
+        var runko = ""
+        server
+            .expect(requestTo("https://solki.test/oph/arvioija"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header("Idempotency-Key", "1.2.246.562.24.20281155246:$versio"))
+            .andExpect { req -> runko = (req as MockClientHttpRequest).bodyAsString }
+            .andRespond(withStatus(HttpStatus.NO_CONTENT))
+
+        val tulos = client.lahetaPoisto(SolkiArvioijaPoistoRequest("1.2.246.562.24.20281155246", versio))
+
+        assertTrue(tulos.isRight(), "2xx on onnistunut ilmoitus: $tulos")
+        val json = defaultObjectMapper.readTree(runko)
+        assertEquals(listOf("arvioijaOid", "versio", "tila"), json.propertyNames().asSequence().toList())
+        assertEquals("POISTETTU", json["tila"].asString())
+        server.verify()
+    }
+
+    @Test
+    fun `epaonnistunut poistoilmoitus on Left`() {
+        val (client, server) = clientJaServer()
+        server.expect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.BAD_REQUEST))
+
+        val tulos = client.lahetaPoisto(SolkiArvioijaPoistoRequest("1.2.246.562.24.20281155246", versio))
+
+        assertTrue(tulos.leftOrNull() is SolkiArvioijaException.BadRequest, "$tulos")
     }
 
     @Test
@@ -190,6 +222,7 @@ class YkiArvioijaSolkiClientTest {
             listOf(
                 "arvioijaOid",
                 "versio",
+                "tila",
                 "sukunimi",
                 "etunimet",
                 "syntymapaiva",

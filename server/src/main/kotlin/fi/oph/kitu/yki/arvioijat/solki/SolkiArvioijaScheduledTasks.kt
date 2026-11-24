@@ -28,6 +28,7 @@ class SolkiArvioijaScheduledTasks(
     fun lahetaArvioijatSolkiin(solki: SolkiArvioijaService): Task<Void> =
         tracer.recurringTask("Laheta YKI-arvioijat Solkiin", lahetysSchedule) {
             solki.lahetaLahettamattomat(maxYritykset = MAX_YRITYKSET)
+            solki.lahetaPoistot(maxYritykset = MAX_YRITYKSET)
         }
 
     /** "sen jalkeen saannollisesti": yollinen ajo ei valita yrityslaskurista. */
@@ -35,6 +36,7 @@ class SolkiArvioijaScheduledTasks(
     fun lahetaEpaonnistuneetArvioijatSolkiin(solki: SolkiArvioijaService): Task<Void> =
         tracer.recurringTask("Laheta epaonnistuneet YKI-arvioijat Solkiin", yollinenSchedule) {
             solki.lahetaLahettamattomat()
+            solki.lahetaPoistot()
         }
 
     companion object {

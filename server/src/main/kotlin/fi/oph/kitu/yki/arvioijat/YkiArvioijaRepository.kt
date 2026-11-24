@@ -80,7 +80,8 @@ interface CustomYkiArvioijaRepository {
     )
 
     /**
-     * Poistaa merkinnat joiden sailytysaika on umpeutunut. Palauttaa poistetut auditlokia varten.
+     * Poistaa merkinnat joiden sailytysaika on umpeutunut ja kirjaa jokaisesta poistoilmoituksen
+     * Solki-lahetysjonoon ([YkiArvioijaPoistoRepository]). Palauttaa poistetut auditlokia varten.
      * [yki_arviointioikeus] ja [yki_arvioija_kausi] poistuvat ON DELETE CASCADE -saannolla.
      */
     fun poistaSailytysajanYlittaneet(
@@ -505,22 +506,32 @@ class CustomYkiArvioijaRepositoryImpl(
     ): List<Oid> =
         namedJdbcTemplate.query(
             """
-            DELETE FROM yki_arvioija
-            WHERE EXISTS (
-                      SELECT 1 FROM yki_arviointioikeus
-                      WHERE yki_arviointioikeus.arvioija_id = yki_arvioija.id
-                  )
-              AND NOT EXISTS (
-                      SELECT 1 FROM yki_arviointioikeus
-                      WHERE yki_arviointioikeus.arvioija_id = yki_arvioija.id
-                        AND ${Rekisterointitila.SQL} <> '${Rekisterointitila.PASSIVOITU}'
-                  )
-              AND NOT EXISTS (
-                      SELECT 1 FROM yki_arvioija_arviointikausi kausi
-                      WHERE kausi.arvioija_id = yki_arvioija.id
-                        AND (kausi.paattymispaiva IS NULL OR kausi.paattymispaiva >= :tanaan)
-                  )
-              AND ${Sailytysaika.ALKUHETKI_SQL} < :raja
+            WITH poistetut AS (
+                DELETE FROM yki_arvioija
+                WHERE EXISTS (
+                          SELECT 1 FROM yki_arviointioikeus
+                          WHERE yki_arviointioikeus.arvioija_id = yki_arvioija.id
+                      )
+                  AND NOT EXISTS (
+                          SELECT 1 FROM yki_arviointioikeus
+                          WHERE yki_arviointioikeus.arvioija_id = yki_arvioija.id
+                            AND ${Rekisterointitila.SQL} <> '${Rekisterointitila.PASSIVOITU}'
+                      )
+                  AND NOT EXISTS (
+                          SELECT 1 FROM yki_arvioija_arviointikausi kausi
+                          WHERE kausi.arvioija_id = yki_arvioija.id
+                            AND (kausi.paattymispaiva IS NULL OR kausi.paattymispaiva >= :tanaan)
+                      )
+                  AND ${Sailytysaika.ALKUHETKI_SQL} < :raja
+                RETURNING arvioija_oid
+            )
+            INSERT INTO yki_arvioija_poisto (arvioija_oid)
+            SELECT arvioija_oid FROM poistetut
+            ON CONFLICT ON CONSTRAINT yki_arvioija_poisto_unique_arvioija_oid DO UPDATE
+                SET poistettu = now(),
+                    solki_lahetysvirhe = NULL,
+                    solki_lahetysyritykset = 0,
+                    solki_viimeisin_lahetysyritys = NULL
             RETURNING arvioija_oid
             """.trimIndent(),
             mapOf("tanaan" to tanaan, "raja" to raja),

@@ -222,6 +222,18 @@ Runko on `SolkiArvioijaRequest`. Lähetettävät tiedot ja se, mitä ei lähetet
 puhelinnumero, arviointikauden tila, käytöstä poistuneet kielet), on lueteltu sivulla
 [Rekisteristä lähtevät tiedot](./lahtevat-tiedot.md#solki-arvioija).
 
+Sanoman `tila` on `ARVIOIJA` tai `KOULUTETTAVA`. Koulutettava on henkilö, jolla ei vielä ole
+arviointioikeutta, mutta joka viedään Solkiin arvioijakoulutusta varten: hänen
+`arviointikausi`ssaan ei ole päiviä, ja sen arviointioikeudet ovat kielet ja tasot, joihin hänet
+koulutetaan. Kitu ei vielä lähetä koulutettavia, koska hakuprosessin siirto on sopimatta (ks.
+hakuprosessin selvitettävät asiat).
+
+Kun arvioija poistetaan kitusta säilytysajan päätyttyä, kitu lähettää samaan osoitteeseen
+[poistoilmoituksen](./lahtevat-tiedot.md#solki-arvioija-poisto) (`SolkiArvioijaPoistoRequest`):
+oppijanumero, poistohetki ja `tila: POISTETTU`. Ilmoitus odottaa taulussa `yki_arvioija_poisto`,
+kunnes Solki on vastaanottanut sen, ja rivi poistetaan sen jälkeen. Jos sama henkilö on ehditty
+lisätä rekisteriin uudelleen, ilmoitusta ei lähetetä.
+
 `syntymapaiva` haetaan ONR:stä lähetyshetkellä (`OppijanumeroService.getHenkiloByMasterOid`). Kolme
 tapausta:
 

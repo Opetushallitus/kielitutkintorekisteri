@@ -20,6 +20,7 @@ import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
 import fi.oph.kitu.yki.Tutkintotaso
+import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaPoistoRequest
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -34,6 +35,7 @@ object Esimerkit {
             Tietovirrat.koskiYki -> koskiYki()
             Tietovirrat.koskiVkt -> koskiVkt()
             Tietovirrat.solkiArvioija -> solkiArvioija()
+            Tietovirrat.solkiArvioijanPoisto -> solkiArvioijanPoisto()
             Tietovirrat.kiosArviointitila -> kiosArviointitila()
             else -> error("Tietovirralle ${virta.otsikko} ei ole esimerkkisanomaa")
         }
@@ -88,6 +90,7 @@ object Esimerkit {
         SolkiArvioijaRequest(
             arvioijaOid = oppija.toString(),
             versio = OffsetDateTime.parse("2026-09-16T12:00:00+03:00"),
+            tila = SolkiArvioijaRequest.Tila.ARVIOIJA,
             sukunimi = "Keijunen",
             etunimet = "Keijo",
             syntymapaiva = LocalDate.of(1980, 1, 1),
@@ -113,6 +116,12 @@ object Esimerkit {
                             ),
                         ),
                 ),
+        )
+
+    private fun solkiArvioijanPoisto() =
+        SolkiArvioijaPoistoRequest(
+            arvioijaOid = oppija.toString(),
+            versio = OffsetDateTime.parse("2026-09-16T12:00:00+03:00"),
         )
 
     private fun kiosArviointitila() =

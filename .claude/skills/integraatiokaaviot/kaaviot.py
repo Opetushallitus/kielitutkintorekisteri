@@ -516,7 +516,7 @@ def yki_arvioijat():
     s.arrow(
         "kitu-solki-arvioijarekisteri",
         [(1040, 430), (710, 430)],
-        ["arvioijarekisteri: kaudet ja kielet", "POST /oph/arvioija · Basic · tallennuksesta", "vastauksena Solkin arvioijatunnus"],
+        ["arvioijarekisteri: tila, kausi ja kielet", "POST /oph/arvioija · Basic · tallennuksesta", "poistoilmoitus säilytysajan päätyttyä"],
         875,
         391,
         kind="heti",

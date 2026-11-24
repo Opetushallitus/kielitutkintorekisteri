@@ -8,6 +8,7 @@ Sivu kertoo, mitä tietoja Kielitutkintorekisteri lähettää muihin järjestelm
 - [YKI-suoritukset KOSKI-järjestelmään](#koski-yki)
 - [VKT-suoritukset KOSKI-järjestelmään](#koski-vkt)
 - [YKI-arvioijat Solki-järjestelmään](#solki-arvioija)
+- [Poistetut YKI-arvioijat Solki-järjestelmään](#solki-arvioija-poisto)
 - [YKI-arviointitilat ilmoittautumisjärjestelmään](#ilmoittautumisjarjestelma-arviointitila)
 
 ## Taulukoiden lukuohje
@@ -277,6 +278,7 @@ Tietoryhmän tekninen nimi sanomassa on `opiskeluoikeudet[].suoritukset[].osasuo
 - **Vastaanottaja:** Jyväskylän yliopiston Solki-järjestelmä
 - **Milloin:** Aina kun arvioijan tietoja tallennetaan Kielitutkintorekisterissä. Epäonnistunut lähetys yritetään ajastetusti uudelleen.
 - **Miksi:** Solki tarvitsee ajantasaiset tiedot arvioijista ja heidän arviointioikeuksistaan.
+- **Huomio:** Koulutettavan arviointikaudessa ei ole päiviä, ja sen arviointioikeudet ovat kielet ja tasot, joihin henkilö koulutetaan. Kielitutkintorekisteri ei vielä lähetä koulutettavia.
 - **Huomio:** Henkilötunnusta ei lähetetä.
 - **Huomio:** Puhelinnumeroa ei lähetetä.
 - **Huomio:** Arviointikauden tilaa (aktiivinen, passivoitu) ei lähetetä, koska se vanhenisi kauden päättyessä. Vastaanottaja päättelee tilan arviointikauden päivistä; kauden päättymispäivä on kauden viimeinen voimassaolopäivä.
@@ -287,6 +289,7 @@ Tietoryhmän tekninen nimi sanomassa on `opiskeluoikeudet[].suoritukset[].osasuo
 | --- | --- | --- | --- |
 | Arvioijan oppijanumero | kyllä | teksti | `arvioijaOid` |
 | Hetki, jona arvioijan tietoja on viimeksi muutettu Kielitutkintorekisterissä | ei | päivämäärä ja kellonaika | `versio` |
+| Arvioijan tila. ARVIOIJA on rekisteriin merkitty arvioija. KOULUTETTAVA on henkilö, jolla ei vielä ole arviointioikeutta, mutta joka viedään Solkiin arvioijakoulutusta varten. | kyllä | `ARVIOIJA`, `KOULUTETTAVA` | `tila` |
 | Arvioijan sukunimi | kyllä | teksti | `sukunimi` |
 | Arvioijan etunimet | kyllä | teksti | `etunimet` |
 | Arvioijan syntymäpäivä, joka haetaan oppijanumerorekisteristä lähetyshetkellä | ei | päivämäärä (vvvv-kk-pp) | `syntymapaiva` |
@@ -305,8 +308,8 @@ Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
-| Arviointikauden ensimmäinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `alkupaiva` |
-| Arviointikauden viimeinen voimassaolopäivä | ei | päivämäärä (vvvv-kk-pp) | `paattymispaiva` |
+| Arviointikauden ensimmäinen voimassaolopäivä. Tyhjä koulutettavalla. | ei | päivämäärä (vvvv-kk-pp) | `alkupaiva` |
+| Arviointikauden viimeinen voimassaolopäivä. Tyhjä koulutettavalla. | ei | päivämäärä (vvvv-kk-pp) | `paattymispaiva` |
 | Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle | kyllä | kyllä tai ei | `jatkorekisterointi` |
 | Arviointikauden arviointioikeudet | kyllä | lista: [tietoryhmä](#solki-arvioija-arviointikausi-arviointioikeudet) | `arviointioikeudet[]` |
 
@@ -320,6 +323,22 @@ Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sano
 | --- | --- | --- | --- |
 | Kieli, jonka tutkintoja arvioija saa arvioida | kyllä | `deu` (saksa), `eng` (englanti), `fin` (suomi), `fra` (ranska), `ita` (italia), `rus` (venäjä), `sme` (pohjoissaame), `spa` (espanja), `swe` (ruotsi) | `kieli` |
 | Tutkintotasot, joita arvioija saa arvioida tällä kielellä | kyllä | lista: `PT` (Perustaso), `KT` (Keskitaso), `YT` (Ylin taso) | `tasot[]` |
+
+<a id="solki-arvioija-poisto"></a>
+
+## Poistetut YKI-arvioijat Solki-järjestelmään
+
+- **Vastaanottaja:** Jyväskylän yliopiston Solki-järjestelmä
+- **Milloin:** Kun arvioijan merkintä poistetaan Kielitutkintorekisteristä säilytysajan päätyttyä. Epäonnistunut lähetys yritetään ajastetusti uudelleen.
+- **Miksi:** Solki saa tiedon, ettei henkilö ole enää arvioijarekisterissä.
+- **Huomio:** Poistetusta arvioijasta ei lähetetä nimeä, yhteystietoja eikä arviointioikeuksia.
+- **Huomio:** Ilmoitus lähetetään samaan osoitteeseen kuin arvioijan tiedot.
+
+| Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
+| --- | --- | --- | --- |
+| Poistetun arvioijan oppijanumero | kyllä | teksti | `arvioijaOid` |
+| Hetki, jona arvioija poistettiin Kielitutkintorekisteristä | kyllä | päivämäärä ja kellonaika | `versio` |
+| Arvioijan tila | kyllä | `POISTETTU` | `tila` |
 
 <a id="ilmoittautumisjarjestelma-arviointitila"></a>
 
