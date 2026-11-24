@@ -7,6 +7,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
  * Paikallisen kehityksen mock-klientti: palauttaa testidatana käytetyn
@@ -35,7 +36,7 @@ class MockTehtavapankkiClient : TehtavapankkiClient {
                     courseId = 42,
                     courseName = "Suomi alkeet",
                     published = Instant.ofEpochMilli(0),
-                    generated = ClassPathResource(FIXTURE_PATH).lastModifiedInstant(),
+                    generated = ClassPathResource(FIXTURE_PATH).lastModifiedInstant().truncatedTo(ChronoUnit.SECONDS),
                     version = "example",
                     language = "FIN",
                     downloadUrl = "$CLASSPATH_PREFIX$FIXTURE_PATH",
@@ -46,7 +47,7 @@ class MockTehtavapankkiClient : TehtavapankkiClient {
                     courseId = customXmlPath.fold(0) { acc, c -> acc + c.code } % 10000,
                     courseName = path.fileName.toString().substringBeforeLast('.'),
                     published = Instant.ofEpochMilli(0),
-                    generated = Files.getLastModifiedTime(path).toInstant(),
+                    generated = Files.getLastModifiedTime(path).toInstant().truncatedTo(ChronoUnit.SECONDS),
                     version = "custom",
                     language = "FIN",
                     downloadUrl = "$FILE_PREFIX${path.toAbsolutePath()}",
