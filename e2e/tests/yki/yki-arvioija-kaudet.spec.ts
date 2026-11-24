@@ -6,7 +6,7 @@ const PETRO = "1.2.246.562.24.59267607404"
 
 /**
  * Päivät johdetaan tästä päivästä, koska kauden alkupäivä ei saa olla yli vuotta
- * tulevaisuudessa eikä kausi saa mennä päällekkäin toisen kanssa.
+ * tulevaisuudessa eikä kausi saa mennä päällekkäin saman kielen toisen kauden kanssa.
  */
 const isoPaiva = (vuosiaSitten: number) => {
   const d = new Date()
@@ -125,7 +125,7 @@ describe("Yleisen kielitutkinnon arvioijan arviointikaudet", () => {
     await expect(kaudet).toContainText(fiPaiva(isoPaiva(8)))
   })
 
-  test("päällekkäistä kautta ei tallenneta", async ({
+  test("samalle kielelle ei tallenneta päällekkäistä kautta", async ({
     indexPage,
     ykiArvioijaLomakePage,
   }) => {
@@ -142,6 +142,24 @@ describe("Yleisen kielitutkinnon arvioijan arviointikaudet", () => {
     await expect(page.getByTestId("alkupaiva-error")).toContainText(
       "päällekkäin",
     )
+  })
+
+  test("eri kielelle voi tallentaa päällekkäisen kauden", async ({
+    indexPage,
+    ykiArvioijaLomakePage,
+  }) => {
+    const page = ykiArvioijaLomakePage.page
+    await indexPage.login()
+    await luoArvioija(ykiArvioijaLomakePage, isoPaiva(1))
+
+    await page.getByTestId("uusiKausi").click()
+    await page.getByTestId("alkupaiva-input").fill(isoPaiva(0))
+    await page.getByTestId("arviointioikeus-SWE:YT").check()
+    await page.getByTestId("tallennaKausi").click()
+
+    const kaudet = page.getByTestId("arviointikaudet")
+    await expect(kaudet).toContainText(fiPaiva(isoPaiva(1)))
+    await expect(kaudet).toContainText(fiPaiva(isoPaiva(0)))
   })
 
   test("lukuoikeudella ei ole kausitoimintoja", async ({

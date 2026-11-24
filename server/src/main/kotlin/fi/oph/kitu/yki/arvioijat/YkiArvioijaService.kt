@@ -88,6 +88,7 @@ class YkiArvioijaService(
                     kausiRepository.viimeisteleKausi(
                         id,
                         validoitu.kaudenAlkupaiva,
+                        validoitu.kaudenPaattymispaiva,
                         validoitu.ashaNumero,
                         timeService.today(),
                     )

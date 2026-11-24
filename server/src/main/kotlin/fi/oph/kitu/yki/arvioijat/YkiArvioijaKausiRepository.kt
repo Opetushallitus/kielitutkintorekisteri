@@ -280,6 +280,7 @@ class YkiArvioijaKausiRepository(
     fun viimeisteleKausi(
         arvioijaId: Int,
         alkupaiva: LocalDate,
+        paattymispaiva: LocalDate,
         ashaNumero: String?,
         tanaan: LocalDate,
     ) {
@@ -288,11 +289,12 @@ class YkiArvioijaKausiRepository(
                 """
                 UPDATE yki_arvioija_arviointikausi
                 SET asha_numero = ?, muokattu = muokattu
-                WHERE arvioija_id = ? AND alkupaiva = ?
+                WHERE arvioija_id = ? AND alkupaiva = ? AND paattymispaiva = ?
                 """.trimIndent(),
                 ashaNumero,
                 arvioijaId,
                 alkupaiva,
+                paattymispaiva,
             )
         }
         paivitaProjektio(arvioijaId, tanaan)
@@ -433,6 +435,10 @@ class YkiArvioijaKausiRepository(
      * Synkronoi kaudet arviointioikeuksista. Kaytossa vain [Tallennuslahde.KITU]-polulla: Solkin
      * payload on kielikohtainen ja sen paivat voivat erota kielittain, joten siita syntyisi
      * paallekkaisia konekirjattuja kausia.
+     *
+     * Arviointioikeudet ovat kielikohtainen projektio ja voivat tulla eri kausista, joten kauden
+     * muita kielia ei poisteta: muuten yhteystiedon korjaus pyyhkisi paattyneelta kaudelta kielet,
+     * joilla on uudempi kausi. [poistaPuuttuvatKielet] on vain koko masterin uudelleenrakennukseen.
      */
     @WithSpan
     @Transactional
@@ -440,41 +446,56 @@ class YkiArvioijaKausiRepository(
         arvioijaId: Int,
         arviointioikeudet: List<YkiArviointioikeusEntity>,
         tekija: Oid?,
+        poistaPuuttuvatKielet: Boolean = false,
     ) {
-        // Ryhmittely alkupaivaan, ei paivapariin: sama alkupaiva tarkoittaa samaa kautta, ja
-        // kaksi kautta samalla alkupaivalla olisi paallekkainen — sellaisesta projektio valitsisi
-        // toisen ja poistaisi toisen kielet. Sama saanto kuin V122:n siirrossa.
         arviointioikeudet
             .filterNot { it.kieli.isLegacy() }
             .filter { it.kaudenAlkupaiva != null }
             .groupBy { it.kaudenAlkupaiva!! }
             .forEach { (alkupaiva, oikeudet) ->
-                val paattymispaiva =
-                    if (oikeudet.any { it.kaudenPaattymispaiva == null }) {
-                        null
-                    } else {
-                        oikeudet.maxOf { it.kaudenPaattymispaiva!! }
+                val samaAlkupaiva =
+                    findKaudet(arvioijaId).filter { it.alkupaiva == alkupaiva }.sortedBy { it.id?.toInt() }
+
+                // Samalla alkupaivalla voi olla kaksi kautta eri kielille, joten rivi kuuluu
+                // kauteen, jossa sen kieli jo on. Uudelleenrakennuksessa sama alkupaiva on yksi kausi.
+                oikeudet
+                    .groupBy { oikeus ->
+                        if (poistaPuuttuvatKielet) {
+                            samaAlkupaiva.firstOrNull()
+                        } else {
+                            samaAlkupaiva.firstOrNull { kausi -> kausi.oikeudet.any { it.kieli == oikeus.kieli } }
+                        }?.id?.toInt()
+                    }.forEach { (tunnettuKausiId, kaudenOikeudet) ->
+                        val paattymispaiva = yhteinenPaattymispaiva(kaudenOikeudet)
+                        val olemassa =
+                            tunnettuKausiId
+                                ?: samaAlkupaiva.firstOrNull { it.paattymispaiva == paattymispaiva }?.id?.toInt()
+                        val kausiId = upsertKausi(arvioijaId, olemassa, alkupaiva, paattymispaiva, tekija)
+                        val kausioikeudet = kaudenOikeudet.map { Kausioikeus(it.kieli, it.tasot) }
+                        if (poistaPuuttuvatKielet) {
+                            korvaaOikeudet(kausiId, kausioikeudet)
+                        } else {
+                            kirjoitaOikeudet(kausiId, kausioikeudet)
+                        }
                     }
-                val kausiId = upsertKausi(arvioijaId, alkupaiva, paattymispaiva, tekija)
-                korvaaOikeudet(kausiId, oikeudet.map { Kausioikeus(it.kieli, it.tasot) })
             }
         paivitaEnsimmainenRekisterointipaiva(arvioijaId)
     }
 
+    private fun yhteinenPaattymispaiva(oikeudet: List<YkiArviointioikeusEntity>): LocalDate? =
+        if (oikeudet.any { it.kaudenPaattymispaiva == null }) {
+            null
+        } else {
+            oikeudet.maxOf { it.kaudenPaattymispaiva!! }
+        }
+
     private fun upsertKausi(
         arvioijaId: Int,
+        olemassa: Int?,
         alkupaiva: LocalDate,
         paattymispaiva: LocalDate?,
         tekija: Oid?,
     ): Int {
-        val olemassa =
-            jdbcTemplate
-                .queryForList(
-                    "SELECT id FROM yki_arvioija_arviointikausi WHERE arvioija_id = ? AND alkupaiva = ? ORDER BY id",
-                    Int::class.java,
-                    arvioijaId,
-                    alkupaiva,
-                ).firstOrNull()
         if (olemassa != null) {
             jdbcTemplate.update(
                 """

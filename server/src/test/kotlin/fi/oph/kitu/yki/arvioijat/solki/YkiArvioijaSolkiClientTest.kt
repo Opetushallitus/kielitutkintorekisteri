@@ -55,7 +55,7 @@ class YkiArvioijaSolkiClientTest {
         postinumero = "40100",
         postitoimipaikka = "Testila",
         ensimmainenRekisterointipaiva = LocalDate.of(2019, 1, 15),
-        arviointikausi = null,
+        arviointikaudet = emptyList(),
     )
 
     /** Serialisoitu runko: se on ainoa paikka jossa kentan lankamuoto nakyy. */
@@ -219,7 +219,7 @@ class YkiArvioijaSolkiClientTest {
                         ),
                     ),
             )
-        val runko = defaultObjectMapper.readTree(runko(request().copy(arviointikausi = kausi)))
+        val runko = defaultObjectMapper.readTree(runko(request().copy(arviointikaudet = listOf(kausi))))
 
         assertEquals(
             listOf(
@@ -234,11 +234,12 @@ class YkiArvioijaSolkiClientTest {
                 "postinumero",
                 "postitoimipaikka",
                 "ensimmainenRekisterointipaiva",
-                "arviointikausi",
+                "arviointikaudet",
             ),
             runko.propertyNames().asSequence().toList(),
         )
-        val lahetettyKausi = runko["arviointikausi"]
+        assertEquals(1, runko["arviointikaudet"].size())
+        val lahetettyKausi = runko["arviointikaudet"][0]
         assertEquals(
             listOf("id", "alkupaiva", "paattymispaiva", "jatkorekisterointi", "arviointioikeudet"),
             lahetettyKausi.propertyNames().asSequence().toList(),

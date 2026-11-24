@@ -12,8 +12,8 @@ object Sailytysaika {
     /**
      * Alkuhetki SQL:na; sama COALESCE molemmissa kyselyissa, jottei suoja ja poisto eroa.
      *
-     * yki_arviointioikeus on projektio yhdesta kaudesta ja voi osoittaa paattyneeseen kauteen
-     * vaikka arvioijalla on uudempi kausi. GREATEST ottaa myohaisemman kahdesta lahteesta, joten
+     * yki_arviointioikeus on kielikohtainen projektio kausista ja voi vanhentuneena osoittaa
+     * paattyneeseen kauteen vaikka arvioijalla on uudempi kausi. GREATEST ottaa myohaisemman kahdesta lahteesta, joten
      * vanhentunut projektio ei voi aikaistaa sailytysajan alkua eika siten poistaa voimassa
      * olevaa merkintaa.
      */

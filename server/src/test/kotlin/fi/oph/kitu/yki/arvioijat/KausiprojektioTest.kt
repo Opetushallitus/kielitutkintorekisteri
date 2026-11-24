@@ -133,6 +133,33 @@ class KausiprojektioTest {
     }
 
     @Test
+    fun `eri kielilla voi olla samaan aikaan eri kausi`() {
+        val suomi = kausi(1, LocalDate.of(2025, 1, 1), LocalDate.of(2029, 12, 31), Tutkintokieli.FIN)
+        val ruotsi = kausi(2, LocalDate.of(2026, 3, 1), LocalDate.of(2031, 2, 28), Tutkintokieli.SWE)
+
+        val projektio = projisoi(listOf(suomi, ruotsi)).associateBy { it.kieli }
+
+        assertEquals(setOf(Tutkintokieli.FIN, Tutkintokieli.SWE), projektio.keys)
+        assertEquals(LocalDate.of(2025, 1, 1), projektio.getValue(Tutkintokieli.FIN).kaudenAlkupaiva)
+        assertEquals(LocalDate.of(2029, 12, 31), projektio.getValue(Tutkintokieli.FIN).kaudenPaattymispaiva)
+        assertEquals(LocalDate.of(2026, 3, 1), projektio.getValue(Tutkintokieli.SWE).kaudenAlkupaiva)
+        assertEquals(LocalDate.of(2031, 2, 28), projektio.getValue(Tutkintokieli.SWE).kaudenPaattymispaiva)
+    }
+
+    @Test
+    fun `jatkokaudesta pois jaanyt kieli sailyy paattyneen kautensa paivilla`() {
+        val paattynyt =
+            kausi(1, LocalDate.of(2020, 1, 1), LocalDate.of(2024, 12, 31), Tutkintokieli.FIN, Tutkintokieli.ENG)
+        val jatko = kausi(2, LocalDate.of(2025, 1, 1), LocalDate.of(2029, 12, 31), Tutkintokieli.FIN)
+
+        val projektio = projisoi(listOf(paattynyt, jatko)).associateBy { it.kieli }
+
+        assertEquals(LocalDate.of(2025, 1, 1), projektio.getValue(Tutkintokieli.FIN).kaudenAlkupaiva)
+        assertEquals(LocalDate.of(2020, 1, 1), projektio.getValue(Tutkintokieli.ENG).kaudenAlkupaiva)
+        assertEquals(LocalDate.of(2024, 12, 31), projektio.getValue(Tutkintokieli.ENG).kaudenPaattymispaiva)
+    }
+
+    @Test
     fun `projektio ei muutu kun tallennettu tila poikkeaa`() {
         val kaudet = listOf(kausi(1, LocalDate.of(2025, 1, 1), LocalDate.of(2030, 1, 1), Tutkintokieli.FIN))
         val tavoite = projisoi(kaudet)

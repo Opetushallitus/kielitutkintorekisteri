@@ -269,10 +269,18 @@ class YkiArvioijaLisaysTest(
 
         val id = repository.findByArvioijaOid(Oid.parse(petronOid).getOrThrow())!!.id!!.toInt()
 
+        val oikeudet = kausiRepository.findArviointioikeudet(id).associateBy { it.kieli }
+
         assertNull(
-            kausiRepository.findArviointioikeudet(id).single().ashaNumero,
+            oikeudet.getValue(Tutkintokieli.FIN).ashaNumero,
             "projektio seuraa voimassa olevaa kautta, jolla ei ole paatosviitetta",
         )
+        assertEquals(
+            LocalDate.of(2020, 1, 1),
+            oikeudet.getValue(Tutkintokieli.SWE).kaudenAlkupaiva,
+            "jatkokaudesta pois jaanyt kieli sailyy paattyneen kautensa paivilla",
+        )
+        assertEquals("OPH-9-2020", oikeudet.getValue(Tutkintokieli.SWE).ashaNumero)
     }
 
     @Test
@@ -295,6 +303,77 @@ class YkiArvioijaLisaysTest(
             )
 
         assertContains(html, "päällekkäin")
+    }
+
+    @Test
+    fun `lisayslomakkeelta voi kirjata paallekkaisen kauden eri kielelle`() {
+        val id = tallennaOlemassaolevaMerkinta()
+
+        mockMvc
+            .perform(
+                post("/yki/arvioijat/uusi")
+                    .session(session())
+                    .with(csrf())
+                    .param("arvioijaOid", petronOid)
+                    .param("sukunimi", "Kivinen-Testi")
+                    .param("etunimet", "Petro Testi")
+                    .param("katuosoite", "Kivinenkatu 2 A 3")
+                    .param("postinumero", "00100")
+                    .param("postitoimipaikka", "HELSINKI")
+                    .param("kaudenAlkupaiva", "2024-01-01")
+                    .param("ashaNumero", "OPH-1-2024")
+                    .param("arviointioikeus", "ENG:YT"),
+            ).andExpect(status().isSeeOther)
+
+        val kaudet = kausiRepository.findKaudet(id).associateBy { it.alkupaiva }
+        assertEquals(setOf(LocalDate.of(2020, 1, 1), LocalDate.of(2024, 1, 1)), kaudet.keys)
+        assertEquals(
+            setOf(Tutkintokieli.FIN, Tutkintokieli.SWE),
+            kaudet
+                .getValue(LocalDate.of(2020, 1, 1))
+                .oikeudet
+                .map { it.kieli }
+                .toSet(),
+            "aiemman kauden kielet eivat muutu",
+        )
+        assertEquals("OPH-9-2020", kaudet.getValue(LocalDate.of(2020, 1, 1)).ashaNumero)
+        assertEquals("OPH-1-2024", kaudet.getValue(LocalDate.of(2024, 1, 1)).ashaNumero)
+        assertEquals(
+            setOf(Tutkintokieli.FIN, Tutkintokieli.SWE, Tutkintokieli.ENG),
+            kausiRepository.findArviointioikeudet(id).map { it.kieli }.toSet(),
+        )
+    }
+
+    @Test
+    fun `lisayslomakkeelta ei voi kirjata toista kautta samoille paiville`() {
+        val id = tallennaOlemassaolevaMerkinta()
+        val kausi = kausiRepository.findKaudet(id).single()
+        kausiRepository.paivitaKausi(
+            kausiId = kausi.id!!.toInt(),
+            alkupaiva = kausi.alkupaiva,
+            paattymispaiva = LocalDate.of(2024, 12, 31),
+            oikeudet = kausi.oikeudet.map { Kausioikeus(it.kieli, it.tasot) },
+            ashaNumero = kausi.ashaNumero,
+            tekija = null,
+        )
+
+        val html =
+            html(
+                post("/yki/arvioijat/uusi")
+                    .session(session())
+                    .with(csrf())
+                    .param("arvioijaOid", petronOid)
+                    .param("sukunimi", "Kivinen-Testi")
+                    .param("etunimet", "Petro Testi")
+                    .param("katuosoite", "Kivinenkatu 2 A 3")
+                    .param("postinumero", "00100")
+                    .param("postitoimipaikka", "HELSINKI")
+                    .param("kaudenAlkupaiva", "2020-01-01")
+                    .param("arviointioikeus", "ENG:YT"),
+            )
+
+        assertContains(html, "Lisää kieli olemassa olevaan kauteen")
+        assertEquals(1, kausiRepository.findKaudet(id).size)
     }
 
     @Test
@@ -333,7 +412,13 @@ class YkiArvioijaLisaysTest(
 
     private fun tallennaOlemassaolevaMerkinta(oid: String = petronOid): Int =
         tallennaMerkinta(oid).also { id ->
-            kausiRepository.viimeisteleKausi(id, LocalDate.of(2020, 1, 1), "OPH-9-2020", LocalDate.of(2026, 6, 1))
+            kausiRepository.viimeisteleKausi(
+                id,
+                LocalDate.of(2020, 1, 1),
+                kausiRepository.findKaudet(id).single().paattymispaiva!!,
+                "OPH-9-2020",
+                LocalDate.of(2026, 6, 1),
+            )
         }
 
     private fun tallennaMerkinta(oid: String): Int =

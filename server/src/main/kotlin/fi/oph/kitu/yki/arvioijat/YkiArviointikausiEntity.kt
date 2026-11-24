@@ -18,8 +18,8 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 
 /**
- * Yksi arviointikausi. Kausi on arvioijakohtainen: kaikilla kielilla on sama kausi, ja
- * [oikeudet] kertoo mihin kieliin ja tasoihin se kohdistuu.
+ * Yksi arviointikausi. [oikeudet] kertoo mihin kieliin ja tasoihin se kohdistuu. Arvioijalla voi
+ * olla samaan aikaan useampi kausi, kunhan niilla ei ole yhteista kielta.
  */
 @Table("yki_arvioija_arviointikausi")
 data class YkiArviointikausiEntity(

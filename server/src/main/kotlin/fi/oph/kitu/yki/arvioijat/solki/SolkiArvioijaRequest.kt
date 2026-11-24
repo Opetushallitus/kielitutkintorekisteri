@@ -51,12 +51,13 @@ data class SolkiArvioijaRequest(
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val ensimmainenRekisterointipaiva: LocalDate?,
     @Kuvaus(
-        "Arvioijan arviointikausi",
+        "Arvioijan arviointikaudet",
         lisatieto =
-            "Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva tai viimeisin " +
-                "päättynyt. Tyhjä, jos arvioijalla on arviointioikeus vain käytöstä poistuneeseen kieleen.",
+            "Lähetyksessä ovat aina arvioijan kaikki kaudet: päättyneet, voimassa olevat ja tulevat. " +
+                "Arvioijalla voi olla samaan aikaan voimassa useampi kausi eri kielille. Tyhjä, jos " +
+                "arvioijalla on arviointioikeus vain käytöstä poistuneeseen kieleen.",
     )
-    val arviointikausi: Arviointikausi?,
+    val arviointikaudet: List<Arviointikausi>,
 ) {
     enum class Tila {
         ARVIOIJA,
@@ -107,8 +108,7 @@ data class SolkiArvioijaRequest(
         /**
          * @param syntymaaika ONR:sta lahetyshetkella. Tyhja vain jos ONR:ssakaan ei ole tietoa;
          *   ONR-katko on eri asia eika saa paatya tanne, ks. [SolkiArvioijaServiceImpl].
-         * @param kaudet arvioijan kaudet, joista sanoman kauden ja arviointioikeuksien tunnisteet
-         *   haetaan. Sisalto kootaan silti projektiosta.
+         * @param kaudet arvioijan tallennetut kaudet, joista sanoman kaudet kootaan.
          */
         fun of(
             arvioija: YkiArvioijaEntity,
@@ -129,42 +129,57 @@ data class SolkiArvioijaRequest(
                 ensimmainenRekisterointipaiva =
                     arvioija.arvioijanEnsimmainenRekisterointipaiva
                         ?: arvioija.arviointioikeudet.minOfOrNull { it.ensimmainenRekisterointipaiva },
-                arviointikausi = arviointikausi(arvioija, kaudet),
+                arviointikaudet = arviointikaudet(arvioija, kaudet),
             )
 
-        private fun arviointikausi(
+        private fun arviointikaudet(
             arvioija: YkiArvioijaEntity,
             kaudet: List<YkiArviointikausiEntity>,
-        ): Arviointikausi? {
-            val oikeudet = arvioija.arviointioikeudet.filterNot { it.kieli.isLegacy() }.sortedBy { it.kieli }
-            if (oikeudet.isEmpty()) return null
-            val alkupaiva = oikeudet.mapNotNull { it.kaudenAlkupaiva }.minOrNull()
-            val paattymispaiva =
-                oikeudet
-                    .map { it.kaudenPaattymispaiva }
-                    .takeIf { paivat -> paivat.none { it == null } }
-                    ?.filterNotNull()
-                    ?.max()
-            val kausi = kaudet.firstOrNull { it.alkupaiva == alkupaiva && it.paattymispaiva == paattymispaiva }
-            return Arviointikausi(
-                id = kausi?.id?.toInt(),
-                alkupaiva = alkupaiva,
-                paattymispaiva = paattymispaiva,
-                jatkorekisterointi = oikeudet.any { it.jatkorekisterointi },
-                arviointioikeudet =
-                    oikeudet.map { oikeus ->
-                        Arviointioikeus(
-                            id =
-                                kausi
-                                    ?.oikeudet
-                                    ?.firstOrNull { it.kieli == oikeus.kieli }
-                                    ?.id
-                                    ?.toInt(),
-                            kieli = oikeus.kieli,
-                            tasot = oikeus.tasot.sorted(),
-                        )
-                    },
-            )
+        ): List<Arviointikausi> {
+            if (kaudet.isEmpty()) return projektionKaudet(arvioija)
+            val ensimmainen =
+                listOfNotNull(arvioija.arvioijanEnsimmainenRekisterointipaiva, kaudet.minOf { it.alkupaiva }).min()
+            return kaudet
+                .filterNot { it.paattymispaiva?.isBefore(it.alkupaiva) == true }
+                .sortedWith(compareBy({ it.alkupaiva }, { it.id?.toInt() }))
+                .map { kausi ->
+                    Arviointikausi(
+                        id = kausi.id?.toInt(),
+                        alkupaiva = kausi.alkupaiva,
+                        paattymispaiva = kausi.paattymispaiva,
+                        jatkorekisterointi = kausi.alkupaiva > ensimmainen,
+                        arviointioikeudet =
+                            kausi.oikeudet.sortedBy { it.kieli }.map { oikeus ->
+                                Arviointioikeus(
+                                    id = oikeus.id?.toInt(),
+                                    kieli = oikeus.kieli,
+                                    tasot = oikeus.tasot.sorted(),
+                                )
+                            },
+                    )
+                }
         }
+
+        /**
+         * Arvioijalla, jonka tiedot ovat tulleet vain Solkin pushista, ei ole tallennettuja kausia.
+         * Tyhja lista tarkoittaisi Solkille, etta kaudet on poistettu, joten kaudet kootaan
+         * arviointioikeuksien paivista ilman tunnisteita.
+         */
+        private fun projektionKaudet(arvioija: YkiArvioijaEntity): List<Arviointikausi> =
+            arvioija.arviointioikeudet
+                .filterNot { it.kieli.isLegacy() }
+                .groupBy { it.kaudenAlkupaiva to it.kaudenPaattymispaiva }
+                .map { (paivat, oikeudet) ->
+                    Arviointikausi(
+                        id = null,
+                        alkupaiva = paivat.first,
+                        paattymispaiva = paivat.second,
+                        jatkorekisterointi = oikeudet.any { it.jatkorekisterointi },
+                        arviointioikeudet =
+                            oikeudet.sortedBy { it.kieli }.map { oikeus ->
+                                Arviointioikeus(id = null, kieli = oikeus.kieli, tasot = oikeus.tasot.sorted())
+                            },
+                    )
+                }.sortedWith(compareBy(nullsFirst()) { it.alkupaiva })
     }
 }

@@ -15,6 +15,7 @@ import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
@@ -111,13 +112,15 @@ class YkiArvioijaProjektiokytkinPoisTest(
 @Import(DBContainerConfiguration::class)
 class YkiArvioijaProjektiokytkinPaallaTest(
     @param:Autowired private val repository: YkiArvioijaRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val kausiRepository: YkiArvioijaKausiRepository,
     @param:Autowired private val kausiService: YkiArvioijaKausiService,
     @param:Autowired private val timeService: TestTimeService,
 ) {
     @Test
-    fun `kytkin paalla paivittaa projektion ja palauttaa rivin lahetysjonoon`() {
+    fun `kytkin paalla paivittaa projektion palauttamatta rivia lahetysjonoon`() {
         val arvioijaId = seedaaVanhentunutProjektio(repository, kausiRepository)
+        jdbcTemplate.update("UPDATE yki_arvioija SET solkiin_lahetetty = muokattu WHERE id = ?", arvioijaId)
 
         timeService.runWithFixedClock(HETKI) {
             assertEquals(1, kausiService.paivitaProjektiot())
@@ -130,8 +133,8 @@ class YkiArvioijaProjektiokytkinPaallaTest(
             "projektio seuraa voimassa olevaa kautta",
         )
         assertTrue(
-            repository.findLahetettavat().any { it.id?.toInt() == arvioijaId },
-            "muuttunut projektio on lahetettava Solkiin",
+            repository.findLahetettavat().none { it.id?.toInt() == arvioijaId },
+            "Solkiin lahtevat aina kaikki kaudet, joten projektion vaihtuminen ei muuta sanomaa",
         )
     }
 }

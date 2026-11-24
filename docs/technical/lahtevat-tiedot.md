@@ -278,6 +278,8 @@ Tietoryhmän tekninen nimi sanomassa on `opiskeluoikeudet[].suoritukset[].osasuo
 - **Vastaanottaja:** Jyväskylän yliopiston Solki-järjestelmä
 - **Milloin:** Aina kun arvioijan tietoja tallennetaan Kielitutkintorekisterissä. Epäonnistunut lähetys yritetään ajastetusti uudelleen.
 - **Miksi:** Solki tarvitsee ajantasaiset tiedot arvioijista ja heidän arviointioikeuksistaan.
+- **Huomio:** Lähetyksessä ovat joka kerta arvioijan kaikki arviointikaudet. Kausi tai arviointioikeus, jota lähetyksessä ei enää ole, on poistettu Kielitutkintorekisteristä.
+- **Huomio:** Arvioijalla voi olla samaan aikaan voimassa useampi arviointikausi eri kielille. Samalla kielellä kaudet eivät ole päällekkäin.
 - **Huomio:** Koulutettavan arviointikaudessa ei ole päiviä, ja sen arviointioikeudet ovat kielet ja tasot, joihin henkilö koulutetaan. Kielitutkintorekisteri ei vielä lähetä koulutettavia.
 - **Huomio:** Henkilötunnusta ei lähetetä.
 - **Huomio:** Puhelinnumeroa ei lähetetä.
@@ -298,13 +300,13 @@ Tietoryhmän tekninen nimi sanomassa on `opiskeluoikeudet[].suoritukset[].osasuo
 | Arvioijan postinumero | kyllä | teksti | `postinumero` |
 | Arvioijan postitoimipaikka | kyllä | teksti | `postitoimipaikka` |
 | Päivä, jona arvioija on ensimmäisen kerran merkitty arvioijarekisteriin | ei | päivämäärä (vvvv-kk-pp) | `ensimmainenRekisterointipaiva` |
-| Arvioijan arviointikausi | ei | [tietoryhmä](#solki-arvioija-arviointikausi) | `arviointikausi` |
+| Arvioijan arviointikaudet | kyllä | lista: [tietoryhmä](#solki-arvioija-arviointikaudet) | `arviointikaudet[]` |
 
-<a id="solki-arvioija-arviointikausi"></a>
+<a id="solki-arvioija-arviointikaudet"></a>
 
-### Arvioijan arviointikausi
+### Arvioijan arviointikaudet
 
-Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva tai viimeisin päättynyt. Tyhjä, jos arvioijalla on arviointioikeus vain käytöstä poistuneeseen kieleen. Tietoryhmän tekninen nimi sanomassa on `arviointikausi`.
+Lähetyksessä ovat aina arvioijan kaikki kaudet: päättyneet, voimassa olevat ja tulevat. Arvioijalla voi olla samaan aikaan voimassa useampi kausi eri kielille. Tyhjä, jos arvioijalla on arviointioikeus vain käytöstä poistuneeseen kieleen. Tietoryhmän tekninen nimi sanomassa on `arviointikaudet[]`.
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
@@ -312,13 +314,13 @@ Lähetyksessä on yksi kausi: voimassa oleva, tai sen puuttuessa seuraava tuleva
 | Arviointikauden ensimmäinen voimassaolopäivä. Tyhjä koulutettavalla. | ei | päivämäärä (vvvv-kk-pp) | `alkupaiva` |
 | Arviointikauden viimeinen voimassaolopäivä. Tyhjä koulutettavalla. | ei | päivämäärä (vvvv-kk-pp) | `paattymispaiva` |
 | Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle | kyllä | kyllä tai ei | `jatkorekisterointi` |
-| Arviointikauden arviointioikeudet | kyllä | lista: [tietoryhmä](#solki-arvioija-arviointikausi-arviointioikeudet) | `arviointioikeudet[]` |
+| Arviointikauden arviointioikeudet | kyllä | lista: [tietoryhmä](#solki-arvioija-arviointikaudet-arviointioikeudet) | `arviointioikeudet[]` |
 
-<a id="solki-arvioija-arviointikausi-arviointioikeudet"></a>
+<a id="solki-arvioija-arviointikaudet-arviointioikeudet"></a>
 
 ### Arviointikauden arviointioikeudet
 
-Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sanomassa on `arviointikausi.arviointioikeudet[]`.
+Jokaisesta kielestä on oma arviointioikeutensa. Tietoryhmän tekninen nimi sanomassa on `arviointikaudet[].arviointioikeudet[]`.
 
 | Tieto | Pakollinen | Muoto ja sallitut arvot | Tekninen nimi |
 | --- | --- | --- | --- |
