@@ -433,4 +433,14 @@ jobs:
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: docs/output
-      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+      # Artefaktipalvelun listaus voi laahata latauksen perässä, jolloin
+      # deploy-pages ei löydä juuri ladattua github-pages-artefaktia.
+      - id: deploy_pages
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+        continue-on-error: true
+      - name: Wait before retrying Pages deployment
+        if: steps.deploy_pages.outcome == 'failure'
+        run: sleep 30
+      - name: Retry Pages deployment
+        if: steps.deploy_pages.outcome == 'failure'
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
