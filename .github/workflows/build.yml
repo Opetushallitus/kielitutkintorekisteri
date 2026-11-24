@@ -418,7 +418,7 @@ jobs:
             test -f "docs/technical/$page" || { echo "::error::docs/technical/$page puuttuu"; exit 1; }
           done
           test -d docs/perehdytys
-          for page in README.md yki-suoritukset.md; do
+          for page in README.md yki-suoritukset.md koto-paattotesti.md; do
             test -f "docs/perehdytys/$page" || { echo "::error::docs/perehdytys/$page puuttuu"; exit 1; }
           done
       - name: Build html files from markdown files

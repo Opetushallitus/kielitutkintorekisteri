@@ -14,7 +14,7 @@ Six hand-editable SVGs in `docs/technical/kaaviot/`, embedded in
 | `yki-arvioijat.svg`                    | YKI arvioijarekisteri: Solki ↔ kitu, Hakemuspalvelu, virkailija             |
 | `vkt-erinomainen.svg`                  | VKT ET: KIOS sends ilmoittautuminen without arvosanat, arvosanat in kitu    |
 | `vkt-hyva-ja-tyydyttava.svg`           | VKT HTT: tutkinnon vastaanottaja grades in KIOS, KIOS sends finished result |
-| `kotoutumiskoulutus-suoritukset.svg`   | Koealusta (Moodle, Mediamaisteri) → kitu: valmiit + keskeneräiset           |
+| `kotoutumiskoulutus-suoritukset.svg`   | Koealusta (Moodle) → kitu: valmiit + keskeneräiset                          |
 | `kotoutumiskoulutus-tehtavapankki.svg` | Koealusta → kitu → S3; virkailija downloads files via presigned S3 URL      |
 
 Two **process diagrams** live in the same directory and the same section of the page:
