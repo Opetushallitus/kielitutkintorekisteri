@@ -13,8 +13,8 @@ the older `yki-suoritukset.md`.
 
 ## Sections
 
-The README still describes a nine-section skeleton. In practice the session has no time for
-code-level detail, so the koto tutorial dropped two parts (Ilkka, 24.11.2026). The default is:
+The README defines the eight-section skeleton. The session has no time for code-level detail,
+so the series dropped two parts that the first tutorial still has (Ilkka, 24.11.2026):
 
 1. **Mikä tämä on ja kuka tekee mitä** — domain, parties table, the data-flow diagram, and the
    two or three things that set this area apart
@@ -31,7 +31,7 @@ last marked "(ei käydä läpi)".
 
 **Left out by default:** a "Koodipolut" section (step-by-step class tables) and "Testit" lines
 under the traps, plus traps that only concern how the test suite is set up. Ask the user before
-adding any of them back, and if the series skeleton in the README should follow, offer to update it.
+adding any of them back.
 
 ## Steps
 
