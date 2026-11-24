@@ -13,11 +13,13 @@ import fi.oph.kitu.yki.Tutkintotaso
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.Tallennuslahde
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoistoRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import fi.oph.kitu.yki.arvioijat.YkiArviointioikeusEntity
 import fi.oph.kitu.yki.arvioijat.arvioijaOid
 import fi.oph.kitu.yki.arvioijat.solki.Lahetystulos
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaException
+import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaPoistoRequest
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaServiceImpl
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.web.client.ResourceAccessException
 import java.time.Instant
 import java.time.LocalDate
@@ -39,6 +42,8 @@ import kotlin.test.assertTrue
 @Import(DBContainerConfiguration::class)
 class YkiArvioijaSolkiTest(
     @param:Autowired private val repository: YkiArvioijaRepository,
+    @param:Autowired private val poistoRepository: YkiArvioijaPoistoRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val timeService: TestTimeService,
     @param:Autowired private val oppijanumeroService: OppijanumeroService,
 ) {
@@ -50,6 +55,13 @@ class YkiArvioijaSolkiTest(
         var vastaus: (SolkiArvioijaRequest) -> Either<SolkiArvioijaException, String?> = { "A00001".right() },
     ) : fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaClient {
         val lahetetyt = mutableListOf<SolkiArvioijaRequest>()
+        val poistot = mutableListOf<SolkiArvioijaPoistoRequest>()
+        var poistonVastaus: Either<SolkiArvioijaException, Unit> = Unit.right()
+
+        override fun lahetaPoisto(request: SolkiArvioijaPoistoRequest): Either<SolkiArvioijaException, Unit> {
+            poistot += request
+            return poistonVastaus
+        }
 
         override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?> {
             lahetetyt += request
@@ -63,10 +75,12 @@ class YkiArvioijaSolkiTest(
     @BeforeEach
     fun setup() {
         repository.deleteAll()
+        jdbcTemplate.update("DELETE FROM yki_arvioija_poisto")
         stub = Stub()
         solki =
             SolkiArvioijaServiceImpl(
                 repository,
+                poistoRepository,
                 stub,
                 oppijanumeroService,
                 ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = true),
@@ -102,6 +116,7 @@ class YkiArvioijaSolkiTest(
         val request = stub.lahetetyt.single()
         assertEquals("1.2.246.562.24.20281155246", request.arvioijaOid)
         assertNotNull(request.versio, "versio = kitun muokattu")
+        assertEquals(SolkiArvioijaRequest.Tila.ARVIOIJA, request.tila)
         val oikeus = request.arviointikausi!!.arviointioikeudet.single()
         assertEquals(Tutkintokieli.FIN, oikeus.kieli)
         assertEquals(listOf(Tutkintotaso.PT), oikeus.tasot)
@@ -385,9 +400,61 @@ class YkiArvioijaSolkiTest(
         assertEquals(1, repository.findLahetettavat().size, "epaonnistunut rivi jaa jonoon")
     }
 
+    @Test
+    fun `poistoilmoitus lahtee ja poistuu jonosta`() {
+        kirjaaPoisto()
+
+        assertEquals(1, solki.lahetaPoistot())
+
+        val ilmoitus = stub.poistot.single()
+        assertEquals(POISTETTU_OID, ilmoitus.arvioijaOid)
+        assertEquals(SolkiArvioijaRequest.Tila.POISTETTU, ilmoitus.tila)
+        assertEquals(0, poistoRepository.findLahetettavat().size, "vastaanotettu ilmoitus ei jaa kantaan")
+    }
+
+    @Test
+    fun `epaonnistunut poistoilmoitus jaa jonoon ja yritys kirjataan`() {
+        kirjaaPoisto()
+        stub.poistonVastaus = SolkiArvioijaException.NullResponse(POISTETTU_OID).left()
+
+        assertEquals(0, solki.lahetaPoistot())
+
+        assertEquals(1, poistoRepository.findLahetettavat().size)
+        assertEquals(0, poistoRepository.findLahetettavat(maxYritykset = 1).size, "yrityskerta on kirjattu")
+        assertNotNull(
+            jdbcTemplate.queryForObject("SELECT solki_lahetysvirhe FROM yki_arvioija_poisto", String::class.java),
+        )
+    }
+
+    @Test
+    fun `poistoilmoitus odottaa jonossa kun integraatio on pois`() {
+        kirjaaPoisto()
+
+        assertEquals(0, kytkinPois().lahetaPoistot())
+
+        assertEquals(0, stub.poistot.size)
+        assertEquals(1, poistoRepository.findLahetettavat().size)
+    }
+
+    @Test
+    fun `uudelleen lisatyn arvioijan poistoilmoitusta ei laheteta`() {
+        kirjaaPoisto()
+        tallenna(oid = POISTETTU_OID)
+
+        assertEquals(0, solki.lahetaPoistot())
+
+        assertEquals(0, stub.poistot.size, "ilmoitus poistaisi Solkista voimassa olevan arvioijan")
+        assertEquals(0, poistoRepository.findLahetettavat().size)
+    }
+
+    private fun kirjaaPoisto() {
+        jdbcTemplate.update("INSERT INTO yki_arvioija_poisto (arvioija_oid) VALUES (?)", POISTETTU_OID)
+    }
+
     private fun kytkinPois() =
         SolkiArvioijaServiceImpl(
             repository,
+            poistoRepository,
             stub,
             oppijanumeroService,
             ArvioijarekisteriAsetukset(muokkausKaytossa = true, integraatioKaytossa = false),
@@ -429,4 +496,8 @@ class YkiArvioijaSolkiTest(
             ),
             lahde = lahde,
         )
+
+    companion object {
+        private const val POISTETTU_OID = "1.2.246.562.24.20281155246"
+    }
 }

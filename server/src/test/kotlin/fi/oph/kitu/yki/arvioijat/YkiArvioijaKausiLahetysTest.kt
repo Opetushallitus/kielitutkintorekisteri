@@ -59,6 +59,8 @@ class TransaktiotaValvovaSolki(
 
     override fun lahetaLahettamattomat(maxYritykset: Int?): Int = 0
 
+    override fun lahetaPoistot(maxYritykset: Int?): Int = 0
+
     companion object {
         val kausiNakyvissaLahetettaessa = mutableListOf<Boolean>()
     }

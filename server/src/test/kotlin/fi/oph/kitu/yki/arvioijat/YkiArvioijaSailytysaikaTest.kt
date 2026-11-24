@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -29,6 +30,8 @@ import kotlin.test.assertNull
 @Import(DBContainerConfiguration::class)
 class YkiArvioijaSailytysaikaTest(
     @param:Autowired private val repository: YkiArvioijaRepository,
+    @param:Autowired private val poistoRepository: YkiArvioijaPoistoRepository,
+    @param:Autowired private val jdbcTemplate: JdbcTemplate,
     @param:Autowired private val service: YkiArvioijaService,
     @param:Autowired private val timeService: TestTimeService,
 ) {
@@ -40,6 +43,7 @@ class YkiArvioijaSailytysaikaTest(
     @BeforeEach
     fun nukeDb() {
         repository.deleteAll()
+        jdbcTemplate.update("DELETE FROM yki_arvioija_poisto")
     }
 
     private fun poista(): Int {
@@ -54,6 +58,25 @@ class YkiArvioijaSailytysaikaTest(
 
         assertEquals(1, poista())
         assertNull(repository.findArvioijaById(id), "merkinnan on poistuttava")
+    }
+
+    @Test
+    fun `poistetusta merkinnasta kirjataan poistoilmoitus Solki-jonoon`() {
+        tallenna(kaudenPaattymispaiva = umpeutunut)
+
+        poista()
+
+        val ilmoitus = poistoRepository.findLahetettavat().single()
+        assertEquals("1.2.246.562.24.20281155246", ilmoitus.arvioijaOid.toString())
+    }
+
+    @Test
+    fun `sailyvasta merkinnasta ei kirjata poistoilmoitusta`() {
+        tallenna(kaudenPaattymispaiva = juuriJaAlle)
+
+        poista()
+
+        assertEquals(0, poistoRepository.findLahetettavat().size)
     }
 
     @Test

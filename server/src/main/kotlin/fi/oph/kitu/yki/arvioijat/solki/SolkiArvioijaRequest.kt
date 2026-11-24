@@ -22,6 +22,13 @@ data class SolkiArvioijaRequest(
     @Kuvaus("Hetki, jona arvioijan tietoja on viimeksi muutettu Kielitutkintorekisterissä")
     @param:JsonFormat(shape = JsonFormat.Shape.STRING)
     val versio: OffsetDateTime?,
+    @Kuvaus(
+        "Arvioijan tila",
+        lisatieto =
+            "ARVIOIJA on rekisteriin merkitty arvioija. KOULUTETTAVA on henkilö, jolla ei vielä ole " +
+                "arviointioikeutta, mutta joka viedään Solkiin arvioijakoulutusta varten.",
+    )
+    val tila: Tila,
     @Kuvaus("Arvioijan sukunimi")
     val sukunimi: String,
     @Kuvaus("Arvioijan etunimet")
@@ -50,15 +57,22 @@ data class SolkiArvioijaRequest(
     )
     val arviointikausi: Arviointikausi?,
 ) {
+    enum class Tila {
+        ARVIOIJA,
+        KOULUTETTAVA,
+        POISTETTU,
+    }
+
     /**
-     * Tilaa ei laheteta: se vanhenee kauden umpeutuessa, joten vastaanottaja johtaa sen kauden
-     * paivista. Paattymispaiva on inklusiivinen eli kauden viimeinen voimassaolopaiva.
+     * Kauden voimassaoloa (aktiivinen, passivoitu) ei laheteta: se vanhenee kauden umpeutuessa,
+     * joten vastaanottaja johtaa sen kauden paivista. Paattymispaiva on inklusiivinen eli kauden
+     * viimeinen voimassaolopaiva.
      */
     data class Arviointikausi(
-        @Kuvaus("Arviointikauden ensimmäinen voimassaolopäivä")
+        @Kuvaus("Arviointikauden ensimmäinen voimassaolopäivä", lisatieto = "Tyhjä koulutettavalla.")
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val alkupaiva: LocalDate?,
-        @Kuvaus("Arviointikauden viimeinen voimassaolopäivä")
+        @Kuvaus("Arviointikauden viimeinen voimassaolopäivä", lisatieto = "Tyhjä koulutettavalla.")
         @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val paattymispaiva: LocalDate?,
         @Kuvaus("Onko arviointikausi jatkoa arvioijan aiemmalle kaudelle")
@@ -86,6 +100,7 @@ data class SolkiArvioijaRequest(
             SolkiArvioijaRequest(
                 arvioijaOid = arvioija.arvioijaOid.toString(),
                 versio = arvioija.muokattu,
+                tila = Tila.ARVIOIJA,
                 sukunimi = arvioija.sukunimi,
                 etunimet = arvioija.etunimet,
                 syntymapaiva = syntymaaika,

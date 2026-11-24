@@ -11,6 +11,7 @@ import fi.oph.kitu.koski.VktKielitaito
 import fi.oph.kitu.koski.YkiOsasuoritus
 import fi.oph.kitu.yki.TutkinnonOsa
 import fi.oph.kitu.yki.Tutkintokieli
+import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaPoistoRequest
 import fi.oph.kitu.yki.arvioijat.solki.SolkiArvioijaRequest
 import kotlin.reflect.KClass
 
@@ -144,9 +145,18 @@ object Tietovirrat {
                     "Epäonnistunut lähetys yritetään ajastetusti uudelleen.",
             miksi = "Solki tarvitsee ajantasaiset tiedot arvioijista ja heidän arviointioikeuksistaan.",
             juuri = SolkiArvioijaRequest::class,
-            tarkennukset = mapOf("arviointikausi.arviointioikeudet[].kieli" to nykyisetKielet),
+            tarkennukset =
+                mapOf(
+                    "tila" to
+                        Tarkennus.Arvot(
+                            listOf(SolkiArvioijaRequest.Tila.ARVIOIJA, SolkiArvioijaRequest.Tila.KOULUTETTAVA),
+                        ),
+                    "arviointikausi.arviointioikeudet[].kieli" to nykyisetKielet,
+                ),
             huomiot =
                 listOf(
+                    "Koulutettavan arviointikaudessa ei ole päiviä, ja sen arviointioikeudet ovat kielet ja " +
+                        "tasot, joihin henkilö koulutetaan. Kielitutkintorekisteri ei vielä lähetä koulutettavia.",
                     "Henkilötunnusta ei lähetetä.",
                     "Puhelinnumeroa ei lähetetä.",
                     "Arviointikauden tilaa (aktiivinen, passivoitu) ei lähetetä, koska se vanhenisi kauden " +
@@ -155,6 +165,24 @@ object Tietovirrat {
                     "Käytöstä poistuneiden kielten arviointioikeuksia ei lähetetä.",
                     "Syntymäpäivää ei säilytetä Kielitutkintorekisterissä, vaan se haetaan " +
                         "oppijanumerorekisteristä jokaista lähetystä varten.",
+                ),
+        )
+
+    val solkiArvioijanPoisto =
+        Tietovirta(
+            ankkuri = "solki-arvioija-poisto",
+            otsikko = "Poistetut YKI-arvioijat Solki-järjestelmään",
+            vastaanottaja = "Jyväskylän yliopiston Solki-järjestelmä",
+            milloin =
+                "Kun arvioijan merkintä poistetaan Kielitutkintorekisteristä säilytysajan päätyttyä. " +
+                    "Epäonnistunut lähetys yritetään ajastetusti uudelleen.",
+            miksi = "Solki saa tiedon, ettei henkilö ole enää arvioijarekisterissä.",
+            juuri = SolkiArvioijaPoistoRequest::class,
+            tarkennukset = mapOf("tila" to Tarkennus.Arvot(listOf(SolkiArvioijaRequest.Tila.POISTETTU))),
+            huomiot =
+                listOf(
+                    "Poistetusta arvioijasta ei lähetetä nimeä, yhteystietoja eikä arviointioikeuksia.",
+                    "Ilmoitus lähetetään samaan osoitteeseen kuin arvioijan tiedot.",
                 ),
         )
 
@@ -181,5 +209,5 @@ object Tietovirrat {
                 ),
         )
 
-    val kaikki = listOf(koskiYki, koskiVkt, solkiArvioija, kiosArviointitila)
+    val kaikki = listOf(koskiYki, koskiVkt, solkiArvioija, solkiArvioijanPoisto, kiosArviointitila)
 }

@@ -19,6 +19,9 @@ interface SolkiArvioijaClient {
      * Solkin arvioijalle muodostama tunnus, tai null jos vastaus ei sisaltanyt sita.
      */
     fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?>
+
+    /** Ilmoittaa Solkille, etta arvioija on poistettu Kielitutkintorekisterista. */
+    fun lahetaPoisto(request: SolkiArvioijaPoistoRequest): Either<SolkiArvioijaException, Unit>
 }
 
 /**
@@ -33,39 +36,50 @@ class SolkiArvioijaClientImpl(
     val restClient: RestClient,
 ) : SolkiArvioijaClient {
     @WithSpan
-    override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?> {
+    override fun laheta(request: SolkiArvioijaRequest): Either<SolkiArvioijaException, String?> =
+        laheta(request.arvioijaOid, "${request.arvioijaOid}:${request.versio}", request).map(::tunnus)
+
+    @WithSpan
+    override fun lahetaPoisto(request: SolkiArvioijaPoistoRequest): Either<SolkiArvioijaException, Unit> =
+        laheta(request.arvioijaOid, "${request.arvioijaOid}:${request.versio}", request).map { }
+
+    private fun laheta(
+        arvioijaOid: String,
+        idempotenssiavain: String,
+        runko: Any,
+    ): Either<SolkiArvioijaException, ResponseEntity<String>> {
         val response =
             try {
-                kutsu(request)
+                kutsu(idempotenssiavain, runko)
             } catch (e: ResourceAccessException) {
                 // retrieveEntitySafely heittaa yhteysvirheen lapi. Ilman tata tallennuksen
                 // synkroninen lahetysyritys kaataisi virkailijan pyynnon jo tallennetulle riville.
-                return SolkiArvioijaException.ConnectionFailure(request.arvioijaOid, e).left()
+                return SolkiArvioijaException.ConnectionFailure(arvioijaOid, e).left()
             }
 
         return when {
             response == null -> {
-                SolkiArvioijaException.NullResponse(request.arvioijaOid).left()
+                SolkiArvioijaException.NullResponse(arvioijaOid).left()
             }
 
             response.statusCode.is2xxSuccessful -> {
-                tunnus(response).right()
+                response.right()
             }
 
             response.statusCode.value() == UNAUTHORIZED || response.statusCode.value() == FORBIDDEN -> {
-                SolkiArvioijaException.Unauthorized(request.arvioijaOid, response).left()
+                SolkiArvioijaException.Unauthorized(arvioijaOid, response).left()
             }
 
             response.statusCode.value() == CONFLICT -> {
-                SolkiArvioijaException.Conflict(request.arvioijaOid, response).left()
+                SolkiArvioijaException.Conflict(arvioijaOid, response).left()
             }
 
             response.statusCode.is4xxClientError -> {
-                SolkiArvioijaException.BadRequest(request.arvioijaOid, response).left()
+                SolkiArvioijaException.BadRequest(arvioijaOid, response).left()
             }
 
             else -> {
-                SolkiArvioijaException.UnexpectedError(request.arvioijaOid, response).left()
+                SolkiArvioijaException.UnexpectedError(arvioijaOid, response).left()
             }
         }
     }
@@ -81,13 +95,16 @@ class SolkiArvioijaClientImpl(
             ?.asString()
             ?.takeIf { it.isNotBlank() }
 
-    private fun kutsu(request: SolkiArvioijaRequest): ResponseEntity<String>? =
+    private fun kutsu(
+        idempotenssiavain: String,
+        runko: Any,
+    ): ResponseEntity<String>? =
         restClient
             .post()
             .uri("arvioija")
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Idempotency-Key", "${request.arvioijaOid}:${request.versio}")
-            .body(request)
+            .header("Idempotency-Key", idempotenssiavain)
+            .body(runko)
             .retrieveEntitySafely(String::class.java)
 
     companion object {

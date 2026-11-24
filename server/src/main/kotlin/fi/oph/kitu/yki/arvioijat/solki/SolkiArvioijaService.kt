@@ -4,6 +4,8 @@ import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
 import fi.oph.kitu.yki.arvioijat.ArvioijarekisteriAsetukset
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaEntity
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoisto
+import fi.oph.kitu.yki.arvioijat.YkiArvioijaPoistoRepository
 import fi.oph.kitu.yki.arvioijat.YkiArvioijaRepository
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -37,12 +39,22 @@ interface SolkiArvioijaService {
      * @return onnistuneiden lahetysten maara.
      */
     fun lahetaLahettamattomat(maxYritykset: Int? = null): Int
+
+    /**
+     * Lahettaa jonossa olevat ilmoitukset rekisterista poistetuista arvioijista.
+     * Integraatiokytkimen takana: pois paalta ilmoitukset jaavat jonoon.
+     *
+     * @param maxYritykset null = kaikki, myos pitkaan epaonnistuneet.
+     * @return onnistuneiden lahetysten maara.
+     */
+    fun lahetaPoistot(maxYritykset: Int? = null): Int
 }
 
 // open, koska @WithSpan vaatii CGLIB-proxyn: ilman @Service-annotaatiota Kotlinin allopen ei
 // avaa luokkaa.
 open class SolkiArvioijaServiceImpl(
     private val repository: YkiArvioijaRepository,
+    private val poistoRepository: YkiArvioijaPoistoRepository,
     private val client: SolkiArvioijaClient,
     private val oppijanumeroService: OppijanumeroService,
     private val asetukset: ArvioijarekisteriAsetukset,
@@ -70,6 +82,43 @@ open class SolkiArvioijaServiceImpl(
 
         return onnistuneet
     }
+
+    @WithSpan
+    override fun lahetaPoistot(maxYritykset: Int?): Int {
+        if (!asetukset.integraatioKaytossa) return 0
+
+        poistoRepository.poistaUudelleenLisattyjenIlmoitukset()
+        val lahetettavat = poistoRepository.findLahetettavat(maxYritykset)
+        val onnistuneet = lahetettavat.count(::lahetaPoisto)
+
+        Span
+            .current()
+            .setAttribute("poistot.yritetty", lahetettavat.size.toLong())
+            .setAttribute("poistot.lahetetty", onnistuneet.toLong())
+
+        return onnistuneet
+    }
+
+    private fun lahetaPoisto(poisto: YkiArvioijaPoisto): Boolean =
+        runCatching {
+            client
+                .lahetaPoisto(SolkiArvioijaPoistoRequest(poisto.arvioijaOid.toString(), poisto.poistettu))
+                .fold(
+                    ifLeft = { virhe ->
+                        logger.warn("Arvioijan {} poistoilmoitus epaonnistui: {}", poisto.arvioijaOid, virhe.message)
+                        poistoRepository.merkitseLahetysvirhe(poisto.id, virhe.debugString())
+                        false
+                    },
+                    ifRight = {
+                        poistoRepository.merkitseLahetetyksi(poisto.id)
+                        true
+                    },
+                )
+        }.getOrElse { e ->
+            logger.warn("Arvioijan {} poistoilmoitus epaonnistui odottamattomasti", poisto.arvioijaOid, e)
+            poistoRepository.merkitseLahetysvirhe(poisto.id, "Unexpected failure: ${e.javaClass.simpleName}")
+            false
+        }
 
     /**
      * Yksikin odottamaton poikkeus ei saa keskeyttaa eraa: muuten yksi rikkinainen rivi estaisi

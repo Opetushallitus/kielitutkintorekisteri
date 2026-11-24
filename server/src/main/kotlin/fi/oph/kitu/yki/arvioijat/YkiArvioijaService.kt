@@ -158,6 +158,8 @@ class YkiArvioijaService(
             arrayOf("arvioija.oid" to oid.toString())
         }
 
+        if (poistetut.isNotEmpty()) solki.lahetaPoistot()
+
         return poistetut.size
     }
 
