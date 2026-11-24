@@ -114,6 +114,7 @@ class KoealustaSuoritusValidator {
     fun courseToEntity(
         user: KoealustaOppija,
         course: KoealustaKeskeneraisetResponse.User.Course,
+        oppijanumero: Oid?,
     ): Either<KoealustaMappingError.SuoritusValidationFailure, KielitestiSuoritus> {
         val errors = mutableListOf<KoealustaMappingError.Validation>()
 
@@ -123,7 +124,7 @@ class KoealustaSuoritusValidator {
                 .getOrNull()
 
         if (errors.isNotEmpty()) {
-            return createValidationError(user, course, errors, null)
+            return createValidationError(user, course, errors, oppijanumero)
         }
 
         return KielitestiSuoritus(
@@ -131,7 +132,7 @@ class KoealustaSuoritusValidator {
             sukunimi = user.lastname.trim(),
             kutsumanimi = user.preferredname.orEmpty().trim(),
             email = user.email,
-            oppijanumero = null,
+            oppijanumero = oppijanumero,
             suoritusaika = null,
             oppilaitosOid = schoolOid!!,
             kurssiId = course.courseid,

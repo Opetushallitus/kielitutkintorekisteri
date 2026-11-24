@@ -115,10 +115,15 @@ class KoealustaService(
                 enrolledFromParam(),
             ).body ?: return
 
-        val (suoritukset, validationFailure) = mappingService.responseStringToKeskenerainenSuoritus(body)
+        val (suoritukset, validationFailure) =
+            mappingService.responseStringToKeskenerainenSuoritus(
+                body,
+                kielitestiSuoritusErrorRepository.findAllByCompleted(false),
+            )
 
         val validationErrors = mappingService.convertErrors(validationFailure?.validationErrors.orEmpty())
-        kielitestiErrorService.syncErrors(false, validationErrors)
+        val oppijanumeroErrors = mappingService.convertErrors(validationFailure?.oppijanumeroExceptions.orEmpty())
+        kielitestiErrorService.syncErrors(false, validationErrors + oppijanumeroErrors)
 
         customKielitestiSuoritusRepository.deleteAllKeskeneraiset()
 
@@ -137,6 +142,7 @@ class KoealustaService(
 
         span.setAttribute("db.saved", savedSuoritukset.count())
         span.setAttribute("db.saved.error.validation", validationErrors.count())
+        span.setAttribute("db.saved.error.onr", oppijanumeroErrors.count())
     }
 
     private fun enrolledFromParam(): Pair<String, Any>? =

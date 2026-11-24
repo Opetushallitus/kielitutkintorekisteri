@@ -67,6 +67,12 @@ Haku rajataan **kurssille ilmoittautumisen ajankohdan** perusteella: mukaan tule
 ilmoittautuminen on korkeintaan `kitu.kotoutumiskoulutus.koealusta.keskeneraiset.enrolmentWindow`
 (oletus `14d`) vanha. Tyhjä arvo hakee kaikki keskeneräiset ilman aikarajaa.
 
+Jokaisen keskeneräisen henkilötiedot (henkilötunnus ja nimet) tarkistetaan Oppijanumerorekisteristä
+samalla haulla kuin valmiin suorituksen. Jos haku epäonnistuu, virhe ratkaisuehdotuksineen näkyy
+tuonnin virheissä (sarake "Valmis": ei), jotta oppilaitos ehtii korjata tiedot Koealustalle ennen
+kuin testi valmistuu. Keskeneräinen tallennetaan silloinkin, mutta ilman oppijanumeroa. Henkilö,
+jolta puuttuu henkilötunnus tai jokin nimistä, ohitetaan kokonaan.
+
 Ajo **korvaa keskeneräiset kokonaan** (valmiisiin ei kosketa), joten ikkuna on samalla
 keskeneräisten säilytysaika: ikkunan ulkopuolelle valunut keskeneräinen katoaa näkymästä
 seuraavassa ajossa. Käsin käynnistetty ajo laskee ikkunan käynnistyshetkestä.
