@@ -6,12 +6,11 @@
 | 2. Sanasto                        |
 | 3. Suorituksen elinkaari          |
 | 4. Tekninen yleiskuva             |
-| 5. Koodipolut                     |
-| 6. Ansat ja päätökset             |
-| 7. Ylläpito                       |
-| 8. Kokeile itse (demo)            |
+| 5. Ansat ja päätökset             |
+| 6. Ylläpito                       |
+| 7. Kokeile itse (demo)            |
 | Kysymykset                        |
-| 9. Lisälukemista (ei käydä läpi)  |
+| 8. Lisälukemista (ei käydä läpi)  |
 
 ## 1. Mikä YKI on ja kuka tekee mitä
 
@@ -189,7 +188,9 @@ Tästä seuraa kolme asiaa, jotka toistuvat kaikessa koodissa:
   jokaiselle `solki_id`:lle uusimman rivin (`DISTINCT ON (solki_id) … ORDER BY last_modified DESC`).
   Kyselyt rakennetaan `YkiSuoritusSql`:n apufunktioilla, ei käsin.
 - **Muuttumaton lähetys ei tee riviä.** `YkiSuoritusRepository.save` vertaa saapuvaa suoritusta
-  viimeisimpään versioon ja jättää tallentamatta, jos ne ovat samat (ks. osio 5).
+  viimeisimpään versioon ja jättää tallentamatta, jos ne ovat samat. Vertailu
+  (`equalsIgnoringAnnotated(…, "DB")`) ohittaa kentät, jotka Kielitutkintorekisteri kirjoittaa itse
+  ja joita Solki ei lähetä, kuten KOSKI-siirron ja KIOS-lähetyksen tilan.
 
 Tarkistusarviointi ja lisätiedot eivät ole versioituja: niistä on yksi rivi, joka kirjoitetaan
 yli. Suorituksen vanha versio näyttää siksi tarkistusarvioinnin uusimmat päivät.
@@ -248,139 +249,9 @@ virkailijalle CAS-kirjautumisessa. Säännöt ovat `security/WebSecurityConfig.k
 `configureCommonAuthorizations`, ja kaikki, mitä siellä ei mainita, vaatii virkailijan
 `READ`-oikeuden.
 
-## 5. Koodipolut
+## 5. Ansat ja päätökset
 
-Paketit ovat suhteessa hakemistoon `server/src/main/kotlin/fi/oph/kitu/`.
-
-### Solki lähettää suorituksen
-
-`POST /yki/api/suoritus`, runkona yksi `Henkilosuoritus<YkiSuoritus>` (henkilö ja suoritus).
-
-| Vaihe                  | Luokka ja metodi                                             | Paketti                      | Mitä tapahtuu                                                                                                        |
-| ---------------------- | ------------------------------------------------------------ | ---------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1. Jäsennys            | `Henkilosuoritus`, `YkiSuoritus`, `Henkilo`                  | `tiedontuontischema/`        | Jackson lukee JSONin. Puuttuva pakollinen kenttä, kuten henkilön oppijanumero, aiheuttaa virheen 400.                |
-| 2. Vastaanotto         | `YkiApiController.postHenkilosuoritus`                       | `yki/`                       | Kutsuu alla olevat vaiheet järjestyksessä.                                                                           |
-| 3. Yhteinen validointi | `TiedonsiirtoValidation`, `HenkilosuoritusValidation`        | `tiedontuontischema/`        | Vaihtaa oppijanumeron henkilön pääasialliseen oppijanumeroon (kutsu Oppijanumerorekisteriin) ja tarkistaa maakoodin. |
-| 4. YKI-validointi      | `YkiSuoritusValidation`                                      | `tiedontuontischema/`        | Tarkistaa, että arviointitila vastaa sisältöä (osion 3 taulukko), ja arvosanat sopivat tasoon. Virhe on 400.         |
-| 5. Muunnos             | `YkiSuoritusEntity.from`                                     | `yki/suoritukset/`           | Rajapinnan rakenne muuttuu tietokannan riviksi.                                                                      |
-| 6. Lähteen tarkistus   | `YkiSuoritusRepository.findViimeisinLahdejarjestelmanTunnus` | `yki/suoritukset/`           | Jos tunniste kuuluu toisen lähdejärjestelmän suoritukselle, vastaus on 409.                                          |
-| 7. Tallennus           | `YkiSuoritusRepository.save`                                 | `yki/suoritukset/`           | Vertaa viimeisimpään versioon ja lisää uuden version, jos jokin muuttui.                                             |
-| 8. Tila KIOSiin        | `IlmoittautumisjarjestelmaService.sendArvioinninTila`        | `ilmoittautumisjarjestelma/` | Lähettää arvioinnin tilan heti.                                                                                      |
-| 9. Vastaus             | `TiedonsiirtoSuccess`                                        | `tiedontuontischema/`        | `200 {"result":"OK"}`, myös silloin kun mitään ei tallennettu.                                                       |
-
-Validointi noudattaa kolmivaiheista mallia (`validateBeforeEnrichment` → `enrich` →
-`validateAfterEnrichment`), joka on kuvattu sivulla
-[Koodikonventiot](../technical/koodikonventiot.md).
-
-**Vaihe 7 on koko rekisterin ydin.** `save` tekee neljä asiaa:
-
-1. Hakee suorituksen viimeisimmän version (`findLatestBySolkiIds`).
-2. Normalisoi saapuvan suorituksen samaan muotoon, jossa se tallentuisi: poistaa henkilötunnuksen,
-   jos tutkintopäivä on 1.1.2026 tai myöhemmin, ja säilyttää jo hyväksytyn tarkistusarvioinnin
-   tilan.
-3. Vertaa näitä kahta funktiolla `equalsIgnoringAnnotated(…, "DB")`. Vertailu ohittaa kentät,
-   joissa on `@IgnoreForEquality("DB")`. Ne ovat kenttiä, jotka Kielitutkintorekisteri kirjoittaa
-   itse ja joita Solki ei lähetä: versiotunnisteet ja aikaleimat, KOSKI-siirron tila ja
-   opiskeluoikeus, KIOS-lähetyksen tila sekä tarkistusarvioinnin hyväksymispäivä.
-4. Jos suoritukset eroavat, lisää rivit tauluihin `yki_suoritus` ja `yki_osakoe` sekä
-   tarkistusarvioinnin tiedot.
-
-### Virkailija selaa, avaa tietosivun ja lataa CSV:n
-
-Lista `/yki/suoritukset`:
-
-| Vaihe                  | Luokka ja metodi                                               | Paketti            | Mitä tapahtuu                                                                                                   |
-| ---------------------- | -------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------- |
-| 1. Pyyntö              | `YkiViewController.suorituksetGetView` / `suorituksetPostView` | `yki/`             | Haku lähetetään POSTilla ja säilyy istunnossa; järjestys, sivu ja rajaukset ovat osoitteen parametreja.         |
-| 2. Parametrit          | `YkiSuorituksetParams`                                         | `yki/`             | Osoitteen parametrit sidotaan olioksi, josta saadaan suodatin (`toFilter`) ja järjestys (`toListOrder`).        |
-| 3. Suodatin            | `YkiSuoritusFilter`                                            | `yki/suoritukset/` | Rakentaa SQL:n `WHERE`-ehdon ja sen parametrit.                                                                 |
-| 4. Linkitetyt henkilöt | `YkiService.extendFilterWithLinkedOids`                        | `yki/`             | Oppijanumerolla haettaessa kysyy Oppijanumerorekisteristä henkilön muut oppijanumerot ja hakee niillä kaikilla. |
-| 5. Haku                | `YkiService.findSuorituksetSivu`                               | `yki/`             | Hakee sivun rivit ja kokonaismäärän ja kirjaa näytetyt suoritukset auditlokiin.                                 |
-| 6. Kysely              | `YkiSuoritusRepository.findForListView`, `YkiSuoritusSql`      | `yki/suoritukset/` | Viimeisimmät versiot, niihin suodatin, järjestys ja sivutus.                                                    |
-| 7. Sivu                | `YkiSuorituksetPage.render`                                    | `yki/suoritukset/` | HTML. Sarakkeet tulevat `YkiSuoritusColumn`-enumista.                                                           |
-
-`YkiSuoritusColumn` on listan ja CSV:n yhteinen sarakemäärittely: jokainen arvo kertoo otsikon,
-solun arvon ja järjestyssarakkeen. Annotaatio `@ColumnTags` päättää, näkyykö sarake listassa
-(`LIST_VIEW`), CSV:ssä (`CSV_EXPORT`) vai molemmissa, ja piilotetaanko se, kun virkailija valitsee
-"piilota henkilötiedot" (`PERSONAL_DATA`). Uusi sarake on siis yksi enum-arvo.
-
-Tietosivu `/yki/suoritukset/{id}`:
-
-| Vaihe               | Luokka ja metodi                                                                | Paketti            | Mitä tapahtuu                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------- |
-| 1. Pyyntö           | `YkiViewController.suoritusView`                                                | `yki/`             | `id` on version tunniste.                                                                               |
-| 2. Versio           | `YkiService.findSuoritusById`                                                   | `yki/`             | Hakee version ja kirjaa katselun auditlokiin. Tuntematon id heittää `YkiSuoritusNotFoundError`in (404). |
-| 3. Viimeisin versio | `YkiService.findViimeisinBySolkiId`                                             | `yki/`             | Jos avattu versio ei ole viimeisin, sivu varoittaa ja linkittää uusimpaan.                              |
-| 4. KOSKI-tila       | `KoskiYkiRequestMapper.ykiSuoritusToKoskiRequest`, `KoskiErrorService.findById` | `koski/`           | Näyttää, miksi suoritusta ei siirretä, tai viimeisimmän siirtovirheen.                                  |
-| 5. Henkilö          | `OppijanumeroService.getHenkiloByHenkiloOid`                                    | `oppijanumero/`    | Hakee henkilön tiedot vertailtavaksi suorituksen tietoihin.                                             |
-| 6. Sivu             | `YkiSuoritusPage.render`                                                        | `yki/suoritukset/` | HTML.                                                                                                   |
-
-CSV-lataus `GET /yki/api/suoritukset`:
-
-| Vaihe       | Luokka ja metodi                                      | Paketti | Mitä tapahtuu                                                                  |
-| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------------------------------------ |
-| 1. Pyyntö   | `YkiApiController.getSuorituksetAsCsv`                | `yki/`  | Samat parametrit kuin listalla, joten tiedosto vastaa näkymää ilman sivutusta. |
-| 2. Haku     | `YkiService.allSuorituksetIncludingOpiskeluoikeusOid` | `yki/`  | Kaikki rajaukseen osuvat suoritukset.                                          |
-| 3. Tiedosto | `csvAttachmentResponse`                               | `csv/`  | Kirjoittaa `CSV_EXPORT`-sarakkeet enumin järjestyksessä.                       |
-
-### Suoritus siirtyy KOSKI-järjestelmään
-
-| Vaihe      | Luokka ja metodi                                              | Paketti            | Mitä tapahtuu                                                                                                     |
-| ---------- | ------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| 1. Ajastus | `KoskiYkiScheduledTask.sendYkiSuoritukset`                    | `koski/`           | db-scheduler käynnistää ajon.                                                                                     |
-| 2. Jono    | `YkiSuoritusRepository.findKoskeenLahettamattomatSuoritukset` | `yki/suoritukset/` | Viimeisimmät versiot, joilla `koski_siirto_kasitelty` on `false`.                                                 |
-| 3. Erä     | `KoskiService.sendYkiSuorituksetToKoski`                      | `koski/`           | Käy jonon läpi suoritus kerrallaan; yhden virhe ei pysäytä muita.                                                 |
-| 4. Muunnos | `KoskiYkiRequestMapper.ykiSuoritusToKoskiRequest`             | `koski/`           | Tekee KOSKI-pyynnön tai palauttaa syyn, miksi suoritusta ei siirretä (ei arvioitu, vilppi).                       |
-| 5. Lähetys | `KoskiClient.put`                                             | `koski/`           | `PUT /koski/api/oppija`.                                                                                          |
-| 6. Kirjaus | `KoskiService.sendYkiSuoritusToKoski`                         | `koski/`           | Tallentaa vastauksen opiskeluoikeuden OID:n ja merkitsee version käsitellyksi.                                    |
-| 7. Virheet | `KoskiErrorService`                                           | `koski/`           | Epäonnistunut siirto tallentuu virheeksi ja yritetään uudelleen seuraavassa ajossa. Onnistuminen poistaa virheen. |
-
-Kaksi asiaa kannattaa tietää:
-
-- **"Käsitelty" ei tarkoita "lähetetty".** Myös versio, jota ei kuulu siirtää (esimerkiksi tilassa
-  `ILMOITTAUTUNUT`), merkitään käsitellyksi, jotta se poistuu jonosta. Kun Solki lähettää
-  suorituksesta uuden version, se on taas käsittelemätön.
-- **KOSKI-järjestelmän hylkäämä suoritus jää jonoon.** Sitä yritetään joka ajossa uudelleen, ja
-  virhe näkyy sivulla `/yki/koski-virheet` ja suorituksen tietosivulla, kunnes siirto onnistuu.
-
-### Arvioinnin tila ilmoittautumisjärjestelmään
-
-| Vaihe              | Luokka ja metodi                                                                 | Paketti                      | Mitä tapahtuu                                                                              |
-| ------------------ | -------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------ |
-| 1. Heti            | `IlmoittautumisjarjestelmaServiceImpl.sendArvioinninTila`                        | `ilmoittautumisjarjestelma/` | Kutsutaan jokaisen vastaanotetun lähetyksen jälkeen.                                       |
-| 2. Pyyntö          | `YkiArvioinninTilaRequest.of`                                                    | `ilmoittautumisjarjestelma/` | Suoritus tunnistetaan oppijanumerolla, tutkintopäivällä, kielellä, tasolla ja osakokeilla. |
-| 3. Lähetys         | `IlmoittautumisjarjestelmaClientImpl.post`                                       | `ilmoittautumisjarjestelma/` | `POST /yki/v2/api/oauth2/registration/evaluation`.                                         |
-| 4. Kirjaus         | `YkiSuoritusRepository.setArvioinninTilaSent` / `setArvioinninTilanLahetysvirhe` | `yki/suoritukset/`           | Lähetysaika tai virhe tauluun `yki_suoritus_lisatieto`.                                    |
-| 5. Uudelleenyritys | `IlmoittautumisjarjestelmaScheduledTasks.retrySendingFailedArviointitilat`       | `ilmoittautumisjarjestelma/` | Tunnin välein: suoritukset, joiden viimeisintä versiota ei ole lähetetty.                  |
-
-KIOS ei tunne Solki-tunnistetta, joten suoritus tunnistetaan sisällöllä. Lähetys ei ole osa
-suorituksen tallennusta: jos KIOS ei vastaa, suoritus on silti tallessa ja Solki saa vastauksen 200.
-
-Ympäristöissä, joissa ilmoittautumisjärjestelmän osoitetta ei ole asetettu (paikallinen kehitys,
-testit), käytössä on `IlmoittautumisjarjestelmaServiceMock`, joka vain kirjoittaa lokiin.
-
-### Tarkistusarviointi
-
-Tarkistusarviointi saapuu Solkista suorituksen mukana samaa polkua kuin muukin data, ja
-Kielitutkintorekisterin oma osuus on hyväksyntä. Sivut `/yki/tarkistusarvioinnit` ja
-`/yki/tarkistusarvioinnit/hyvaksytyt` ovat `YkiViewController`issa, ja niiden haku, rajaus ja
-järjestys ovat `YkiTarkistusarvioinnitParams`issa. Hyväksyntä on lomakkeen `POST
-/yki/tarkistusarvioinnit`, joka päätyy metodiin `YkiService.hyvaksyTarkistusarvioinnit`: se
-tallentaa valituille suorituksille uuden version tilassa `TARKISTUSARVIOINTI_HYVAKSYTTY` ja kirjaa hyväksymispäivän ja auditlokimerkinnän. Ohjain lähettää sen jälkeen uuden tilan KIOSiin. Tilastosivun laskenta on
-funktiossa `koostaTarkistusarviointiTilastot`.
-
-### Poisto ja tutkinnosta poisjääneet
-
-Kumpikin päätyy samaan metodiin `YkiService.poistaSuoritus`, joka ei poista mitään vaan tallentaa
-suoritukselle uuden version tilassa `EI_SUORITUSTA` ja jokaiselle osakokeelle arvosanan 12
-(`YkiSuoritusEntity.eiSuoritettuna`). Se on sallittu vain, kun suorituksen viimeisin tila on
-`ILMOITTAUTUNUT`. Solki kutsuu sitä rajapinnalla `DELETE /yki/api/suoritus`
-(`YkiApiController.deleteHenkilosuoritus`), ja yöajo `YkiEiSuoritusMerkinta` kutsuu sitä
-jokaiselle suoritukselle, jonka tutkintopäivästä on kulunut vähintään 14 päivää.
-
-## 6. Ansat ja päätökset
-
-Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian kiinnittää.
+Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa ja miksi.
 
 ### Kenttä, jonka Kielitutkintorekisteri kirjoittaa itse
 
@@ -391,9 +262,6 @@ Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian 
   jälkeen, ja jokainen muuttumaton uudelleenlähetys luo turhan version. Näin kävi tuotannossa
   KOSKI-siirron ja KIOS-lähetyksen kentille. Annotaatiolla on kääntöpuoli: vertailu ei näe kentän
   muutosta, joten ilman `forceWrite`a Kielitutkintorekisterin oma tallennus jäisi tekemättä.
-- **Testit:** `YkiSuoritusRepositoryTest`: "muuttumaton uudelleensiirto ei luo uutta versiota
-  Koski-siirron jalkeen" ja "Koski-siirron tulos tallentuu vaikka vain Kosken omat kentat
-  muuttuvat".
 
 ### Kaksi kyselynrakentajaa
 
@@ -404,9 +272,9 @@ Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian 
 - **Miksi:** `selectSuorituksetFull` valitsee ensin jokaisen suorituksen viimeisimmän version ja
   suodattaa vasta sitten, joten yhdenkin suorituksen haku lukee koko taulun. Tämä hidasti jokaista
   Solkin lähetystä noin sekunnilla, kunnes haku siirrettiin toiseen rakentajaan. Toisin päin
-  rivikohtaiset alikyselyt ovat massahaussa moninkertaisesti hitaampia.
-- **Testit:** suorituskykyä ei mittaa mikään testi. Mittaa muutos PostgreSQL 16:lla, koska
-  paikallinen kanta on versio 18 ja rakentaa erilaisen kyselysuunnitelmman kuin tuotanto.
+  rivikohtaiset alikyselyt ovat massahaussa moninkertaisesti hitaampia. Mittaa muutos
+  PostgreSQL 16:lla, koska paikallinen kanta on versio 18 ja rakentaa erilaisen
+  kyselysuunnitelman kuin tuotanto.
 
 ### Henkilötunnusta ei säilytetä
 
@@ -416,8 +284,6 @@ Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian 
   yhdistämiseen oikeaan henkilöön. Rajapinta hylkää henkilötunnuksen sisältävän lähetyksen (400),
   ja `YkiSuoritusRepository.save` poistaa sen vielä varmuuden vuoksi. Jos virkailija tarvitsee
   henkilötunnukset CSV-tiedostoon, lataus hakee ne pyydettäessä Oppijanumerorekisteristä tallentamatta niitä.
-- **Testit:** `YkiSuoritusRepositoryTest`: "hetua ei tallenneta suoritukselle, jonka tutkintopaiva
-  on rajapaivana tai sen jalkeen"; `YkiApiControllerTest`.
 
 ### Suoritus ilman oppijanumeroa
 
@@ -426,7 +292,6 @@ Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian 
 - **Miksi:** oppijanumerottomia suorituksia on vain vuosien historiadatassa, joka tuotiin
   tietokantamigraatioilla. Oppijanumerottomia suorituksia ei lähetetä KOSKI-järjestelmään
   eikä KIOSiin, ja molemmat jonot suodattavat ne pois jo SQL:ssä.
-- **Testit:** `YkiOppijanumerotonSuoritusTest`.
 
 ### CSV-sarakkeet ovat sopimus
 
@@ -434,7 +299,6 @@ Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian 
   `YkiSuoritusColumn`in loppuun.
 - **Miksi:** virkailijoiden taulukkolaskentapohjat ja raportit nojaavat sarakkeiden nimiin ja
   järjestykseen.
-- **Testit:** `YkiSuoritusColumnTest`.
 
 ### Tarkistusarvioinnin päivät eivät ole versioituja
 
@@ -447,19 +311,18 @@ Jokaisesta kohdasta kerrotaan, mitä ei saa rikkoa, miksi, ja mikä testi asian 
 ### Rajapinnan esimerkit ovat testejä
 
 - **Sääntö:** jokaisen OpenAPI-kuvauksen esimerkkipyynnön on kelvattava rajapinnalle sellaisenaan.
-- **Miksi:** Solkin kehittäjät rakentavat integraationsa esimerkkien varaan.
-- **Testit:** `OpenApiExamplesTest` lähettää jokaisen esimerkin rajapinnalle ja vaatii vastauksen 200.
+- **Miksi:** Solkin kehittäjät rakentavat integraationsa esimerkkien varaan. Build lähettää
+  jokaisen esimerkin rajapinnalle ja kaatuu, jos vastaus ei ole 200.
 
 ### Ilmoitus saapuneista suorituksista nojaa yhteen attribuuttiin
 
 - **Sääntö:** `YkiApiController.postHenkilosuoritus` asettaa jäljitysspanille attribuutin
   `arvioitu`. Älä aseta samannimistä attribuuttia muualla äläkä nimeä sitä uudelleen.
 - **Miksi:** CloudWatchin mittari `PostYkiSuoritus` laskee arvioitujen suoritusten saapumiset tämän
-  attribuutin perusteella (ks. osio 7). Jos mittari lakkaa täsmäämästä, mikään ei hälytä: ilmoitukset
-  vain loppuvat.
-- **Testit:** ei ole. Määrittely ja sen perustelut ovat tiedostossa `infra/lib/log-groups-stack.ts`.
+  attribuutin perusteella (ks. osio 6). Jos mittari lakkaa täsmäämästä, mikään ei hälytä: ilmoitukset
+  vain loppuvat. Määrittely ja sen perustelut ovat tiedostossa `infra/lib/log-groups-stack.ts`.
 
-## 7. Ylläpito
+## 6. Ylläpito
 
 Yleinen ylläpito (lokit, hälytykset, deploy) on sivulla
 [Ylläpito ja havainnointi](../technical/yllapito.md). Tässä on vain YKI-suorituksia koskeva osa.
@@ -501,7 +364,7 @@ esimerkiksi kun tulokset halutaan julkaista vasta sovittuna päivänä. Testisuo
 hoitaa kirjautumisen. Sillä voi kokeilla rajapintaa testiympäristöissä (`--env dev`, `--env test`).
 Oletuspyynnön lähdejärjestelmä on `Solki`. Vaihda se omassa pyynnössäsi arvoon `OPHTesti` ja käytä tunnistetta väliltä 900 000 000 ylöspäin, jottei testisuoritus osu Solkin suoritukseen.
 
-## 8. Kokeile itse
+## 7. Kokeile itse
 
 Harjoitus ajetaan paikallisesti ilman AWS-tunnuksia ja ulkoisia palveluita. Siinä näkyy
 versioinnin koko toiminta: uusi suoritus, muuttumaton uudelleenlähetys, muutos ja hylätty lähetys.
@@ -597,7 +460,7 @@ kenttäpolkuineen, eikä mitään tallenneta.
 Offline-ajossa KOSKI-siirto on pois päältä eikä ilmoittautumisjärjestelmään lähetetä mitään, joten
 ne näkee vain testeistä (`KoskiServiceTest`, `IlmoittautumisjarjestelmaServiceTests`).
 
-## 9. Lisälukemista
+## 8. Lisälukemista
 
 Dokumentaatio:
 

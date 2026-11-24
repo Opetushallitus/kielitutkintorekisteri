@@ -8,13 +8,12 @@ description: Write or update an onboarding tutorial / knowledge-sharing session 
 Each page in `docs/perehdytys/` is both a self-study tutorial and the agenda of a **live,
 time-boxed knowledge-sharing session**: the headings are the agenda. `docs/perehdytys/README.md`
 lists the planned topics. Read the README and the most recent tutorial
-(`koto-paattotesti.md`) in full before writing anything — it is the current model, more than
-the older `yki-suoritukset.md`.
+in full before writing anything; both existing tutorials follow the current skeleton.
 
 ## Sections
 
 The README defines the eight-section skeleton. The session has no time for code-level detail,
-so the series dropped two parts that the first tutorial still has (Ilkka, 24.11.2026):
+so the series dropped two parts it used to have (Ilkka, 24.11.2026):
 
 1. **Mikä tämä on ja kuka tekee mitä** — domain, parties table, the data-flow diagram, and the
    two or three things that set this area apart
