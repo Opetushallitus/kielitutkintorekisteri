@@ -15,7 +15,8 @@ Suositeltu lukujärjestys:
    ja edelleen KOSKI-järjestelmään ja ilmoittautumisjärjestelmään
 2. YKI-arvioijarekisteri (tulossa)
 3. VKT-rekisteri (tulossa)
-4. Kotoutumiskoulutuksen päättötesti ja virheidenkäsittely (tulossa)
+4. [Kotoutumiskoulutuksen päättötesti ja virheidenkäsittely](./koto-paattotesti.md) — päättötestin
+   suoritukset Koealustalta Kielitutkintorekisteriin ja tuonnin virheiden käsittely
 5. Kotoutumiskoulutuksen tehtäväpankki (tulossa)
 6. Infra ja CI/CD (tulossa)
 7. Operations: hälytykset, päivitykset ja muu jatkuva ylläpito (tulossa)

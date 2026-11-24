@@ -1,0 +1,135 @@
+{
+  "users": [
+    {
+      "userid": 1,
+      "firstnames": "Ranja Testi",
+      "lastname": "Öhman-Testi",
+      "preferredname": "Ranja",
+      "SSN": "010180-9026",
+      "email": "ranja.testi@example.com",
+      "completions": [
+        {
+          "courseid": 32,
+          "coursename": "Kotoutumiskoulutus, kevät",
+          "lang": "fi",
+          "schoolOID": "1.2.246.562.10.42923230015",
+          "results": [
+            {
+              "name": "luetun ymmärtäminen",
+              "quiz_grade": "A2"
+            },
+            {
+              "name": "kuullun ymmärtäminen",
+              "quiz_grade": "B1"
+            },
+            {
+              "name": "puhuminen",
+              "quiz_grade": "A2"
+            },
+            {
+              "name": "kirjoittaminen",
+              "quiz_grade": "A1"
+            }
+          ],
+          "timecompleted": 1793527200,
+          "teacheremail": "opettaja@example.com",
+          "questionbank_release": "fi_tehtavapaketti_1"
+        }
+      ],
+      "courses": []
+    },
+    {
+      "userid": 2,
+      "firstnames": "Minerva Alli Aniitta",
+      "lastname": "Marttila",
+      "preferredname": "Minerva",
+      "SSN": "040265-9985",
+      "email": "aniitta.marttila@example.com",
+      "completions": [
+        {
+          "courseid": 32,
+          "coursename": "Kotoutumiskoulutus, kevät",
+          "lang": "fi",
+          "schoolOID": "1.2.246.562.10.42923230015",
+          "results": [
+            {
+              "name": "luetun ymmärtäminen",
+              "quiz_grade": "B1"
+            },
+            {
+              "name": "kuullun ymmärtäminen",
+              "quiz_grade": "B1"
+            },
+            {
+              "name": "puhuminen",
+              "quiz_grade": "A2"
+            },
+            {
+              "name": "kirjoittaminen",
+              "quiz_grade": "A2"
+            }
+          ],
+          "timecompleted": 1793530800,
+          "teacheremail": "opettaja@example.com",
+          "questionbank_release": "fi_tehtavapaketti_1"
+        }
+      ],
+      "courses": []
+    },
+    {
+      "userid": 3,
+      "firstnames": "Testi",
+      "lastname": "Hetuton",
+      "preferredname": "Testi",
+      "SSN": "",
+      "email": "testi.hetuton@example.com",
+      "completions": [
+        {
+          "courseid": 32,
+          "coursename": "Kotoutumiskoulutus, kevät",
+          "lang": "fi",
+          "schoolOID": "1.2.246.562.10.42923230015",
+          "results": [
+            {
+              "name": "luetun ymmärtäminen",
+              "quiz_grade": "A1"
+            },
+            {
+              "name": "kuullun ymmärtäminen",
+              "quiz_grade": "A1"
+            },
+            {
+              "name": "puhuminen",
+              "quiz_grade": "A1"
+            },
+            {
+              "name": "kirjoittaminen",
+              "quiz_grade": "A1"
+            }
+          ],
+          "timecompleted": 1793534400,
+          "teacheremail": "opettaja@example.com",
+          "questionbank_release": "fi_tehtavapaketti_1"
+        }
+      ],
+      "courses": []
+    },
+    {
+      "userid": 4,
+      "firstnames": "Kaisa Testi",
+      "lastname": "Keskeneräinen",
+      "preferredname": "Kaisa",
+      "SSN": "010190-999X",
+      "email": "kaisa.keskenerainen@example.com",
+      "completions": [],
+      "courses": [
+        {
+          "courseid": 33,
+          "coursename": "Kotoutumiskoulutus, syksy",
+          "schoolOID": "1.2.246.562.10.42923230015",
+          "teacheremail": "opettaja@example.com"
+        }
+      ]
+    }
+  ]
+}

@@ -120,7 +120,7 @@
   <g id="koealusta" class="laatikko ulkoinen">
     <rect x="430" y="240" width="280" height="150" rx="8"/>
     <text class="nimi" x="570" y="304" text-anchor="middle">Koealusta</text>
-    <text class="lisatieto" x="570" y="321" text-anchor="middle">Moodle · Mediamaisteri</text>
+    <text class="lisatieto" x="570" y="321" text-anchor="middle">Moodle</text>
     <text class="lisatieto" x="570" y="336" text-anchor="middle">kielitesti.opintopolku.fi</text>
   </g>
   <g id="kitu" class="laatikko kitu">

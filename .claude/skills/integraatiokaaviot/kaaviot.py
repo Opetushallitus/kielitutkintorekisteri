@@ -770,7 +770,7 @@ def koto_suoritukset():
         280,
         150,
         "Koealusta",
-        ["Moodle · Mediamaisteri", "kielitesti.opintopolku.fi"],
+        ["Moodle", "kielitesti.opintopolku.fi"],
     )
     s.box("kitu", "kitu", 1040, 240, 300, 150, "Kielitutkintorekisteri", ["kitu", "kielitestisuoritukset"])
 
@@ -848,7 +848,7 @@ def koto_tehtavapankki():
         280,
         150,
         "Koealusta",
-        ["Moodle · Mediamaisteri", "kysymyspankit (Moodle-XML)"],
+        ["Moodle", "kysymyspankit (Moodle-XML)"],
     )
     s.box(
         "kitu",
