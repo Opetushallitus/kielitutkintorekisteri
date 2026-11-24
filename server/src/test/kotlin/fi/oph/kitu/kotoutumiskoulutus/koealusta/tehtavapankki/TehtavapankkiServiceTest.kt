@@ -180,6 +180,77 @@ class TehtavapankkiServiceTest(
         assertEquals(emptyMap<String, String>(), metadata)
     }
 
+    private fun yhdenKurssinLista(filegenerated: Long) =
+        """
+        {
+          "questionbanks": [
+            {
+              "courseid": 7,
+              "coursename": "Suomi 2",
+              "coursestartdate": 0,
+              "filegenerated": $filegenerated,
+              "questionbankversion": "v1",
+              "language": "fin",
+              "downloadurl": "https://localhost:8080/dev/koto/pluginfile.php/7/qb.xml"
+            }
+          ]
+        }
+        """.trimIndent()
+
+    private fun odotaLista(filegenerated: Long) {
+        mockServer
+            .expect(
+                requestTo(
+                    "https://localhost:8080/dev/koto/webservice/rest/server.php?" +
+                        "wstoken=testitoken&moodlewsrestformat=json&" +
+                        "wsfunction=local_completion_export_export_question_bank",
+                ),
+            ).andRespond(withSuccess(yhdenKurssinLista(filegenerated), MediaType.APPLICATION_JSON))
+    }
+
+    @Test
+    fun `uudelleen tuotettu samansisaltoinen tehtavapankki ladataan vain kerran`() {
+        val quiz =
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <quiz>
+              <question type="category">
+                <category><text>${'$'}course${'$'}/top/A1</text></category>
+                <info format="html"><text/></info>
+                <idnumber/>
+              </question>
+            </quiz>
+            """.trimIndent()
+        val lataus = "https://localhost:8080/dev/koto/pluginfile.php/7/qb.xml?token=testitoken"
+
+        odotaLista(1000)
+        mockServer.expect(requestTo(lataus)).andRespond(withSuccess(quiz, MediaType.APPLICATION_XML))
+        importService.importAndIngest()
+        mockServer.verify()
+
+        Thread.sleep(1100)
+        mockServer.reset()
+        odotaLista(2000)
+        mockServer.expect(requestTo(lataus)).andRespond(withSuccess(quiz, MediaType.APPLICATION_XML))
+        importService.importAndIngest()
+        mockServer.verify()
+
+        mockServer.reset()
+        odotaLista(2000)
+        importService.importAndIngest()
+        mockServer.verify()
+
+        val paketti = repository.findLatestPakettiBySource(TehtavapankkiIngestService.LAHDEJARJESTELMA, "7")
+        val xmlAvaimet =
+            s3Client
+                .listObjectsV2 { it.bucket(TEST_BUCKET) }
+                .contents()
+                .map { it.key() }
+                .filter { it.endsWith(".xml") }
+        assertEquals(Instant.ofEpochSecond(2000).atOffset(ZoneOffset.UTC), paketti!!.lahdeFilegenerated)
+        assertEquals(listOf(paketti.s3Avain), xmlAvaimet)
+    }
+
     @Test
     fun `importTehtavapankki lataa muuttuneet ja ohittaa skipattavat`() {
         // Edellisellä ajolla on jo tuotu courseid=7 filegenerated=1733400000:lla,

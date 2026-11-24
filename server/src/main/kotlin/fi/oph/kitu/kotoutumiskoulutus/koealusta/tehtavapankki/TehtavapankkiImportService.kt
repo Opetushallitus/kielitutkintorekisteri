@@ -16,8 +16,8 @@ class TehtavapankkiImportService(
     private val ingestService: TehtavapankkiIngestService,
 ) {
     /**
-     * Ajastetun tehtävän kokonaisuus: lataa tehtäväpankit S3:een, siivoaa
-     * duplikaatit ja ingestoi kunkin kurssin uusimman XML:n tietokantaan.
+     * Ajastetun tehtävän kokonaisuus: lataa tehtäväpankit S3:een, ingestoi kunkin
+     * kurssin uusimman XML:n tietokantaan ja siivoaa lopuksi duplikaatit.
      * Yhden paketin Moodle-virhe tai ingest-virhe ei estä muiden ingestiä; jos
      * yksikin lataus tai ingest epäonnistui, heitetään lopuksi
      * [TehtavapankkiImportException] jotta tehtävä menee FAILED-tilaan.
@@ -26,10 +26,6 @@ class TehtavapankkiImportService(
     @WithSpan
     fun importAndIngest() {
         val downloadFailures = tehtavapankkiService.importTehtavapankki()
-        // Jokainen siirto saa uuden avaimen, vaikka sisältö olisi ennallaan:
-        // poistetaan kunkin kurssin sisällä saman sisältöiset objektit,
-        // jotta bucket ei kasva turhaan.
-        tehtavapankkiService.removeDuplicates()
         // Käydään kunkin kurssin uusimmat XML:t läpi: puretaan upotetut
         // <file>-blobit erillisiksi S3-objekteiksi (mp3-/png-assetit) ja
         // tallennetaan parsittu sisältö yleiseen tehtäväpankki-skeemaan.
@@ -39,6 +35,10 @@ class TehtavapankkiImportService(
                 .values
                 .mapNotNull { it.firstOrNull() }
                 .mapNotNull { obj -> ingestOne(obj.key) }
+        // Jokainen siirto saa uuden avaimen, vaikka sisältö olisi ennallaan:
+        // poistetaan kunkin kurssin sisällä saman sisältöiset objektit,
+        // jotta bucket ei kasva turhaan.
+        tehtavapankkiService.removeDuplicates()
 
         Span.current().setAttribute("import.download_failures", downloadFailures.size.toLong())
         Span.current().setAttribute("import.ingest_failures", ingestFailures.size.toLong())

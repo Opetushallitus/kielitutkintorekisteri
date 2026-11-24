@@ -283,6 +283,28 @@ class TehtavapankkiIngestServiceTest(
     }
 
     @Test
+    fun `vanhemman samansisaltoisen XML_n lahdetiedot eivat korvaa uudempia`() {
+        val vanhaKey = "42-Suomi_alkeet/2026-01-01T00:00:00-fg1000-0.xml"
+        val uusiKey = "42-Suomi_alkeet/2026-02-01T00:00:00-fg2000-0.xml"
+        s3Client.putObject(
+            { it.bucket(TEST_BUCKET).key(vanhaKey).metadata(mapOf(TehtavapankkiService.S3_META_VERSION to "v1")) },
+            RequestBody.fromBytes(xmlBytes),
+        )
+        s3Client.putObject(
+            { it.bucket(TEST_BUCKET).key(uusiKey).metadata(mapOf(TehtavapankkiService.S3_META_VERSION to "v2")) },
+            RequestBody.fromBytes(xmlBytes),
+        )
+        val paketti = (ingestService.ingestFromS3(vanhaKey) as Either.Right).value
+        ingestService.ingestFromS3(uusiKey)
+
+        ingestService.ingestFromS3(vanhaKey)
+
+        val tallennettu = repository.findPakettiById(paketti.id!!)!!
+        assertEquals(Instant.ofEpochSecond(2000).atOffset(ZoneOffset.UTC), tallennettu.lahdeFilegenerated)
+        assertEquals("v2", tallennettu.lahdeVersion)
+    }
+
+    @Test
     fun `ingest paivittaa myos lahde_version, language ja published dedup-haarassa`() {
         val firstKey = "42-Suomi_alkeet/2026-01-01T00:00:00-fg1000-0.xml"
         val secondKey = "42-Suomi_alkeet/2026-02-01T00:00:00-fg2000-0.xml"

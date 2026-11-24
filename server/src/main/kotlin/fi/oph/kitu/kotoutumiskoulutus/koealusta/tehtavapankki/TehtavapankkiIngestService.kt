@@ -263,12 +263,21 @@ private data class LahdeMetadata(
     val language: String?,
 ) {
     fun mergeInto(paketti: TehtavapakettiEntity): TehtavapakettiEntity =
-        paketti.copy(
-            lahdeFilegenerated = filegenerated ?: paketti.lahdeFilegenerated,
-            lahdePublished = published ?: paketti.lahdePublished,
-            lahdeVersion = version ?: paketti.lahdeVersion,
-            lahdeLanguage = language ?: paketti.lahdeLanguage,
-        )
+        if (onVanhempiKuin(paketti)) {
+            paketti
+        } else {
+            paketti.copy(
+                lahdeFilegenerated = filegenerated ?: paketti.lahdeFilegenerated,
+                lahdePublished = published ?: paketti.lahdePublished,
+                lahdeVersion = version ?: paketti.lahdeVersion,
+                lahdeLanguage = language ?: paketti.lahdeLanguage,
+            )
+        }
+
+    private fun onVanhempiKuin(paketti: TehtavapakettiEntity): Boolean {
+        val tallennettu = paketti.lahdeFilegenerated ?: return false
+        return filegenerated != null && filegenerated.isBefore(tallennettu)
+    }
 }
 
 private fun epochSecondToOffsetDateTime(epochSecond: Long): OffsetDateTime =
