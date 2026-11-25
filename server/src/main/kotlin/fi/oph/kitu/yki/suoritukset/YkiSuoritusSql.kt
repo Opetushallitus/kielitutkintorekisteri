@@ -30,7 +30,7 @@ object YkiSuoritusSql {
                 "suoritus" to
                     selectRootSuoritukset(
                         viimeisin = true,
-                        rajaus = "WHERE solki_id IN (SELECT solki_id FROM yki_suoritus WHERE $ehto)",
+                        rajaus = "WHERE solki_id = ANY(ARRAY(SELECT solki_id FROM yki_suoritus WHERE $ehto))",
                     ),
             ),
             selectYkiSuoritusEntity(
