@@ -171,6 +171,10 @@ object YkiSuoritusPage {
                     UiText.Yki.tarkistusarvioinninKasittelypaiva to
                         { +it.kasittelypaiva?.finnishDate().orDash() }
                 },
+                tarkistusarviointi?.let {
+                    UiText.Yki.tarkistusarvioinninHyvaksymispaiva to
+                        { +suoritus.tarkistusarvioinninHyvaksymispaivaTekstina().ifEmpty { null }.orDash() }
+                },
                 tarkistusarviointi?.let { UiText.Yki.tarkistusarvioinninAsiatunnus to { copyable(it.asiatunnus) } },
                 tarkistusarviointi?.let { arviointi ->
                     UiText.Yki.tarkistusarvioidutOsakokeet to

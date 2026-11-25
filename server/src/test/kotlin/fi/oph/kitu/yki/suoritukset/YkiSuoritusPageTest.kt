@@ -15,6 +15,8 @@ import kotlinx.html.stream.createHTML
 import kotlinx.html.td
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -112,6 +114,30 @@ class YkiSuoritusPageTest {
 
         assertTrue(html.contains(TutkinnonOsa.TY.viewText), "missing tekstin ymmärtäminen row:\n$html")
         assertFalse(html.contains(TutkinnonOsa.YL.viewText), "unregistered yleisarvosana should not render:\n$html")
+    }
+
+    @Test
+    fun `arviointi nayttaa tarkistusarvioinnin hyvaksymispaivan`() {
+        fun hyvaksymispaiva(
+            arviointitila: Arviointitila,
+            pvm: LocalDate?,
+        ): String {
+            val html =
+                renderArviointi(
+                    generateRandomYkiSuoritusEntity().copy(
+                        arviointitila = arviointitila,
+                        tarkistusarvioinninSaapumisPvm = LocalDate.of(2025, 3, 1),
+                        tarkistusarviointiHyvaksyttyPvm = pvm,
+                    ),
+                ).replace(Regex(">\\s+<"), "><")
+            val otsikko = UiText.Yki.tarkistusarvioinninHyvaksymispaiva.toString()
+            return Regex("$otsikko</th><td>([^<]*)</td>").find(html)?.groupValues?.get(1)
+                ?: error("hyväksymispäivän rivi puuttuu:\n$html")
+        }
+
+        assertEquals("1.5.2025", hyvaksymispaiva(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, LocalDate.of(2025, 5, 1)))
+        assertEquals("Ennen 14.11.2025", hyvaksymispaiva(Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY, null))
+        assertEquals("–", hyvaksymispaiva(Arviointitila.TARKISTUSARVIOITU, null))
     }
 
     @Test
