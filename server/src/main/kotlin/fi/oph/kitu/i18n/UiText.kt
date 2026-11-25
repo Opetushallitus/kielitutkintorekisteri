@@ -250,6 +250,8 @@ object UiText {
             get() = tr("yki.tarkistusarvioidutOsakokeet")
         val perustelu: LocalizedString get() = tr("yki.perustelu")
         val naytaPerustelu: LocalizedString get() = tr("yki.naytaPerustelu")
+        val hyvaksyttyEnnenHyvaksymispaivanKirjausta: LocalizedString
+            get() = tr("yki.hyvaksyttyEnnenHyvaksymispaivanKirjausta")
         val viimeksiMuokattu: LocalizedString get() = tr("yki.viimeksiMuokattu")
         val koski: LocalizedString get() = tr("yki.koski")
         val koskiVirheet: LocalizedString get() = tr("yki.koskiVirheet")

@@ -1,5 +1,7 @@
 package fi.oph.kitu.yki.suoritukset
 
+import fi.oph.kitu.i18n.UiText
+import fi.oph.kitu.i18n.finnishDate
 import fi.oph.kitu.jdbc.getEnum
 import fi.oph.kitu.jdbc.getEnumOrNull
 import fi.oph.kitu.jdbc.getInstant
@@ -124,6 +126,14 @@ data class YkiSuoritusEntity(
     fun isOphTesti(): Boolean = Lahdejarjestelma.ofTunnus(lahdejarjestelmanTunnus) == Lahdejarjestelma.OPHTesti
 
     fun kokoNimi() = "$sukunimi $etunimet"
+
+    fun tarkistusarvioinninHyvaksymispaivaTekstina(): String =
+        tarkistusarviointiHyvaksyttyPvm?.finnishDate()
+            ?: if (arviointitila == Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY) {
+                UiText.Yki.hyvaksyttyEnnenHyvaksymispaivanKirjausta.toString()
+            } else {
+                ""
+            }
 
     fun isVilppi() =
         kaikkiArvosanat().contains(
