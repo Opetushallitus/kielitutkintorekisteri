@@ -55,6 +55,7 @@ fun AuthorizeHttpRequestsDsl.configureCommonAuthorizations() {
     authorize(POST, "/yki/api/arvioija", hasAnyAuthority(*Authority.YKI_TALLENNUS.authStrings()))
     authorize(GET, "/yhteystiedot/api/**", hasAnyAuthority(*Authority.TODISTUS_YHTEYSTIEDOT_LUKEMINEN.authStrings()))
 
+    authorize(GET, "/*.css", permitAll)
     authorize("/actuator/health", permitAll)
     authorize("/api-docs", permitAll)
     authorize("/swagger-ui/**", permitAll)
