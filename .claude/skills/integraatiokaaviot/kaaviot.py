@@ -15,19 +15,19 @@ STYLE = """
     .laatikko rect { stroke-width: 1.5; }
     .nimi { font-size: 14px; font-weight: bold; }
     .lisatieto { font-size: 11px; fill: #4b5563; }
-    .kitu rect { fill: #dbeafe; stroke: #1e40af; stroke-width: 3; }
-    .kios rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 2.5; }
-    .oph rect { fill: #eff6ff; stroke: #60a5fa; }
-    .ulkoinen rect { fill: #fff7ed; stroke: #ea580c; }
-    .infra rect { fill: #f0fdf4; stroke: #16a34a; }
+    .kitu rect { fill: #dbe7f5; stroke: #0b3c6e; stroke-width: 3; }
+    .kios rect { fill: #f7e4ef; stroke: #cc79a7; stroke-width: 2.5; }
+    .oph rect { fill: #eef7fd; stroke: #56b4e9; }
+    .ulkoinen rect { fill: #fdf1d6; stroke: #e69f00; }
+    .infra rect { fill: #e3f2e7; stroke: #117733; }
     .toimija rect { fill: #f3f4f6; stroke: #6b7280; }
-    .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
-    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
-    .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
-    .heti path { stroke: #0e7490; stroke-width: 2.2; }
-    .ajastettu path { stroke: #a16207; stroke-width: 2.2; }
+    .ryhma { fill: #f5f9fd; stroke: #56b4e9; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #0b3c6e; }
+    .nuoli path { fill: none; stroke: #1a1a1a; stroke-width: 1.6; }
+    .heti path { stroke: #0072b2; stroke-width: 2.2; }
+    .ajastettu path { stroke: #d55e00; stroke-width: 2.2; }
     .pull path { stroke-dasharray: 7 4; }
-    .kayttaja path { stroke: #9ca3af; stroke-width: 1.4; }
+    .kayttaja path { stroke: #949494; stroke-width: 1.4; }
     .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
     .nuolen-teksti text { font-size: 11.5px; }
     .ei-kaytossa { opacity: 0.5; }
@@ -40,10 +40,10 @@ PROSESSI_STYLE = """    .vaihe-nimi { font-size: 12.5px; font-weight: bold; }
     .kysymys circle { fill: #7c3aed; stroke: #ffffff; stroke-width: 1.5; }
     .kysymys text { fill: #ffffff; font-size: 10.5px; font-weight: bold; }
     .valinta polygon { fill: #fffbeb; stroke: #92400e; stroke-width: 1.5; }
-    .loppu rect { fill: #ecfdf5; stroke: #15803d; stroke-width: 2; }
-    .kielteinen rect { fill: #fef2f2; stroke: #b91c1c; }
+    .loppu rect { fill: #e3f2e7; stroke: #117733; stroke-width: 2; }
+    .kielteinen rect { fill: #fdebe0; stroke: #d55e00; }
     .jatkuu rect { fill: #f3f4f6; stroke: #6b7280; stroke-dasharray: 5 3; }
-    .vaiheen-otsikko { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
+    .vaiheen-otsikko { font-size: 14px; font-weight: bold; fill: #0b3c6e; }
 """
 
 
@@ -55,11 +55,11 @@ NUOLITYYPIT = (
     ("kayttaja", "käyttäjän toiminto"),
 )
 KARKIVARIT = {
-    "heti": "#0e7490",
-    "ajastettu": "#a16207",
-    "push": "#374151",
-    "pull": "#374151",
-    "kayttaja": "#9ca3af",
+    "heti": "#0072b2",
+    "ajastettu": "#d55e00",
+    "push": "#1a1a1a",
+    "pull": "#1a1a1a",
+    "kayttaja": "#949494",
 }
 
 
