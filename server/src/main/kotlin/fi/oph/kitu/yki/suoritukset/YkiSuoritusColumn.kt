@@ -248,7 +248,7 @@ enum class YkiSuoritusColumn(
         entityName = "tarkistusarviointi_hyvaksytty_pvm",
         uiHeaderValue = UiText.Yki.Sarake.tarkistusarviointiHyvaksytty,
         urlParam = "tarkistusarviointihyvaksyttypvm",
-        getValue = { it.tarkistusarviointiHyvaksyttyPvm?.finnishDate().orEmpty() },
+        getValue = { it.tarkistusarvioinninHyvaksymispaivaTekstina() },
     ),
 
     @ColumnTags(ColumnTag.CSV_EXPORT)

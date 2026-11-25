@@ -1219,6 +1219,28 @@ class YkiApiControllerTest(
     )
 
     @Test
+    fun `CSV-vienti nayttaa hyvaksytyn tarkistusarvioinnin ilman hyvaksymispaivaa ennen rajapaivaa`() {
+        jdbcTemplate.tyhjennaYkiSuoritukset()
+        suoritusRepository.saveAllNewEntities(
+            listOf(generateRandomYkiSuoritusEntity().copy(arviointitila = Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY)),
+        )
+
+        val rows =
+            ByteArrayOutputStream()
+                .also { ykiApiController.getSuorituksetAsCsv(YkiSuorituksetParams()).body!!.writeTo(it) }
+                .toString(Charsets.UTF_8)
+                .trim()
+                .lines()
+        val header = rows.first().split(DisplayTableCsvRenderer.SEPARATOR)
+        val dataRow = rows.drop(1).single().split(DisplayTableCsvRenderer.SEPARATOR)
+
+        assertEquals(
+            "Ennen 14.11.2025",
+            dataRow[header.indexOf(YkiSuoritusColumn.TarkistusarviointiHyvaksyttyPvm.uiHeaderValue.toString())],
+        )
+    }
+
+    @Test
     fun `testilahetys ei voi korvata Solkin suoritusta samalla tunnisteella`() {
         postSuoritus(arvioitava("777001", Lahdejarjestelma.Solki)) { isOk() }
 

@@ -14,6 +14,7 @@ import fi.oph.kitu.jdbc.SortDirection
 import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumeroException
 import fi.oph.kitu.oppijanumero.OppijanumeroService
+import fi.oph.kitu.tyhjennaYkiSuoritukset
 import fi.oph.kitu.virkailijaSession
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusEntity
 import fi.oph.kitu.yki.suoritukset.YkiSuoritusRepository
@@ -78,7 +79,7 @@ class YkiTarkistusarvioinnitViewTest(
                 .apply<DefaultMockMvcBuilder>(springSecurity())
                 .build()
 
-        jdbc.execute("TRUNCATE TABLE yki_suoritus CASCADE")
+        jdbc.tyhjennaYkiSuoritukset()
     }
 
     private fun tallenna(
@@ -685,6 +686,15 @@ class YkiTarkistusarvioinnitViewTest(
         assertContains(rivit[0], "Käsitelty;Hyväksytty;Asiatunnus")
         assertContains(rivit[1], ";Hyvaksytty;")
         assertContains(rivit[1], ";1.3.2025;1.5.2025;OPH-Hyvaksytty;")
+    }
+
+    @Test
+    fun `hyvaksytty ilman hyvaksymispaivaa naytetaan ennen kirjauksen alkua hyvaksyttyna`() {
+        tallenna("Vanha", arviointitila = Arviointitila.TARKISTUSARVIOINTI_HYVAKSYTTY)
+
+        val rivit = getCsv("/yki/api/tarkistusarvioinnit/hyvaksytyt").csvRivit()
+
+        assertContains(rivit[1], ";1.3.2025;Ennen 14.11.2025;OPH-Vanha;")
     }
 
     @Test

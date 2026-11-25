@@ -82,7 +82,7 @@ describe("YKI-tarkastusarvioinnit", () => {
 
     expect(await ykiHyvaksytytTarkistusarvioinnitPage.downloadCSV()).toEqual([
       "Oppijanumero;Sukunimi;Etunimet;Kieli;Taso;Tutkintopäivä;Saapunut;Käsitelty;Hyväksytty;Asiatunnus;Osat;Muuttuneet;Perustelu",
-      "1.2.246.562.24.67409348034;Välimaa-Testi;Eino Testi;FIN;KT;12.1.2025;1.10.2024;20.10.2024;;OPH-14893989377-1;Puhuminen;Puhuminen;Tarkistusarvioinnin testi",
+      "1.2.246.562.24.67409348034;Välimaa-Testi;Eino Testi;FIN;KT;12.1.2025;1.10.2024;20.10.2024;Ennen 14.11.2025;OPH-14893989377-1;Puhuminen;Puhuminen;Tarkistusarvioinnin testi",
     ])
   })
 
@@ -151,7 +151,9 @@ describe("YKI-tarkastusarvioinnit", () => {
     await expect(table.getCellsOfColumn("kasitelty").first()).toHaveText(
       "20.10.2024",
     )
-    await expect(table.getCellsOfColumn("hyvaksytty").first()).toHaveText("")
+    await expect(table.getCellsOfColumn("hyvaksytty").first()).toHaveText(
+      "Ennen 14.11.2025",
+    )
 
     await ykiHyvaksytytTarkistusarvioinnitPage.hyvaksytytTable.body
       .getByRole("row")
