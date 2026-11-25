@@ -679,3 +679,216 @@ nav li a[role="button"] {
 .ryhmittely-valinnat label {
   margin-bottom: 0;
 }
+
+.integraatiokaavio {
+  --integraatio-onnistui: #009e73;
+  --integraatio-epaonnistui: #d55e00;
+  --integraatio-odottaa: #0072b2;
+  --integraatio-ei-siirreta: #767676;
+
+  display: grid;
+  grid-template-columns:
+    minmax(8rem, 11rem) minmax(9rem, 1fr) minmax(12rem, 13rem)
+    minmax(11rem, 1.2fr) minmax(14rem, 1.5fr);
+  grid-template-areas:
+    "solki nuoli-solki kitu nuoli-koski koski"
+    "solki nuoli-solki kitu nuoli-kios kios"
+    "virheet virheet virheet virheet virheet";
+  row-gap: 1rem;
+  align-items: center;
+  margin: 0 0 var(--pico-block-spacing-vertical);
+}
+
+.integraatiokaavio .alue-solki {
+  grid-area: solki;
+}
+.integraatiokaavio .alue-kitu {
+  grid-area: kitu;
+}
+.integraatiokaavio .alue-koski {
+  grid-area: koski;
+}
+.integraatiokaavio .alue-kios {
+  grid-area: kios;
+}
+.integraatiokaavio .alue-nuoli-solki {
+  grid-area: nuoli-solki;
+}
+.integraatiokaavio .alue-nuoli-koski {
+  grid-area: nuoli-koski;
+}
+.integraatiokaavio .alue-nuoli-kios {
+  grid-area: nuoli-kios;
+}
+.integraatiokaavio .integraatiovirheet {
+  grid-area: virheet;
+}
+
+.integraatiokaavio .alue-solki,
+.integraatiokaavio .alue-kitu {
+  align-self: stretch;
+  justify-content: center;
+}
+
+.integraatiokaavio .jarjestelma {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  border: 2px solid;
+  border-radius: 8px;
+  overflow-wrap: break-word;
+}
+
+.integraatiokaavio .jarjestelma.kitu {
+  background: #dbe7f5;
+  border: 3px solid #0b3c6e;
+}
+
+.integraatiokaavio .jarjestelma.ulkoinen {
+  background: #fdf1d6;
+  border-color: #e69f00;
+}
+
+.integraatiokaavio .jarjestelma.oph {
+  background: #eef7fd;
+  border-color: #56b4e9;
+}
+
+.integraatiokaavio .jarjestelma.kios {
+  background: #f7e4ef;
+  border-color: #cc79a7;
+}
+
+.integraatiokaavio .integraatio {
+  --vari: var(--integraatio-onnistui);
+  --paksuus: 3px;
+  --tyyli: solid;
+
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  align-self: stretch;
+  min-width: 0;
+  padding: 0 0.5rem;
+  font-size: 0.9em;
+}
+
+.integraatiokaavio .integraatio[data-tila="EPAONNISTUI"] {
+  --vari: var(--integraatio-epaonnistui);
+  --paksuus: 7px;
+  --tyyli: double;
+}
+
+.integraatiokaavio .integraatio[data-tila="ODOTTAA"] {
+  --vari: var(--integraatio-odottaa);
+  --tyyli: dashed;
+}
+
+.integraatiokaavio .integraatio[data-tila="EI_SIIRRETA"] {
+  --vari: var(--integraatio-ei-siirreta);
+  --tyyli: dotted;
+}
+
+.integraatiokaavio .integraation-teksti {
+  grid-row: 1;
+  align-self: end;
+  padding-bottom: 0.4rem;
+  overflow-wrap: break-word;
+}
+
+.integraatiokaavio .integraation-otsikko {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.integraatiokaavio .tilan-ikoni {
+  flex: none;
+  width: 1.2em;
+  height: 1.2em;
+  color: var(--vari);
+  stroke-width: 3;
+}
+
+.integraatiokaavio .integraation-selite {
+  color: var(--pico-muted-color);
+}
+
+.integraatiokaavio .integraation-viiva {
+  grid-row: 2;
+  position: relative;
+  height: 0;
+  margin-right: 10px;
+  border-top: var(--paksuus) var(--tyyli) var(--vari);
+}
+
+.integraatiokaavio .integraation-viiva::after {
+  content: "";
+  position: absolute;
+  top: calc(-0.5 * var(--paksuus) - 6px);
+  right: -10px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid var(--vari);
+}
+
+.integraatiokaavio .integraatiovirheet > div {
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 4px solid var(--integraatio-epaonnistui);
+}
+
+.integraatiokaavio .integraatiovirheet p {
+  margin: 0.25rem 0 0;
+}
+
+@media (max-width: 1024px) {
+  .integraatiokaavio {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "solki"
+      "nuoli-solki"
+      "kitu"
+      "nuoli-koski"
+      "koski"
+      "nuoli-kios"
+      "kios"
+      "virheet";
+    row-gap: 0;
+  }
+
+  .integraatiokaavio .integraatio {
+    grid-template-rows: auto;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 0.25rem 0 0.25rem 1.5rem;
+  }
+
+  .integraatiokaavio .integraation-viiva {
+    grid-row: 1;
+    grid-column: 1;
+    width: 0;
+    height: auto;
+    min-height: 3rem;
+    margin: 0 0 10px;
+    border-top: 0;
+    border-left: var(--paksuus) var(--tyyli) var(--vari);
+  }
+
+  .integraatiokaavio .integraation-viiva::after {
+    top: 100%;
+    right: auto;
+    left: calc(-0.5 * var(--paksuus) - 6px);
+    border-top: 10px solid var(--vari);
+    border-right: 6px solid transparent;
+    border-bottom: 0;
+    border-left: 6px solid transparent;
+  }
+
+  .integraatiokaavio .integraation-teksti {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: center;
+    padding: 0 0 0 0.75rem;
+  }
+}

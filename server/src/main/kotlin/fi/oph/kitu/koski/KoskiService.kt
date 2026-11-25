@@ -86,6 +86,7 @@ class KoskiService(
             ykiSuoritusEntity.copy(
                 koskiOpiskeluoikeus = koskiOpiskeluoikeus,
                 koskiSiirtoKasitelty = true,
+                koskiSiirretty = timeService.now(),
             )
         ykiSuoritusRepository.save(suoritus, updateOnConflict = true, forceWrite = true)
         return suoritus.right()

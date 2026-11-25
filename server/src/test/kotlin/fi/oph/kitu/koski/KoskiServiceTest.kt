@@ -33,6 +33,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.RestClient
 import org.testcontainers.postgresql.PostgreSQLContainer
+import java.time.Instant
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -95,8 +96,15 @@ class KoskiServiceTest(
                 timeService,
             )
 
+        val siirtohetki = Instant.parse("2026-11-10T10:15:00Z")
+        timeService.fixClock(siirtohetki)
+
         val updatedSuoritus = service.sendYkiSuoritusToKoski(suoritus).getOrThrow()
         assertEquals("1.2.246.562.15.50209741037", updatedSuoritus.koskiOpiskeluoikeus.toString())
+        assertEquals(
+            siirtohetki,
+            ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).single().koskiSiirretty,
+        )
 
         // KoskiService.sendYkiSuoritusToKoski span ei tallennu, koska tämä testi instantioi
         // KoskiServicen käsin ohittaen Springin AOP-proxyn, jonka @WithSpan tarvitsisi.

@@ -332,10 +332,10 @@ Yleinen ylläpito (lokit, hälytykset, deploy) on sivulla
 | Mitä haluat tietää                         | Mistä                                                                                                                  |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | Onko Solki lähettänyt suorituksia          | Slack-kanavan ilmoitus (ks. alla) tai listan sarake ja rajaus "Rekisteriintuontiaika"                                  |
-| Mitä yhdelle suoritukselle on tapahtunut   | Tietosivu: versiot listalta valinnalla "Näytä versiohistoria", integraatioiden tila sivun lopussa                      |
-| Miksi suoritus ei ole KOSKI-järjestelmässä | Tietosivun KOSKI-osio (siirron esto tai virhe) ja sivu `/yki/koski-virheet`                                            |
+| Mitä yhdelle suoritukselle on tapahtunut   | Tietosivu: versiot listalta valinnalla "Näytä versiohistoria", integraatiokaavio sivun lopussa                         |
+| Miksi suoritus ei ole KOSKI-järjestelmässä | Tietosivun integraatiokaavion KOSKI-nuoli (siirron esto tai virhe ja sen aika) ja sivu `/yki/koski-virheet`            |
 | Mitä KOSKI-järjestelmään lähetettäisiin    | `/yki/koski-request/{solki-tunniste}` palauttaa pyynnön JSONina                                                        |
-| Onko arvioinnin tila mennyt KIOSiin        | Tietosivun KIOS-osio: lähetysaika tai virhe                                                                            |
+| Onko arvioinnin tila mennyt KIOSiin        | Tietosivun integraatiokaavion KIOS-nuoli: lähetysaika tai virhe ja viimeisimmän yrityksen aika                         |
 | Ovatko eräajot ajossa                      | db-schedulerin käyttöliittymä `/db-scheduler`: viimeisin ajo, seuraava ajo, historia ja käynnistys käsin               |
 | Miksi Solkin lähetys hylättiin             | Vastauksen `errors`-lista kertoo kentän ja syyn. Sama näkyy sovelluksen lokissa (CloudWatch, lokiryhmä `KituService`). |
 

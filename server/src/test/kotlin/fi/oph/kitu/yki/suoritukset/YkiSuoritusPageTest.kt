@@ -9,19 +9,26 @@ import fi.oph.kitu.i18n.Language
 import fi.oph.kitu.i18n.Translations
 import fi.oph.kitu.i18n.UiText
 import fi.oph.kitu.i18n.finnishDateTime
+import fi.oph.kitu.koski.KoskiErrorEntity
+import fi.oph.kitu.oid.Oid
 import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
+import fi.oph.kitu.util.result.getOrThrow
 import fi.oph.kitu.yki.Arviointitila
 import fi.oph.kitu.yki.TutkinnonOsa
 import kotlinx.html.div
 import kotlinx.html.stream.createHTML
 import kotlinx.html.td
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.env.Environment
 import org.springframework.mock.env.MockEnvironment
+import java.sql.Timestamp
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -99,10 +106,26 @@ class YkiSuoritusPageTest {
             createHTML().div { arviointi(suoritus) }
         }
 
-    private fun renderIntegraatiot(suoritus: YkiSuoritusEntity) =
-        with(YkiSuoritusPage) {
-            createHTML().div { integraatiot(suoritus, null, null, null) }
+    private fun renderIntegraatiot(
+        suoritus: YkiSuoritusEntity,
+        koskiError: KoskiErrorEntity? = null,
+        estonSyyt: List<String>? = null,
+        opiskeluoikeusOid: Oid? = null,
+    ) = with(YkiSuoritusPage) {
+        createHTML().div {
+            integraatiot(
+                suoritus,
+                YkiIntegraatiotilat.laske(suoritus, suoritus, koskiError, estonSyyt),
+                koskiError,
+                opiskeluoikeusOid,
+            )
         }
+    }
+
+    private fun kaavio(html: String) = Jsoup.parse(html)
+
+    private fun Document.testId(id: String) =
+        selectFirst("[data-testid=$id]") ?: error("data-testid=$id puuttuu:\n${html()}")
 
     private fun ilmoittautunut(vararg osakokeet: TutkinnonOsa) =
         generateRandomYkiSuoritusEntity()
@@ -171,19 +194,105 @@ class YkiSuoritusPageTest {
                 receivedAt = Instant.parse("2025-06-15T08:30:00Z"),
             )
 
-        val html = renderIntegraatiot(suoritus)
+        val solki = kaavio(renderIntegraatiot(suoritus)).testId("integraatio-solki")
 
-        assertTrue(
-            html.contains(
-                UiText.Yki.Sarake.rekisteriintuontiaika
-                    .toString(),
-            ),
-            "missing rekisteriintuontiaika header:\n$html",
+        assertEquals("ONNISTUI", solki.attr("data-tila"))
+        assertContains(
+            solki.text(),
+            UiText.Yki.Sarake.rekisteriintuontiaika
+                .toString(),
         )
-        assertTrue(
-            html.contains(suoritus.receivedAt.finnishDateTime(includeTimeZone = false)),
-            "missing receivedAt value:\n$html",
+        assertContains(solki.text(), suoritus.receivedAt.finnishDateTime(includeTimeZone = false))
+    }
+
+    @Test
+    fun `integraatiokaavio nayttaa tunnisteet ja version tallennusajan laatikoissa`() {
+        val suoritus = generateRandomYkiSuoritusEntity().copy(lastModified = Instant.parse("2026-01-01T10:00:00Z"))
+        val oid = Oid.parse("1.2.246.562.15.00000000001").getOrThrow()
+
+        val html = kaavio(renderIntegraatiot(suoritus, opiskeluoikeusOid = oid))
+
+        assertContains(html.testId("jarjestelma-solki").text(), suoritus.solkiId.toString())
+        assertEquals(
+            suoritus.solkiId.toString(),
+            html.testId("jarjestelma-solki").selectFirst("[data-copy]")?.attr("data-copy"),
         )
+        assertContains(
+            html.testId("viimeksi-muokattu").text(),
+            suoritus.lastModified.finnishDateTime(includeTimeZone = false),
+        )
+        val linkki = html.testId("jarjestelma-koski").selectFirst("a") ?: error("opiskeluoikeuden linkki puuttuu")
+        assertEquals(oid.toString(), linkki.text())
+        assertEquals("/koski/oppija/$oid?opiskeluoikeudenTyyppi=kielitutkinto", linkki.attr("href"))
+    }
+
+    @Test
+    fun `integraatiokaavio kertoo kun opiskeluoikeutta ei ole`() {
+        val html = kaavio(renderIntegraatiot(generateRandomYkiSuoritusEntity()))
+
+        assertEquals(
+            UiText.Yki.Integraatio.eiOpiskeluoikeutta
+                .toString(),
+            html.testId("opiskeluoikeus-oid").text(),
+        )
+    }
+
+    @Test
+    fun `integraatiokaavio nayttaa koskin estosyyt ja virheet`() {
+        val suoritus = generateRandomYkiSuoritusEntity()
+        val virhe =
+            KoskiErrorEntity(
+                id = "1",
+                entity = "yki",
+                message = "400 Bad Request: \"{\"koodi\": \"badRequest\"}\"",
+                timestamp = Instant.parse("2026-11-10T10:00:00Z"),
+                hidden = false,
+            )
+
+        val estetty = kaavio(renderIntegraatiot(suoritus, estonSyyt = listOf("Syy A", "Syy B")))
+        assertEquals("EI_SIIRRETA", estetty.testId("integraatio-koski").attr("data-tila"))
+        assertEquals(
+            listOf("Syy A", "Syy B"),
+            estetty.testId("integraatio-koski").select("[data-testid=selite]").map { it.text() },
+        )
+
+        val epaonnistunut = kaavio(renderIntegraatiot(suoritus, koskiError = virhe))
+        assertEquals("EPAONNISTUI", epaonnistunut.testId("integraatio-koski").attr("data-tila"))
+        assertContains(
+            epaonnistunut.testId("integraatio-koski").text(),
+            virhe.timestamp.finnishDateTime(includeTimeZone = false),
+        )
+        assertContains(epaonnistunut.testId("koski-virheet").text(), "koodi: badRequest")
+    }
+
+    @Test
+    fun `integraatiokaavio nayttaa kiosin virheen ja edellisen lahetyksen`() {
+        val lahetetty = Instant.parse("2026-11-01T10:00:00Z")
+        val suoritus =
+            generateRandomYkiSuoritusEntity().copy(
+                arviointitila = Arviointitila.ARVIOITU,
+                tekstinYmmartaminen = 3,
+                kirjoittaminen = 3,
+                puheenYmmartaminen = 3,
+                puhuminen = 3,
+                rakenteetJaSanasto = null,
+                yleisarvosana = null,
+                lastModified = lahetetty.plusSeconds(60),
+                arviointitilaLahetetty = Timestamp.from(lahetetty),
+            )
+
+        val odottaa = kaavio(renderIntegraatiot(suoritus)).testId("integraatio-kios")
+        assertEquals("ODOTTAA", odottaa.attr("data-tila"))
+        assertContains(
+            odottaa.text(),
+            UiText.Yki.Integraatio.edellinenLahetys
+                .toString(),
+        )
+        assertContains(odottaa.text(), lahetetty.finnishDateTime(includeTimeZone = false))
+
+        val virheellinen = kaavio(renderIntegraatiot(suoritus.copy(arviointitilanLahetysvirhe = "Palvelin ei vastaa")))
+        assertEquals("EPAONNISTUI", virheellinen.testId("integraatio-kios").attr("data-tila"))
+        assertContains(virheellinen.testId("kios-virhe").text(), "Palvelin ei vastaa")
     }
 
     @Test

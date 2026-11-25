@@ -152,6 +152,7 @@ object YkiSuoritusSql {
                 arvosana.*,
                 yki_suoritus_lisatieto.arviointitila_lahetetty,
                 yki_suoritus_lisatieto.arviointitilan_lahetysvirhe,
+                yki_suoritus_lisatieto.arviointitilan_lahetysyritys,
                 tarkistusarviointi_agg.tarkistusarvioidut_osakokeet,
                 tarkistusarviointi_agg.arvosana_muuttui,
                 yki_tarkistusarviointi.asiatunnus as tarkistusarvioinnin_asiatunnus,
