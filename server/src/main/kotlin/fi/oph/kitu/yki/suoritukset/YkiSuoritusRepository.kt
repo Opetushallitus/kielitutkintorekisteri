@@ -544,15 +544,18 @@ class YkiSuoritusRepository(
         insertInto<Unit>(
             table = "yki_suoritus_lisatieto",
             values =
-                mapOf(
-                    "solki_id" to solkiId,
-                    "arviointitila_lahetetty" to Timestamp(Instant.now().toEpochMilli()),
-                    "arviointitilan_lahetysvirhe" to null,
-                ),
+                Timestamp.from(Instant.now()).let { nyt ->
+                    mapOf(
+                        "solki_id" to solkiId,
+                        "arviointitila_lahetetty" to nyt,
+                        "arviointitilan_lahetysvirhe" to null,
+                        "arviointitilan_lahetysyritys" to nyt,
+                    )
+                },
             onConflict =
                 UpdateOnConflict(
                     Constraint("yki_suoritus_lisatieto_pkey"),
-                    listOf("arviointitila_lahetetty", "arviointitilan_lahetysvirhe"),
+                    listOf("arviointitila_lahetetty", "arviointitilan_lahetysvirhe", "arviointitilan_lahetysyritys"),
                 ),
             returning = null,
             fullTrace = true,
@@ -569,11 +572,12 @@ class YkiSuoritusRepository(
                 "solki_id" to solkiId,
                 "arviointitila_lahetetty" to null,
                 "arviointitilan_lahetysvirhe" to message,
+                "arviointitilan_lahetysyritys" to Timestamp.from(Instant.now()),
             ),
         onConflict =
             UpdateOnConflict(
                 Constraint("yki_suoritus_lisatieto_pkey"),
-                listOf("arviointitila_lahetetty", "arviointitilan_lahetysvirhe"),
+                listOf("arviointitila_lahetetty", "arviointitilan_lahetysvirhe", "arviointitilan_lahetysyritys"),
             ),
         returning = null,
         fullTrace = true,
@@ -607,6 +611,7 @@ class YkiSuoritusRepository(
                 "received_at" to Timestamp.from(suoritus.receivedAt),
                 "koski_opiskeluoikeus" to suoritus.koskiOpiskeluoikeus?.toString(),
                 "koski_siirto_kasitelty" to (suoritus.koskiSiirtoKasitelty ?: false),
+                "koski_siirretty" to suoritus.koskiSiirretty?.let { Timestamp.from(it) },
                 "arviointitila" to suoritus.arviointitila.toString(),
                 "lahdejarjestelmantunnus" to suoritus.lahdejarjestelmanTunnus,
             )

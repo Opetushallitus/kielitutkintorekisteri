@@ -4,6 +4,7 @@ package fi.oph.kitu.yki.suoritukset
 import arrow.core.Either
 import fi.oph.kitu.html.Comparison
 import fi.oph.kitu.html.Page
+import fi.oph.kitu.html.SVG_ATTRIBUTES
 import fi.oph.kitu.html.card
 import fi.oph.kitu.html.comparisonTable
 import fi.oph.kitu.html.copyable
@@ -11,6 +12,7 @@ import fi.oph.kitu.html.errorMessage
 import fi.oph.kitu.html.infoTable
 import fi.oph.kitu.html.json
 import fi.oph.kitu.html.orDash
+import fi.oph.kitu.html.testId
 import fi.oph.kitu.html.warningMessage
 import fi.oph.kitu.i18n.LocalizedString
 import fi.oph.kitu.i18n.Translations
@@ -25,11 +27,17 @@ import fi.oph.kitu.oppijanumero.OppijanumerorekisteriHenkilo
 import fi.oph.kitu.tiedontuontischema.YkiTarkastusarviointi
 import fi.oph.kitu.webmvc.Links
 import fi.oph.kitu.yki.TutkinnonOsa
+import kotlinx.html.DIV
 import kotlinx.html.FlowContent
 import kotlinx.html.a
+import kotlinx.html.div
+import kotlinx.html.figure
 import kotlinx.html.h1
 import kotlinx.html.h2
 import kotlinx.html.h3
+import kotlinx.html.p
+import kotlinx.html.strong
+import kotlinx.html.unsafe
 
 object YkiSuoritusPage {
     fun render(
@@ -63,7 +71,12 @@ object YkiSuoritusPage {
         todistuksenPostitusosoite(suoritus)
         tutkintotiedot(suoritus)
         arviointi(suoritus)
-        integraatiot(suoritus, koskiError, koskiSiirronEstonSyyt, opiskeluoikeusOid)
+        integraatiot(
+            suoritus,
+            YkiIntegraatiotilat.laske(suoritus, viimeisinSuoritus, koskiError, koskiSiirronEstonSyyt),
+            koskiError,
+            opiskeluoikeusOid,
+        )
     }
 
     fun FlowContent.henkilonTiedot(
@@ -216,61 +229,132 @@ object YkiSuoritusPage {
 
     fun FlowContent.integraatiot(
         suoritus: YkiSuoritusEntity,
+        tilat: YkiIntegraatiotilat,
         koskiError: KoskiErrorEntity?,
-        koskiSiirronEstonSyyt: List<String>?,
         opiskeluoikeusOid: Oid?,
     ) {
         h3 { +UiText.Yki.integraatiot }
-        infoTable(
-            UiText.Yki.Sarake.solkiTunniste to { copyable(suoritus.solkiId.toString()) },
-            UiText.Yki.viimeksiMuokattu to {
-                finnishDateTime(suoritus.lastModified)
-            },
-            UiText.Yki.Sarake.rekisteriintuontiaika to {
-                finnishDateTime(suoritus.receivedAt)
-            },
-            UiText.Yki.koski to {
-                if (koskiSiirronEstonSyyt?.isNotEmpty() == true) {
-                    +("${UiText.Yki.siirtoaEiTehda}: ${koskiSiirronEstonSyyt.joinToString("; ")}")
-                } else if (suoritus.koskiSiirtoKasitelty == true) {
-                    +UiText.Yki.siirrettyKoski
-                } else {
-                    +UiText.Yki.odottaaSiirtoa
+        figure(classes = "integraatiokaavio") {
+            testId("integraatiokaavio")
+            attributes["aria-label"] =
+                UiText.Yki.Integraatio.kaavionKuvaus
+                    .toString()
+            jarjestelma("solki", "ulkoinen", UiText.Yki.Integraatio.solki) {
+                copyable(suoritus.solkiId.toString())
+            }
+            integraatioNuoli("solki", tilat.solki)
+            jarjestelma("kitu", "kitu", UiText.Yki.Integraatio.kielitutkintorekisteri) {
+                div {
+                    testId("viimeksi-muokattu")
+                    +UiText.Yki.viimeksiMuokattu
+                    +" "
+                    finnishDateTime(suoritus.lastModified)
                 }
-            },
-            koskiError?.errorJson()?.let {
-                UiText.Yki.koskiVirheet to { json(it) }
-            },
-            opiskeluoikeusOid?.let { oid ->
-                UiText.Yki.Sarake.opiskeluoikeusOid to {
-                    +UiText.Yki.opiskeluoikeudenOid
-                    +": "
-                    copyable(oid.toString()) {
-                        a(href = "/koski/oppija/$oid?opiskeluoikeudenTyyppi=kielitutkinto") {
-                            +oid.toString()
+            }
+            integraatioNuoli("koski", tilat.koski)
+            jarjestelma("koski", "oph", UiText.Yki.koski) {
+                if (opiskeluoikeusOid != null) {
+                    div {
+                        testId("opiskeluoikeus-oid")
+                        +UiText.Yki.opiskeluoikeudenOid
+                        +": "
+                        copyable(opiskeluoikeusOid.toString()) {
+                            a(href = "/koski/oppija/$opiskeluoikeusOid?opiskeluoikeudenTyyppi=kielitutkinto") {
+                                +opiskeluoikeusOid.toString()
+                            }
                         }
                     }
+                } else {
+                    div {
+                        testId("opiskeluoikeus-oid")
+                        +UiText.Yki.Integraatio.eiOpiskeluoikeutta
+                    }
                 }
-            },
-            UiText.Yki.kios to {
-                (
-                    suoritus.arviointitilaLahetetty?.let {
-                        +UiText.Yki.arviointitilaLahetetty
-                        +" "
-                        finnishDateTime(it.toInstant())
-                    } ?: +(
-                        if (suoritus.arviointitila.pelkkäIlmoittautuminen()) {
-                            UiText.Yki.suoritustaEdeltavaEiLaheteta.toString()
-                        } else {
-                            UiText.Yki.arviointitilaaEiLahetetty.toString()
+            }
+            integraatioNuoli("kios", tilat.kios)
+            jarjestelma("kios", "kios", UiText.Yki.kios) {}
+            integraatiovirheet(suoritus, koskiError)
+        }
+    }
+
+    private fun FlowContent.jarjestelma(
+        id: String,
+        tyyppi: String,
+        nimi: LocalizedString,
+        sisalto: DIV.() -> Unit,
+    ) {
+        div(classes = "jarjestelma $tyyppi alue-$id") {
+            testId("jarjestelma-$id")
+            strong { +nimi }
+            sisalto()
+        }
+    }
+
+    private fun FlowContent.integraatioNuoli(
+        id: String,
+        integraatio: Integraatio,
+    ) {
+        div(classes = "integraatio alue-nuoli-$id") {
+            testId("integraatio-$id")
+            attributes["data-tila"] = integraatio.tila.name
+            div(classes = "integraation-teksti") {
+                div(classes = "integraation-otsikko") {
+                    unsafe { raw(tilanIkoni(integraatio.tila)) }
+                    strong { +integraatio.otsikko }
+                }
+                integraatio.aikaleima?.let { aikaleima ->
+                    div {
+                        testId("aikaleima")
+                        aikaleima.nimi?.let {
+                            +it
+                            +" "
                         }
-                    )
-                )
-            },
-            suoritus.arviointitilanLahetysvirhe?.let {
-                UiText.Yki.kiosVirhe to { +it }
-            },
-        )
+                        aikaleima.aika?.let { finnishDateTime(it) } ?: +UiText.Yki.Integraatio.aikaEiTiedossa
+                    }
+                }
+                integraatio.selitteet.forEach { selite ->
+                    div(classes = "integraation-selite") {
+                        testId("selite")
+                        +selite
+                    }
+                }
+            }
+            div(classes = "integraation-viiva") { attributes["aria-hidden"] = "true" }
+        }
+    }
+
+    private fun FlowContent.integraatiovirheet(
+        suoritus: YkiSuoritusEntity,
+        koskiError: KoskiErrorEntity?,
+    ) {
+        if (koskiError == null && suoritus.arviointitilanLahetysvirhe == null) return
+        div(classes = "integraatiovirheet") {
+            koskiError?.let { virhe ->
+                div {
+                    testId("koski-virheet")
+                    strong { +UiText.Yki.koskiVirheet }
+                    virhe.errorJson()?.let { json(it) } ?: p { +virhe.message }
+                }
+            }
+            suoritus.arviointitilanLahetysvirhe?.let { virhe ->
+                div {
+                    testId("kios-virhe")
+                    strong { +UiText.Yki.kiosVirhe }
+                    p { +virhe }
+                }
+            }
+        }
+    }
+
+    private fun tilanIkoni(tila: IntegraationTila): String {
+        val polku =
+            when (tila) {
+                IntegraationTila.ONNISTUI -> """<path d="M5 12l5 5L20 7"/>"""
+                IntegraationTila.EPAONNISTUI -> """<path d="M6 6l12 12M18 6L6 18"/>"""
+                IntegraationTila.ODOTTAA -> """<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>"""
+                IntegraationTila.EI_SIIRRETA -> """<path d="M6 12h12"/>"""
+            }
+        return """<svg class="tilan-ikoni" $SVG_ATTRIBUTES>$polku</svg>"""
     }
 
     private fun oppijanumeroVertailu(

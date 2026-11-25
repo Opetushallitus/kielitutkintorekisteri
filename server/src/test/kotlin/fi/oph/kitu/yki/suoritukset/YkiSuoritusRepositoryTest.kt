@@ -873,6 +873,7 @@ class YkiSuoritusRepositoryTest(
             suoritus.copy(
                 koskiOpiskeluoikeus = createOid(OidClass.OPPIJA, 99999999991),
                 koskiSiirtoKasitelty = true,
+                koskiSiirretty = Instant.parse("2026-11-10T10:15:00Z"),
             ),
             updateOnConflict = true,
             forceWrite = true,
@@ -888,8 +889,14 @@ class YkiSuoritusRepositoryTest(
         ykiSuoritusRepository.save(suoritus, false)
         val opiskeluoikeus = createOid(OidClass.OPPIJA, 99999999991)
 
+        val siirretty = Instant.parse("2026-11-10T10:15:00Z")
+
         ykiSuoritusRepository.save(
-            suoritus.copy(koskiOpiskeluoikeus = opiskeluoikeus, koskiSiirtoKasitelty = true),
+            suoritus.copy(
+                koskiOpiskeluoikeus = opiskeluoikeus,
+                koskiSiirtoKasitelty = true,
+                koskiSiirretty = siirretty,
+            ),
             updateOnConflict = true,
             forceWrite = true,
         )
@@ -897,6 +904,7 @@ class YkiSuoritusRepositoryTest(
         val tallennettu = ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).first()
         assertEquals(opiskeluoikeus, tallennettu.koskiOpiskeluoikeus)
         assertTrue(tallennettu.koskiSiirtoKasitelty == true)
+        assertEquals(siirretty, tallennettu.koskiSiirretty)
         assertEquals(1, versioidenMaara(suoritus.solkiId))
     }
 
@@ -942,6 +950,10 @@ class YkiSuoritusRepositoryTest(
         ykiSuoritusRepository.save(suoritus, false)
         ykiSuoritusRepository.setArvioinninTilaSent(suoritus.solkiId)
 
+        val lahetetty = ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).first()
+        assertNotNull(lahetetty.arviointitilanLahetysyritys)
+        assertEquals(lahetetty.arviointitilaLahetetty?.toInstant(), lahetetty.arviointitilanLahetysyritys)
+
         assertNull(ykiSuoritusRepository.save(uudelleensiirto(suoritus), false))
         assertEquals(1, versioidenMaara(suoritus.solkiId))
     }
@@ -951,6 +963,10 @@ class YkiSuoritusRepositoryTest(
         val suoritus = generateRandomYkiSuoritusEntity()
         ykiSuoritusRepository.save(suoritus, false)
         ykiSuoritusRepository.setArvioinninTilanLahetysvirhe(suoritus.solkiId, "SUORITUSTA_EI_LOYDY")
+
+        val virheellinen = ykiSuoritusRepository.findLatestBySolkiIds(listOf(suoritus.solkiId)).first()
+        assertNull(virheellinen.arviointitilaLahetetty)
+        assertNotNull(virheellinen.arviointitilanLahetysyritys)
 
         assertNull(ykiSuoritusRepository.save(uudelleensiirto(suoritus), false))
         assertEquals(1, versioidenMaara(suoritus.solkiId))

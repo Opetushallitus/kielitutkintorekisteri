@@ -188,6 +188,26 @@ object UiText {
     }
 
     object Yki {
+        object Integraatio {
+            val solki: LocalizedString get() = tr("yki.integraatio.solki")
+            val kielitutkintorekisteri: LocalizedString get() = tr("yki.integraatio.kielitutkintorekisteri")
+            val kaavionKuvaus: LocalizedString get() = tr("yki.integraatio.kaavionKuvaus")
+            val vastaanotettu: LocalizedString get() = tr("yki.integraatio.vastaanotettu")
+            val siirretty: LocalizedString get() = tr("yki.integraatio.siirretty")
+            val siirtoEpaonnistui: LocalizedString get() = tr("yki.integraatio.siirtoEpaonnistui")
+            val odottaaSiirtoa: LocalizedString get() = tr("yki.integraatio.odottaaSiirtoa")
+            val eiLaheteta: LocalizedString get() = tr("yki.integraatio.eiLaheteta")
+            val lahetysEpaonnistui: LocalizedString get() = tr("yki.integraatio.lahetysEpaonnistui")
+            val odottaaLahetysta: LocalizedString get() = tr("yki.integraatio.odottaaLahetysta")
+            val viimeisinYritys: LocalizedString get() = tr("yki.integraatio.viimeisinYritys")
+            val edellinenLahetys: LocalizedString get() = tr("yki.integraatio.edellinenLahetys")
+            val yritetaanUudelleen: LocalizedString get() = tr("yki.integraatio.yritetaanUudelleen")
+            val aikaEiTiedossa: LocalizedString get() = tr("yki.integraatio.aikaEiTiedossa")
+            val eiOpiskeluoikeutta: LocalizedString get() = tr("yki.integraatio.eiOpiskeluoikeutta")
+            val vilppiaEiLaheteta: LocalizedString get() = tr("yki.integraatio.vilppiaEiLaheteta")
+            val eiOppijanumeroa: LocalizedString get() = tr("yki.integraatio.eiOppijanumeroa")
+        }
+
         val suodata: LocalizedString get() = tr("yki.suodata")
         val arvioijiaYhteensa: LocalizedString get() = tr("yki.arvioijiaYhteensa")
         val hakusanaArvioija: LocalizedString
@@ -221,9 +241,6 @@ object UiText {
         val tutkinnonTiedot: LocalizedString get() = tr("yki.tutkinnonTiedot")
         val arviointi: LocalizedString get() = tr("yki.arviointi")
         val integraatiot: LocalizedString get() = tr("yki.integraatiot")
-        val siirrettyKoski: LocalizedString get() = tr("yki.siirrettyKoski")
-        val odottaaSiirtoa: LocalizedString
-            get() = tr("yki.odottaaSiirtoa")
         val opiskeluoikeudenOid: LocalizedString get() = tr("yki.opiskeluoikeudenOid")
         val arviointitilaLahetetty: LocalizedString
             get() = tr("yki.arviointitilaLahetetty")
@@ -288,8 +305,6 @@ object UiText {
 
         val suoritustaEdeltavaEiLaheteta: LocalizedString
             get() = tr("yki.suoritustaEdeltavaEiLaheteta")
-        val arviointitilaaEiLahetetty: LocalizedString
-            get() = tr("yki.arviointitilaaEiLahetetty")
         val saapunut: LocalizedString get() = tr("yki.saapunut")
         val kasitelty: LocalizedString get() = tr("yki.kasitelty")
         val hyvaksytty: LocalizedString get() = tr("yki.hyvaksytty")

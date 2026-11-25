@@ -80,6 +80,10 @@ data class YkiSuoritusEntity(
     val arviointitilaLahetetty: Timestamp?,
     @IgnoreForEquality("DB")
     val arviointitilanLahetysvirhe: String?,
+    @IgnoreForEquality("DB")
+    val koskiSiirretty: Instant? = null,
+    @IgnoreForEquality("DB")
+    val arviointitilanLahetysyritys: Instant? = null,
     val lahdejarjestelmanTunnus: String = "yki.$solkiId",
 ) {
     @IgnoreForEquality("DB")
@@ -181,6 +185,7 @@ data class YkiSuoritusEntity(
                     koskiSiirtoKasitelty = rs.getBoolean("koski_siirto_kasitelty"),
                     arviointitilaLahetetty = rs.getTimestamp("arviointitila_lahetetty"),
                     arviointitilanLahetysvirhe = rs.getString("arviointitilan_lahetysvirhe"),
+                    arviointitilanLahetysyritys = rs.getTimestamp("arviointitilan_lahetysyritys")?.toInstant(),
                     osakoeTyypit =
                         rs.getTypedArrayOrNull("osakokeet_tyypit") { TutkinnonOsa.valueOf(it) }?.toList(),
                 )
@@ -263,6 +268,7 @@ data class YkiSuoritusEntity(
             koskiSiirtoKasitelty: Boolean? = null,
             arviointitilaLahetetty: Timestamp? = null,
             arviointitilanLahetysvirhe: String? = null,
+            arviointitilanLahetysyritys: Instant? = null,
             osakoeTyypit: List<TutkinnonOsa>? = null,
         ): YkiSuoritusEntity =
             YkiSuoritusEntity(
@@ -306,6 +312,8 @@ data class YkiSuoritusEntity(
                 arviointitila = rs.getEnum<Arviointitila>("arviointitila"),
                 arviointitilaLahetetty = arviointitilaLahetetty,
                 arviointitilanLahetysvirhe = arviointitilanLahetysvirhe,
+                koskiSiirretty = rs.getTimestamp("koski_siirretty")?.toInstant(),
+                arviointitilanLahetysyritys = arviointitilanLahetysyritys,
                 lahdejarjestelmanTunnus = rs.getString("lahdejarjestelmantunnus"),
             ).also { it.ilmoitetutOsakokeet = osakoeTyypit?.toSet() }
     }
