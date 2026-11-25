@@ -12,38 +12,38 @@
     .laatikko rect { stroke-width: 1.5; }
     .nimi { font-size: 14px; font-weight: bold; }
     .lisatieto { font-size: 11px; fill: #4b5563; }
-    .kitu rect { fill: #dbeafe; stroke: #1e40af; stroke-width: 3; }
-    .kios rect { fill: #ede9fe; stroke: #6d28d9; stroke-width: 2.5; }
-    .oph rect { fill: #eff6ff; stroke: #60a5fa; }
-    .ulkoinen rect { fill: #fff7ed; stroke: #ea580c; }
-    .infra rect { fill: #f0fdf4; stroke: #16a34a; }
+    .kitu rect { fill: #dbe7f5; stroke: #0b3c6e; stroke-width: 3; }
+    .kios rect { fill: #f7e4ef; stroke: #cc79a7; stroke-width: 2.5; }
+    .oph rect { fill: #eef7fd; stroke: #56b4e9; }
+    .ulkoinen rect { fill: #fdf1d6; stroke: #e69f00; }
+    .infra rect { fill: #e3f2e7; stroke: #117733; }
     .toimija rect { fill: #f3f4f6; stroke: #6b7280; }
-    .ryhma { fill: #f5f9ff; stroke: #60a5fa; stroke-width: 1.5; stroke-dasharray: 4 3; }
-    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #1e3a8a; }
-    .nuoli path { fill: none; stroke: #374151; stroke-width: 1.6; }
-    .heti path { stroke: #0e7490; stroke-width: 2.2; }
-    .ajastettu path { stroke: #a16207; stroke-width: 2.2; }
+    .ryhma { fill: #f5f9fd; stroke: #56b4e9; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ryhman-nimi { font-size: 14px; font-weight: bold; fill: #0b3c6e; }
+    .nuoli path { fill: none; stroke: #1a1a1a; stroke-width: 1.6; }
+    .heti path { stroke: #0072b2; stroke-width: 2.2; }
+    .ajastettu path { stroke: #d55e00; stroke-width: 2.2; }
     .pull path { stroke-dasharray: 7 4; }
-    .kayttaja path { stroke: #9ca3af; stroke-width: 1.4; }
+    .kayttaja path { stroke: #949494; stroke-width: 1.4; }
     .nuolen-teksti rect { fill: #ffffff; fill-opacity: 0.92; }
     .nuolen-teksti text { font-size: 11.5px; }
     .ei-kaytossa { opacity: 0.5; }
     .selite { font-size: 11.5px; }
     </style>
     <marker id="karki-heti" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0,0 L 10,5 L 0,10 z" fill="#0e7490"/>
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#0072b2"/>
     </marker>
     <marker id="karki-ajastettu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0,0 L 10,5 L 0,10 z" fill="#a16207"/>
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#d55e00"/>
     </marker>
     <marker id="karki-push" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#1a1a1a"/>
     </marker>
     <marker id="karki-pull" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0,0 L 10,5 L 0,10 z" fill="#374151"/>
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#1a1a1a"/>
     </marker>
     <marker id="karki-kayttaja" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0,0 L 10,5 L 0,10 z" fill="#9ca3af"/>
+      <path d="M 0,0 L 10,5 L 0,10 z" fill="#949494"/>
     </marker>
   </defs>
   <rect class="tausta" x="0" y="0" width="1600" height="714"/>

@@ -89,9 +89,9 @@ truth for layout; every coordinate is set by hand in it (no auto-layout).
 - Arrow direction = **direction the data moves**. `both=True` for genuinely two-way exchanges
   (payments, S3, signing). Every `s.arrow(...)` takes an explicit `kind=`, and the legend
   (`NUOLITYYPIT`) is shared by all diagrams:
-  - `heti` (teal): system push triggered by an event, e.g. kitu → KIOS arviointitila right after
+  - `heti` (blue): system push triggered by an event, e.g. kitu → KIOS arviointitila right after
     ingest, or kitu → Solki right after a save. Retries on a timer don't change this.
-  - `ajastettu` (amber): system push run as a batch/scheduled job (KIOS → Solki every 59 min,
+  - `ajastettu` (vermillion): system push run as a batch/scheduled job (KIOS → Solki every 59 min,
     KIOS → kitu VKT hourly, kitu → KOSKI YKI every 15 min and VKT nightly, KOSKI tiedotteet hourly, email queues polled
     every 10 s).
   - `push` (dark grey): system push whose timing we **haven't verified in code**, e.g. Solki → kitu
@@ -101,6 +101,11 @@ truth for layout; every coordinate is set by hand in it (no auto-layout).
     KOSKI is a pull, not a "julkaisu" push).
   - `kayttaja` (light grey): a person's action in a UI. It's not a system push, so it never uses
     the three push styles.
+- **Colours are colour-blind safe** (Okabe-Ito based; arrows `#0072b2` blue / `#d55e00` vermillion /
+  `#1a1a1a` black / `#949494` grey, boxes navy / `#cc79a7` / `#e69f00` / `#117733` / `#56b4e9`).
+  Don't reintroduce red-vs-green, blue-vs-violet or same-darkness teal-vs-amber pairs. Before
+  changing a colour, check that each pair that appears in the same diagram stays distinguishable
+  under protan/deutan/tritan simulation (e.g. Machado 2009 matrices, ΔE ≳ 30 for arrows).
 - Ataru is labelled **Hakemuspalvelu** in every diagram; "ataru" is only the name in code.
 - Classes: `kitu`, `kios`, `oph` (other OPH service), `ulkoinen` (Solki, Koealusta, Paytrail,
   Suomi.fi), `infra` (S3), `toimija` (people). `ei-kaytossa` greys out integrations that exist in
