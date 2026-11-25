@@ -1,6 +1,8 @@
 package fi.oph.kitu.yki.suoritukset
 
 import arrow.core.Either
+import fi.oph.kitu.config.ApplicationProperties
+import fi.oph.kitu.config.KituApplicationProperties
 import fi.oph.kitu.dev.mockdata.generateRandomYkiSuoritusEntity
 import fi.oph.kitu.html.copyable
 import fi.oph.kitu.i18n.Language
@@ -13,7 +15,11 @@ import fi.oph.kitu.yki.TutkinnonOsa
 import kotlinx.html.div
 import kotlinx.html.stream.createHTML
 import kotlinx.html.td
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.core.env.Environment
+import org.springframework.mock.env.MockEnvironment
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.assertEquals
@@ -21,6 +27,23 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class YkiSuoritusPageTest {
+    private var aiemmatAsetukset: KituApplicationProperties? = null
+    private var aiempiYmparisto: Environment? = null
+
+    @BeforeEach
+    fun asetaSovelluksenAsetukset() {
+        aiemmatAsetukset = runCatching { ApplicationProperties.kitu }.getOrNull()
+        aiempiYmparisto = runCatching { ApplicationProperties.environment }.getOrNull()
+        ApplicationProperties.kitu = KituApplicationProperties(appUrl = "http://localhost/kielitutkinnot")
+        ApplicationProperties.environment = MockEnvironment()
+    }
+
+    @AfterEach
+    fun palautaSovelluksenAsetukset() {
+        aiemmatAsetukset?.let { ApplicationProperties.kitu = it }
+        aiempiYmparisto?.let { ApplicationProperties.environment = it }
+    }
+
     private fun renderHenkilonTiedot(
         suoritus: YkiSuoritusEntity,
         henkilo: OppijanumerorekisteriHenkilo?,
