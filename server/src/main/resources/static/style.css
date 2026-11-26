@@ -234,6 +234,11 @@ table.info-table th {
   width: 25%;
 }
 
+table.info-table td .pitka-teksti {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
 table.info-table tr.diff td {
   background: var(--oph-yellow1) !important;
 }
