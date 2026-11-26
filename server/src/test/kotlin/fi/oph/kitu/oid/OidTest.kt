@@ -75,4 +75,22 @@ class OidTest {
         assertTrue(userOidString.isOidOfClass(OidClass.USER))
         assertFalse(userOidString.isOidOfClass(OidClass.OPPIJA))
     }
+
+    @Test
+    fun `OIDin ympäriltä poistetaan tyhjät merkit ennen jäsennystä`() {
+        listOf(" $validOidString", "$validOidString ", "\t$validOidString\n", "\u00A0$validOidString\u00A0").forEach {
+            assertEquals(validOidString, Oid.parse(it).getOrThrow().toString())
+            assertEquals(validOidString, Oid(it).toString())
+        }
+    }
+
+    @Test
+    fun `tyhjät merkit OIDin ympärillä eivät estä luokan tunnistusta`() {
+        assertTrue(" $oppijaOidString ".isOidOfClass(OidClass.OPPIJA))
+    }
+
+    @Test
+    fun `tyhjä merkki OIDin keskellä on yhä virhe`() {
+        assertTrue(Oid.parse("1.2.246.562. 10.1234567890").isLeft())
+    }
 }

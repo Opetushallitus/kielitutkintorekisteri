@@ -21,7 +21,7 @@ data class Oid private constructor(
 ) : Serializable {
     override fun toString(): String = value.toString()
 
-    constructor(valueString: String) : this(org.ietf.jgss.Oid(valueString))
+    constructor(valueString: String) : this(org.ietf.jgss.Oid(valueString.trim()))
 
     @Throws(IOException::class)
     private fun writeObject(out: ObjectOutputStream) {
@@ -35,11 +35,12 @@ data class Oid private constructor(
     }
 
     companion object {
-        fun String.isOidOfClass(oidClass: OidClass): Boolean = startsWith("${oidClass.node}.") && parse(this).isRight()
+        fun String.isOidOfClass(oidClass: OidClass): Boolean =
+            trim().startsWith("${oidClass.node}.") && parse(this).isRight()
 
         fun parse(source: String?): Either<MalformedOidError, Oid> =
             try {
-                Oid(org.ietf.jgss.Oid(source)).right()
+                Oid(org.ietf.jgss.Oid(source?.trim())).right()
             } catch (_: GSSException) {
                 MalformedOidError(source).left()
             }
