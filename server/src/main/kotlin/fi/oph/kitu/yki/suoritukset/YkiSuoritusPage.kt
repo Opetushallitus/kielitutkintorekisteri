@@ -197,7 +197,7 @@ object YkiSuoritusPage {
                     UiText.Yki.arvosanaMuuttui to
                         { +arviointi.arvosanaMuuttui?.joinToString(", ") { it.viewText }.orDash() }
                 },
-                tarkistusarviointi?.let { UiText.Yki.perustelu to { +it.perustelu } },
+                tarkistusarviointi?.let { UiText.Yki.perustelu to { div(classes = "pitka-teksti") { +it.perustelu } } },
             )
         }
 
