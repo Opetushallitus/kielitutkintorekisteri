@@ -263,6 +263,21 @@ class TehtavapankkiRepository(
     }
 
     @WithSpan
+    fun findTiedostoAvaimetByPakettiId(pakettiId: Int): Set<String> =
+        jdbc
+            .queryForList(
+                """
+                SELECT DISTINCT tt.s3_avain
+                FROM tehtava_tiedosto tt
+                JOIN tehtava t ON t.id = tt.tehtava_id
+                WHERE t.paketti_id = :paketti_id
+                """.trimIndent(),
+                mapOf("paketti_id" to pakettiId),
+                String::class.java,
+            ).filterNotNull()
+            .toSet()
+
+    @WithSpan
     fun findVastauksetByTehtavaIds(tehtavaIds: List<Int>): Map<Int, List<TehtavaVastausEntity>> {
         if (tehtavaIds.isEmpty()) return emptyMap()
         val rows =

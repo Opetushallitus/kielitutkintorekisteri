@@ -43,9 +43,9 @@ class TehtavapankkiIngestService(
      *
      * Versio_hash lasketaan raakojen tavujen SHA-256:sta väliaikaistiedostoa
      * streamaten, eli ennen parsintaa. Muuttumaton paketti tunnistetaan siis
-     * lukematta XML:ää muistiin ja lataamatta assetteja uudelleen — parsinta
-     * materialisoi koko sisällön base64-medioineen kekoon, joten sitä ei tehdä
-     * turhaan.
+     * lukematta XML:ää muistiin — parsinta materialisoi koko sisällön
+     * base64-medioineen kekoon, joten sitä ei tehdä turhaan. Vain jos paketin
+     * assetteja puuttuu S3:sta, XML parsitaan ja puuttuvat viedään uudelleen.
      *
      * Transaktiossa ovat vain tietokantakirjoitukset: S3-lataus, parsinta ja
      * assettien vienti tehdään sen ulkopuolella, jottei yhteys ole varattuna
@@ -78,11 +78,12 @@ class TehtavapankkiIngestService(
 
         repository.findPakettiByVersionHash(LAHDEJARJESTELMA, source.lahdeId, versioHash)?.let { sama ->
             Span.current().setAttribute("ingest.dedup", true)
+            palautaPuuttuvatAssetit(sama, tempFile)?.let { return it.left() }
             return refreshLahdeMetadata(sama, lahde).right()
         }
 
         val quiz =
-            when (val r = Files.newInputStream(tempFile).use { parser.parse(it) }) {
+            when (val r = parse(tempFile)) {
                 is Either.Right -> r.value
                 is Either.Left -> return r.value.left()
             }
@@ -90,6 +91,26 @@ class TehtavapankkiIngestService(
         tehtavapankkiService.uploadAssets(xmlKey, quiz)
 
         return persistQuiz(xmlKey, source, lahde, versioHash, quiz).right()
+    }
+
+    private fun parse(tempFile: Path): Either<TehtavapankkiParseError, TehtavapankkiQuiz> =
+        Files.newInputStream(tempFile).use { parser.parse(it) }
+
+    private fun palautaPuuttuvatAssetit(
+        paketti: TehtavapakettiEntity,
+        tempFile: Path,
+    ): TehtavapankkiParseError? {
+        val xmlKey = paketti.s3Avain ?: return null
+        val puuttuvat = tehtavapankkiService.puuttuvatAvaimet(repository.findTiedostoAvaimetByPakettiId(paketti.id!!))
+        Span.current().setAttribute("assets.missing", puuttuvat.size.toLong())
+        if (puuttuvat.isEmpty()) return null
+        val quiz =
+            when (val r = parse(tempFile)) {
+                is Either.Right -> r.value
+                is Either.Left -> return r.value
+            }
+        tehtavapankkiService.uploadAssets(xmlKey, quiz, puuttuvat)
+        return null
     }
 
     private fun readLahdeMetadata(
