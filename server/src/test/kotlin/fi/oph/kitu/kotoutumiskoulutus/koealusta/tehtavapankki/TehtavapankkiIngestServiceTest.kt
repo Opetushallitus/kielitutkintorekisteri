@@ -350,7 +350,7 @@ class TehtavapankkiIngestServiceTest(
     }
 
     @Test
-    fun `muuttumattoman paketin ingest ei parsi XML aa eika vie assetteja uudelleen`() {
+    fun `muuttumattoman paketin ingest ei parsi XML aa eika vie assetteja uudelleen kun ne ovat tallessa`() {
         val xmlKey = "42-Suomi_alkeet/2026-01-01.xml"
         s3Client.putObject(
             { it.bucket(TEST_BUCKET).key(xmlKey) },
@@ -359,22 +359,48 @@ class TehtavapankkiIngestServiceTest(
         val assetPrefix = "42-Suomi_alkeet/2026-01-01 assets/"
 
         ingestService.ingestFromS3(xmlKey)
-        assertTrue(
-            listKeys(assetPrefix).isNotEmpty(),
-            "Ensimmäisen ingestin pitäisi viedä assetit S3:een",
-        )
-
-        listKeys(assetPrefix).forEach { key ->
-            s3Client.deleteObject { it.bucket(TEST_BUCKET).key(key) }
+        val avaimet = listKeys(assetPrefix)
+        assertTrue(avaimet.isNotEmpty(), "Ensimmäisen ingestin pitäisi viedä assetit S3:een")
+        avaimet.forEach { key ->
+            s3Client.putObject({ it.bucket(TEST_BUCKET).key(key) }, RequestBody.fromString("merkki"))
         }
 
         ingestService.ingestFromS3(xmlKey)
 
         assertEquals(
-            emptyList(),
-            listKeys(assetPrefix),
-            "Muuttumaton versio_hash pitäisi tunnistaa ennen parsintaa, jolloin " +
-                "assetteja ei viedä uudelleen",
+            avaimet.map { "merkki" },
+            avaimet.map { key -> s3Client.getObjectAsBytes { it.bucket(TEST_BUCKET).key(key) }.asUtf8String() },
+            "Muuttumaton versio_hash pitäisi tunnistaa ennen parsintaa, jolloin assetteja ei viedä uudelleen",
+        )
+    }
+
+    @Test
+    fun `muuttumattoman paketin ingest palauttaa S3 sta puuttuvat assetit`() {
+        val xmlKey = "42-Suomi_alkeet/2026-01-01.xml"
+        s3Client.putObject(
+            { it.bucket(TEST_BUCKET).key(xmlKey) },
+            RequestBody.fromBytes(xmlBytes),
+        )
+        val assetPrefix = "42-Suomi_alkeet/2026-01-01 assets/"
+
+        val paketti = (ingestService.ingestFromS3(xmlKey) as Either.Right).value
+        val avaimet = listKeys(assetPrefix)
+        assertTrue(avaimet.size >= 2, "Fixturessa pitäisi olla vähintään kaksi assettia, oli: $avaimet")
+        val (poistettu, sailytetty) = avaimet.take(2)
+        s3Client.deleteObject { it.bucket(TEST_BUCKET).key(poistettu) }
+        s3Client.putObject({ it.bucket(TEST_BUCKET).key(sailytetty) }, RequestBody.fromString("merkki"))
+
+        val toinen = ingestService.ingestFromS3(xmlKey)
+
+        assertEquals(paketti.id, (toinen as Either.Right).value.id)
+        assertEquals(avaimet, listKeys(assetPrefix))
+        assertTrue(
+            s3Client.getObjectAsBytes { it.bucket(TEST_BUCKET).key(poistettu) }.asByteArray().isNotEmpty(),
+        )
+        assertEquals(
+            "merkki",
+            s3Client.getObjectAsBytes { it.bucket(TEST_BUCKET).key(sailytetty) }.asUtf8String(),
+            "Tallessa olevaa assettia ei pitäisi viedä uudelleen",
         )
     }
 

@@ -197,7 +197,7 @@ class TehtavapankkiService(
      * kansion suorat `.xml`-objektit, joilla on sama koko ja ETag (eli sama sisältö).
      * Vanhin pidetään, loput poistetaan. Eri kansioiden välillä ei verrata.
      * Assetteja (`… assets/…`) ei verrata, koska `tehtava_tiedosto.s3_avain`
-     * viittaa niihin, eikä samaa sisältöä ladata uudelleen hash-osuman jälkeen.
+     * viittaa niihin.
      */
     @WithSpan
     fun removeDuplicates(): CleanupResult? =
@@ -251,6 +251,7 @@ class TehtavapankkiService(
     fun uploadAssets(
         xmlKey: String,
         quiz: TehtavapankkiQuiz,
+        vainAvaimet: Set<String>? = null,
     ): AssetExtractResult {
         val prefix = "${xmlKey.removeSuffix(".xml")} assets/"
         val uploaded = mutableListOf<String>()
@@ -261,6 +262,7 @@ class TehtavapankkiService(
             try {
                 if (file.name.isBlank()) return@forEach
                 val key = "$prefix${file.name}"
+                if (vainAvaimet != null && key !in vainAvaimet) return@forEach
                 val bytes =
                     try {
                         decoder.decode(file.content)
@@ -280,6 +282,22 @@ class TehtavapankkiService(
 
         return AssetExtractResult(xmlKey, uploaded, failed)
     }
+
+    @WithSpan
+    fun puuttuvatAvaimet(avaimet: Set<String>): Set<String> =
+        useS3 { bucket ->
+            val olemassa =
+                avaimet
+                    .map { it.substringBeforeLast('/') + "/" }
+                    .distinct()
+                    .flatMap { prefix ->
+                        s3Client
+                            .listObjectsV2Paginator { it.bucket(bucket).prefix(prefix) }
+                            .contents()
+                            .map { it.key() }
+                    }.toSet()
+            avaimet - olemassa
+        }.orEmpty()
 
     /**
      * Lataa S3-objektin väliaikaistiedostoon streamaten, jottei isoa tehtäväpankkia
